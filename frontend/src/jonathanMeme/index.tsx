@@ -1,4 +1,4 @@
-import * as classes from './mycss.module.css';
+import * as classes from "./mycss.module.css";
 
 // export const imageUrl = new URL(
 //   'meme.png?width=250',

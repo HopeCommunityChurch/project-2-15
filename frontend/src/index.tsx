@@ -1,8 +1,8 @@
-import {body} from "./jonathanMeme/index.tsx";
+import { Button3D } from "./Components/Button3D/Button3D";
 import ReactDOM from "react-dom";
+import React from "react";
+
 console.log("hello world");
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<h1 className={body} >Hello, world!</h1>);
-
-console.log(body);
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<Button3D></Button3D>);
