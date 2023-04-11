@@ -1,0 +1,10 @@
+.ProseMirror {
+  min-height: 200px;
+  border: 1px solid grey;
+}
+.chunk {
+  margin: 0px;
+}
+/* .chunk:hover { */
+/*   background-color: lightgrey; */
+/* } */
