@@ -1,5 +1,5 @@
 import { Button3D } from "./Components/Button3D/Button3D";
-import ReactDOM from "react-dom";
+import ReactDOM from "react-dom/client";
 import React from "react";
 
 console.log("hello world");
