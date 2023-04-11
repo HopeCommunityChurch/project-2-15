@@ -1,8 +1,17 @@
-import { Button3D } from "./Components/Button3D/Button3D";
 import ReactDOM from "react-dom/client";
 import React from "react";
+import * as classes from "./styles.module.scss";
 
-console.log("hello world");
+import { Button3D } from "./Components/Button3D/Button3D";
+import { LandingHomePage } from "./Pages/LandingHomePage/LandingHomePage";
+
+export function App() {
+  return (
+    <div>
+      <LandingHomePage className={classes.global}></LandingHomePage>
+    </div>
+  );
+}
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<Button3D></Button3D>);
+root.render(<App></App>);

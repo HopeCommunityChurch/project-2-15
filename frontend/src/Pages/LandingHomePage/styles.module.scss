@@ -1,0 +1,14 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-gap: 20px;
+  grid-gap: 1em;
+  padding: 0px 20px;
+}
+
+footer,
+.mainContent {
+  grid-column-start: 1;
+  grid-column-end: 13;
+  background: lightgray;
+}
