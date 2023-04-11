@@ -5,6 +5,6 @@
 .chunk {
   margin: 0px;
 }
-/* .chunk:hover { */
-/*   background-color: lightgrey; */
-/* } */
+.chunk:hover {
+  background-color: rgba(0,0,0,0.05);
+}
