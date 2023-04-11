@@ -1,0 +1,12 @@
+{
+  "include": [ "typings", "src" ],
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true
+  }
+}
