@@ -1,0 +1,31 @@
+@import "../../GlobalCSS/colors.scss";
+
+.blue {
+  color: #fff;
+  background-color: var(--blue-100);
+  border: none;
+  border-radius: 5px;
+  padding: 7px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--blue-75);
+  }
+}
+
+.lightBlue {
+  color: var(--blue-100);
+  background-color: var(--blue-25);
+  border: 2px solid var(--blue-50);
+  border-radius: 5px;
+  padding: 5px 13px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}

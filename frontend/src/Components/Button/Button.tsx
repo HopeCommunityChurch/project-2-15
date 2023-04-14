@@ -1,10 +1,23 @@
 import React from "react";
 import * as classes from "./styles.module.scss";
 
-export function Button() {
+interface ButtonProps {
+  type: "lightBlue" | "Blue" | "default";
+  children?: React.ReactNode;
+}
+
+export function Button(props: ButtonProps) {
   return (
-    <div>
-      <button className={classes.buttonContainer}>hello world</button>
-    </div>
+    <button
+      className={
+        props.type === "lightBlue"
+          ? classes.lightBlue
+          : props.type === "Blue"
+          ? classes.blue
+          : classes.button
+      }
+    >
+      {props.children}
+    </button>
   );
 }

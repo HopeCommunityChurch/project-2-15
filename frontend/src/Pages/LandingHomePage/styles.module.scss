@@ -1,14 +1,49 @@
+@import "../../GlobalCSS/layout.scss";
+
 .grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  grid-gap: 20px;
-  grid-gap: 1em;
-  padding: 0px 20px;
+  grid-gap: 0px;
 }
 
 footer,
 .mainContent {
   grid-column-start: 1;
   grid-column-end: 13;
-  background: lightgray;
+}
+
+.section1 {
+  display: grid;
+  grid-template-columns: 4fr 3fr;
+  grid-gap: 20px;
+  max-width: 1300px;
+  padding: 0px 50px;
+  margin: 0 auto;
+}
+
+.leftText {
+  padding: 20px;
+}
+
+.rightImage {
+  img {
+    max-width: 100%;
+  }
+}
+
+.sectionTitle {
+  font-weight: 600;
+  font-size: 57px;
+  margin-bottom: 0px;
+}
+
+.sectionDescription {
+  font-size: 24px;
+}
+
+.blueRoundedContainer {
+  display: flex;
+  background-color: red;
+  justify-content: space-between;
+  align-items: center;
 }

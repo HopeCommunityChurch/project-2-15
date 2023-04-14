@@ -1,5 +1,6 @@
 import React from "react";
 import Logo from "../../Components/PreLoginTopNav/BibleOneLogoSVG";
+import { Button } from "../../Components/Button/Button";
 
 import * as classes from "./styles.module.scss";
 
@@ -21,8 +22,8 @@ export function PreLoginTopNav() {
         </ul>
       </nav>
       <div className={classes.buttons}>
-        <button>Login</button>
-        <button>Sign Up</button>
+        <Button type="lightBlue">Log In</Button>
+        <Button type="Blue">Sign Up</Button>
       </div>
     </header>
   );
