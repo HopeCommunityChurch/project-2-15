@@ -1,4 +1,4 @@
-import {EditorState, Plugin, Transaction} from "prosemirror-state"
+import {EditorState, Plugin, PluginKey, Transaction, EditorStateConfig, Selection} from "prosemirror-state"
 import {EditorView, NodeView, DecorationSet, Decoration} from "prosemirror-view"
 import {undoItem, redoItem, MenuItem, MenuItemSpec, menuBar} from "prosemirror-menu"
 import {undo, redo, history} from "prosemirror-history"
@@ -149,32 +149,80 @@ const decreaseLevel = (state : EditorState, dispatch?: ((tr: Transaction) => voi
 };
 
 
-const addReference = (state : EditorState, dispatch?: ((tr: Transaction) => void) ) => {
-  let referenceMarkType = textSchema.marks.reference;
+const addReference = (state : EditorState, dispatch?: ((tr: Transaction) => void), view?: EditorView ) => {
+  let currentSelection = state.selection;
   let from = state.selection.from;
   let to = state.selection.to;
   if (dispatch) {
-    const rId = prompt("reference id", "a");
-    const mark = referenceMarkType.create({referenceId: rId})
-    dispatch( state.tr.addMark(from, to, mark));
+    const rId = crypto.randomUUID();
+    let referenceToMarkType = textSchema.marks.referenceTo;
+    const mark = referenceToMarkType.create({referenceId: rId})
+    let newState = state.tr.addMark(from, to, mark).setMeta(referencePluginKey, {addedReference: true, currentSelection, referenceId: rId});
+    dispatch(newState);
   }
   return true;
 };
 
-const addReferenceTo = (state : EditorState, dispatch?: ((tr: Transaction) => void) ) => {
-  let referenceMarkType = textSchema.marks.referenceTo;
-  let from = state.selection.from;
-  let to = state.selection.to;
-  if (dispatch) {
-    const rId = prompt("reference id", "a");
-    const mark = referenceMarkType.create({referenceId: rId})
-    dispatch( state.tr.addMark(from, to, mark));
-  }
-  return true;
-};
+interface ReferencePluginState {
+  isLooking : boolean;
+  selection?: Selection;
+  referenceId? : string;
+}
 
+let referencePluginKey = new PluginKey<ReferencePluginState>("referencePlugin");
 
-
+let referencePlugin = new Plugin({
+  key: referencePluginKey,
+  state: {
+    init () {
+      return {isLooking : false}
+    },
+    apply ( tr : Transaction, value : ReferencePluginState) {
+      const meta = tr.getMeta(referencePluginKey);
+      if ( meta && meta.addedReference === true && meta.currentSelection) {
+        console.log(meta);
+        return {
+          isLooking : true,
+          selection : meta.currentSelection,
+          referenceId: meta.referenceId,
+        };
+      } else if (meta && meta.referenceDone) {
+        return {isLooking : false};
+      } else {
+        return {
+          isLooking : value.isLooking,
+          selection : value.selection,
+          referenceId : value.referenceId,
+        };
+      }
+    }
+  },
+  props: {
+    handleDOMEvents: {
+      "mouseup": (view : EditorView, e) => {
+        const state = referencePluginKey.getState(view.state)
+        if (state.isLooking) {
+          const selection = view.state.selection;
+          const from = selection.from;
+          const to = selection.to;
+          if (selection.empty) {
+            return false;
+          }
+          e.preventDefault();
+          let referenceMarkType = textSchema.marks.reference;
+          const mark = referenceMarkType.create({referenceId: state.referenceId});
+          const newstate = view.state.tr
+                            .addMark(from, to, mark)
+                            .setMeta(referencePluginKey, {referenceDone: true});
+          view.dispatch(newstate);
+          return true;
+        } else {
+          return false;
+        }
+      },
+    },
+  },
+});
 
 let node = Node.fromJSON(textSchema, defaultText);
 
@@ -217,21 +265,12 @@ const addReferenceMenuItem : MenuItemSpec = {
   label: "add reference",
 };
 
-
-const addReferenceToMenuItem : MenuItemSpec = {
-  run: addReferenceTo,
-  select: addReferenceTo,
-  label: "add reference to",
-};
-
-
 const menuStuff = [
   undoItem,
   redoItem,
-  new MenuItem(indentMenuItem),
-  new MenuItem(backIndentMenuItem),
+  // new MenuItem(indentMenuItem),
+  // new MenuItem(backIndentMenuItem),
   new MenuItem(addReferenceMenuItem),
-  new MenuItem(addReferenceToMenuItem),
 ];
 
 let state = EditorState.create({
@@ -248,6 +287,7 @@ let state = EditorState.create({
     keymap(baseKeymap),
     currentChunkPlug,
     menuBar({content: [menuStuff]}),
+    referencePlugin
   ],
 });
 
@@ -319,7 +359,7 @@ let view = new EditorView(document.getElementById('editorRoot'), {
     referenceTo: referenceToMarkView,
   },
   dispatchTransaction: (transaction) => {
-    console.log(JSON.stringify(transaction.doc.toJSON()));
+    // console.log(JSON.stringify(transaction.doc.toJSON()));
     let newState = view.state.apply(transaction);
     view.updateState(newState);
   }
