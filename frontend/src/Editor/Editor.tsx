@@ -1,15 +1,56 @@
-import {EditorState} from "prosemirror-state"
-import {AttrStep} from "prosemirror-transform"
-import {EditorView} from "prosemirror-view"
+import {EditorState, Plugin, Transaction} from "prosemirror-state"
+import {EditorView, NodeView, DecorationSet, Decoration} from "prosemirror-view"
+import {undoItem, redoItem, MenuItem, MenuItemSpec, menuBar} from "prosemirror-menu"
 import {undo, redo, history} from "prosemirror-history"
 import {keymap} from "prosemirror-keymap"
-import {Schema, Node} from "prosemirror-model"
+import {Schema, Node, Mark} from "prosemirror-model"
 import {baseKeymap} from "prosemirror-commands"
 import "./styles.css"
+import * as classes from "./styles.module.css"
+import defaultText from "./default.json"
+
+
 const textSchema = new Schema({
   nodes: {
     doc: {
-      content: "chunk+"
+      content: "section*"
+    },
+    section: {
+      content: "studyElement*",
+      isolating: true,
+      defining: true,
+      attrs: { book: { default: "Genesis" }, verses: { default: "1:1" }},
+    },
+    bibleText: {
+      content: "chunk*",
+      group: "studyElement",
+      isolating: true,
+      defining: true,
+      toDOM: () => {
+        return [
+          "div",
+          {
+            "class": classes.bibleText,
+          },
+          0
+        ]
+      }
+    },
+    questions: {
+      content: "question+",
+      group: "studyElement",
+      isolating: true,
+      defining: true,
+    },
+    question: {
+      content: "text*",
+      toDOM: () => {
+        return [
+          "li",
+          { "class": classes.question},
+          0
+        ]
+      }
     },
     chunk: {
       content: "text*",
@@ -18,29 +59,61 @@ const textSchema = new Schema({
         return [
           "p",
           {
-            "class": "chunk",
+            "class": classes.chunk,
             "level": node.attrs.level,
-            "style": "margin-left:" + node.attrs.level + "em;",
+            "style": "margin-left:" + 1.5 * node.attrs.level + "em;",
           },
           0
         ]
       },
     },
     text: {inline: true},
-  }
+  },
+  marks: {
+    reference: {
+      attrs: { referenceId: {} },
+      toDOM: (mark) => {
+        return [
+          "span",
+          {
+            "data-type": "reference",
+            "referenceId": mark.attrs.referenceId,
+          },
+          0
+        ]
+      }
+    },
+    referenceTo: {
+      attrs: { referenceId: {} },
+    },
+  },
 });
 
-const increaseLevel = (state : EditorState, dispatch ) => {
-  let type = textSchema.nodes.chunk;
+const nodeIsChunk = (node : Node) => {
+  if (node.type.name === "section")
+    return true;
+  if (node.type.name === "bibleText")
+    return true;
+  if (node.type.name != "chunk")
+    return false;
+}
+
+const increaseLevel = (state : EditorState, dispatch?: ((tr: Transaction) => void) ) => {
   let from = state.selection.from;
   let to = state.selection.to;
   let toTransform  = [];
   // Why is this stupid?
   state.doc.nodesBetween(from, to, (node, pos) => {
-    if (node.type != type)
+    const result = nodeIsChunk(node)
+    if (result === true)
+      return true;
+    if (result === false)
       return false;
     toTransform.push({pos, node});
+    return false;
   });
+  if (toTransform.length == 0) return false;
+  let type = textSchema.nodes.chunk;
   if (dispatch)
     dispatch(
       toTransform.reduce((pre, {pos, node}) => {
@@ -50,17 +123,22 @@ const increaseLevel = (state : EditorState, dispatch ) => {
   return true;
 };
 
-const descreaseLevel = (state : EditorState, dispatch) => {
+const decreaseLevel = (state : EditorState, dispatch?: ((tr: Transaction) => void) ) => {
   let type = textSchema.nodes.chunk;
   let from = state.selection.from;
   let to = state.selection.to;
   let toTransform  = [];
   // Why is this stupid?
   state.doc.nodesBetween(from, to, (node, pos) => {
-    if (node.type != type)
+    const result = nodeIsChunk(node)
+    if (result === true)
+      return true;
+    if (result === false)
       return false;
     toTransform.push({pos, node});
+    return false;
   });
+  if (toTransform.length == 0) return false;
   let nextState = toTransform.reduce((pre, {pos, node}) => {
     let level = node.attrs.level;
     let nextLevel = (level !=0)? level-1 : level;
@@ -71,12 +149,90 @@ const descreaseLevel = (state : EditorState, dispatch) => {
 };
 
 
+const addReference = (state : EditorState, dispatch?: ((tr: Transaction) => void) ) => {
+  let referenceMarkType = textSchema.marks.reference;
+  let from = state.selection.from;
+  let to = state.selection.to;
+  if (dispatch) {
+    const rId = prompt("reference id", "a");
+    const mark = referenceMarkType.create({referenceId: rId})
+    dispatch( state.tr.addMark(from, to, mark));
+  }
+  return true;
+};
 
-let defualtTxt = `
-{"type":"doc","content":[{"type":"chunk","attrs":{"level":0},"content":[{"type":"text","text":"21 But now God has shown us a way to be made right with him without keeping the requirements of the law, as was promised in the writings of Moses and the prophets long ago. 22 We are made right with God by placing our faith in Jesus Christ. And this is true for everyone who believes, no matter who we are. 23 For everyone has sinned; we all fall short of God’s glorious standard.24 Yet God, in his grace, freely makes us right in his sight. He did this through Christ Jesus when he freed us from the penalty for our sins. 25 For God presented Jesus as the sacrifice for sin. People are made right with God when they believe that Jesus sacrificed his life, shedding his blood. This sacrifice shows that God was being fair when he held back and did not punish those who sinned in times past, 26 for he was looking ahead and including them in what he would do in this present time. God did this to demonstrate his righteousness, for he himself is fair and just, and he makes sinners right in his sight when they believe in Jesus. 27 Can we boast, then, that we have done anything to be accepted by God? No, because our acquittal is not based on obeying the law. It is based on faith. 28 So we are made right with God through faith and not by obeying the law. 29 After all, is God the God of the Jews only? Isn’t he also the God of the Gentiles? Of course he is. 30 There is only one God, and he makes people right with himself only by faith, whether they are Jews or Gentiles. 31 Well then, if we emphasize faith, does this mean that we can forget about the law? Of course not! In fact, only when we have faith do we truly fulfill the law."}]}]}
-`;
+const addReferenceTo = (state : EditorState, dispatch?: ((tr: Transaction) => void) ) => {
+  let referenceMarkType = textSchema.marks.referenceTo;
+  let from = state.selection.from;
+  let to = state.selection.to;
+  if (dispatch) {
+    const rId = prompt("reference id", "a");
+    const mark = referenceMarkType.create({referenceId: rId})
+    dispatch( state.tr.addMark(from, to, mark));
+  }
+  return true;
+};
 
-let node = Node.fromJSON(textSchema, JSON.parse(defualtTxt));
+
+
+
+let node = Node.fromJSON(textSchema, defaultText);
+
+let currentChunkPlug = new Plugin({
+  props: {
+    decorations(state : EditorState) {
+      const selection = state.selection;
+      const decorations = [];
+
+      state.doc.nodesBetween(selection.from, selection.to, (node, position) => {
+        const result = nodeIsChunk(node)
+        if (result === true)
+          return true;
+        if (result === false)
+          return false;
+        decorations.push(Decoration.node(position, position + node.nodeSize, {class: classes.selected}));
+      });
+
+      return DecorationSet.create(state.doc, decorations);
+    }
+  }
+})
+
+const indentMenuItem : MenuItemSpec = {
+  run: increaseLevel,
+  select: increaseLevel,
+  label: "indent",
+};
+
+const backIndentMenuItem : MenuItemSpec = {
+  run: decreaseLevel,
+  select: decreaseLevel,
+  label: "unindent",
+};
+
+
+const addReferenceMenuItem : MenuItemSpec = {
+  run: addReference,
+  select: addReference,
+  label: "add reference",
+};
+
+
+const addReferenceToMenuItem : MenuItemSpec = {
+  run: addReferenceTo,
+  select: addReferenceTo,
+  label: "add reference to",
+};
+
+
+const menuStuff = [
+  undoItem,
+  redoItem,
+  new MenuItem(indentMenuItem),
+  new MenuItem(backIndentMenuItem),
+  new MenuItem(addReferenceMenuItem),
+  new MenuItem(addReferenceToMenuItem),
+];
 
 let state = EditorState.create({
   schema: textSchema,
@@ -87,16 +243,83 @@ let state = EditorState.create({
       "Mod-z": undo,
       "Mod-y": redo,
       "Tab": increaseLevel,
-      "Shift-Tab": descreaseLevel,
+      "Shift-Tab": decreaseLevel,
     }),
     keymap(baseKeymap),
+    currentChunkPlug,
+    menuBar({content: [menuStuff]}),
   ],
 });
 
+class SectionView implements NodeView {
+  dom : HTMLElement
+  contentDOM : HTMLElement
+  constructor (node : Node) {
+    this.dom = document.createElement("div");
+    this.dom.className = classes.section;
+    const header = document.createElement("h2");
+    header.innerText = node.attrs.book + " " + node.attrs.verses;
+    this.dom.appendChild(header)
+    this.contentDOM = document.createElement("div");
+    this.contentDOM.className = classes.content;
+    this.dom.appendChild(this.contentDOM);
+  }
+}
+
+class QuestionsView implements NodeView {
+  dom : HTMLElement
+  contentDOM : HTMLElement
+  constructor (node : Node) {
+    this.dom = document.createElement("div");
+    this.dom.className = classes.questions;
+    const header = document.createElement("h3");
+    header.innerText = "Questions"
+    this.dom.appendChild(header)
+    this.contentDOM = document.createElement("ul");
+    this.contentDOM.className = classes.content;
+    this.dom.appendChild(this.contentDOM);
+  }
+}
+
+const referenceToMarkView = (mark : Mark) => {
+  const mview = document.createElement("span");
+  mview.className = classes.referenceTo;
+  const rId = mark.attrs.referenceId
+  mview.setAttribute("referenceId", rId);
+  let qselector = 'span[data-type="reference"][referenceId="'+ rId +'"]'
+  mview.onmouseenter = (e) => {
+    e.preventDefault();
+    var references = document.querySelectorAll(qselector);
+    references.forEach( (r) => {
+      r.classList.add(classes.referenceTo);
+    })
+  };
+  mview.onmouseleave = (e) => {
+    e.preventDefault();
+    var references = document.querySelectorAll(qselector);
+    references.forEach( (r) => {
+      r.classList.remove(classes.referenceTo);
+    })
+  };
+  return { dom: mview }
+}
+
+
 let view = new EditorView(document.getElementById('editorRoot'), {
   state,
+  nodeViews: {
+    section(node) {
+      return new SectionView(node);
+    },
+    questions(node) {
+      return new QuestionsView(node);
+    },
+  },
+  markViews: {
+    referenceTo: referenceToMarkView,
+  },
   dispatchTransaction: (transaction) => {
-    // console.log(JSON.stringify(transaction.doc.toJSON()));
+    console.log(JSON.stringify(transaction.doc.toJSON()));
     let newState = view.state.apply(transaction);
     view.updateState(newState);
   }

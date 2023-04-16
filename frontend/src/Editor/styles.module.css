@@ -1,0 +1,41 @@
+
+.section {
+  margin: 0px;
+  border-bottom: 1px solid #0007;
+}
+
+.section h2 {
+  margin: 0px;
+}
+
+.chunk {
+  margin: 0px;
+  white-space: pre-wrap;
+}
+
+.selected {
+  background-color: #00f2;
+  border-radius: 3px;
+}
+
+.bibleText {
+  padding: 5px;
+}
+
+.questions {
+  padding: 10px;
+  .content {
+    margin: 0px;
+  }
+  .question {
+  }
+}
+
+.questions h3 {
+  margin: 0px;
+}
+
+.referenceTo {
+  background-color: yellow;
+}
+
