@@ -11,10 +11,12 @@
 .chunk {
   margin: 0px;
   white-space: pre-wrap;
+  box-sizing: border-box;
+  border: 1px solid #00f0;
 }
 
 .selected {
-  background-color: #00f2;
+  border: 1px solid #00f4;
   border-radius: 3px;
 }
 
