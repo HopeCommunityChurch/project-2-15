@@ -298,6 +298,7 @@ class SectionView implements NodeView {
     this.dom = document.createElement("div");
     this.dom.className = classes.section;
     const header = document.createElement("h2");
+    header.setAttribute("contenteditable", "false");
     header.innerText = node.attrs.book + " " + node.attrs.verses;
     this.dom.appendChild(header)
     this.contentDOM = document.createElement("div");
@@ -313,6 +314,7 @@ class QuestionsView implements NodeView {
     this.dom = document.createElement("div");
     this.dom.className = classes.questions;
     const header = document.createElement("h3");
+    header.setAttribute("contenteditable", "false");
     header.innerText = "Questions"
     this.dom.appendChild(header)
     this.contentDOM = document.createElement("ul");
