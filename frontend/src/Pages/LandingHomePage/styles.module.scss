@@ -43,7 +43,23 @@ footer,
 
 .blueRoundedContainer {
   display: flex;
-  background-color: red;
+  padding: 10px 30px;
   justify-content: space-between;
   align-items: center;
+  color: white;
+
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
+
+  background: rgb(0, 87, 209);
+  background: linear-gradient(
+    40deg,
+    rgba(0, 87, 209, 1) 0%,
+    rgba(0, 87, 209, 1) 56%,
+    rgba(124, 168, 231, 1) 100%
+  );
+
+  h3 {
+    color: red;
+  }
 }
