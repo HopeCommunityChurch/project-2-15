@@ -8,86 +8,8 @@ import {baseKeymap} from "prosemirror-commands"
 import "./styles.css"
 import * as classes from "./styles.module.css"
 import defaultText from "./default.json"
+import {textSchema, QuestionsView, referenceToMarkView, SectionView, ChunkView, ChunkCommentView} from "./Schema"
 
-
-const textSchema = new Schema({
-  nodes: {
-    doc: {
-      content: "section*"
-    },
-    section: {
-      content: "studyElement*",
-      isolating: true,
-      defining: true,
-      attrs: { book: { default: "Genesis" }, verses: { default: "1:1" }},
-    },
-    bibleText: {
-      content: "chunk*",
-      group: "studyElement",
-      isolating: true,
-      defining: true,
-      toDOM: () => {
-        return [
-          "div",
-          {
-            "class": classes.bibleText,
-          },
-          0
-        ]
-      }
-    },
-    questions: {
-      content: "question+",
-      group: "studyElement",
-      isolating: true,
-      defining: true,
-    },
-    question: {
-      content: "text*",
-      toDOM: () => {
-        return [
-          "li",
-          { "class": classes.question},
-          0
-        ]
-      }
-    },
-    chunk: {
-      content: "text*",
-      attrs: { level: { default: 0 } },
-      toDOM: (node) => {
-        return [
-          "p",
-          {
-            "class": classes.chunk,
-            "level": node.attrs.level,
-            "style": "margin-left:" + 1.5 * node.attrs.level + "em;",
-          },
-          0
-        ]
-      },
-    },
-    text: {inline: true},
-  },
-  marks: {
-    reference: {
-      attrs: { referenceId: {} },
-      toDOM: (mark) => {
-        return [
-          "span",
-          {
-            "data-type": "reference",
-            "referenceId": mark.attrs.referenceId,
-          },
-          0
-        ]
-      }
-    },
-    referenceTo: {
-      attrs: { referenceId: {} },
-    },
-  },
-});
 
 const nodeIsChunk = (node : Node) => {
   if (node.type.name === "section")
@@ -232,6 +154,9 @@ let currentChunkPlug = new Plugin({
       const selection = state.selection;
       const decorations = [];
 
+      if (!selection.empty)
+        return null;
+
       state.doc.nodesBetween(selection.from, selection.to, (node, position) => {
         const result = nodeIsChunk(node)
         if (result === true)
@@ -244,7 +169,8 @@ let currentChunkPlug = new Plugin({
       return DecorationSet.create(state.doc, decorations);
     }
   }
-})
+});
+
 
 const indentMenuItem : MenuItemSpec = {
   run: increaseLevel,
@@ -291,61 +217,6 @@ let state = EditorState.create({
   ],
 });
 
-class SectionView implements NodeView {
-  dom : HTMLElement
-  contentDOM : HTMLElement
-  constructor (node : Node) {
-    this.dom = document.createElement("div");
-    this.dom.className = classes.section;
-    const header = document.createElement("h2");
-    header.setAttribute("contenteditable", "false");
-    header.innerText = node.attrs.book + " " + node.attrs.verses;
-    this.dom.appendChild(header)
-    this.contentDOM = document.createElement("div");
-    this.contentDOM.className = classes.content;
-    this.dom.appendChild(this.contentDOM);
-  }
-}
-
-class QuestionsView implements NodeView {
-  dom : HTMLElement
-  contentDOM : HTMLElement
-  constructor (node : Node) {
-    this.dom = document.createElement("div");
-    this.dom.className = classes.questions;
-    const header = document.createElement("h3");
-    header.setAttribute("contenteditable", "false");
-    header.innerText = "Questions"
-    this.dom.appendChild(header)
-    this.contentDOM = document.createElement("ul");
-    this.contentDOM.className = classes.content;
-    this.dom.appendChild(this.contentDOM);
-  }
-}
-
-const referenceToMarkView = (mark : Mark) => {
-  const mview = document.createElement("span");
-  mview.className = classes.referenceTo;
-  const rId = mark.attrs.referenceId
-  mview.setAttribute("referenceId", rId);
-  let qselector = 'span[data-type="reference"][referenceId="'+ rId +'"]'
-  mview.onmouseenter = (e) => {
-    e.preventDefault();
-    var references = document.querySelectorAll(qselector);
-    references.forEach( (r) => {
-      r.classList.add(classes.referenceTo);
-    })
-  };
-  mview.onmouseleave = (e) => {
-    e.preventDefault();
-    var references = document.querySelectorAll(qselector);
-    references.forEach( (r) => {
-      r.classList.remove(classes.referenceTo);
-    })
-  };
-  return { dom: mview }
-}
-
 
 let view = new EditorView(document.getElementById('editorRoot'), {
   state,
@@ -355,6 +226,12 @@ let view = new EditorView(document.getElementById('editorRoot'), {
     },
     questions(node) {
       return new QuestionsView(node);
+    },
+    chunk(node, view, getPos) {
+      return new ChunkView(node, view, getPos);
+    },
+    chunkComment(node, view) {
+      return new ChunkCommentView(node, view);
     },
   },
   markViews: {

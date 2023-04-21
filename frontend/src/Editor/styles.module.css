@@ -8,11 +8,57 @@
   margin: 0px;
 }
 
+.outerChunk {
+  margin: 0px;
+  white-space: pre-wrap;
+  box-sizing: border-box;
+  border: 1px solid #00f0;
+  position: relative;
+  .innerDiv {
+    margin: 0px;
+    position: relative;
+  }
+}
+
+
+.chunkButton {
+  position: absolute;
+  background-color: red;
+  height: 100%;
+  width: 6px;
+  left: -8px;
+  cursor: pointer;
+}
+
+
 .chunk {
   margin: 0px;
   white-space: pre-wrap;
   box-sizing: border-box;
   border: 1px solid #00f0;
+  position: relative;
+  /* padding: 10px; */
+  /* box-shadow: black 0px 0px 3px; */
+  /* margin: 4px; */
+}
+
+.chunkComment {
+  display: inline-block;
+  width: 6px;
+  height: 100%;
+  background-color: red;
+  margin-right: 2px;
+  position: relative;
+}
+
+.chunkCommentPopup {
+  position: absolute;
+  top: calc(100% + 10px);
+  width: 300px;
+  height: 200px;
+  background-color: white;
+  z-index: 4;
+  box-shadow: black 0px 0px 3px;
 }
 
 .selected {
@@ -21,7 +67,7 @@
 }
 
 .bibleText {
-  padding: 5px;
+  padding: 10px;
 }
 
 .questions {
@@ -35,6 +81,10 @@
 
 .questions h3 {
   margin: 0px;
+}
+
+.reference {
+  background-color: green;
 }
 
 .referenceTo {
