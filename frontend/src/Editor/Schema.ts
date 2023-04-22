@@ -60,7 +60,7 @@ export const textSchema = new Schema({
       draggable: false,
       defining: true,
       selectable: false,
-      attrs : { reference : {default: null}, color: { default : "red"}},
+      attrs : { referenceId : {default: null}, color: { default : "red"}},
       toDOM : () => ["chunkComment", 0],
       parseDOM: [{tag: "chunkComment"}]
     },
@@ -208,9 +208,12 @@ export class ChunkCommentView implements NodeView {
   popup : HTMLElement
   node : Node
   view : EditorView
+  getPos : () => number
 
 
-  constructor(node: Node, view: EditorView) {
+  constructor(node: Node, view: EditorView, getPos : () => number) {
+    this.getPos = getPos;
+    this.view = view;
     this.dom = document.createElement("chunkComment");
     this.dom.className = classes.chunkButton;
     this.popup = null;
@@ -219,10 +222,33 @@ export class ChunkCommentView implements NodeView {
     }
   }
 
+  close () {
+    if (this.popup) {
+      this.dom.textContent = "";
+      // I don't know why I have to do this. Probably because of some magic in
+      // prosemirror.
+      setTimeout( () => {
+        this.popup = null;
+      }, 0);
+    }
+  }
+
   open () {
     let pop = this.dom.appendChild(document.createElement("div"));
-    pop.className = classes.chunkCommentPopup;
     this.popup = pop;
+    pop.className = classes.chunkCommentPopup;
+    let closeBut = pop.appendChild(document.createElement("button"));
+    closeBut.innerText = "Close"
+    closeBut.onclick = (e) => {
+      e.preventDefault();
+      this.close();
+    };
+    let addRefBut = pop.appendChild(document.createElement("button"));
+    addRefBut.innerText = "Add Reference"
+    addRefBut.onclick = (e) => {
+      const rId = crypto.randomUUID();
+      this.view.state.tr.setNodeAttribute(this.getPos(), "referenceId", rId).setMeta(referencePluginKey, {addedReference: true, currentSelection, referenceId: rId});
+    }
   }
 }
 
