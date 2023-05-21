@@ -1,4 +1,3 @@
-
 .section {
   margin: 0px;
   border-bottom: 1px solid #0007;
@@ -71,11 +70,6 @@
 
 .questions {
   padding: 10px;
-  .content {
-    margin: 0px;
-  }
-  .question {
-  }
 }
 
 .questions h3 {
@@ -90,3 +84,44 @@
   background-color: yellow;
 }
 
+.questionRef {
+  display: inline;
+  border: 1px dashed blue;
+  box-sizing: border-box;
+}
+
+questionouter {
+  display: grid;
+  grid-template-areas: "q qt" "b a";
+  grid-template-columns:  1.4em 1fr;
+}
+
+questionouter > div {
+  grid-area: q;
+  font-weight: 600;
+}
+questionouter > button {
+  grid-area: a;
+  justify-self: start;
+}
+question {
+  grid-area: qt;
+}
+
+questiontext {
+  display: block;
+}
+
+questionanswerouter {
+  display: grid;
+  grid-template-columns:  1.4em 1fr;
+}
+
+questionanswerouter > div {
+  font-weight: 600;
+}
+
+questionanswer {
+  display: block;
+  margin-bottom: 3px;
+}
