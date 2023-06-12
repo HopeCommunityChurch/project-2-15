@@ -1,3 +1,7 @@
+body {
+  position: relative;
+}
+
 .section {
   margin: 0px;
   border-bottom: 1px solid #0007;
@@ -88,6 +92,42 @@
   display: inline;
   border: 1px dashed blue;
   box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+}
+
+.questionRefPopup {
+  display: grid;
+  position: absolute;
+  width: 300px;
+  height: 200px;
+  background-color: white;
+  border: 1px solid black;
+  grid-template-areas:
+    "mover close"
+    "editor editor" ;
+  grid-template-columns: 1fr 20px;
+  grid-template-rows: 20px 1fr;
+  align-items: stretch;
+}
+
+.questionEditorHolder {
+  grid-area: editor;
+  margin-top: 5px;
+}
+
+.questionRefPopup mover {
+  grid-area: mover;
+  width:100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.questionRefPopup closer {
+  grid-area: close;
+  width:100%;
+  height: 100%;
+  cursor: pointer;
 }
 
 questionouter {

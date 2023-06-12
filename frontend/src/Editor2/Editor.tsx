@@ -43,6 +43,9 @@ export const textSchema = new Schema({
         ]
       }
     },
+    questionDoc: {
+      content: "question",
+    },
     questions: {
       content: "question*",
       group: "studyElement",
@@ -52,6 +55,9 @@ export const textSchema = new Schema({
     question: {
       content: "(questionAnswer | questionText )*",
       attrs: { questionId : { default: null} },
+      isolating: true,
+      defining: true,
+      draggable: true,
       toDOM: () => {
         return [
           "question",
@@ -73,6 +79,7 @@ export const textSchema = new Schema({
     },
     questionAnswer: {
       content: "richText*",
+      draggable: true,
       toDOM: () => {
         return [
           "questionAnswer",
@@ -144,7 +151,7 @@ let node = Node.fromJSON(textSchema, defaultText);
 
 // var blockMap : Dictionary<BlockMapItem> = {};
 
-export class SectionView implements NodeView {
+class SectionView implements NodeView {
   dom : HTMLElement
   contentDOM : HTMLElement
   constructor (node : Node) {
@@ -175,7 +182,7 @@ const newQuestionAnswerNode = () => {
 };
 
 
-export class QuestionsView implements NodeView {
+class QuestionsView implements NodeView {
   dom : HTMLElement
   contentDOM : HTMLElement
   node : Node;
@@ -213,9 +220,22 @@ export class QuestionsView implements NodeView {
 export class QuestionView implements NodeView {
   dom : HTMLElement
   contentDOM : HTMLElement
-  node;
-  constructor (node : Node, view : EditorView, getPos : () => number) {
+  questionId : string;
+  node : Node;
+  questionMap : Dictionary<QuestionMapItem>;
+  constructor (questionMap : Dictionary<QuestionMapItem>, node : Node, view : EditorView, getPos : () => number) {
     this.node = node;
+    this.questionId = node.attrs.questionId;
+
+    if (!questionMap[this.questionId]) {
+      this.questionMap = questionMap;
+      questionMap[this.questionId] = {
+        node: node,
+        getPos: getPos,
+        editor: null,
+      };
+    }
+
     this.dom = document.createElement("questionOuter");
     const qtext = document.createElement("div");
     qtext.setAttribute("contenteditable", "false");
@@ -238,8 +258,25 @@ export class QuestionView implements NodeView {
     addAnswer.innerText = "Add Answer"
     this.dom.appendChild(addAnswer);
   }
+
   update(node : Node) {
     this.node = node;
+    if(this.questionMap) {
+      let innerView = this.questionMap[this.questionId].editor;
+      if (innerView) {
+        let state = innerView.state
+        let start = node.content.findDiffStart(state.doc.content)
+        if (start != null) {
+          let {a: endA, b: endB} = node.content.findDiffEnd(state.doc.content)
+          let overlap = start - Math.min(endA, endB)
+          if (overlap > 0) { endA += overlap; endB += overlap }
+          innerView.dispatch(
+            state.tr
+              .replace(start, endB, node.slice(start, endA))
+              .setMeta("fromOutside", true))
+        }
+      }
+    }
     return true;
   }
 }
@@ -432,6 +469,98 @@ export class ChunkCommentView implements NodeView {
 
 }
 
+const questionPopup = (x, y, qId, questionMap) => {
+  let qNode = questionMap[qId];
+  console.log(qNode);
+  if (!qNode.editor) {
+    const pop = document.createElement("questionRefPopup");
+    pop.className = classes.questionRefPopup;
+    document.body.appendChild(pop);
+    pop.style.left = "calc(" + x + "px - 20px)";
+    pop.style.top = "calc(" + y + "px + 1em)";
+    let mover = pop.appendChild(document.createElement("mover"));
+    mover.onmousedown = (e) => {
+      const rec = pop.getBoundingClientRect();
+      const diffX = e.pageX - rec.x;
+      const diffY = e.pageY - rec.y;
+      document.addEventListener('mouseup', (e) => {
+        document.removeEventListener('mousemove', mousemove);
+      });
+      var mousemove = (e) => {
+          pop.style.left = "calc(" + (e.pageX - diffX) + "px)";
+          pop.style.top = "calc(" + (e.pageY - diffY) + "px)";
+      }
+      document.addEventListener('mousemove', mousemove);
+    };
+    let closer = pop.appendChild(document.createElement("closer"));
+    closer.innerHTML = "X";
+    closer.onclick = (e) => {
+      qNode.editor.destroy();
+      qNode.editor = null;
+      pop.parentNode.removeChild(pop);
+    }
+
+    let editorHolder = pop.appendChild(document.createElement("div"));
+    editorHolder.className = classes.questionEditorHolder;
+
+    let dispatchInner = (tr : Transaction) => {
+      let {state, transactions} = qNode.editor.state.applyTransaction(tr)
+      qNode.editor.updateState(state)
+
+      if (!tr.getMeta("fromOutside")) {
+        let outerTr = view.state.tr
+        let offsetMap = StepMap.offset(qNode.getPos() + 1)
+        for (let i = 0; i < transactions.length; i++) {
+          let steps = transactions[i].steps
+          for (let j = 0; j < steps.length; j++)
+            outerTr.step(steps[j].map(offsetMap))
+        }
+        if (outerTr.docChanged) view.dispatch(outerTr)
+      }
+    };
+
+    qNode.editor = new EditorView( editorHolder, {
+      state: EditorState.create({
+        schema: textSchema,
+        doc: qNode.node,
+        plugins: [
+          history(),
+          keymap({
+            "Mod-z": undo,
+            "Mod-y": redo,
+            "Tab": increaseLevel,
+            "Mod-]": increaseLevel,
+            "Shift-Tab": decreaseLevel,
+            "Mod-[": decreaseLevel,
+          }),
+          keymap(baseKeymap),
+        ],
+      }),
+      nodeViews: {
+        questionAnswer (node) {
+          return new QuestionAnswerView(node);
+        },
+      },
+      dispatchTransaction: dispatchInner,
+    });
+  }
+};
+
+
+export const questionReferenceMarkView = (questionMap : Dictionary<QuestionMapItem>) => (mark : Mark) => {
+  const mview = document.createElement("questionRef");
+  mview.className = classes.questionRef;
+  const qId = mark.attrs.questionId
+  mview.setAttribute("questionId", qId);
+  let pop = null;
+  mview.onclick = (e) => {
+    e.preventDefault();
+    questionPopup(e.pageX, e.pageY, qId, questionMap);
+  };
+  return { dom: mview }
+}
+
+
 export const referenceToMarkView = (mark : Mark, view : EditorView) => {
   const mview = document.createElement("span");
   mview.className = classes.referenceTo;
@@ -541,8 +670,8 @@ const decreaseLevel = (state : EditorState, dispatch?: ((tr: Transaction) => voi
 
 
 const addQuestion = (state : EditorState, dispatch?: ((tr: Transaction) => void)) => {
-  const from = state.selection.anchor;
-  const to = state.selection.head;
+  const from = state.selection.from;
+  const to = state.selection.to;
   if (from === to) {
     return false;
   }
@@ -572,9 +701,9 @@ const addQuestion = (state : EditorState, dispatch?: ((tr: Transaction) => void)
     const qlength = nodeQuestions.content.size;
     const pos = posOfQuestions + qlength + 1;
     const tr1 = tr.insert(pos, qNode);
-    const sel = TextSelection.create(tr1.doc, pos+3);
-    const tr2 = tr1.setSelection(sel);
-    dispatch(tr2);
+    // const sel = TextSelection.create(tr1.doc, pos+3);
+    // const tr2 = tr1.setSelection(sel);
+    dispatch(tr1);
     return true;
   }
 };
@@ -598,6 +727,20 @@ let state = EditorState.create({
   ],
 });
 
+interface QuestionMapItem {
+  node : Node;
+  getPos : () => number;
+  editor : EditorView | null;
+}
+
+type notUndefined = string | number | boolean | symbol | object;
+
+interface Dictionary<T extends notUndefined = notUndefined> {
+  [key: string]: T | undefined;
+}
+
+var questionMap : Dictionary<QuestionMapItem> = {};
+
 let view = new EditorView(document.getElementById('editorRoot'), {
   state,
   nodeViews: {
@@ -614,7 +757,7 @@ let view = new EditorView(document.getElementById('editorRoot'), {
       return new ChunkCommentView(node, view, getPos);
     },
     question (node, view, getPos) {
-      return new QuestionView(node, view, getPos);
+      return new QuestionView(questionMap, node, view, getPos);
     },
     questionAnswer (node) {
       return new QuestionAnswerView(node);
@@ -622,6 +765,7 @@ let view = new EditorView(document.getElementById('editorRoot'), {
   },
   markViews: {
     referenceTo: referenceToMarkView,
+    questionReference: questionReferenceMarkView(questionMap),
   },
   dispatchTransaction: (transaction) => {
     // console.log(JSON.stringify(transaction.doc.toJSON()));
@@ -629,6 +773,7 @@ let view = new EditorView(document.getElementById('editorRoot'), {
     view.updateState(newState);
   }
 });
+
 
 const addQuestionButton = document.createElement("button");
 addQuestionButton.innerText = "add question";
