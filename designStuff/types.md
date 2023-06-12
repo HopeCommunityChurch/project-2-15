@@ -56,6 +56,17 @@ data UserAssignable
 ```
 
 
+## Template Document
+```purescript
+newtype TempDocId = TempDocId UUID
+  deriving (Eq, Ord, Hashable)
+
+type TemplateDocument =
+  { docId :: TempDocId
+  , doc :: SomeThing -- The actual document
+  }
+```
+
 ## Study
 ```purescript
 newtype StudyId = StudyId UUID
@@ -66,7 +77,7 @@ type Study =
   , owner :: UserAssignable
   , for :: UserAssignable
   , name :: Text
-  , templateDocument :: Maybe DocId -- Not really the best way to show this.
+  , templateDocument :: Maybe TempDocId
   }
 ```
 
