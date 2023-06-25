@@ -11,7 +11,7 @@ build-type:         Simple
 extra-doc-files:    CHANGELOG.md
 
 common warnings
-    ghc-options: -Wall
+    ghc-options: -Wall -Werror=missing-fields
 
 common buildDepends
     build-depends:
@@ -24,6 +24,7 @@ common buildDepends
       relude,
       unliftio,
       lens,
+      generic-lens,
       bytestring,
       aeson,
       warp,
@@ -39,6 +40,7 @@ common buildDepends
       hashable,
       time,
       tz,
+      tzdata,
 
   default-extensions:
       OverloadedStrings,
