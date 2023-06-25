@@ -89,6 +89,9 @@ library
       Types,
       Prelude,
       Database,
+      Entities,
+      Entities.User,
+      Entities.Group,
 
     build-depends:
 

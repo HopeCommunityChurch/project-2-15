@@ -1,12 +1,11 @@
 module Types (NewType (..), UserId, Email, GroupId, ChurchId, StudyId, DocId) where
 
 import Data.UUID (UUID)
-import Data.Hashable (Hashable)
-
+import Data.OpenApi (ToParamSchema)
 
 newtype NewType p a = MkNewType a
   deriving (Generic)
-  deriving newtype (Show, Read, Hashable, Eq, Ord)
+  deriving newtype (Show, Read, Hashable, Eq, Ord, ToJSON, FromJSON, ToParamSchema, ToSchema)
 
 instance Wrapped (NewType p a)
 
