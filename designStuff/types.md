@@ -18,21 +18,6 @@ type User =
   }
 ```
 
-## Group
-```purescript
-newtype GroupId = GroupId UUID
-  deriving (Eq, Ord, Hashable)
-
-
-type Group =
-  { groupId :: GroupId
-  , name :: Text
-  , users :: List UserId
-  , leaders :: List UserId
-  , chuch :: ChurchId
-  }
-```
-
 ## Church
 ```purescript
 newtype ChurchId = ChurchId UUID
@@ -47,23 +32,16 @@ type Church =
 ```
 
 
-## Something useful
-```purescript
-data UserAssignable
-  = User UserId
-  | Group GroupId
-  | Church ChurchId
-```
 
-
-## Template Document
+## Study Template
 ```purescript
-newtype TempDocId = TempDocId UUID
+newtype STId = STId UUID
   deriving (Eq, Ord, Hashable)
 
-type TemplateDocument =
-  { docId :: TempDocId
-  , doc :: SomeThing -- The actual document
+type ST =
+  { stId :: STId
+  , name :: Text
+  , templateDocument :: SomeThing -- The actual document
   }
 ```
 
@@ -74,8 +52,7 @@ newtype StudyId = StudyId UUID
 
 type Study =
   { studyId :: StudyId
-  , owner :: UserAssignable
-  , for :: UserAssignable
+  , participants :: List UserId
   , name :: Text
   , templateDocument :: Maybe TempDocId
   }
@@ -92,7 +69,6 @@ type Document =
   , name :: Text -- Might not need this since the study has the name too
   , doc :: SomeThing -- The actual document
   , study :: StudyId
-  , viewers :: List UserAssignable
-  , editors :: List UserAssignable
+  , editors :: List UserId
   }
 ```
