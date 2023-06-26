@@ -53,7 +53,7 @@ type Study =
   { studyId :: StudyId
   , participants :: List UserId
   , name :: Text
-  , templateDocument :: Maybe TempDocId
+  , studyTemplateId :: STId
   }
 ```
 
