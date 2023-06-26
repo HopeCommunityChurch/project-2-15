@@ -54,7 +54,6 @@ type Study =
   , participants :: List UserId
   , name :: Text
   , studyTemplateId :: STId
-  , templateDocument :: SomeThing -- The actual document
   }
 ```
 
