@@ -14,7 +14,6 @@ type User =
   , image :: Maybe Url -- Probably not added right away
   , name :: Text
   , email :: Text -- Hidden from other users
-  , groups :: List GroupId -- Hidden from other users
   }
 ```
 
