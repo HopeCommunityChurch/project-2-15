@@ -30,6 +30,12 @@
           #   shower.source = inputs.shower;
           # };
           settings = {
+            deriving-aeson = {
+              haddock = true;
+            };
+            tz = {
+              haddock = true;
+            };
             openapi3 = {
               broken = false;
               check = false;

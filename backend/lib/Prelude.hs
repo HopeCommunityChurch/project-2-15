@@ -2,6 +2,7 @@
 
 module Prelude
   ( module Relude.Base
+  , module Relude.Debug
   , module Relude.Bool
   , module Relude.String
   , module Relude.Lifted.Terminal
@@ -23,6 +24,7 @@ module Prelude
   , module Data.Time
   , module Data.Time.Zones
   , module Data.Aeson
+  , module Deriving.Aeson.Stock
   , module Data.OpenApi
   , List
   )where
@@ -46,10 +48,12 @@ import Data.Aeson (FromJSON, ToJSON)
 import Data.OpenApi (ToSchema)
 import Data.Time (Day (..), LocalTime (..), UTCTime (..))
 import Data.Time.Zones (TZ, loadSystemTZ, utcToLocalTimeTZ)
+import Deriving.Aeson.Stock (Prefixed)
 import Relude.Applicative
 import Relude.Base
 import Relude.Bool
 import Relude.Container.Reexport
+import Relude.Debug
 import Relude.Foldable
 import Relude.Function
 import Relude.Functor

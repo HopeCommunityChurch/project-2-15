@@ -27,6 +27,7 @@ common buildDepends
       generic-lens,
       bytestring,
       aeson,
+      deriving-aeson,
       warp,
       wai,
       wai-extra,
@@ -89,9 +90,11 @@ library
       Types,
       Prelude,
       Database,
-      Entities,
-      Entities.User,
-      Entities.Group,
+      Entity,
+      Entity.User,
+      Entity.UserAssignable,
+      Entity.Group,
+      Api.User
 
     build-depends:
 

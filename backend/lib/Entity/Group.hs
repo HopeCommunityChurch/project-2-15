@@ -1,11 +1,12 @@
-module Entities.User where
+module Entity.Group where
 
 import qualified Types as T
+import qualified Entity.User as User
 
-data GetUser = GetUser
-  { userId :: T.UserId
+data GetGroup = MkGetGroup
+  { groupId :: T.GroupId
   , name :: Text
-  , image :: Maybe Text
+  , leaders :: List User.GetUser
   }
   deriving (Generic, Show)
   deriving anyclass (FromJSON, ToJSON, ToSchema)

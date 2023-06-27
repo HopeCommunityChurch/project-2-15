@@ -41,6 +41,7 @@ type ST =
   { stId :: STId
   , name :: Text
   , templateDocument :: SomeThing -- The actual document
+  , genre :: ?
   }
 ```
 

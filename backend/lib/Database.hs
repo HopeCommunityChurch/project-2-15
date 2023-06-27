@@ -26,10 +26,11 @@ type TableMod table =
 
 modifyTable
   :: Beamable tbl
-  => (Text -> Text)
+  => Text
   -> tbl (FieldModification (TableField tbl))
   -> EntityModification (DatabaseEntity be db) be (TableEntity tbl)
-modifyTable tblName fFeilds = modifyEntityName tblName <> modifyTableFields fFeilds
+modifyTable tblName fFeilds =
+  modifyEntityName (const tblName) <> modifyTableFields fFeilds
 
 
 data UserT f = MkUserT
@@ -52,7 +53,7 @@ instance Table UserT where
 userTable :: TableMod UserT
 userTable =
   modifyTable
-    (const "users")
+    "users"
     MkUserT
       { userId = fieldNamed "userId"
       , email = fieldNamed "email"
@@ -81,7 +82,7 @@ instance Table GroupT where
 groupTable :: TableMod GroupT
 groupTable =
   modifyTable
-    (const "groups")
+    "groups"
     MkGroupT
       { groupId = fieldNamed "groupId"
       , name = fieldNamed "name"
@@ -108,7 +109,7 @@ instance Table UserGroupT where
 userGroupTable :: TableMod UserGroupT
 userGroupTable =
   modifyTable
-    (const "users_groups")
+    "users_groups"
     MkUserGroupT
       { groupId = fieldNamed "groupId"
       , userId = fieldNamed "userId"
@@ -134,7 +135,7 @@ instance Table ChurchT where
 churchTable :: TableMod ChurchT
 churchTable =
   modifyTable
-    (const "church")
+    "church"
     MkChurchT
       { churchId = fieldNamed "churchId"
       , name = fieldNamed "name"
@@ -159,7 +160,7 @@ instance Table ChurchElderT where
 churchElderTable :: TableMod ChurchElderT
 churchElderTable =
   modifyTable
-    (const "church_elder")
+    "church_elder"
     MkChurchElderT
       { churchId = fieldNamed "churchId"
       , userId = fieldNamed "userId"
@@ -184,7 +185,7 @@ instance Table StudyT where
 studyTable :: TableMod StudyT
 studyTable =
   modifyTable
-    (const "study")
+    "study"
     MkStudyT
       { studyId = fieldNamed "studyId"
       , name = fieldNamed "name"
@@ -210,7 +211,7 @@ instance Table DocumentT where
 documentTable :: TableMod DocumentT
 documentTable =
   modifyTable
-    (const "study")
+    "document"
     MkDocumentT
       { docId = fieldNamed "docId"
       , studyId = fieldNamed "studyId"
