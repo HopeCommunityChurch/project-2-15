@@ -6,12 +6,22 @@
 
   outputs = inputs@{ self, nixpkgs, flake-parts }: flake-parts.lib.mkFlake { inherit inputs; } {
       systems = nixpkgs.lib.systems.flakeExposed;
-      perSystem = {pkgs, ...} : {
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs.pkgs; [
-            morph
-          ];
+      perSystem = {pkgs, ...} :
+        let
+          morph = pkgs.pkgs.morph;
+        in
+        {
+          apps.default = {
+            type = "app";
+            program = toString (pkgs.writers.writeBash "apply" ''
+              ${morph}/bin/morph --version
+            '');
+          };
+          devShells.default = pkgs.mkShell {
+            buildInputs = [
+              morph
+            ];
+          };
         };
-      };
     };
 }

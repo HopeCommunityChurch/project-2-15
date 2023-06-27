@@ -24,5 +24,5 @@ jobs:
       - name: build and deploy
         run: |
           cd ops
-          nix develop --impure
-          morph --version
+          nix run
+
