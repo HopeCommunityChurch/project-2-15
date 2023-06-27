@@ -2,11 +2,14 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 jobs:
-  check:
+  deploy:
     runs-on: ubuntu-22.04
+    environment: dev
     steps:
       - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v20
@@ -18,7 +21,8 @@ jobs:
           name: id_rsa # optional
           known_hosts: ${{ secrets.KNOWN_HOSTS }}
           if_key_exists: replace
-      - run: |
+      - name: build and deploy
+        run: |
           cd ops
           nix develop --impure
           morph --version
