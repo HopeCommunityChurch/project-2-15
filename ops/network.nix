@@ -17,17 +17,17 @@
           targetPort = 22;
           targetUser = "root";
         };
-        boot.isContainer = true;
 
         networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
-        services.nginx = {
-          enable = true;
-          virtualHosts.default = {
-            default = true;
-            locations."/".return = "200 \"Hello from Nixie!\"";
-          };
-        };
+        services.do-agent.enable = true;
+        # services.nginx = {
+        #   enable = true;
+        #   virtualHosts.default = {
+        #     default = true;
+        #     locations."/".return = "200 \"Hello from Nixie!\"";
+        #   };
+        # };
       };
     };
   };
