@@ -14,7 +14,6 @@
       dev-server = {
         deployment = {
           targetHost = "146.190.186.180";
-          targetPort = 22;
           targetUser = "root";
         };
 
