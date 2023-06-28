@@ -16,6 +16,7 @@
           targetHost = "146.190.186.180";
           targetUser = "root";
         };
+        boot.isContainer = true;
 
         networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
