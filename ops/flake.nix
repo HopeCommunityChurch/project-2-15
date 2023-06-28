@@ -14,8 +14,8 @@
           apps.default = {
             type = "app";
             program = toString (pkgs.writers.writeBash "apply" ''
-              cd network &&
-              ${colmena}/bin/colmena build
+              cd network \
+              && ${colmena}/bin/colmena build
             '');
           };
           devShells.default = pkgs.mkShell {
