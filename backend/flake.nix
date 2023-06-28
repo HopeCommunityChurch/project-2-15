@@ -26,8 +26,9 @@
           # (defined by `defaults.packages` option).
           #
           # packages = {
-          #   aeson.source = "1.5.0.0"; # Hackage version override
-          #   shower.source = inputs.shower;
+          #   crypton.source = inputs.crypton;
+          #   http2.source = inputs.http2;
+          #   quic.source = inputs.quic;
           # };
           settings = {
             deriving-aeson = {
