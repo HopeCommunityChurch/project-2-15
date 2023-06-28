@@ -13,7 +13,7 @@
       # Also see the non-Flakes hive.nix example above.
       dev-server = {
         deployment = {
-          targetHost = "146.190.186.180";
+          targetHost = "178.128.133.233";
           targetUser = "root";
         };
         boot.isContainer = true;
@@ -21,6 +21,9 @@
         networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
         services.do-agent.enable = true;
+        services.sshd = {
+          enable = true;
+        };
         services.nginx = {
           enable = true;
           virtualHosts.default = {
