@@ -14,7 +14,7 @@
           apps.default = {
             type = "app";
             program = toString (pkgs.writers.writeBash "apply" ''
-              cd network
+              cd network &&
               ${colmena}/bin/colmena build
             '');
           };
