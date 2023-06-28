@@ -8,18 +8,18 @@
       systems = nixpkgs.lib.systems.flakeExposed;
       perSystem = {pkgs, ...} :
         let
-          morph = pkgs.pkgs.morph;
+          colmena = pkgs.pkgs.colmena;
         in
         {
           apps.default = {
             type = "app";
             program = toString (pkgs.writers.writeBash "apply" ''
-              ${morph}/bin/morph --version
+              ${colmena}/bin/colmena build -f network.nix
             '');
           };
           devShells.default = pkgs.mkShell {
             buildInputs = [
-              morph
+              colmena
             ];
           };
         };
