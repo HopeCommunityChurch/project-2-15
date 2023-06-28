@@ -1,8 +1,8 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/release-23.05";
   };
-  outputs = { nixpkgs, ... }: {
+  outputs = inputs@{ nixpkgs, ... }: {
     colmena = {
       meta = {
         nixpkgs = import nixpkgs {
