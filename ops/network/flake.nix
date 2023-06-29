@@ -29,10 +29,23 @@
 
         services.nginx = {
           enable = true;
-          virtualHosts.default = {
-            default = true;
-            locations."/".return = "200 \"Hello from Nixie!\"";
+          recommendedProxySettings = true;
+          virtualHosts = {
+            "dev.p215.church" = {
+              forceSSL = true;
+              enabledACME = true;
+              locations."/" = {
+                return = "200 \"Hello from Nixie!\"";
+              };
+            };
+            eventsConfig = ''
+              worker_connections 20000;
+            '';
           };
+        };
+
+        security.acme.certs."dev.p215.church" = {
+          email = "jonny.covert@gmail.com";
         };
 
         systemd.services.backend =
