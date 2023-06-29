@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/release-23.05";
-    backend.url = "path:../../backend/flake.nix";
+    backend.url = "path:../../backend/";
   };
   outputs = inputs@{ nixpkgs, ... }: {
     colmena = {
