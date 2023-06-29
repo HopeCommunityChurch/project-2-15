@@ -38,10 +38,10 @@
                 return = "200 \"Hello from Nixie!\"";
               };
             };
-            eventsConfig = ''
-              worker_connections 20000;
-            '';
           };
+          eventsConfig = ''
+            worker_connections 20000;
+          '';
         };
 
         security.acme.acceptTerms = true;
