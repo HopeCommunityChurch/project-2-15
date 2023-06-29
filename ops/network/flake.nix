@@ -33,7 +33,7 @@
           virtualHosts = {
             "dev.p215.church" = {
               forceSSL = true;
-              enabledACME = true;
+              enableACME = true;
               locations."/" = {
                 return = "200 \"Hello from Nixie!\"";
               };
