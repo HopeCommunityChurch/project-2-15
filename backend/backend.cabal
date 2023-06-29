@@ -11,113 +11,114 @@ build-type:         Simple
 extra-doc-files:    CHANGELOG.md
 
 common warnings
-    ghc-options: -Wall -Werror=missing-fields
+  ghc-options: -Wall -Werror=missing-fields
 
 common buildDepends
-    build-depends:
-      base-noprelude,
-      text,
-      beam-core,
-      beam-postgres,
-      containers,
-      unordered-containers,
-      relude,
-      unliftio,
-      lens,
-      generic-lens,
-      bytestring,
-      aeson,
-      deriving-aeson,
-      warp,
-      wai,
-      wai-extra,
-      wai-logger,
-      openapi3,
-      servant-openapi3,
-      servant,
-      servant-server,
-      monad-logger,
-      uuid,
-      hashable,
-      time,
-      tz,
-      tzdata,
-      quic,
+  build-depends:
+    base-noprelude,
+    text,
+    beam-core,
+    beam-postgres,
+    containers,
+    unordered-containers,
+    relude,
+    unliftio,
+    lens,
+    generic-lens,
+    bytestring,
+    aeson,
+    deriving-aeson,
+    warp,
+    wai,
+    wai-extra,
+    wai-logger,
+    openapi3,
+    servant-openapi3,
+    servant,
+    servant-server,
+    monad-logger,
+    uuid,
+    hashable,
+    time,
+    tz,
+    tzdata,
+    quic,
 
   default-extensions:
-      OverloadedStrings,
-      FlexibleInstances,
-      FlexibleContexts,
-      TypeSynonymInstances,
-      TupleSections,
-      DeriveGeneric,
-      DeriveFunctor,
-      DeriveFoldable,
-      DeriveTraversable,
-      ScopedTypeVariables,
-      DeriveDataTypeable,
-      RankNTypes,
-      BangPatterns,
-      GADTs,
-      ConstraintKinds,
-      GeneralizedNewtypeDeriving,
-      TypeInType,
-      PolyKinds,
-      TypeFamilies,
-      TypeFamilyDependencies,
-      FunctionalDependencies,
-      MultiParamTypeClasses,
-      DerivingStrategies,
-      TypeOperators,
-      DuplicateRecordFields,
-      NoFieldSelectors,
-      NamedFieldPuns,
-      RecordWildCards,
-      LambdaCase,
-      TypeApplications,
-      InstanceSigs,
-      StandaloneDeriving,
-      PartialTypeSignatures,
-      QuantifiedConstraints,
-      DerivingVia,
-      DeriveAnyClass,
-      OverloadedRecordDot,
+    OverloadedStrings,
+    FlexibleInstances,
+    FlexibleContexts,
+    TypeSynonymInstances,
+    TupleSections,
+    DeriveGeneric,
+    DeriveFunctor,
+    DeriveFoldable,
+    DeriveTraversable,
+    ScopedTypeVariables,
+    DeriveDataTypeable,
+    RankNTypes,
+    BangPatterns,
+    GADTs,
+    ConstraintKinds,
+    GeneralizedNewtypeDeriving,
+    TypeInType,
+    PolyKinds,
+    TypeFamilies,
+    TypeFamilyDependencies,
+    FunctionalDependencies,
+    MultiParamTypeClasses,
+    DerivingStrategies,
+    TypeOperators,
+    DuplicateRecordFields,
+    NoFieldSelectors,
+    NamedFieldPuns,
+    RecordWildCards,
+    LambdaCase,
+    TypeApplications,
+    InstanceSigs,
+    StandaloneDeriving,
+    PartialTypeSignatures,
+    QuantifiedConstraints,
+    DerivingVia,
+    DeriveAnyClass,
+    OverloadedRecordDot,
 
 
 library
-    import:           warnings
-    import:           buildDepends
-    exposed-modules:
-      Types,
-      Prelude,
-      Database,
-      Entity,
-      Entity.User,
-      Entity.UserAssignable,
-      Entity.Group,
-      Api.User
+  import: warnings
+  import: buildDepends
+  exposed-modules:
+    Types,
+    Prelude,
+    Database,
+    Entity,
+    Entity.User,
+    Entity.UserAssignable,
+    Entity.Group,
+    Api.User
 
-    build-depends:
+  build-depends:
 
-    hs-source-dirs:   lib
-    default-language: GHC2021
+  hs-source-dirs:   lib
+  default-language: GHC2021
 
 executable backend
-    import:           warnings
-    import:           buildDepends
-    main-is:          Main.hs
-    build-depends:
-        backend,
-        scotty,
+  import: warnings
+  import: buildDepends
+  main-is: Main.hs
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      backend,
+      scotty,
 
-    hs-source-dirs:   app
-    default-language: GHC2021
+  hs-source-dirs:   app
+  default-language: GHC2021
 
 test-suite backend-test
-    import:           warnings
-    default-language: GHC2021
-    type:             exitcode-stdio-1.0
-    hs-source-dirs:   test
-    main-is:          Main.hs
-    build-depends:
-        backend
+  import: warnings
+  default-language: GHC2021
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is: Main.hs
+  build-depends:
+      backend
