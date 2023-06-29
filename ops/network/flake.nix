@@ -44,6 +44,7 @@
           };
         };
 
+        security.acme.acceptTerms = true;
         security.acme.certs."dev.p215.church" = {
           email = "jonny.covert@gmail.com";
         };
