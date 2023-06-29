@@ -107,7 +107,9 @@ executable backend
     import:           buildDepends
     main-is:          Main.hs
     build-depends:
-        backend
+        backend,
+        scotty,
+
     hs-source-dirs:   app
     default-language: GHC2021
 
