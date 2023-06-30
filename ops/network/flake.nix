@@ -31,8 +31,11 @@
         };
         boot.isContainer = true;
 
-        networking.firewall.allowedTCPPorts = [ 22 80 443 ];
-        networking.firewall.allowedUDPPorts = [ 443 ];
+        networking.firewall = {
+          allowedTCPPorts = [ 22 80 443 ];
+          allowedUDPPorts = [ 443 ];
+          rejectPackets = true;
+        };
 
         services.do-agent.enable = true;
 
