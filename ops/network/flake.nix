@@ -34,7 +34,7 @@
         networking.firewall = {
           allowedTCPPorts = [ 22 80 443 ];
           allowedUDPPorts = [ 443 ];
-          rejectPackets = true;
+          rejectPackets = false;
         };
 
         services.do-agent.enable = true;
