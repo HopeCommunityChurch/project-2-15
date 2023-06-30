@@ -38,6 +38,7 @@
               forceSSL = true;
               enableACME = true;
               quic = true;
+              http3_hq = true;
               locations."/" =
                 let frontend = inputs.frontend.packages.x86_64-linux.frontend;
                 in {
