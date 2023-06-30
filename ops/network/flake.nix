@@ -31,7 +31,7 @@
 
         services.nginx = {
           enable = true;
-          package = nixpkgs-unstable.nginxQuic;
+          package = nixpkgs-unstable.legacyPackages.x86_64-linux.nginxQuic;
           recommendedProxySettings = true;
           virtualHosts = {
             "dev.p215.church" = {
@@ -41,6 +41,7 @@
                 let frontend = inputs.frontend.packages.x86_64-linux.frontend;
                 in {
                 root = "${frontend}/lib/node_modules/frontend/dist/";
+                quic = true;
               };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
