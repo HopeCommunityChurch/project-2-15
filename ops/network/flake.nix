@@ -32,6 +32,7 @@
         boot.isContainer = true;
 
         networking.firewall.allowedTCPPorts = [ 22 80 443 ];
+        networking.firewall.allowedUDPPorts = [ 443 ];
 
         services.do-agent.enable = true;
 
