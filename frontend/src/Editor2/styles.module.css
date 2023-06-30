@@ -72,6 +72,14 @@ body {
   padding: 10px;
 }
 
+.content {
+  padding: 0px;
+}
+
+.question {
+  padding: 0px;
+}
+
 .questions {
   padding: 10px;
 }

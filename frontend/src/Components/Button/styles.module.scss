@@ -1,5 +1,21 @@
 @import "../../GlobalCSS/colors.scss";
 
+// this ws missing so I just copied the blue one.
+.button {
+  color: #fff;
+  background-color: var(--blue-100);
+  border: none;
+  border-radius: 5px;
+  padding: 7px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--blue-75);
+  }
+}
+
 .blue {
   color: #fff;
   background-color: var(--blue-100);

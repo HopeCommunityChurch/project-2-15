@@ -2,6 +2,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/release-23.05";
     backend.url = "path:../../backend/";
+    frontend.url = "path:../../frontend/";
   };
   outputs = inputs@{ nixpkgs, ... }: {
     colmena = {
@@ -35,7 +36,8 @@
               forceSSL = true;
               enableACME = true;
               locations."/" = {
-                return = "200 \"Hello from Nixie!\"";
+                let frontend = inputs.frontend.packages.x86_64-linux.frontend;
+                 in root = "${frontend}/lib/node_modules/frontend/dist/";
               };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
