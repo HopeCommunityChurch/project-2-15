@@ -47,7 +47,10 @@
             "dev.p215.church" = {
               forceSSL = true;
               enableACME = true;
-              quic = true;
+              extraConfig = ''
+                listen 0.0.0.0:443 quic reuseport;
+              '';
+              # quic = true;
               http3_hq = true;
               locations."/" =
                 let frontend = inputs.frontend.packages.x86_64-linux.frontend;
