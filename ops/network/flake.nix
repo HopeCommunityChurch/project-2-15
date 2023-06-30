@@ -35,9 +35,10 @@
             "dev.p215.church" = {
               forceSSL = true;
               enableACME = true;
-              locations."/" = {
+              locations."/" =
                 let frontend = inputs.frontend.packages.x86_64-linux.frontend;
-                 in root = "${frontend}/lib/node_modules/frontend/dist/";
+                in {
+                root = "${frontend}/lib/node_modules/frontend/dist/";
               };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
