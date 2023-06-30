@@ -31,7 +31,7 @@
 
         services.nginx = {
           enable = true;
-          package = nixpkgs-unstable.nginxMainline;
+          package = nixpkgs-unstable.nginxQuic;
           recommendedProxySettings = true;
           virtualHosts = {
             "dev.p215.church" = {
