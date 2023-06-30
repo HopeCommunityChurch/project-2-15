@@ -49,6 +49,7 @@
               enableACME = true;
               extraConfig = ''
                 listen 0.0.0.0:443 quic reuseport;
+                add_header Alt-Svc 'h3=":$server_port"; ma=86400';
               '';
               # quic = true;
               http3_hq = true;
