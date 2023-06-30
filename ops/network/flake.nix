@@ -19,7 +19,7 @@
           neovim wget curl fish
         ];
         nix.gc = {
-          enable = true;
+          automatic = true;
         };
       };
 
