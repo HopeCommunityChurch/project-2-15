@@ -11,11 +11,15 @@
         nixpkgs = import nixpkgs {
           system = "x86_64-linux";
         };
-        defaults = { pkgs, ... }: {
-          # This module will be imported by all hosts
-          environment.systemPackages = with pkgs; [
-            neovim wget curl fish
-          ];
+      };
+
+      defaults = { pkgs, ... }: {
+        # This module will be imported by all hosts
+        environment.systemPackages = with pkgs; [
+          neovim wget curl fish
+        ];
+        nix.gc = {
+          enable = true;
         };
       };
 
