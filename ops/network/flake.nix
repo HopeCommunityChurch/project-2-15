@@ -1,10 +1,11 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/release-23.05";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     backend.url = "path:../../backend/";
     frontend.url = "path:../../frontend/";
   };
-  outputs = inputs@{ nixpkgs, ... }: {
+  outputs = inputs@{ nixpkgs, nixpkgs-unstable, ... }: {
     colmena = {
       meta = {
         nixpkgs = import nixpkgs {
@@ -30,6 +31,7 @@
 
         services.nginx = {
           enable = true;
+          package = nixpkgs-unstable.nginxMainline;
           recommendedProxySettings = true;
           virtualHosts = {
             "dev.p215.church" = {
