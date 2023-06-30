@@ -19,7 +19,7 @@
         };
         boot.isContainer = true;
 
-        networking.firewall.allowedTCPPorts = [ 22 80 443 3000 ];
+        networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
         services.do-agent.enable = true;
 
@@ -36,6 +36,10 @@
               enableACME = true;
               locations."/" = {
                 return = "200 \"Hello from Nixie!\"";
+              };
+              locations."/api/" = {
+                proxyPass = "http://127.0.0.1:3000/";
+                proxyWebsockets = true;
               };
             };
           };
