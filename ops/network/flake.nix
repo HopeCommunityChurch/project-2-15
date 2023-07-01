@@ -28,6 +28,11 @@
         deployment = {
           targetHost = "178.128.133.233";
           targetUser = "root";
+          keys."secrets" =
+            let fileLoc = builtins.getEnv "SECRETS_FILE_LOC";
+            in {
+            keyFile = "${fileLoc}";
+          };
         };
         boot.isContainer = true;
 
