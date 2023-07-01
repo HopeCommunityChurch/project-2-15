@@ -25,7 +25,7 @@ jobs:
         run: |
           cd ops
           echo $SECRETS_FILE > secrets.json
-          export $SECRETS_FILE_LOC=$(pwd)/secrets.json
+          export SECRETS_FILE_LOC=$(pwd)/secrets.json
           nix run
         env:
           SECRETS_FILE: ${{secrets.SECRETS_FILE}}
