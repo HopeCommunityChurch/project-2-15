@@ -17,6 +17,7 @@ module Prelude
   , module Relude.Functor.Fmap
   , module Relude.Functor.Reexport
   , module Relude.Applicative
+  , module Relude.Numeric
   , module Relude.Container.Reexport
   , module Control.Lens
   , module UnliftIO
@@ -65,6 +66,7 @@ import Relude.Monad.Maybe
 import Relude.Monad.Reexport
 import Relude.Monad.Trans
 import Relude.Monoid
+import Relude.Numeric
 import Relude.String
 import UnliftIO
 
