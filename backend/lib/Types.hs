@@ -1,4 +1,12 @@
-module Types (NewType (..), UserId, Email, GroupId, ChurchId, StudyId, DocId) where
+module Types (
+  NewType (..),
+  UserId,
+  Email,
+  GroupId,
+  ChurchId,
+  StudyId,
+  DocId,
+) where
 
 import Data.UUID (UUID)
 import Data.OpenApi (ToParamSchema)

@@ -27,6 +27,7 @@ module Prelude
   , module Data.Aeson
   , module Deriving.Aeson.Stock
   , module Data.OpenApi
+  , module Data.Vector
   , List
   )where
 
@@ -68,7 +69,8 @@ import Relude.Monad.Trans
 import Relude.Monoid
 import Relude.Numeric
 import Relude.String
-import UnliftIO
+import UnliftIO hiding (timeout)
+import Data.Vector (Vector)
 
 -- import Data.Generics.Labels
 

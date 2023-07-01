@@ -11,18 +11,20 @@ build-type:         Simple
 extra-doc-files:    CHANGELOG.md
 
 common warnings
-  ghc-options: -Wall -Werror=missing-fields
+  ghc-options: -Wall -Werror=missing-fields -Werror=incomplete-uni-patterns
 
 common buildDepends
   build-depends:
     base-noprelude,
     text,
+    postgresql-simple,
     beam-core,
     beam-postgres,
     containers,
     unordered-containers,
     relude,
     unliftio,
+    unliftio-pool,
     lens,
     generic-lens,
     bytestring,
@@ -43,6 +45,7 @@ common buildDepends
     tz,
     tzdata,
     quic,
+    vector,
 
   default-extensions:
     OverloadedStrings,
@@ -82,7 +85,7 @@ common buildDepends
     DerivingVia,
     DeriveAnyClass,
     OverloadedRecordDot,
-
+    AllowAmbiguousTypes,
 
 library
   import: warnings
@@ -91,6 +94,8 @@ library
     Types,
     Prelude,
     Database,
+    DbHelper,
+    EnvFields,
     Entity,
     Entity.User,
     Entity.UserAssignable,

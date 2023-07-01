@@ -41,6 +41,9 @@
               broken = false;
               check = false;
             };
+            unliftio-pool = {
+              haddock = true;
+            };
           };
 
 
