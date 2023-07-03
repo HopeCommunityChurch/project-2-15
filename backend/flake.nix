@@ -49,9 +49,6 @@
               jailbreak = true;
               haddock = true;
             };
-            servant-swagger-ui-redoc = {
-              haddock = true;
-            };
           };
 
 

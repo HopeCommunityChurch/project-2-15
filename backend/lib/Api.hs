@@ -6,7 +6,7 @@ import DbHelper (HasDbConn, MonadDb)
 import EnvFields (HasEnvType)
 import Servant
 import Servant.OpenApi (toOpenApi)
-import Servant.Swagger.UI.ReDoc (SwaggerSchemaUI, redocSchemaUIServer)
+import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 
 
 type Api'
@@ -65,4 +65,4 @@ server env =
     (Proxy @MyContext)
     (toHandler env)
     server'
-  :<|> redocSchemaUIServer openApi
+  :<|> swaggerSchemaUIServer openApi
