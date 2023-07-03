@@ -51,7 +51,7 @@ handleNotFound finding id = do
     Just e ->
       pure e
     Nothing ->
-      throwIO (MkNotFound (Proxy @e) id)
+      throwIO (MkSomeApiException (MkNotFound (Proxy @e) id))
 
 
 data AuthError = AuthError
@@ -59,4 +59,4 @@ data AuthError = AuthError
   deriving anyclass (Exception, ToJSON, ApiException)
 
 throwAuthErr :: MonadUnliftIO m => m a
-throwAuthErr = throwIO AuthError
+throwAuthErr = throwIO $ MkSomeApiException AuthError

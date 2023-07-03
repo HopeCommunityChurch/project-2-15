@@ -24,6 +24,7 @@ server' :: MonadDb env m => ServerT Api' m
 server'
   = Api.Auth.server
 
+
 errToJSON :: Errs.SomeApiException -> ServerError
 errToJSON (Errs.MkSomeApiException (e :: errType)) =
   ServerError
@@ -37,6 +38,7 @@ errToJSON (Errs.MkSomeApiException (e :: errType)) =
       , "content" .= Aeson.toJSON e
       ]
     modelName = toText $ tyConName $ typeRepTyCon $ typeRep (Proxy @errType)
+
 
 catchErrors :: IO a -> IO (Either ServerError a)
 catchErrors a =
