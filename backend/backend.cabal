@@ -17,6 +17,7 @@ common buildDepends
   build-depends:
     base-noprelude,
     text,
+    case-insensitive,
     postgresql-simple,
     beam-core,
     beam-postgres,
@@ -53,6 +54,7 @@ common buildDepends
     lens-datetime,
     servant-swagger-ui,
     servant-swagger-ui-redoc,
+    postgresql-migration,
 
   default-extensions:
     OverloadedStrings,
@@ -111,6 +113,7 @@ library
     Api.Auth,
     Password,
     SwaggerHelpers,
+    Orphans,
 
   build-depends:
 

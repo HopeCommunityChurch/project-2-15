@@ -54,7 +54,7 @@ instance Table UserT where
 userTable :: TableMod UserT
 userTable =
   modifyTable
-    "users"
+    "user"
     MkUserT
       { userId = fieldNamed "userId"
       , email = fieldNamed "email"
@@ -81,7 +81,7 @@ instance Table UserPasswordT where
 userPasswordTable :: TableMod UserPasswordT
 userPasswordTable =
   modifyTable
-    "users"
+    "user_password"
     MkUserPasswordT
       { userId = fieldNamed "userId"
       , password = fieldNamed "password"
@@ -106,35 +106,12 @@ instance Table UserSessionT where
 userSessionTable :: TableMod UserSessionT
 userSessionTable =
   modifyTable
-    "users_session"
+    "user_session"
     MkUserSessionT
       { userId = fieldNamed "userId"
       , token = fieldNamed "token"
       , expires = fieldNamed "expires"
       , created = fieldNamed "created"
-      }
-
-
-data ElderT f = MkElderT
-  { userId :: C f T.UserId
-  , churchId :: C f T.ChurchId
-  }
-  deriving (Generic)
-  deriving anyclass (Beamable)
-
-instance Table ElderT where
-  data PrimaryKey ElderT f = ElderKey (C f T.UserId) (C f T.ChurchId)
-    deriving Generic
-    deriving anyclass (Beamable)
-  primaryKey = ElderKey <$> (.userId) <*> (.churchId)
-
-elderTable :: TableMod ElderT
-elderTable =
-  modifyTable
-    "elders"
-    MkElderT
-      { userId = fieldNamed "userId"
-      , churchId = fieldNamed "churchId"
       }
 
 
@@ -246,7 +223,7 @@ data Db f = MkDb
   , userPassword :: f (TableEntity UserPasswordT)
   , userSession :: f (TableEntity UserSessionT)
   , church :: f (TableEntity ChurchT)
-  , elder :: f (TableEntity ElderT)
+  , churchElder :: f (TableEntity ChurchElderT)
   , study :: f (TableEntity StudyT)
   , document :: f (TableEntity DocumentT)
   }
@@ -261,7 +238,7 @@ db = defaultDbSettings `withDbModification`
           , userPassword = userPasswordTable
           , userSession = userSessionTable
           , church = churchTable
-          , elder = elderTable
+          , churchElder = churchElderTable
           , study = studyTable
           , document = documentTable
           }

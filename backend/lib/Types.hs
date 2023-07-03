@@ -18,6 +18,7 @@ import Data.ByteString.Builder (
   byteStringHex,
   toLazyByteString,
  )
+import Data.CaseInsensitive qualified as CI
 import Data.OpenApi (ToParamSchema)
 import Data.UUID (UUID)
 import Database.Beam (FromBackendRow)
@@ -27,6 +28,7 @@ import Database.Beam.Postgres qualified as Pg
 import Database.Beam.Query (HasSqlEqualityCheck)
 import Database.PostgreSQL.Simple.FromField (FromField (..))
 import Database.PostgreSQL.Simple.ToField (ToField (..))
+import Orphans ()
 
 newtype NewType p a = MkNewType a
   deriving (Generic)
@@ -65,7 +67,7 @@ data UserId'
 type UserId = NewType UserId' UUID
 
 data Email'
-type Email = NewType Email' Text
+type Email = NewType Email' (CI.CI Text)
 
 
 data ChurchId'

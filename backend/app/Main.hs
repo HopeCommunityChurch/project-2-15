@@ -2,6 +2,11 @@ module Main where
 
 import Api qualified
 import Data.Aeson qualified as Aeson
+import Data.Generics.Product (HasField' (field'))
+import Data.Text.IO qualified as T (hPutStrLn, putStrLn)
+import Database.PostgreSQL.Simple qualified as PgS
+import Database.PostgreSQL.Simple.Migration qualified as Mig
+import DbHelper qualified as Db
 import EnvFields (EnvType (..))
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp (run)
@@ -13,8 +18,7 @@ import Servant.Server (
   serveWithContext,
  )
 import Prelude hiding (get)
-import qualified DbHelper as Db
-import Data.Generics.Product (HasField'(field'))
+import System.Environment qualified as Env
 
 data DbInfo = MkDbInfo
   { host :: String
@@ -70,6 +74,7 @@ main = do
   case envResult of
     Left err -> error (toText err)
     Right (file :: SecretsFile) -> do
+      migration (dbToConnectInfo file.db)
       env <- secretToEnv file
       putStrLn "read the secrets file"
       run 3000
@@ -78,3 +83,26 @@ main = do
               (Proxy @Api.Api)
               Api.serverContext
               (Api.server env)))
+
+
+migrationOptions :: Mig.MigrationOptions
+migrationOptions =
+  Mig.MigrationOptions
+    Mig.Verbose
+    "schema_migrations"
+    (either (T.hPutStrLn stderr) T.putStrLn)
+    Mig.TransactionPerRun
+
+
+
+migration
+  :: MonadIO m
+  => Db.ConnectInfo
+  -> m ()
+migration dbInfo = do
+  envPath <- liftIO $ Env.getEnv "MIGRATION_PATH"
+  conn <- liftIO $ PgS.connect dbInfo
+  result <- liftIO $ Mig.runMigration conn migrationOptions (Mig.MigrationDirectory envPath)
+  print result
+  liftIO $ PgS.close conn
+

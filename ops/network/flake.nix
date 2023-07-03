@@ -81,6 +81,7 @@
 
         systemd.services.backend =
           let backend = inputs.backend.packages.x86_64-linux.backend;
+              migrationPath = ../../backend/migrations;
           in
             { description = "p215 backend";
               after = [ "network.target" ];
@@ -91,7 +92,9 @@
                 Restart = "always";
                 RestartSec = 3;
                 LimitNOFILE = 65536;
-                Environment = [  ]; # env variables here
+                Environment = [
+                  "MIGRATION_PATH=${migrationPath}"
+                ];
               };
             };
 

@@ -7,6 +7,7 @@ module DbHelper
   , createPool
   , ConnectInfo(..)
   , withConnection
+  , withRawConnection
   , withNewConnection
   , withTransaction
   , runAfterTransaction

@@ -37,7 +37,7 @@ instance E.Entity AuthUser where
   queryEntity _ = do
     user <- all_ Db.db.user
     let isElder = exists_ $ do
-                    elder <- all_ Db.db.elder
+                    elder <- all_ Db.db.churchElder
                     guard_ $ elder.userId ==. user.userId
                     guard_ $ elder.churchId ==. user.churchId
                     pure elder.userId
