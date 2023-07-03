@@ -51,6 +51,7 @@ common buildDepends
     quickcheck-instances,
     cookie,
     lens-datetime,
+    servant-swagger-ui-redoc,
 
   default-extensions:
     OverloadedStrings,
