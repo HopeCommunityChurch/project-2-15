@@ -111,6 +111,7 @@ library
     Api,
     Api.User,
     Api.Auth,
+    Api.Errors,
     Password,
     SwaggerHelpers,
     Orphans,

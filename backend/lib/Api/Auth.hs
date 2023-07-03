@@ -8,6 +8,7 @@ import Servant
 import Types qualified as T
 import Web.Cookie qualified as Cookie
 import Data.Time.Lens qualified as TL
+import Api.Errors qualified as Errs
 
 
 data PassLogin = MkPassLogin
@@ -66,7 +67,7 @@ passwordLogin
 passwordLogin MkPassLogin{email, password} = do
   mHash <- getPasswordHash email
   case mHash of
-    Nothing -> error "user not found"
+    Nothing -> Errs.throwAuthErr
     Just (userId, hash) ->
       if comparePassword password hash
         then do
@@ -81,7 +82,7 @@ passwordLogin MkPassLogin{email, password} = do
                           , Cookie.setCookiePath = Just "/"
                           }
           pure $ addHeader setCookie ()
-        else error "passwords don't match"
+        else Errs.throwAuthErr
 
 
 type Api =

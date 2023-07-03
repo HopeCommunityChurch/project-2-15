@@ -73,7 +73,7 @@ import Relude.Bool
 import Relude.Container.Reexport
 import Relude.Debug
 import Relude.Foldable
-import Relude.Function
+import Relude.Function hiding (id)
 import Relude.Functor
 import Relude.Functor.Fmap
 import Relude.Functor.Reexport

@@ -1,13 +1,17 @@
 module Api where
 
 import Api.Auth qualified
+import Api.Errors qualified as Errs
+import Data.Aeson ((.=))
+import Data.Aeson qualified as Aeson
 import Data.OpenApi qualified as OpenApi
+import Data.Typeable (tyConName, typeRep, typeRepTyCon)
 import DbHelper (HasDbConn, MonadDb)
 import EnvFields (HasEnvType)
 import Servant
 import Servant.OpenApi (toOpenApi)
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
-import qualified Servant.Swagger.UI.ReDoc as ReDoc
+import Servant.Swagger.UI.ReDoc qualified as ReDoc
 import SwaggerHelpers (OpenApiTag)
 
 
@@ -20,10 +24,27 @@ server' :: MonadDb env m => ServerT Api' m
 server'
   = Api.Auth.server
 
+errToJSON :: Errs.SomeApiException -> ServerError
+errToJSON (Errs.MkSomeApiException (e :: errType)) =
+  ServerError
+    420
+    "Too much smoke"
+    msg
+    []
+  where
+    msg = Aeson.encode $ Aeson.object
+      [ "error" .= Aeson.String modelName
+      , "content" .= Aeson.toJSON e
+      ]
+    modelName = toText $ tyConName $ typeRepTyCon $ typeRep (Proxy @errType)
 
 catchErrors :: IO a -> IO (Either ServerError a)
-catchErrors =
-  fmap Right
+catchErrors a =
+  handle
+    (\(e :: Errs.SomeApiException) ->
+      pure $ Left (errToJSON e)
+    )
+  $ fmap Right a
 
 
 toHandler
