@@ -102,7 +102,10 @@ migration
 migration dbInfo = do
   envPath <- liftIO $ Env.getEnv "MIGRATION_PATH"
   conn <- liftIO $ PgS.connect dbInfo
-  result <- liftIO $ Mig.runMigration conn migrationOptions (Mig.MigrationDirectory envPath)
+  result <- liftIO $ Mig.runMigrations conn migrationOptions
+    [ Mig.MigrationInitialization
+    , Mig.MigrationDirectory envPath
+    ]
   print result
   liftIO $ PgS.close conn
 
