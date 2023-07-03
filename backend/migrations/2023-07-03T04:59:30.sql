@@ -1,3 +1,5 @@
+CREATE EXTENSION citext;
+
 create table if not exists "church"
   ( "churchId" uuid not null
   , "name" text not null
@@ -8,12 +10,11 @@ create table if not exists "church"
 
 create table if not exists "user"
   ( "userId" uuid not null
-  , "email" text not null
   , "email" citext not null
   , "image" text not null
   , "churchId" uuid not null
   , "created" timestamptz not null default now()
-  , PRIMARY KEY ("churchId")
+  , PRIMARY KEY ("userId")
   , FOREIGN KEY ("churchId") REFERENCES church ("churchId")
   );
 
@@ -22,7 +23,7 @@ create table if not exists "user_password"
   ( "userId" uuid not null
   , "password" text not null
   , PRIMARY KEY ("userId")
-  , FOREIGN KEY ("userId") REFERENCES user ("userId")
+  , FOREIGN KEY ("userId") REFERENCES "user" ("userId")
   );
 
 
@@ -32,7 +33,7 @@ create table if not exists "user_session"
   , "expires" timestamptz not null
   , "created" timestamptz not null
   , PRIMARY KEY ("token")
-  , FOREIGN KEY ("userId") REFERENCES user ("userId")
+  , FOREIGN KEY ("userId") REFERENCES "user" ("userId")
   );
 
 
@@ -42,5 +43,5 @@ create table if not exists "church_elder"
   , "created" timestamptz not null default now()
   , PRIMARY KEY ("churchId")
   , FOREIGN KEY ("churchId") REFERENCES church ("churchId")
-  , FOREIGN KEY ("userId") REFERENCES user ("userId")
+  , FOREIGN KEY ("userId") REFERENCES "user" ("userId")
   );
