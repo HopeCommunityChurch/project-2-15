@@ -44,6 +44,11 @@
             unliftio-pool = {
               haddock = true;
             };
+            lens-datetime = {
+              broken = false;
+              jailbreak = true;
+              haddock = true;
+            };
           };
 
 

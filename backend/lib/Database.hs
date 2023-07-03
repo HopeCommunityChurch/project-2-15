@@ -18,6 +18,7 @@ import Database.Beam (
   withDbModification,
  )
 import Types qualified as T
+import Password (PasswordHash)
 
 type TableMod table =
   forall be .
@@ -64,57 +65,76 @@ userTable =
       }
 
 
-data GroupT f = MkGroupT
-  { groupId :: C f T.GroupId
-  , name :: C f Text
-  , churchId :: C f T.ChurchId
+data UserPasswordT f = MkUserPasswordT
+  { userId :: C f T.UserId
+  , password :: C f PasswordHash
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table UserPasswordT where
+  data PrimaryKey UserPasswordT f = UserPasswordKey (C f T.UserId)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = UserPasswordKey <$> (.userId)
+
+userPasswordTable :: TableMod UserPasswordT
+userPasswordTable =
+  modifyTable
+    "users"
+    MkUserPasswordT
+      { userId = fieldNamed "userId"
+      , password = fieldNamed "password"
+      }
+
+
+data UserSessionT f = MkUserSessionT
+  { userId :: C f T.UserId
+  , token :: C f T.CookieToken
+  , expires :: C f UTCTime
   , created :: C f UTCTime
   }
   deriving (Generic)
   deriving anyclass (Beamable)
 
-instance Table GroupT where
-  data PrimaryKey GroupT f = GroupKey (C f T.GroupId)
+instance Table UserSessionT where
+  data PrimaryKey UserSessionT f = UserSessionKey (C f T.CookieToken)
     deriving Generic
     deriving anyclass (Beamable)
-  primaryKey = GroupKey <$> (.groupId)
+  primaryKey = UserSessionKey <$> (.token)
 
-groupTable :: TableMod GroupT
-groupTable =
+userSessionTable :: TableMod UserSessionT
+userSessionTable =
   modifyTable
-    "groups"
-    MkGroupT
-      { groupId = fieldNamed "groupId"
-      , name = fieldNamed "name"
-      , churchId = fieldNamed "churchId"
+    "users_session"
+    MkUserSessionT
+      { userId = fieldNamed "userId"
+      , token = fieldNamed "token"
+      , expires = fieldNamed "expires"
       , created = fieldNamed "created"
       }
 
 
-data UserGroupT f = MkUserGroupT
-  { groupId :: C f T.GroupId
-  , userId :: C f T.UserId
-  , isLeader :: C f Bool
-  , created :: C f UTCTime
+data ElderT f = MkElderT
+  { userId :: C f T.UserId
+  , churchId :: C f T.ChurchId
   }
   deriving (Generic)
   deriving anyclass (Beamable)
 
-instance Table UserGroupT where
-  data PrimaryKey UserGroupT f = UserGroupKey (C f T.GroupId) (C f T.UserId)
+instance Table ElderT where
+  data PrimaryKey ElderT f = ElderKey (C f T.UserId) (C f T.ChurchId)
     deriving Generic
     deriving anyclass (Beamable)
-  primaryKey = UserGroupKey <$> (.groupId) <*> (.userId)
+  primaryKey = ElderKey <$> (.userId) <*> (.churchId)
 
-userGroupTable :: TableMod UserGroupT
-userGroupTable =
+elderTable :: TableMod ElderT
+elderTable =
   modifyTable
-    "users_groups"
-    MkUserGroupT
-      { groupId = fieldNamed "groupId"
-      , userId = fieldNamed "userId"
-      , isLeader = fieldNamed "isLeader"
-      , created = fieldNamed "created"
+    "elders"
+    MkElderT
+      { userId = fieldNamed "userId"
+      , churchId = fieldNamed "churchId"
       }
 
 
@@ -223,10 +243,12 @@ documentTable =
 
 data Db f = MkDb
   { user :: f (TableEntity UserT)
-  , group :: f (TableEntity GroupT)
-  , userGroup :: f (TableEntity UserGroupT)
+  , userPassword :: f (TableEntity UserPasswordT)
+  , userSession :: f (TableEntity UserSessionT)
   , church :: f (TableEntity ChurchT)
+  , elder :: f (TableEntity ElderT)
   , study :: f (TableEntity StudyT)
+  , document :: f (TableEntity DocumentT)
   }
   deriving (Generic)
 
@@ -236,8 +258,10 @@ db :: DatabaseSettings be Db
 db = defaultDbSettings `withDbModification`
         MkDb
           { user = userTable
-          , group = groupTable
-          , userGroup = userGroupTable
+          , userPassword = userPasswordTable
+          , userSession = userSessionTable
           , church = churchTable
+          , elder = elderTable
           , study = studyTable
+          , document = documentTable
           }

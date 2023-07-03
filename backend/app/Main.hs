@@ -1,8 +1,20 @@
 module Main where
 
+import Api qualified
+import Data.Aeson qualified as Aeson
+import EnvFields (EnvType (..))
+import Network.Wai qualified as Wai
+import Network.Wai.Handler.Warp (run)
+import Network.Wai.Middleware.RequestLogger (
+  logStdout,
+  logStdoutDev,
+ )
+import Servant.Server (
+  serveWithContext,
+ )
 import Prelude hiding (get)
-import Web.Scotty
-import qualified Data.Aeson as Aeson
+import qualified DbHelper as Db
+import Data.Generics.Product (HasField'(field'))
 
 data DbInfo = MkDbInfo
   { host :: String
@@ -15,11 +27,41 @@ data DbInfo = MkDbInfo
   deriving anyclass (FromJSON)
 
 
+dbToConnectInfo :: DbInfo -> Db.ConnectInfo
+dbToConnectInfo MkDbInfo{host, port, username, password, database} =
+  Db.ConnectInfo
+    host
+    port
+    username
+    password
+    database
+
+
 data SecretsFile = MkSecretsFile
   { db :: DbInfo
+  , env :: EnvType
   }
   deriving (Generic)
   deriving anyclass (FromJSON)
+
+logMiddle :: EnvType -> Wai.Middleware
+logMiddle (Dev _) = logStdoutDev
+logMiddle Prod = logStdout
+
+
+data Env = MkEnv
+  { envType :: EnvType
+  , dbConn :: Db.DbConn
+  }
+  deriving (Generic)
+
+instance Db.HasDbConn Env where
+  dbConn = field' @"dbConn"
+
+secretToEnv :: MonadIO m => SecretsFile -> m Env
+secretToEnv MkSecretsFile{db, env} = do
+  dbConn <- liftIO $ Db.createPool (dbToConnectInfo db)
+  pure $ MkEnv env dbConn
 
 
 main :: IO ()
@@ -27,11 +69,12 @@ main = do
   envResult <- Aeson.eitherDecodeFileStrict "/var/run/keys/secrets"
   case envResult of
     Left err -> error (toText err)
-    Right (r :: SecretsFile) ->
+    Right (file :: SecretsFile) -> do
+      env <- secretToEnv file
       putStrLn "read the secrets file"
-  scotty 3000 $ do
-    get "/:word" $ do
-        beam <- param "word"
-        html $ mconcat ["<h1>Scotty, ", beam, " me up!</h1>"]
-    get "/" $ do
-        html "<h1>Scotty, me up!</h1>"
+      run 3000
+        (logMiddle env.envType
+           (serveWithContext
+              (Proxy @Api.Api)
+              Api.serverContext
+              (Api.server env)))

@@ -29,10 +29,24 @@ module Prelude
   , module Data.OpenApi
   , module Data.Vector
   , List
+  , getCurrentTime
+  , unwrap
   )where
 
 
-import Control.Lens (Iso, Iso', Lens, Lens', Wrapped (..), (.~), (?~), (^.))
+import Control.Lens (
+  Iso,
+  Iso',
+  Lens,
+  Lens',
+  Wrapped (..),
+  view,
+  (+~),
+  (-~),
+  (.~),
+  (?~),
+  (^.),
+ )
 import Control.Monad.Logger.CallStack (
   LoggingT,
   MonadLogger,
@@ -49,7 +63,9 @@ import Control.Monad.Logger.CallStack (
 import Data.Aeson (FromJSON, ToJSON)
 import Data.OpenApi (ToSchema)
 import Data.Time (Day (..), LocalTime (..), UTCTime (..))
+import Data.Time qualified as Time
 import Data.Time.Zones (TZ, loadSystemTZ, utcToLocalTimeTZ)
+import Data.Vector (Vector)
 import Deriving.Aeson.Stock (Prefixed)
 import Relude.Applicative
 import Relude.Base
@@ -69,11 +85,15 @@ import Relude.Monad.Trans
 import Relude.Monoid
 import Relude.Numeric
 import Relude.String
-import UnliftIO hiding (timeout)
-import Data.Vector (Vector)
+import UnliftIO hiding (timeout, Handler)
 
 -- import Data.Generics.Labels
 
 
 type List a = [a]
 
+getCurrentTime :: MonadIO m => m UTCTime
+getCurrentTime = liftIO Time.getCurrentTime
+
+unwrap :: (Wrapped a) => a -> Unwrapped a
+unwrap = view _Wrapped'

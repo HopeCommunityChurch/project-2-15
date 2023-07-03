@@ -46,6 +46,11 @@ common buildDepends
     tzdata,
     quic,
     vector,
+    cryptonite,
+    QuickCheck,
+    quickcheck-instances,
+    cookie,
+    lens-datetime,
 
   default-extensions:
     OverloadedStrings,
@@ -98,9 +103,11 @@ library
     EnvFields,
     Entity,
     Entity.User,
-    Entity.UserAssignable,
-    Entity.Group,
-    Api.User
+    Entity.AuthUser,
+    Api,
+    Api.User,
+    Api.Auth,
+    Password,
 
   build-depends:
 
