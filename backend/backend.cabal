@@ -52,6 +52,7 @@ common buildDepends
     cookie,
     lens-datetime,
     servant-swagger-ui,
+    servant-swagger-ui-redoc,
 
   default-extensions:
     OverloadedStrings,

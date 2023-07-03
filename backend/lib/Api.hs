@@ -7,6 +7,7 @@ import EnvFields (HasEnvType)
 import Servant
 import Servant.OpenApi (toOpenApi)
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
+import qualified Servant.Swagger.UI.ReDoc as ReDoc
 
 
 type Api'
@@ -44,6 +45,7 @@ serverContext = EmptyContext
 type Api
   = Api'
   :<|> SwaggerSchemaUI "swagger-ui" "swagger.json"
+  :<|> ReDoc.SwaggerSchemaUI "swagger-ui2" "swagger2.json"
 
 
 openApi :: OpenApi.OpenApi
@@ -66,3 +68,4 @@ server env =
     (toHandler env)
     server'
   :<|> swaggerSchemaUIServer openApi
+  :<|> ReDoc.redocSchemaUIServer openApi

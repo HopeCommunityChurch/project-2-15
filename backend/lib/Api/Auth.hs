@@ -86,6 +86,7 @@ passwordLogin MkPassLogin{email, password} = do
 
 type Api =
   "password"
+    :> Description "Password login"
     :> ReqBody '[JSON] PassLogin
     :> Verb 'POST 204 '[JSON] (CookieHeader ())
 
