@@ -11,7 +11,7 @@ create table if not exists "church"
 create table if not exists "user"
   ( "userId" uuid not null
   , "email" citext not null
-  , "image" text not null
+  , "image" text
   , "churchId" uuid not null
   , "created" timestamptz not null default now()
   , PRIMARY KEY ("userId")
