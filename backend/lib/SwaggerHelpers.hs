@@ -14,21 +14,20 @@ import           Servant.OpenApi                          (HasOpenApi(..))
 import           GHC.TypeLits (KnownSymbol, symbolVal)
 
 
--- class AuthDescription auth where
---   securityName :: Text
---   securityScheme :: OpenApi.SecurityScheme
+class AuthDescription auth where
+  securityName :: Text
+  securityScheme :: OpenApi.SecurityScheme
 
 
--- instance (AuthDescription str, HasOpenApi api) => HasOpenApi (AuthProtect str :> api) where
---   toOpenApi _
---     = toOpenApi (Proxy :: Proxy api)
---         & OpenApi.securityDefinitions <>~ mkSec
---         & OpenApi.allOperations . OpenApi.security <>~ secReqs
---     where
---       secReqs = [ OpenApi.SecurityRequirement (fromList [(securityName @str, [] :: [Text])]) ]
---       mkSec =
---         OpenApi.SecurityDefinitions
---           (fromList [(securityName @str, securityScheme @str)])
+instance (AuthDescription str, HasOpenApi api) => HasOpenApi (AuthProtect str :> api) where
+  toOpenApi _
+    = toOpenApi (Proxy @api)
+        & OpenApi.allOperations . OpenApi.security <>~ secReqs
+    where
+      secReqs = [ OpenApi.SecurityRequirement (fromList [(securityName @str, [] :: [Text])]) ]
+      -- mkSec =
+      --   OpenApi.SecurityDefinitions
+      --     (fromList [(securityName @str, securityScheme @str)])
 
 
 data OpenApiTag name description
