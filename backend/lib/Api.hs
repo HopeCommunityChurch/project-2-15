@@ -8,11 +8,12 @@ import Servant
 import Servant.OpenApi (toOpenApi)
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 import qualified Servant.Swagger.UI.ReDoc as ReDoc
+import SwaggerHelpers (OpenApiTag)
 
 
 type Api'
-  = "auth"
-    :> Api.Auth.Api
+  = OpenApiTag "auth" "auth stuff"
+    :> "auth" :> Api.Auth.Api
 
 
 server' :: MonadDb env m => ServerT Api' m

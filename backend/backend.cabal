@@ -110,6 +110,7 @@ library
     Api.User,
     Api.Auth,
     Password,
+    SwaggerHelpers,
 
   build-depends:
 
