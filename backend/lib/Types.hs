@@ -29,6 +29,9 @@ import Database.Beam.Query (HasSqlEqualityCheck)
 import Database.PostgreSQL.Simple.FromField (FromField (..))
 import Database.PostgreSQL.Simple.ToField (ToField (..))
 import Orphans ()
+import Data.ByteString qualified as BS
+import Data.List ((!!))
+import Data.Text qualified as T
 
 newtype NewType p a = MkNewType a
   deriving (Generic)
@@ -89,11 +92,25 @@ type DocId = NewType DocId' UUID
 data CookieToken'
 type CookieToken = NewType CookieToken' Text
 
+validChars :: [Char]
+validChars = ['0'..'9'] <> ['a'..'z'] <> ['A'..'Z'] <> ['_']
+
+
+convert :: Word8 -> Text
+convert int =
+  let (d,m) = int `divMod` fromIntegral (length validChars)
+   in T.singleton (validChars !! fromIntegral m)
+       <> if d > 0 then convert d else mempty
+
+
+tokenToText :: ByteString -> Text
+tokenToText =
+  BS.foldr (\ w r -> r <> convert w) mempty
 
 genToken :: (MonadIO m) => Int -> m Text
 genToken i = do
   bytes <- liftIO $ getRandomBytes i
-  pure $ decodeUtf8 $ toStrict $ toLazyByteString $ byteStringHex bytes
+  pure $ tokenToText bytes
 
 
 genCookieToken :: (MonadIO m) => m CookieToken
