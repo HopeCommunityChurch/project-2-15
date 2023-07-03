@@ -1,4 +1,10 @@
-module Api.Errors where
+module Api.Errors
+  ( ApiException
+  , SomeApiException(..)
+  , throwApi
+  , handleNotFound
+  , throwAuthErr
+  )where
 
 import Data.Typeable (tyConName, typeRep, typeRepTyCon)
 import Text.Show qualified as Show
@@ -17,6 +23,8 @@ instance Show.Show SomeApiException where
 
 instance Exception SomeApiException
 
+throwApi :: (MonadUnliftIO m, ApiException e) => e -> m a
+throwApi = throwIO . MkSomeApiException
 
 data NotFound
   = forall e id . (Typeable e, Show id, ToJSON id)
@@ -51,7 +59,7 @@ handleNotFound finding id = do
     Just e ->
       pure e
     Nothing ->
-      throwIO (MkSomeApiException (MkNotFound (Proxy @e) id))
+      throwApi (MkNotFound (Proxy @e) id)
 
 
 data AuthError = AuthError
@@ -59,4 +67,4 @@ data AuthError = AuthError
   deriving anyclass (Exception, ToJSON, ApiException)
 
 throwAuthErr :: MonadUnliftIO m => m a
-throwAuthErr = throwIO $ MkSomeApiException AuthError
+throwAuthErr = throwApi AuthError
