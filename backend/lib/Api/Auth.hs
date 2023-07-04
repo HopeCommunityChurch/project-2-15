@@ -16,7 +16,7 @@ import Database.Beam (
   runSelectReturningOne,
   select,
   val_,
-  (<=.),
+  (>=.),
   (==.),
  )
 import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
@@ -60,17 +60,14 @@ authCookie env =
     case List.lookup "Cookie" (requestHeaders req) of
       Nothing -> throwError (err401 {errBody = "No Cookies"})
       Just bsCookies -> do
-        print (Cookie.parseCookies bsCookies)
         case List.lookup "p215-auth" (Cookie.parseCookies bsCookies) of
           Nothing -> do
-            putStrLn "p215-auth cookie not there"
             throwError (err401 {errBody = "Missing Needed Cookie"})
           Just bsToken -> do
             let cookie = T.MkNewType (decodeUtf8 bsToken)
             mResult <- liftIO $ runStdoutLoggingT (runReaderT (lookupSession cookie) env)
             case mResult of
               Nothing -> do
-                putStrLn "couldn't find data needed"
                 throwError (err401 {errBody = "Missing Needed Cookie"})
               Just result -> pure result
 
@@ -87,7 +84,7 @@ lookupSession token = withTransaction $ do
     $ select
     $ do
       session <- all_ Db.db.userSession
-      guard_ $ session.expires <=. val_ now
+      guard_ $ session.expires >=. val_ now
       guard_ $ session.token ==. val_ token
       E.queryEntityBy @AuthUser Nothing session.userId
 
