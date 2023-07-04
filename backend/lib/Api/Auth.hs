@@ -59,14 +59,19 @@ authCookie env =
   mkAuthHandler $ \ req -> do
     case List.lookup "Cookie" (requestHeaders req) of
       Nothing -> throwError (err401 {errBody = "No Cookies"})
-      Just bsCookies ->
+      Just bsCookies -> do
+        print (Cookie.parseCookies bsCookies)
         case List.lookup "p215-auth" (Cookie.parseCookies bsCookies) of
-          Nothing -> throwError (err401 {errBody = "Missing Needed Cookie"})
+          Nothing -> do
+            putStrLn "p215-auth cookie not there"
+            throwError (err401 {errBody = "Missing Needed Cookie"})
           Just bsToken -> do
             let cookie = T.MkNewType (decodeUtf8 bsToken)
             mResult <- liftIO $ runStdoutLoggingT (runReaderT (lookupSession cookie) env)
             case mResult of
-              Nothing -> throwError (err401 {errBody = "Missing Needed Cookie"})
+              Nothing -> do
+                putStrLn "couldn't find data needed"
+                throwError (err401 {errBody = "Missing Needed Cookie"})
               Just result -> pure result
 
 
