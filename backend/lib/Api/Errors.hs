@@ -3,6 +3,7 @@ module Api.Errors
   , SomeApiException(..)
   , throwApi
   , handleNotFound
+  , catchNotFound
   , throwAuthErr
   )where
 
@@ -60,6 +61,15 @@ handleNotFound finding id = do
       pure e
     Nothing ->
       throwApi (MkNotFound (Proxy @e) id)
+
+
+catchNotFound
+  :: forall e id m
+   . (Typeable e, ToJSON id, Show id, MonadUnliftIO m)
+  => id
+  -> (id -> m (Maybe e))
+  -> m e
+catchNotFound = flip handleNotFound
 
 
 data AuthError = AuthError

@@ -3,8 +3,7 @@
 module Entity where
 
 
-import DbHelper
-import           Data.Aeson                      (FromJSON(..))
+import DbHelper (MonadDb, runBeam)
 import           Data.Typeable
     ( tyConName
     , tyConPackage
@@ -15,22 +14,9 @@ import qualified Database.Beam                   as B
 import           Database.Beam.Backend.SQL.SQL92 (HasSqlValueSyntax)
 import qualified Database.Beam.Backend.Types     as BT
 import qualified Database.Beam.Postgres          as Pg
-import           Database.Beam.Postgres.Syntax   (PgExpressionSyntax(..))
 import qualified Database.Beam.Postgres.Syntax   as PgS
 import qualified Database.Beam.Query             as BQ
-import           Database.Beam.Query.Internal
-    ( ContextRewritable(..)
-    , ProjectibleWithPredicate(..)
-    , QAgg
-    , TablePrefix
-    , ThreadRewritable(..)
-    )
-import           GHC.Generics                    ((:*:)(..))
-import qualified GHC.Generics                    as G
 import qualified GHC.Stack                       as Stack
-import           GHC.TypeLits                    (KnownSymbol, symbolVal)
-import           Unsafe.Coerce                   (unsafeCoerce)
-import UnliftIO (MonadUnliftIO(..))
 
 
 type family DbUser (db :: (Type -> Type) -> Type) :: Type
@@ -74,6 +60,29 @@ class Entity e => NullEntity e where
   fromNullable :: DbEntity e (B.Nullable Identity) -> Maybe (HsEntity e)
 
 
+-- | Limit an entity by some value in a query.
+class Entity entity => GuardValue entity value where
+  guardValues
+    :: [BQ.QExpr Pg.Postgres s value]
+    -> PgEntity entity s
+    -> BQ.Q Pg.Postgres (EntityDatabase entity) s ()
+
+
+class GuardValue entity (EntityId entity) => EntityWithId entity where
+  type EntityId entity
+
+  entityId :: PgEntity entity s -> BQ.QExpr Pg.Postgres s (EntityId entity)
+
+
+guardValue
+  :: GuardValue entity value
+  => BQ.QExpr Pg.Postgres s value
+  -> PgEntity entity s
+  -> BQ.Q Pg.Postgres (EntityDatabase entity) s ()
+guardValue v entity =
+  guardValues (pure v) entity
+
+
 toNullableEntity
   :: ( NullEntity e
      , B.Beamable (DbEntity e)
@@ -104,4 +113,124 @@ addCommentE (BQ.SqlSelect pgSelect) =
         in BQ.SqlSelect select
       _ -> BQ.SqlSelect pgSelect
 
+
+queryEntityBy
+  :: forall entity value s
+   . ( GuardValue entity value )
+  => Maybe (DbUser (EntityDatabase entity))
+  -> BQ.QExpr Pg.Postgres s value
+  -> BQ.Q Pg.Postgres (EntityDatabase entity) s (PgEntity entity s)
+queryEntityBy user value = do
+  entity <- queryEntity user
+  guardValue value entity
+  pure entity
+
+
+getOneEntityBy
+  :: forall entity value env m
+   . ( GuardValue entity value
+     , Entity entity
+     , Typeable entity
+     , B.Beamable (DbEntity entity)
+     , HasSqlValueSyntax PgS.PgValueSyntax value
+     , B.FromBackendRow Pg.Postgres (HsEntity entity)
+     , MonadDb env m
+     )
+  => value
+  -> m (Maybe entity)
+getOneEntityBy value =
+  fmap
+    (fmap (toEntity @entity))
+    (runBeam
+      $ B.runSelectReturningOne
+      $ addCommentE @entity
+      $ B.select $ do
+        entity <- queryEntity @entity Nothing
+        guardValue @entity (B.val_ value) entity
+        pure entity
+    )
+
+
+getById
+  :: forall entity env m
+   . ( EntityWithId entity
+     , Entity entity
+     , Typeable entity
+     , B.Beamable (DbEntity entity)
+     , HasSqlValueSyntax PgS.PgValueSyntax (EntityId entity)
+     , B.FromBackendRow Pg.Postgres (HsEntity entity)
+     , MonadDb env m
+     )
+  => EntityId entity
+  -> m (Maybe entity)
+getById id =
+  getOneEntityBy id
+
+
+getForUserBy
+  :: forall entity value env m
+   . ( Entity entity
+     , Typeable entity
+     , B.FromBackendRow Pg.Postgres (HsEntity entity)
+     , B.Beamable (DbEntity entity)
+     , MonadDb env m
+     , HasSqlValueSyntax PgS.PgValueSyntax value
+     , GuardValue entity value
+     )
+  => DbUser (EntityDatabase entity)
+  -> value
+  -> m [entity]
+getForUserBy user value =
+  fmap
+    (fmap (toEntity @entity))
+    (runBeam
+      $ B.runSelectReturningList
+      $ addCommentE @entity
+      $ B.select $ do
+        entity <- queryEntity @entity (Just user)
+        guardValue @entity (B.val_ value) entity
+        pure entity
+    )
+
+
+getOneForUserBy
+  :: forall entity value env m
+   . ( Entity entity
+     , Typeable entity
+     , B.FromBackendRow Pg.Postgres (HsEntity entity)
+     , B.Beamable (DbEntity entity)
+     , MonadDb env m
+     , HasSqlValueSyntax PgS.PgValueSyntax value
+     , GuardValue entity value
+     )
+  => DbUser (EntityDatabase entity)
+  -> value
+  -> m (Maybe entity)
+getOneForUserBy user value =
+  fmap
+    (fmap (toEntity @entity))
+    (runBeam
+      $ B.runSelectReturningOne
+      $ addCommentE @entity
+      $ B.select $ do
+        entity <- queryEntity @entity (Just user)
+        guardValue @entity (B.val_ value) entity
+        pure entity
+    )
+
+
+getByIdForUser
+  :: forall entity env m
+   . ( EntityWithId entity
+     , Entity entity
+     , Typeable entity
+     , B.Beamable (DbEntity entity)
+     , HasSqlValueSyntax PgS.PgValueSyntax (EntityId entity)
+     , B.FromBackendRow Pg.Postgres (HsEntity entity)
+     , MonadDb env m
+     )
+  => DbUser (EntityDatabase entity)
+  -> EntityId entity
+  -> m (Maybe entity)
+getByIdForUser = getOneForUserBy
 

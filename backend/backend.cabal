@@ -109,6 +109,7 @@ library
     Entity.User,
     Entity.AuthUser,
     Api,
+    Api.Helpers,
     Api.User,
     Api.Auth,
     Api.Errors,

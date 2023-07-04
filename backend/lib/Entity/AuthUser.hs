@@ -3,7 +3,8 @@ module Entity.AuthUser where
 import qualified Types as T
 import qualified Database as Db
 import qualified Entity as E
-import Database.Beam (C, Beamable, all_, exists_, guard_, (==.))
+import Database.Beam (C, Beamable, all_, exists_, guard_, (==.), in_)
+
 
 data AuthUser = MkAuthUser
   { userId :: T.UserId
@@ -48,3 +49,6 @@ instance E.Entity AuthUser where
         isElder
         user.churchId
 
+instance E.GuardValue AuthUser T.UserId where
+  guardValues ids user =
+    guard_ $ user.userId `in_` ids

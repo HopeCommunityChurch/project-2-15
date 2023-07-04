@@ -4,6 +4,7 @@
 
 module SwaggerHelpers
   ( OpenApiTag
+  , AuthDescription(..)
   ) where
 
 import           Control.Lens                             ((<>~))

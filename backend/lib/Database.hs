@@ -38,7 +38,7 @@ data UserT f = MkUserT
   { userId :: C f T.UserId
   , email :: C f T.Email
   , name :: C f Text
-  , image :: C f Text
+  , image :: C f (Maybe Text)
   , churchId :: C f T.ChurchId
   , created :: C f UTCTime
   }

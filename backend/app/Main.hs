@@ -81,7 +81,7 @@ main = do
         (logMiddle env.envType
            (serveWithContext
               (Proxy @Api.Api)
-              Api.serverContext
+              (Api.serverContext env)
               (Api.server env)))
 
 

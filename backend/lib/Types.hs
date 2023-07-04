@@ -14,10 +14,6 @@ module Types (
 import Crypto.Random (
   MonadRandom (getRandomBytes),
  )
-import Data.ByteString.Builder (
-  byteStringHex,
-  toLazyByteString,
- )
 import Data.CaseInsensitive qualified as CI
 import Data.OpenApi (ToParamSchema)
 import Data.UUID (UUID)
@@ -32,6 +28,7 @@ import Orphans ()
 import Data.ByteString qualified as BS
 import Data.List ((!!))
 import Data.Text qualified as T
+import Servant.API (FromHttpApiData)
 
 newtype NewType p a = MkNewType a
   deriving (Generic)
@@ -47,6 +44,7 @@ newtype NewType p a = MkNewType a
     , ToSchema
     , FromField
     , ToField
+    , FromHttpApiData
     )
 
 instance {-# OVERLAPPABLE #-} HasSqlEqualityCheck be a
@@ -106,6 +104,7 @@ convert int =
 tokenToText :: ByteString -> Text
 tokenToText =
   BS.foldr (\ w r -> r <> convert w) mempty
+
 
 genToken :: (MonadIO m) => Int -> m Text
 genToken i = do

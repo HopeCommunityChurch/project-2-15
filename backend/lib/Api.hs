@@ -2,14 +2,20 @@ module Api where
 
 import Api.Auth qualified
 import Api.Errors qualified as Errs
+import Api.User qualified
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.OpenApi qualified as OpenApi
 import Data.Typeable (tyConName, typeRep, typeRepTyCon)
 import DbHelper (HasDbConn, MonadDb)
+import Entity.AuthUser (AuthUser)
 import EnvFields (HasEnvType)
+import Network.Wai (Request)
 import Servant
 import Servant.OpenApi (toOpenApi)
+import Servant.Server.Experimental.Auth (
+  AuthHandler,
+ )
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 import Servant.Swagger.UI.ReDoc qualified as ReDoc
 import SwaggerHelpers (OpenApiTag)
@@ -18,11 +24,14 @@ import SwaggerHelpers (OpenApiTag)
 type Api'
   = OpenApiTag "auth" "auth stuff"
     :> "auth" :> Api.Auth.Api
+  :<|> OpenApiTag "user" "user stuff"
+    :> "user" :> Api.User.Api
 
 
 server' :: MonadDb env m => ServerT Api' m
 server'
   = Api.Auth.server
+  :<|> Api.User.server
 
 
 errToJSON :: Errs.SomeApiException -> ServerError
@@ -59,11 +68,19 @@ toHandler env myMonad =
     Left err -> throwError err
 
 
-type MyContext = (  '[])
+type MyContext =
+  '[  AuthHandler Request AuthUser
+  ]
+
 
 serverContext
-  :: Context MyContext
-serverContext = EmptyContext
+  :: HasDbConn env
+  => HasEnvType env
+  => env
+  -> Context MyContext
+serverContext env =
+  Api.Auth.authCookie env
+  :. EmptyContext
 
 
 type Api

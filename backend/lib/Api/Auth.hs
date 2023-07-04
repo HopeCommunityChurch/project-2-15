@@ -1,14 +1,91 @@
-module Api.Auth (Api, server) where
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
+module Api.Auth (Api, server, authCookie, AuthUser) where
+
+import Api.Errors qualified as Errs
+import Data.List qualified as List
+import Data.OpenApi qualified as OpenApi
+import Data.Time.Lens qualified as TL
 import Database qualified as Db
-import Database.Beam (all_, guard_, runSelectReturningOne, select, val_, (==.), runInsert, insert, insertValues)
-import DbHelper (MonadDb, runBeam)
+import Database.Beam (
+  all_,
+  guard_,
+  insert,
+  insertValues,
+  runInsert,
+  runSelectReturningOne,
+  select,
+  val_,
+  (<=.),
+  (==.),
+ )
+import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
+import Entity qualified as E
+import Entity.AuthUser (AuthUser)
+import EnvFields (HasEnvType)
+import Network.Wai (
+  Request,
+  requestHeaders,
+ )
 import Password (Password, PasswordHash, comparePassword)
 import Servant
+import Servant.Server.Experimental.Auth (
+  AuthHandler,
+  AuthServerData,
+  mkAuthHandler,
+ )
+import SwaggerHelpers (AuthDescription (..))
 import Types qualified as T
 import Web.Cookie qualified as Cookie
-import Data.Time.Lens qualified as TL
-import Api.Errors qualified as Errs
+
+
+instance AuthDescription "cookie" where
+  securityName = "cookie"
+  securityScheme = OpenApi.SecurityScheme type_ (Just desc)
+    where
+      type_ = OpenApi.SecuritySchemeApiKey
+                (OpenApi.ApiKeyParams "p215-auth" OpenApi.ApiKeyCookie)
+      desc  = "p215-auth cookie"
+
+type instance AuthServerData (AuthProtect "cookie") = AuthUser
+
+
+authCookie
+  :: HasDbConn env
+  => HasEnvType env
+  => env
+  -> AuthHandler Request AuthUser
+authCookie env =
+  mkAuthHandler $ \ req -> do
+    case List.lookup "Cookie" (requestHeaders req) of
+      Nothing -> throwError (err401 {errBody = "No Cookies"})
+      Just bsCookies ->
+        case List.lookup "p215-auth" (Cookie.parseCookies bsCookies) of
+          Nothing -> throwError (err401 {errBody = "Missing Needed Cookie"})
+          Just bsToken -> do
+            let cookie = T.MkNewType (decodeUtf8 bsToken)
+            mResult <- liftIO $ runStdoutLoggingT (runReaderT (lookupSession cookie) env)
+            case mResult of
+              Nothing -> throwError (err401 {errBody = "Missing Needed Cookie"})
+              Just result -> pure result
+
+
+lookupSession
+  :: MonadDb env m
+  => T.CookieToken
+  -> m (Maybe AuthUser)
+lookupSession token = withTransaction $ do
+  now <- getCurrentTime
+  fmap (fmap E.toEntity)
+    $ runBeam
+    $ runSelectReturningOne
+    $ select
+    $ do
+      session <- all_ Db.db.userSession
+      guard_ $ session.expires <=. val_ now
+      guard_ $ session.token ==. val_ token
+      E.queryEntityBy @AuthUser Nothing session.userId
+
 
 
 data PassLogin = MkPassLogin

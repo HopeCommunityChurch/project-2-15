@@ -1,17 +1,28 @@
 module Api.User where
 
 
-import qualified Entity.User as User
-import qualified Types as T
-import Servant ( Capture, JSON, Description, type (:>), Get )
+import Api.Auth (AuthUser)
+import Api.Helpers (getOneForUserBy)
+import DbHelper (MonadDb)
+import Entity.User qualified as User
+import Servant (AuthProtect, Capture, Description, Get, JSON, ServerT, type (:>))
+import Types qualified as T
 
 getUser
-  :: Monad m
-  => T.UserId
+  :: MonadDb env m
+  => AuthUser
+  -> T.UserId
   -> m User.GetUser
-getUser = undefined
+getUser = getOneForUserBy
 
 type Api =
-  Capture "userId" T.UserId
+  AuthProtect "cookie"
+    :> Capture "userId" T.UserId
     :> Description "Gets a user by it's id."
     :> Get '[JSON] User.GetUser
+
+server
+  :: MonadDb env m
+  => ServerT Api m
+server =
+  getUser
