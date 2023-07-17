@@ -51,6 +51,7 @@ type MonadDb env m =
   , HasEnvType env
   , HasDbConn env
   , MonadReader env m
+  , MonadFail m
   )
 
 

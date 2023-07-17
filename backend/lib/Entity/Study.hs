@@ -5,18 +5,22 @@ import Database.Beam (
   Beamable,
   C,
   all_,
+  default_,
   exists_,
   guard_,
   in_,
+  insert,
+  insertExpressions,
   val_,
   (==.),
  )
+import Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturning (runInsertReturningList))
 import Database.Beam.Postgres (PgJSONB)
+import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam)
 import Entity qualified as E
 import Entity.AuthUser
 import Entity.User
 import Types qualified as T
-import DbHelper (jsonArraryOf, jsonBuildObject)
 
 
 data GetDocMeta = MkGetDocMeta
@@ -129,4 +133,43 @@ instance E.Entity GetStudy where
         study.studyTemplateId
         study.name
         docs
+
+
+instance E.GuardValue GetStudy T.StudyId where
+  guardValues ids study =
+    guard_ $ study.studyId `in_` ids
+
+instance E.EntityWithId GetStudy where
+  type EntityId GetStudy = T.StudyId
+  entityId = (.studyId)
+
+
+data CrStudy = CrStudy
+  { name :: Text
+  , studyTemplateId :: Maybe T.StudyTemplateId
+  }
+  deriving (Generic, Show)
+  deriving anyclass (FromJSON, ToJSON, ToSchema)
+
+
+addStudy
+  :: MonadDb env m
+  => CrStudy
+  -> m T.StudyId
+addStudy crStudy = do
+  now <- getCurrentTime
+  [study] <-
+    runBeam
+      $ runInsertReturningList
+      $ insert Db.db.study
+      $ insertExpressions
+        [ Db.MkStudyT
+          default_
+          (val_ crStudy.studyTemplateId)
+          (val_ crStudy.name)
+          (val_ now)
+        ]
+  pure study.studyId
+
+
 

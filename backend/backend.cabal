@@ -114,6 +114,7 @@ library
     Api.User,
     Api.Auth,
     Api.Errors,
+    Api.Study,
     Password,
     SwaggerHelpers,
     Orphans,

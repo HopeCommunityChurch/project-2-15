@@ -193,6 +193,27 @@ getForUserBy user value =
     )
 
 
+getAllForUser
+  :: forall entity env m
+   . ( Entity entity
+     , Typeable entity
+     , B.FromBackendRow Pg.Postgres (HsEntity entity)
+     , B.Beamable (DbEntity entity)
+     , MonadDb env m
+     )
+  => DbUser (EntityDatabase entity)
+  -> m [entity]
+getAllForUser user =
+  fmap
+    (fmap (toEntity @entity))
+    (runBeam
+      $ B.runSelectReturningList
+      $ addCommentE @entity
+      $ B.select
+      $ queryEntity @entity (Just user)
+    )
+
+
 getOneForUserBy
   :: forall entity value env m
    . ( Entity entity
