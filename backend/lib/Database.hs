@@ -1,5 +1,6 @@
 module Database where
 
+import Data.Aeson (Value)
 import Database.Beam (
   Beamable,
   C,
@@ -17,12 +18,17 @@ import Database.Beam (
   modifyTableFields,
   withDbModification,
  )
-import Types qualified as T
+import Database.Beam.Postgres (PgJSONB(..))
 import Password (PasswordHash)
+import Types qualified as T
 
 type TableMod table =
   forall be .
     EntityModification (DatabaseEntity be Db) be (TableEntity table)
+
+
+unPgJSONB :: PgJSONB a -> a
+unPgJSONB (PgJSONB a) = a
 
 
 modifyTable
@@ -165,8 +171,38 @@ churchElderTable =
       }
 
 
+
+data StudyTemplateT f = MkStudyTemplateT
+  { studyTemplateId :: C f T.StudyTemplateId
+  , name :: C f Text
+  , document :: C f (PgJSONB Value)
+  , created :: C f UTCTime
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table StudyTemplateT where
+  data PrimaryKey StudyTemplateT f = StudyTemplateKey (C f T.StudyTemplateId)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = StudyTemplateKey <$> (.studyTemplateId)
+
+studyTemplateTable :: TableMod StudyTemplateT
+studyTemplateTable =
+  modifyTable
+    "study_template"
+    MkStudyTemplateT
+      { studyTemplateId = fieldNamed "studyId"
+      , name = fieldNamed "name"
+      , document = fieldNamed "document"
+      , created = fieldNamed "created"
+      }
+
+
+
 data StudyT f = MkStudyT
   { studyId :: C f T.StudyId
+  , studyTemplateId :: C f T.StudyTemplateId
   , name :: C f Text
   , created :: C f UTCTime
   }
@@ -185,6 +221,7 @@ studyTable =
     "study"
     MkStudyT
       { studyId = fieldNamed "studyId"
+      , studyTemplateId = fieldNamed "studyTemplateId"
       , name = fieldNamed "name"
       , created = fieldNamed "created"
       }
@@ -194,6 +231,7 @@ data DocumentT f = MkDocumentT
   { docId :: C f T.DocId
   , studyId :: C f T.StudyId
   , name :: C f Text
+  , document :: C f (PgJSONB Value)
   , created :: C f UTCTime
   }
   deriving (Generic)
@@ -213,7 +251,31 @@ documentTable =
       { docId = fieldNamed "docId"
       , studyId = fieldNamed "studyId"
       , name = fieldNamed "name"
+      , document = fieldNamed "document"
       , created = fieldNamed "created"
+      }
+
+
+data DocumentEditorT f = MkDocumentEditorT
+  { docId :: C f T.DocId
+  , userId :: C f T.UserId
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table DocumentEditorT where
+  data PrimaryKey DocumentEditorT f = DocumentEditorKey (C f T.DocId) (C f T.UserId)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = DocumentEditorKey <$> (.docId) <*> (.userId)
+
+documentEditorTable :: TableMod DocumentEditorT
+documentEditorTable =
+  modifyTable
+    "document_editor"
+    MkDocumentEditorT
+      { docId = fieldNamed "docId"
+      , userId = fieldNamed "userId"
       }
 
 
@@ -224,8 +286,10 @@ data Db f = MkDb
   , userSession :: f (TableEntity UserSessionT)
   , church :: f (TableEntity ChurchT)
   , churchElder :: f (TableEntity ChurchElderT)
+  , studyTemplate :: f (TableEntity StudyTemplateT)
   , study :: f (TableEntity StudyT)
   , document :: f (TableEntity DocumentT)
+  , documentEditor :: f (TableEntity DocumentEditorT)
   }
   deriving (Generic)
 
@@ -239,6 +303,8 @@ db = defaultDbSettings `withDbModification`
           , userSession = userSessionTable
           , church = churchTable
           , churchElder = churchElderTable
+          , studyTemplate = studyTemplateTable
           , study = studyTable
           , document = documentTable
+          , documentEditor = documentEditorTable
           }

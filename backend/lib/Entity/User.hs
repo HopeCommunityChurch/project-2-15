@@ -16,6 +16,7 @@ data GetUser = MkGetUser
   deriving (FromJSON, ToJSON, ToSchema)
 
 
+
 instance E.Entity GetUser where
   data DbEntity GetUser f = MkDbGetUser
     { userId :: C f T.UserId
@@ -43,6 +44,10 @@ instance E.Entity GetUser where
         user.userId
         user.name
         user.image
+
+type GetUser' = DbEntity GetUser Identity
+
+instance FromJSON GetUser'
 
 instance E.GuardValue GetUser T.UserId where
   guardValues ids user =
