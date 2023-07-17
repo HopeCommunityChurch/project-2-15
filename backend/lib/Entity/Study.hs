@@ -80,7 +80,7 @@ instance E.GuardValue GetDocMeta T.StudyId where
 
 data GetStudy = MkGetStudy
   { studyId :: T.StudyId
-  , studyTemplateId :: T.StudyTemplateId
+  , studyTemplateId :: Maybe T.StudyTemplateId
   , name :: Text
   , docs :: List GetDocMeta
   }
@@ -91,7 +91,7 @@ data GetStudy = MkGetStudy
 instance E.Entity GetStudy where
   data DbEntity GetStudy f = MkDbGetStudy
     { studyId :: C f T.StudyId
-    , studyTemplateId :: C f T.StudyTemplateId
+    , studyTemplateId :: C f (Maybe T.StudyTemplateId)
     , name :: C f Text
     , docs :: C f (PgJSONB (Vector GetDocMeta'))
     }
@@ -122,7 +122,6 @@ instance E.Entity GetStudy where
     let docs = jsonArraryOf $ do
                     doc <- E.queryEntityBy @GetDocMeta Nothing study.studyId
                     pure $ jsonBuildObject doc
-
 
     pure $
       MkDbGetStudy

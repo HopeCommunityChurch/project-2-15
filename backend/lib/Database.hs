@@ -202,7 +202,7 @@ studyTemplateTable =
 
 data StudyT f = MkStudyT
   { studyId :: C f T.StudyId
-  , studyTemplateId :: C f T.StudyTemplateId
+  , studyTemplateId :: C f (Maybe T.StudyTemplateId)
   , name :: C f Text
   , created :: C f UTCTime
   }
