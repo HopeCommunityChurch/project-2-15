@@ -1,6 +1,6 @@
 module Database where
 
-import Data.Aeson (Value)
+import Data.Aeson (Object)
 import Database.Beam (
   Beamable,
   C,
@@ -175,7 +175,7 @@ churchElderTable =
 data StudyTemplateT f = MkStudyTemplateT
   { studyTemplateId :: C f T.StudyTemplateId
   , name :: C f Text
-  , document :: C f (PgJSONB Value)
+  , document :: C f (PgJSONB Object)
   , churchId :: C f T.ChurchId
   , created :: C f UTCTime
   }
@@ -233,7 +233,7 @@ data DocumentT f = MkDocumentT
   { docId :: C f T.DocId
   , studyId :: C f T.StudyId
   , name :: C f Text
-  , document :: C f (PgJSONB Value)
+  , document :: C f (PgJSONB Object)
   , created :: C f UTCTime
   }
   deriving (Generic)

@@ -33,12 +33,14 @@ createStudy _ crStudy = do
 
 type Api =
   AuthProtect "cookie"
+    :> Summary "Gets all the studies for a user"
     :> Description "Gets all the studies for a user"
     :> Get '[JSON] GetStudies
   :<|> AuthProtect "cookie"
     :> ReqBody '[JSON] Study.CrStudy
+    :> Summary "Adds a study into the database"
     :> Description "Adds a study into the database"
-    :> Get '[JSON] Study.GetStudy
+    :> Post '[JSON] Study.GetStudy
 
 
 
