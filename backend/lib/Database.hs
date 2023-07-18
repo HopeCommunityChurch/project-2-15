@@ -176,6 +176,7 @@ data StudyTemplateT f = MkStudyTemplateT
   { studyTemplateId :: C f T.StudyTemplateId
   , name :: C f Text
   , document :: C f (PgJSONB Value)
+  , churchId :: C f T.ChurchId
   , created :: C f UTCTime
   }
   deriving (Generic)
@@ -192,9 +193,10 @@ studyTemplateTable =
   modifyTable
     "study_template"
     MkStudyTemplateT
-      { studyTemplateId = fieldNamed "studyId"
+      { studyTemplateId = fieldNamed "studyTemplateId"
       , name = fieldNamed "name"
       , document = fieldNamed "document"
+      , churchId = fieldNamed "churchId"
       , created = fieldNamed "created"
       }
 
