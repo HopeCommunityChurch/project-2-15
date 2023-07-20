@@ -11,6 +11,7 @@ create table if not exists "church"
 create table if not exists "user"
   ( "userId" uuid not null default gen_random_uuid()
   , "email" citext not null
+  , "name" text not null
   , "image" text
   , "churchId" uuid not null
   , "created" timestamptz not null default now()
