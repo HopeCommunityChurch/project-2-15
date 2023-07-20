@@ -1,5 +1,5 @@
 create table if not exists "study_template"
-  ( "studyTemplateId" uuid not null
+  ( "studyTemplateId" uuid not null default gen_random_uuid()
   , "name" text not null
   , "document" jsonb not null
   , "churchId" uuid not null
@@ -9,7 +9,7 @@ create table if not exists "study_template"
   );
 
 create table if not exists "study"
-  ( "studyId" uuid not null
+  ( "studyId" uuid not null default gen_random_uuid()
   , "studyTemplateId" uuid
   , "name" text not null
   , "created" timestamptz not null default now()
@@ -18,7 +18,7 @@ create table if not exists "study"
   );
 
 create table if not exists "document"
-  ( "docId" uuid not null
+  ( "docId" uuid not null default gen_random_uuid()
   , "studyId" uuid not null
   , "name" text not null
   , "document" jsonb not null
