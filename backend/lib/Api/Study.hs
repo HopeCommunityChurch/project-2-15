@@ -6,6 +6,7 @@ import Api.Errors qualified as Errs
 import DbHelper (MonadDb)
 import Entity qualified as E
 import Entity.Study qualified as Study
+import Entity.AuthUser qualified as AuthUser
 import Servant
 
 newtype GetStudies = GetStudies (List Study.GetStudy)
@@ -26,8 +27,8 @@ createStudy
   => AuthUser
   -> Study.CrStudy
   -> m Study.GetStudy
-createStudy _ crStudy = do
-  studyId <- Study.addStudy crStudy
+createStudy authUser crStudy = do
+  studyId <- Study.addStudy authUser.userId crStudy
   Errs.handleNotFound (E.getById @Study.GetStudy) studyId
 
 

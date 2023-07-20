@@ -1,5 +1,6 @@
 module Entity.Study where
 
+import Data.Aeson (Object)
 import Database qualified as Db
 import Database.Beam (
   Beamable,
@@ -20,6 +21,7 @@ import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam)
 import Entity qualified as E
 import Entity.AuthUser
 import Entity.User
+import Entity.Document
 import Types qualified as T
 
 
@@ -147,6 +149,7 @@ instance E.EntityWithId GetStudy where
 data CrStudy = CrStudy
   { name :: Text
   , studyTemplateId :: Maybe T.StudyTemplateId
+  , document :: Object
   }
   deriving (Generic, Show)
   deriving anyclass (FromJSON, ToJSON, ToSchema)
@@ -154,9 +157,10 @@ data CrStudy = CrStudy
 
 addStudy
   :: MonadDb env m
-  => CrStudy
+  => T.UserId
+  -> CrStudy
   -> m T.StudyId
-addStudy crStudy = do
+addStudy userId crStudy = do
   now <- getCurrentTime
   [study] <-
     runBeam
@@ -169,6 +173,8 @@ addStudy crStudy = do
           (val_ crStudy.name)
           (val_ now)
         ]
+  let crDoc = CrDoc study.studyId study.name crStudy.document userId
+  void $ crDocument crDoc
   pure study.studyId
 
 
