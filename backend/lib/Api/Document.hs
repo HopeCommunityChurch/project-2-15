@@ -1,47 +1,42 @@
 module Api.Document where
 
+import Data.Aeson (Object)
 import Api.Auth (AuthUser)
-import Api.Errors qualified as Errs
 import DbHelper (MonadDb)
-import Entity qualified as E
 import Types qualified as T
 import Entity.Document qualified as Doc
 import Entity.AuthUser qualified as AuthUser
+import Entity.User qualified as User
 import Servant
 import Api.Helpers (getByIdForUser)
 
 
-
-getDocument
+updateDocument
   :: MonadDb env m
   => AuthUser
   -> T.DocId
+  -> Object
   -> m Doc.GetDoc
-getDocument user docId =
+updateDocument user docId obj = do
+  doc <- getByIdForUser @Doc.GetDoc user docId
+  when (user.userId `elem` fmap (.userId) doc.editors) $ do
+    Doc.updateDocument docId obj
   getByIdForUser user docId
 
-
--- createStudy
---   :: MonadDb env m
---   => AuthUser
---   -> Study.CrStudy
---   -> m Study.GetStudy
--- createStudy authUser crStudy = do
---   studyId <- Study.addStudy authUser.userId crStudy
---   Errs.handleNotFound (E.getById @Study.GetStudy) studyId
 
 
 type Api =
   AuthProtect "cookie"
     :> Summary "Gets all the studies for a user"
     :> Description "Gets all the studies for a user"
-    :> Capture "DocumentId" T.DocId
+    :> Capture "documentId" T.DocId
     :> Get '[JSON] Doc.GetDoc
-  -- :<|> AuthProtect "cookie"
-  --   :> ReqBody '[JSON] Study.CrStudy
-  --   :> Summary "Adds a study into the database"
-  --   :> Description "Adds a study into the database"
-  --   :> Post '[JSON] Study.GetStudy
+  :<|> AuthProtect "cookie"
+    :> Summary "Update document"
+    :> Description "Update document"
+    :> Capture "documentId" T.DocId
+    :> ReqBody '[JSON] Object
+    :> Put '[JSON] Doc.GetDoc
 
 
 
@@ -49,6 +44,6 @@ server
   :: MonadDb env m
   => ServerT Api m
 server =
-  getDocument
-  -- :<|> createStudy
+  getByIdForUser
+  :<|> updateDocument
 

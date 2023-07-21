@@ -12,8 +12,13 @@ import Database.Beam (
   in_,
   insert,
   insertExpressions,
+  insertValues,
+  runInsert,
+  runUpdate,
+  update,
   val_,
-  (==.), runInsert, insertValues,
+  (<-.),
+  (==.),
  )
 import Database.Beam.Backend.SQL.BeamExtensions (
   MonadBeamInsertReturning (runInsertReturningList),
@@ -136,3 +141,16 @@ crDocument crDoc = do
       ]
   pure doc.docId
 
+
+updateDocument
+  :: MonadDb env m
+  => T.DocId
+  -> Object
+  -> m ()
+updateDocument docId document =
+  runBeam
+  $ runUpdate
+  $ update
+    Db.db.document
+    (\ r -> r.document <-. val_ (PgJSONB document))
+    (\ r -> r.docId ==. val_ docId)
