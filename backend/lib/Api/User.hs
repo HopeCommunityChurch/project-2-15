@@ -5,8 +5,9 @@ import Api.Auth (AuthUser)
 import Api.Helpers (getOneForUserBy)
 import DbHelper (MonadDb)
 import Entity.User qualified as User
-import Servant (AuthProtect, Capture, Description, Get, JSON, ServerT, type (:>))
+import Servant
 import Types qualified as T
+
 
 getUser
   :: MonadDb env m
@@ -14,6 +15,7 @@ getUser
   -> T.UserId
   -> m User.GetUser
 getUser = getOneForUserBy
+
 
 type Api =
   AuthProtect "cookie"

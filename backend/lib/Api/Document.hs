@@ -1,14 +1,15 @@
 module Api.Document where
 
-import Data.Aeson (Object)
 import Api.Auth (AuthUser)
+import Api.Errors qualified as Errs
+import Api.Helpers (getByIdForUser)
+import Data.Aeson (Object)
 import DbHelper (MonadDb)
-import Types qualified as T
-import Entity.Document qualified as Doc
 import Entity.AuthUser qualified as AuthUser
+import Entity.Document qualified as Doc
 import Entity.User qualified as User
 import Servant
-import Api.Helpers (getByIdForUser)
+import Types qualified as T
 
 
 updateDocument
@@ -19,8 +20,9 @@ updateDocument
   -> m Doc.GetDoc
 updateDocument user docId obj = do
   doc <- getByIdForUser @Doc.GetDoc user docId
-  when (user.userId `elem` fmap (.userId) doc.editors) $ do
-    Doc.updateDocument docId obj
+  unless (user.userId `elem` fmap (.userId) doc.editors) $ do
+    Errs.throwAuthErr
+  Doc.updateDocument docId obj
   getByIdForUser user docId
 
 

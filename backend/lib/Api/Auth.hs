@@ -16,18 +16,19 @@ import Database.Beam (
   runSelectReturningOne,
   select,
   val_,
-  (>=.),
   (==.),
+  (>=.),
  )
 import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
 import Entity qualified as E
+import Entity.User qualified as User
 import Entity.AuthUser (AuthUser)
 import EnvFields (HasEnvType)
 import Network.Wai (
   Request,
   requestHeaders,
  )
-import Password (Password, PasswordHash, comparePassword)
+import Password (NewPassword, Password, PasswordHash, comparePassword)
 import Servant
 import Servant.Server.Experimental.Auth (
   AuthHandler,
@@ -138,6 +139,23 @@ mkCookie userId = do
   pure (token, expiresAt)
 
 
+setCookie
+  :: MonadDb env m
+  => T.UserId
+  -> m (CookieHeader ())
+setCookie userId = do
+  (token, expiresAt) <- mkCookie userId
+  let setCookie = Cookie.defaultSetCookie
+                  { Cookie.setCookieName = "p215-auth"
+                  , Cookie.setCookieValue = encodeUtf8 (unwrap token)
+                  , Cookie.setCookieExpires = Just expiresAt
+                  , Cookie.setCookieHttpOnly = True
+                  , Cookie.setCookieSecure = True
+                  , Cookie.setCookieSameSite = Just Cookie.sameSiteNone
+                  , Cookie.setCookiePath = Just "/"
+                  }
+  pure $ addHeader setCookie ()
+
 
 passwordLogin
   :: MonadDb env m
@@ -149,25 +167,27 @@ passwordLogin MkPassLogin{email, password} = do
     Nothing -> Errs.throwAuthErr
     Just (userId, hash) ->
       if comparePassword password hash
-        then do
-          (token, expiresAt) <- mkCookie userId
-          let setCookie = Cookie.defaultSetCookie
-                          { Cookie.setCookieName = "p215-auth"
-                          , Cookie.setCookieValue = encodeUtf8 (unwrap token)
-                          , Cookie.setCookieExpires = Just expiresAt
-                          , Cookie.setCookieHttpOnly = True
-                          , Cookie.setCookieSecure = True
-                          , Cookie.setCookieSameSite = Just Cookie.sameSiteNone
-                          , Cookie.setCookiePath = Just "/"
-                          }
-          pure $ addHeader setCookie ()
+        then setCookie userId
         else Errs.throwAuthErr
+
+
+
+createUser
+  :: MonadDb env m
+  => User.NewUser
+  -> m (CookieHeader ())
+createUser newUser = do
+  userId <- User.createUser newUser
+  setCookie userId
 
 
 type Api =
   "password"
     :> Description "Password login"
     :> ReqBody '[JSON] PassLogin
+    :> Verb 'POST 204 '[JSON] (CookieHeader ())
+  :<|> "register"
+    :> ReqBody '[JSON] User.NewUser
     :> Verb 'POST 204 '[JSON] (CookieHeader ())
 
 
@@ -176,3 +196,4 @@ server
   => ServerT Api m
 server =
   passwordLogin
+  :<|> createUser
