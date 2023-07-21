@@ -4,6 +4,7 @@ import Api.Auth qualified
 import Api.Errors qualified as Errs
 import Api.User qualified
 import Api.Study qualified
+import Api.Document qualified
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.OpenApi qualified as OpenApi
@@ -29,6 +30,8 @@ type Api'
     :> "user" :> Api.User.Api
   :<|> OpenApiTag "study" "study stuff"
     :> "study" :> Api.Study.Api
+  :<|> OpenApiTag "document" "document stuff"
+    :> "document" :> Api.Document.Api
 
 
 server' :: MonadDb env m => ServerT Api' m
@@ -36,6 +39,7 @@ server'
   = Api.Auth.server
   :<|> Api.User.server
   :<|> Api.Study.server
+  :<|> Api.Document.server
 
 
 errToJSON :: Errs.SomeApiException -> ServerError

@@ -93,6 +93,10 @@ instance E.GuardValue GetDoc T.DocId where
   guardValues ids doc =
     guard_ $ doc.docId `in_` ids
 
+instance E.EntityWithId GetDoc where
+  type EntityId GetDoc = T.DocId
+  entityId = (.docId)
+
 
 data CrDoc = CrDoc
   { studyId :: T.StudyId
