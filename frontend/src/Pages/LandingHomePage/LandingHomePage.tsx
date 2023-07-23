@@ -48,7 +48,7 @@ export function LandingHomePage() {
         </div>
       </div>
       <footer className={classes.footer}>
-        <ul className={classes.list}>
+        <ul>
           <li>
             <a href="#">Login</a>
           </li>
