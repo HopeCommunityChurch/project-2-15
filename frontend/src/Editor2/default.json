@@ -4,8 +4,7 @@
     {
       "type": "section",
       "attrs": {
-        "book": "Romans",
-        "verses": "3:21-31"
+        "header": "Romans 3:21-31"
       },
       "content": [
         {

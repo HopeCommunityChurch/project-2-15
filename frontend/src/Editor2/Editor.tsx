@@ -26,7 +26,7 @@ export const textSchema = new Schema({
       content: "studyElement*",
       isolating: true,
       defining: true,
-      attrs: { book: { default: "Genesis" }, verses: { default: "1:1" }},
+      attrs: { header: { default: "Genesis 1:1" }},
     },
     bibleText: {
       content: "chunk*",
@@ -159,7 +159,7 @@ class SectionView implements NodeView {
     this.dom.className = classes.section;
     const header = document.createElement("h2");
     header.setAttribute("contenteditable", "false");
-    header.innerText = node.attrs.book + " " + node.attrs.verses;
+    header.innerText = node.attrs.header;
     this.dom.appendChild(header)
     this.contentDOM = document.createElement("div");
     this.contentDOM.className = classes.content;
