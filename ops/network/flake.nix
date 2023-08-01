@@ -94,6 +94,7 @@
                 LimitNOFILE = 65536;
                 Environment = [
                   "MIGRATION_PATH=${migrationPath}"
+                  "SECRETS_FILE=/var/run/keys/secrets"
                 ];
               };
             };

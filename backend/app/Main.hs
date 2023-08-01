@@ -70,7 +70,8 @@ secretToEnv MkSecretsFile{db, env} = do
 
 main :: IO ()
 main = do
-  envResult <- Aeson.eitherDecodeFileStrict "/var/run/keys/secrets"
+  secretsFile <- liftIO $ Env.getEnv "SECRETS_FILE"
+  envResult <- Aeson.eitherDecodeFileStrict secretsFile
   case envResult of
     Left err -> error (toText err)
     Right (file :: SecretsFile) -> do

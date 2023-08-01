@@ -28,7 +28,7 @@ import Network.Wai (
   Request,
   requestHeaders,
  )
-import Password (NewPassword, Password, PasswordHash, comparePassword)
+import Password (Password, PasswordHash, comparePassword)
 import Servant
 import Servant.Server.Experimental.Auth (
   AuthHandler,
@@ -145,7 +145,7 @@ setCookie
   -> m (CookieHeader ())
 setCookie userId = do
   (token, expiresAt) <- mkCookie userId
-  let setCookie = Cookie.defaultSetCookie
+  let setCookie' = Cookie.defaultSetCookie
                   { Cookie.setCookieName = "p215-auth"
                   , Cookie.setCookieValue = encodeUtf8 (unwrap token)
                   , Cookie.setCookieExpires = Just expiresAt
@@ -154,7 +154,7 @@ setCookie userId = do
                   , Cookie.setCookieSameSite = Just Cookie.sameSiteNone
                   , Cookie.setCookiePath = Just "/"
                   }
-  pure $ addHeader setCookie ()
+  pure $ addHeader setCookie' ()
 
 
 passwordLogin
