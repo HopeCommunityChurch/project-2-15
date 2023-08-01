@@ -1,4 +1,5 @@
 @import "../../GlobalCSS/layout.scss";
+@import "../../GlobalCSS/font.scss";
 
 .grid {
   display: grid;
@@ -10,6 +11,10 @@ footer,
 .mainContent {
   grid-column-start: 1;
   grid-column-end: 13;
+}
+
+.mainContent {
+  margin-top: 140px;
 }
 
 .section1 {
@@ -26,19 +31,94 @@ footer,
 }
 
 .rightImage {
+  align-self: center;
   img {
     max-width: 100%;
   }
 }
 
+@media screen and (max-width: 670px) {
+  .section1 {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1350px) {
+  .mainContent {
+    margin-top: 40px;
+  }
+  .rightImage {
+    display: none;
+  }
+
+  .section1 {
+    grid-template-columns: 1fr;
+    padding: 0px 25px;
+    max-width: 800px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .section1 {
+    padding: 0px 10px;
+  }
+}
+
+.section2 {
+  display: grid;
+  grid-template-columns: 3fr 4fr;
+  grid-gap: 20px;
+  max-width: 1300px;
+  padding: 50px 50px 0px 50px;
+  margin: 0 auto;
+}
+
+.rightText {
+  padding: 20px;
+  max-width: 500px;
+  text-align: center;
+  justify-self: center;
+}
+
+.leftImage {
+  align-self: center;
+  img {
+    max-width: 100%;
+  }
+}
+
+@media screen and (max-width: 850px) {
+  .leftImage {
+    max-width: 300px;
+    margin-top: 50px;
+  }
+
+  .rightText .sectionTitle {
+    margin-top: 0px;
+  }
+
+  .section2 {
+    grid-template-columns: 1fr;
+    padding: 0px 25px;
+    max-width: 800px;
+    justify-items: center;
+  }
+}
+
+// @media screen and (max-width: 500px) {
+//   .section1 {
+//     padding: 0px 10px;
+//   }
+// }
+
 .sectionTitle {
   font-weight: 600;
-  font-size: 57px;
+  //font-size: var(--fs-xl);
   margin-bottom: 0px;
 }
 
 .sectionDescription {
-  font-size: 24px;
+  font-size: 1.35em;
 }
 
 .blueRoundedContainer {
@@ -58,8 +138,38 @@ footer,
     rgba(0, 87, 209, 1) 56%,
     rgba(124, 168, 231, 1) 100%
   );
+}
 
-  h3 {
-    color: red;
-  }
+.footer {
+  margin-top: 70px;
+  padding: 40px 0;
+  background-color: #fbfbfb;
+}
+
+.footer ul {
+  margin-top: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+.footer ul a {
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.8;
+}
+.footer ul li {
+  display: inline-block;
+  padding: 0 15px;
+}
+.footer ul a:hover {
+  opacity: 1;
+}
+.footer .copyright {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 13px;
+  color: #aaa;
 }
