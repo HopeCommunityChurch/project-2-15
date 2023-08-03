@@ -1,19 +1,27 @@
-import React, { useState } from "react";
 import Logo from "../../Components/PreLoginTopNav/BibleOneLogoSVG";
 import { Button } from "../../Components/Button/Button";
+import { createSignal, createEffect } from "solid-js"
+import {A, useNavigate} from "@solidjs/router";
 
 import * as classes from "./styles.module.scss";
 
 export function PreLoginTopNav() {
-  const [showNavbar, setShowNavbar] = React.useState(false);
+  const [showNavbar, setShowNavbar] = createSignal(false);
+
+  createEffect( () => {
+    console.log(showNavbar());
+  });
 
   const handleShowNavbar = () => {
-    setShowNavbar(!showNavbar);
+    setShowNavbar( n => !n);
   };
+
+  const nav = useNavigate();
+
   return (
-    <header className={classes.header}>
-      <Logo className={classes.logo} />
-      <nav className={classes.menu}>
+    <header class={classes.header}>
+      <Logo class={classes.logo} />
+      <nav class={classes.menu}>
         <ul>
           <li>
             <a href="https://experiencethehope.com/teaching" target="_blank">
@@ -32,14 +40,14 @@ export function PreLoginTopNav() {
           </li>
         </ul>
       </nav>
-      <div className={classes.buttons}>
-        <Button type="lightBlue">Log In</Button>
-        <Button type="Blue">Sign Up</Button>
+      <div class={classes.buttons}>
+        <Button type="lightBlue" onClick={() => nav("/app/login")}>Log In</Button>
+        <Button type="Blue" onClick={() => nav("/app/signup")}>Sign Up</Button>
       </div>
-      <div className={classes.hamburger} onClick={handleShowNavbar}>
+      <div class={classes.hamburger} onClick={handleShowNavbar}>
         <Hamburger />
       </div>
-      <div className={`${classes.mobileNav} ${showNavbar ? classes.showNavbar : ""}`}>
+      <div class={`${classes.mobileNav} ${showNavbar() ? classes.showNavbar : ""}`}>
         <ul>
           <li>
             <a href="https://experiencethehope.com/teaching" target="_blank">
@@ -57,14 +65,14 @@ export function PreLoginTopNav() {
             </a>
           </li>
           <li>
-            <a href="#">
+            <A href="/app/login">
               <Button type="lightBlue">Log In</Button>
-            </a>
+            </A>
           </li>
           <li>
-            <a href="#">
+            <A href="/app/signup">
               <Button type="Blue">Sign Up</Button>
-            </a>
+            </A>
           </li>
         </ul>
       </div>

@@ -1,17 +1,17 @@
-import ReactDOM from "react-dom/client";
-import React from "react";
+import { render } from "solid-js/web";
 import * as classes from "./styles.module.scss";
+import { Routes, Route, Router } from "@solidjs/router";
 
-import { Button3D } from "./Components/Button3D/Button3D";
 import { LandingHomePage } from "./Pages/LandingHomePage/LandingHomePage";
 
 export function App() {
   return (
-    <div>
-      <LandingHomePage className={classes.global}></LandingHomePage>
+    <div class= {classes.global}>
+      <Routes>
+        <Route path={["/", "/app"]} component={LandingHomePage}/>
+      </Routes>
     </div>
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App></App>);
+render(() => <Router><App></App></Router>, document.getElementById("root"));

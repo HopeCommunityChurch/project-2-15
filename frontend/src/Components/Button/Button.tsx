@@ -1,21 +1,22 @@
-import React from "react";
 import * as classes from "./styles.module.scss";
 
 interface ButtonProps {
   type: "lightBlue" | "Blue" | "default";
-  children?: React.ReactNode;
+  children?: any;
+  onClick?: () => void
 }
 
 export function Button(props: ButtonProps) {
   return (
     <button
-      className={
+      class={
         props.type === "lightBlue"
           ? classes.lightBlue
           : props.type === "Blue"
           ? classes.blue
           : classes.button
       }
+      onClick={props.onClick}
     >
       {props.children}
     </button>

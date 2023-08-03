@@ -3,7 +3,8 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "CommonJS",
-    "jsx": "react",
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
     "esModuleInterop": true,
     "noEmit": true,
     "allowJs": true,
