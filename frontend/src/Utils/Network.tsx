@@ -85,7 +85,6 @@ export async function request<t>(url : string, opts = {})
 
   console.log(status);
   if (status == 420) {
-    console.log(status);
     const body = await response.json();
     return {
       state: "error",
@@ -99,7 +98,7 @@ export async function request<t>(url : string, opts = {})
 
   console.log(status);
   if (status == 400) {
-    const body = await response.json();
+    const body = await response.text();
     return {
       state: "error",
       body: {
