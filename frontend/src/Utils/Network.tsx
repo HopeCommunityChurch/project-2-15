@@ -74,6 +74,7 @@ export async function request<t>(url : string, opts = {})
       body: null,
     };
   }
+  console.log(status);
   if (status >= 200 && status < 300) {
     const body = await response.json();
     return {
@@ -82,7 +83,9 @@ export async function request<t>(url : string, opts = {})
     };
   }
 
+  console.log(status);
   if (status == 420) {
+    console.log(status);
     const body = await response.json();
     return {
       state: "error",
@@ -94,6 +97,7 @@ export async function request<t>(url : string, opts = {})
     };
   }
 
+  console.log(status);
   if (status == 400) {
     const body = await response.json();
     return {
@@ -105,6 +109,7 @@ export async function request<t>(url : string, opts = {})
     };
   }
 
+  console.log(status);
   if (status == 401) {
     return {
       state: "error",
