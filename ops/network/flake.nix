@@ -66,7 +66,8 @@
               locations."/app/" =
                 let frontend = inputs.frontend.packages.x86_64-linux.frontend;
                 in {
-                extraConfig = "rewrite ${frontend}/lib/node_modules/frontend/dist/index.html break;";
+                root = "${frontend}/lib/node_modules/frontend/dist/";
+                extraConfig = "rewrite ^ index.html break;";
               };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
