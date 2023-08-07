@@ -1,7 +1,8 @@
 import Logo from "../../Components/PreLoginTopNav/BibleOneLogoSVG";
 import { Button } from "../../Components/Button/Button";
-import { createSignal, createEffect } from "solid-js"
+import { createSignal, createEffect, Show } from "solid-js"
 import {A, useNavigate} from "@solidjs/router";
+import {loggedInSignal} from "../../Pages/LoginPage/login"
 
 import * as classes from "./styles.module.scss";
 
@@ -19,64 +20,72 @@ export function PreLoginTopNav() {
   const nav = useNavigate();
 
   return (
-    <header class={classes.header}>
-      <Logo class={classes.logo} />
-      <nav class={classes.menu}>
-        <ul>
-          <li>
-            <a href="https://experiencethehope.com/teaching" target="_blank">
-              Teachings
-            </a>
-          </li>
-          <li>
-            <a href="https://experiencethehope.com/equipping" target="_blank">
-              Equipping
-            </a>
-          </li>
-          <li>
-            <a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">
-              Messaging
-            </a>
-          </li>
-        </ul>
-      </nav>
-      <div class={classes.buttons}>
-        <Button type="lightBlue" onClick={() => nav("/app/login")}>Log In</Button>
-        <Button type="Blue" onClick={() => nav("/app/signup")}>Sign Up</Button>
+    <>
+      <header class={classes.header}>
+        <Logo class={classes.logo} />
+        <nav class={classes.menu}>
+          <ul>
+            <li>
+              <a href="https://experiencethehope.com/teaching" target="_blank">
+                Teachings
+              </a>
+            </li>
+            <li>
+              <a href="https://experiencethehope.com/equipping" target="_blank">
+                Equipping
+              </a>
+            </li>
+            <li>
+              <a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">
+                Messaging
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <div class={classes.buttons}>
+          <Show when={!loggedInSignal()} >
+            <Button type="lightBlue" onClick={() => nav("/app/login")}>Log In</Button>
+            <Button type="Blue" onClick={() => nav("/app/signup")}>Sign Up</Button>
+          </Show>
+        </div>
+        <div class={classes.hamburger} onClick={handleShowNavbar}>
+          <Hamburger />
+        </div>
+        <div class={`${classes.mobileNav} ${showNavbar() ? classes.showNavbar : ""}`}>
+          <ul>
+            <li>
+              <a href="https://experiencethehope.com/teaching" target="_blank">
+                Teachings
+              </a>
+            </li>
+            <li>
+              <a href="https://experiencethehope.com/equipping" target="_blank">
+                Equipping
+              </a>
+            </li>
+            <li>
+              <a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">
+                Messaging
+              </a>
+            </li>
+            <Show when={!loggedInSignal()} >
+              <li>
+                <A href="/app/login">
+                  <Button type="lightBlue">Log In</Button>
+                </A>
+              </li>
+              <li>
+                <A href="/app/signup">
+                  <Button type="Blue">Sign Up</Button>
+                </A>
+              </li>
+            </Show>
+          </ul>
+        </div>
+      </header>
+      <div class={classes.headerThingy}>
       </div>
-      <div class={classes.hamburger} onClick={handleShowNavbar}>
-        <Hamburger />
-      </div>
-      <div class={`${classes.mobileNav} ${showNavbar() ? classes.showNavbar : ""}`}>
-        <ul>
-          <li>
-            <a href="https://experiencethehope.com/teaching" target="_blank">
-              Teachings
-            </a>
-          </li>
-          <li>
-            <a href="https://experiencethehope.com/equipping" target="_blank">
-              Equipping
-            </a>
-          </li>
-          <li>
-            <a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">
-              Messaging
-            </a>
-          </li>
-          <li>
-            <A href="/app/login">
-              <Button type="lightBlue">Log In</Button>
-            </A>
-          </li>
-          <li>
-            <A href="/app/signup">
-              <Button type="Blue">Sign Up</Button>
-            </A>
-          </li>
-        </ul>
-      </div>
-    </header>
+    </>
   );
 }
 

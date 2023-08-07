@@ -14,10 +14,16 @@
   padding: 0 20px;
   height: 52px;
   position: fixed;
-  width: calc(100vw - 50px);
+  width: 100%;
+  box-sizing: border-box;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   background-color: #fff;
   z-index: 999;
+}
+
+.headerThingy {
+  width: 100vw;
+  height: 52px;
 }
 
 .menu {
