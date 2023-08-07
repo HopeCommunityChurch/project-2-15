@@ -9,10 +9,6 @@ import * as classes from "./styles.module.scss";
 export function PreLoginTopNav() {
   const [showNavbar, setShowNavbar] = createSignal(false);
 
-  createEffect( () => {
-    console.log(showNavbar());
-  });
-
   const handleShowNavbar = () => {
     setShowNavbar( n => !n);
   };
