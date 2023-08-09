@@ -10,3 +10,8 @@ declare module "*.png" {
   const value: any;
   export default value;
 }
+declare var process : {
+  env : {
+    [key: string] : string;
+  }
+}

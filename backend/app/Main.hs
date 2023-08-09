@@ -17,8 +17,9 @@ import Network.Wai.Middleware.RequestLogger (
 import Servant.Server (
   serveWithContext,
  )
-import Prelude hiding (get)
 import System.Environment qualified as Env
+import Prelude hiding (get)
+import UnliftIO.Concurrent (threadDelay)
 
 data DbInfo = MkDbInfo
   { host :: String
@@ -70,14 +71,19 @@ secretToEnv MkSecretsFile{db, env} = do
 
 main :: IO ()
 main = do
+  hSetBuffering stdout LineBuffering
   secretsFile <- liftIO $ Env.getEnv "SECRETS_FILE"
   envResult <- Aeson.eitherDecodeFileStrict secretsFile
   case envResult of
     Left err -> error (toText err)
     Right (file :: SecretsFile) -> do
-      migration (dbToConnectInfo file.db)
-      env <- secretToEnv file
       putStrLn "read the secrets file"
+      env <- secretToEnv file
+      when (env.envType /= Prod) $
+        threadDelay (10*1000*1000)
+      putStrLn "running migration"
+      migration (dbToConnectInfo file.db)
+      putStrLn "starting on port 3000"
       run 3000
         (logMiddle env.envType
            (serveWithContext

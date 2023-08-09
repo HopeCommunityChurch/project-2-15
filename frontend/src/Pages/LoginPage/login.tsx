@@ -2,6 +2,7 @@
 import { createEffect, createSignal } from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
+import {A, useNavigate} from "@solidjs/router";
 
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
@@ -13,11 +14,12 @@ export const loggedInSignal = loggedIn;
 
 export function LoginPage() {
   const initialLoginStatue = {
-    state: "loading"
+    state: "NotLoaded"
   };
   const [login, setLogin] = createSignal(initialLoginStatue);
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
+  const nav = useNavigate();
 
   const loginPushed = () => {
     Network.request("/auth/password", {
@@ -31,6 +33,8 @@ export function LoginPage() {
       }),
     }).then( (result) => {
       console.log(result);
+      setLogged(true);
+      nav("/app/studies");
     }).catch( (err) => {
       console.log(err);
     });

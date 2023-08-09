@@ -4,6 +4,7 @@ import { Routes, Route, Router } from "@solidjs/router";
 
 import { LandingHomePage } from "./Pages/LandingHomePage/LandingHomePage";
 import { LoginPage } from "./Pages/LoginPage/login";
+import { StudiesPage } from "./Pages/Studies/studies";
 
 export function App() {
   return (
@@ -11,6 +12,7 @@ export function App() {
       <Routes>
         <Route path={["/", "/app"]} component={LandingHomePage}/>
         <Route path={"/app/login"} component={LoginPage}/>
+        <Route path={"/app/studies"} component={StudiesPage}/>
       </Routes>
     </div>
   );

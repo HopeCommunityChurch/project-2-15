@@ -5,7 +5,7 @@ import GHC.Records (HasField)
 data EnvType
   = Prod
   | Dev Text
-  deriving (Show, Generic)
+  deriving (Show, Generic, Eq)
   deriving anyclass (FromJSON, ToJSON)
 
 type HasEnvType env = HasField "envType" env EnvType

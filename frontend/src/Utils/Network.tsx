@@ -61,10 +61,10 @@ export type NetworkState<t> =
  | NetworkError
  | NetworkSuccess<t>
 
+export const baseUrl = process.env.BASE_URL || "https://dev.p215.church/api";
 
 export async function request<t>(url : string, opts = {})
   : Promise<NetworkSuccess<t> | NetworkError> {
-  const baseUrl = "https://dev.p215.church/api"
   const response = await fetch(baseUrl + url, opts);
   console.log(response);
   const status = response.status;
