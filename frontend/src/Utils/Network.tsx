@@ -61,7 +61,7 @@ export type NetworkState<t> =
  | NetworkError
  | NetworkSuccess<t>
 
-export const baseUrl = process.env.BASE_URL || "https://dev.p215.church/api";
+export const baseUrl = "/api";
 
 export async function request<t>(url : string, opts = {})
   : Promise<NetworkSuccess<t> | NetworkError> {
