@@ -32,9 +32,15 @@ export function LoginPage() {
         password: password(),
       }),
     }).then( (result) => {
-      console.log(result);
-      setLogged(true);
-      nav("/app/studies");
+      switch (result.state) {
+        case "error":
+          break;
+        case "success":
+          console.log(result);
+          setLogged(true);
+          nav("/app/studies");
+          break;
+      }
     }).catch( (err) => {
       console.log(err);
     });
