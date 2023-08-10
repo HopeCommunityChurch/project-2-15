@@ -10,8 +10,9 @@
 6. Open a new tab in you terminal, and move into `frontend`
 7. Run `npm run dev`
 
-
 ## Update single nix flake dependency
 
 When I update the backend and need to update the version devenv uses do:
 `nix flake lock --update-input backend`
+
+npm run dev
