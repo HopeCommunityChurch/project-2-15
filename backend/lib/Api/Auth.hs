@@ -23,7 +23,7 @@ import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
 import Entity qualified as E
 import Entity.User qualified as User
 import Entity.AuthUser (AuthUser)
-import EnvFields (HasEnvType)
+import EnvFields (HasEnvType, EnvType(..))
 import Network.Wai (
   Request,
   requestHeaders,
@@ -144,13 +144,18 @@ setCookie
   => T.UserId
   -> m (CookieHeader ())
 setCookie userId = do
+  envType <- asks (.envType)
+  let shouldBeSeure =
+        case envType of
+          Dev "local" -> False
+          _ -> True
   (token, expiresAt) <- mkCookie userId
   let setCookie' = Cookie.defaultSetCookie
                   { Cookie.setCookieName = "p215-auth"
                   , Cookie.setCookieValue = encodeUtf8 (unwrap token)
                   , Cookie.setCookieExpires = Just expiresAt
                   , Cookie.setCookieHttpOnly = True
-                  , Cookie.setCookieSecure = True
+                  , Cookie.setCookieSecure = shouldBeSeure
                   , Cookie.setCookieSameSite = Just Cookie.sameSiteNone
                   , Cookie.setCookiePath = Just "/"
                   }

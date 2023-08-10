@@ -2,7 +2,7 @@
 import { createEffect, createSignal } from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
-import {A, useNavigate} from "@solidjs/router";
+import {useNavigate} from "@solidjs/router";
 
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
@@ -49,11 +49,11 @@ export function LoginPage() {
   return (
     <>
       <PreLoginTopNav />
-      <div>
+      <form onSubmit={(e) => {e.preventDefault(); loginPushed();}}>
         login: <input onKeyUp={e => setEmail(e.currentTarget.value)}/> <br />
         password: <input onKeyUp={e => setPassword(e.currentTarget.value)}/> <br />
         <Button type="lightBlue" onClick={loginPushed} >Login</Button>
-      </div>
+      </form>
     </>
   );
 }

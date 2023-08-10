@@ -10,6 +10,12 @@ const [loggedIn, setLogged] = createSignal(false);
 
 export const loggedInSignal = loggedIn;
 
+type Study = {
+  name: string;
+  sutdyId: string;
+  studyTemplateId: string;
+  docs: {}[];
+};
 
 export function StudiesPage() {
   const initialLoginStatue = {
@@ -17,9 +23,10 @@ export function StudiesPage() {
   };
   const [studiesState, setStudiesState] = createSignal(initialLoginStatue);
 
-  onMount( () => {
-    console.log("test");
-  });
+  console.log("test");
+  Network.request("/study").then( (result) => {
+    setStudiesState(result);
+  })
 
 
   return (
@@ -29,6 +36,12 @@ export function StudiesPage() {
         <Switch fallback={<div>Hello world</div>} >
           <Match when={ studiesState().state == "loading"}>
             loading
+          </Match>
+          <Match when={ studiesState().state === "success"}>
+            test
+          </Match>
+          <Match when={ studiesState().state === "error"}>
+            some error
           </Match>
         </Switch>
       </div>
