@@ -4,7 +4,7 @@ export type NetworkLoading = {
 };
 
 export type NetworkNotLoaded = {
-  state: "NotLoaded";
+  state: "notloaded";
 };
 
 export type NetworkError420NotFound = {
@@ -64,7 +64,7 @@ export type NetworkState<t> =
 export const baseUrl = "/api";
 
 export async function request<t>(url : string, opts = {})
-  : Promise<NetworkSuccess<t> | NetworkError> {
+  : Promise<NetworkState<t>> {
   const response = await fetch(baseUrl + url, opts);
   console.log(response);
   const status = response.status;

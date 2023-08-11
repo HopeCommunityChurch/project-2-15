@@ -1,7 +1,8 @@
 
-import { createEffect, createSignal, onMount, Switch, Match } from "solid-js";
+import { createEffect, createSignal, onMount, Switch, Match, createResource } from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
+import { match, P } from 'ts-pattern';
 
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
@@ -18,32 +19,33 @@ type Study = {
 };
 
 export function StudiesPage() {
-  const initialLoginStatue = {
-    state: "loading"
-  };
-  const [studiesState, setStudiesState] = createSignal(initialLoginStatue);
 
   console.log("test");
-  Network.request("/study").then( (result) => {
-    setStudiesState(result);
-  })
+  const [result] = createResource(
+    [],
+    () => Network.request("/study"),
+    { initialValue: {state: "loading"} }
+  )
 
 
   return (
     <>
       <PreLoginTopNav />
       <div>
-        <Switch fallback={<div>Hello world</div>} >
-          <Match when={ studiesState().state == "loading"}>
-            loading
-          </Match>
-          <Match when={ studiesState().state === "success"}>
-            test
-          </Match>
-          <Match when={ studiesState().state === "error"}>
-            some error
-          </Match>
-        </Switch>
+      { match(result())
+          .with({state: "loading"}, () =>
+            (<>loading</>)
+          )
+          .with({state: "error"}, ({body}) =>
+            (<>error</>)
+          )
+          .with({state: "success"}, ({body}) =>
+            (<>success {JSON.stringify(body)}</>)
+          )
+          .with({state: "notloaded"}, () =>
+            (<>not loaded</>)
+          ).exhaustive()
+        }
       </div>
     </>
   );
