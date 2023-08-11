@@ -1,5 +1,5 @@
 
-import { createEffect, createSignal, onMount, Switch, Match, createResource } from "solid-js";
+import { createEffect, createSignal, onMount, For, createResource } from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
 import { match, P } from 'ts-pattern';
@@ -18,12 +18,16 @@ type Study = {
   docs: {}[];
 };
 
-export function StudiesPage() {
 
+async function getStudies() : Promise<Network.NetworkState<Array<Study>>> {
+  return Network.request("/study");
+}
+
+export function StudiesPage() {
   console.log("test");
   const [result] = createResource(
     [],
-    () => Network.request("/study"),
+    () => getStudies(),
     { initialValue: {state: "loading"} }
   )
 
@@ -40,7 +44,12 @@ export function StudiesPage() {
             (<>error</>)
           )
           .with({state: "success"}, ({body}) =>
-            (<>success {JSON.stringify(body)}</>)
+            (<div>
+                <For each={body}>
+                  { (study) => <ViewStudy study={study} /> }
+                </For>
+              </div>
+            )
           )
           .with({state: "notloaded"}, () =>
             (<>not loaded</>)
@@ -48,5 +57,17 @@ export function StudiesPage() {
         }
       </div>
     </>
+  );
+}
+
+type ViewStudyProps = {
+  study : Study;
+};
+
+function ViewStudy (props : ViewStudyProps) {
+  return (
+    <div>
+      {props.study.name}
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Api.Auth (Api, server, authCookie, AuthUser) where
+module Api.Auth (Api, server, authCookie, AuthUser(..)) where
 
 import Api.Errors qualified as Errs
 import Data.List qualified as List
@@ -22,7 +22,7 @@ import Database.Beam (
 import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
 import Entity qualified as E
 import Entity.User qualified as User
-import Entity.AuthUser (AuthUser)
+import Entity.AuthUser (AuthUser(..))
 import EnvFields (HasEnvType, EnvType(..))
 import Network.Wai (
   Request,
