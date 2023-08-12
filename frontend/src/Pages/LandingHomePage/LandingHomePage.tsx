@@ -1,9 +1,9 @@
 import { Button3D } from "../../Components/Button3D/Button3D";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
-import {A} from "@solidjs/router";
+import { A } from "@solidjs/router";
 
 import bookFaceGirl from "./book-face-girl.jpg";
-import peopleTalking from "./people-talking-at-table.png";
+import peopleTalking from "./people-talking.png";
 
 import * as classes from "./styles.module.scss";
 
