@@ -66,7 +66,7 @@ export function LoginPage() {
             <label for="password">Password</label>
             <input type="password" id="password" />
             <div class={classes.formGroup}>
-              <div class={classes.checkboxGroup}>
+              <div>
                 <label class={classes.checkboxContainer}>
                   View Password
                   <input type="checkbox" id="viewPassword" />
@@ -74,15 +74,10 @@ export function LoginPage() {
                 </label>
               </div>
 
-              <a href="#" class={classes.forgotLink}>
-                Forgot Password?
-              </a>
+              <a href="#">Forgot Password?</a>
             </div>
             <p class={classes.dontHaveAccount}>
-              Don't have an account?{" "}
-              <a href="#" class={classes.signUpLink}>
-                Sign up
-              </a>
+              Don't have an account? <a href="#">Sign up</a>
             </p>
 
             <button type="submit">Log In</button>
