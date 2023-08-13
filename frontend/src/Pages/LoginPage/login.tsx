@@ -8,7 +8,7 @@ import * as classes from "./styles.module.scss";
 
 import blueCircles from "./background-blue-circles.png";
 import laptopMockup from "./laptop-mockup.png";
-import p215Logo from "./p215.png";
+import p215Logo from "./P215.png";
 
 const [loggedIn, setLogged] = createSignal(false);
 
