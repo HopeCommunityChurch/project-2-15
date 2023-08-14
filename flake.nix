@@ -1,15 +1,10 @@
 {
-  description = "Description for the project";
+  description = "test";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
     devenv.url = "github:cachix/devenv";
     backend.url = "path:./backend/";
-  };
-
-  nixConfig = {
-    extra-trusted-public-keys = "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=";
-    extra-substituters = "https://devenv.cachix.org";
   };
 
   outputs = inputs@{ flake-parts, ... }:
@@ -27,6 +22,7 @@
             # This is just like the imports in devenv.nix.
             # See https://devenv.sh/guides/using-with-flake-parts/#import-a-devenv-module
             # ./devenv-foo.nix
+            ./nginx.nix
           ];
 
           # https://devenv.sh/reference/options/
@@ -45,8 +41,8 @@
             '';
           };
 
-          services.nginx = {
-            enable = true;
+          services.nginx2 = {
+            enable = false;
             httpConfig = ''
               proxy_redirect          off;
               proxy_connect_timeout   60s;
@@ -55,6 +51,7 @@
               proxy_http_version      1.1;
               # don't let clients close the keep-alive connection to upstream. See the nginx blog for details:
               # https://www.nginx.com/blog/avoiding-top-10-nginx-configuration-mistakes/#no-keepalives
+              # this is a test
               proxy_set_header        "Connection" "";
               proxy_set_header        Host $host;
               proxy_set_header        X-Real-IP $remote_addr;
