@@ -5,6 +5,9 @@ import { Routes, Route, Router } from "@solidjs/router";
 import { LandingHomePage } from "./Pages/LandingHomePage/LandingHomePage";
 import { LoginPage } from "./Pages/LoginPage/login";
 import { StudiesPage } from "./Pages/Studies/studies";
+import {updateLoginState} from "./Pages/LoginPage/login";
+
+updateLoginState();
 
 export function App() {
   return (

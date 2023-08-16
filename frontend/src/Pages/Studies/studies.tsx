@@ -1,21 +1,15 @@
 import { createEffect, createSignal, onMount, For, createResource } from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
-// import { match, P } from 'ts-pattern';
+import { match, P } from 'ts-pattern';
 
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
+import { Study } from "../../Types";
 
 const [loggedIn, setLogged] = createSignal(false);
 
 export const loggedInSignal = loggedIn;
-
-type Study = {
-  name: string;
-  sutdyId: string;
-  studyTemplateId: string;
-  docs: {}[];
-};
 
 async function getStudies(): Promise<Network.NetworkState<Array<Study>>> {
   return Network.request("/study");

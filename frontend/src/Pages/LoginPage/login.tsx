@@ -9,21 +9,74 @@ import * as classes from "./styles.module.scss";
 import blueCircles from "./background-blue-circles.png";
 import laptopMockup from "./laptop-mockup.png";
 import p215Logo from "./P215.png";
+import { PublicUser } from "../../Types";
+import { match } from "ts-pattern";
 
-const [loggedIn, setLogged] = createSignal(false);
+export type NotLoggedIn = {
+  state: "notLoggedIn";
+};
 
-export const loggedInSignal = loggedIn;
+export type UserLoggedIn = {
+  state: "loggedIn";
+  user: PublicUser;
+};
+
+export type LoginUser =
+  | UserLoggedIn
+  | NotLoggedIn
+
+const notLoggedIn = {
+  state: "notLoggedIn",
+}
+
+
+const [loginStateLocal, setLoginState] = createSignal(notLoggedIn);
+
+export const loginState = loginStateLocal;
+
+export function updateLoginState() : void {
+  Network.request<PublicUser>("/user/me", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then( (result) => {
+    match(result)
+    .with({state: "success"}, ({body}) => {
+      setLoginState({
+        state: "loggedIn",
+        user: body,
+      });
+    })
+    .with({state: "error"}, ({body}) => {
+      match(body)
+      .with({status: 401}, () =>
+        setLoginState({
+          state: "notLoggedIn",
+        })
+      ).otherwise( re =>
+        console.error(re)
+      );
+    })
+    .with({state: "notloaded"}, () => {
+    })
+    .with({state: "loading"}, () => {
+    })
+    .exhaustive()
+  });
+}
+
 
 export function LoginPage() {
   const initialLoginStatue = {
     state: "NotLoaded",
   };
-  const [login, setLogin] = createSignal(initialLoginStatue);
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
   const nav = useNavigate();
 
-  const loginPushed = () => {
+  const loginPushed = (e : Event) => {
+    e.preventDefault();
     Network.request("/auth/password", {
       method: "POST",
       headers: {
@@ -35,18 +88,23 @@ export function LoginPage() {
       }),
     })
       .then((result) => {
-        switch (result.state) {
-          case "error":
-            break;
-          case "success":
-            console.log(result);
-            setLogged(true);
-            nav("/app/studies");
-            break;
-        }
+        match(result)
+        .with( ({ state: "error" }), ({ body }) => {
+          console.error(body);
+        })
+        .with( ({ state: "success" }), ({ body }) => {
+          console.log(result);
+          updateLoginState();
+          nav("/app/studies");
+        })
+        .with( ({ state: "notloaded" }), ({ }) => {
+        })
+        .with( ({ state: "loading" }), ({ }) => {
+        })
+        .exhaustive();
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
       });
   };
 
@@ -60,11 +118,11 @@ export function LoginPage() {
             Welcome to SKED. Please enter your login credentials below to start using the admin
             console.
           </p>
-          <form>
+          <form onSubmit={ (e) => loginPushed(e) }>
             <label for="username">Username</label>
-            <input type="text" id="username" />
+            <input type="text" id="username" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
             <label for="password">Password</label>
-            <input type="password" id="password" />
+            <input type="password" id="password" onKeyUp={(e) => setPassword(e.currentTarget.value)} />
             <div class={classes.formGroup}>
               <div>
                 <label class={classes.checkboxContainer}>
@@ -80,7 +138,7 @@ export function LoginPage() {
               Don't have an account? <a href="#">Sign up</a>
             </p>
 
-            <button type="submit">Log In</button>
+            <button onSubmit={ (e) => loginPushed(e) } type="submit">Log In</button>
           </form>
         </div>
       </div>

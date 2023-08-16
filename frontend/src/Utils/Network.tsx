@@ -3,6 +3,8 @@ export type NetworkLoading = {
   state: "loading";
 };
 
+export const notLoaded = { state: "notloaded" };
+
 export type NetworkNotLoaded = {
   state: "notloaded";
 };
@@ -66,7 +68,6 @@ export const baseUrl = "/api";
 export async function request<t>(url : string, opts = {})
   : Promise<NetworkState<t>> {
   const response = await fetch(baseUrl + url, opts);
-  console.log(response);
   const status = response.status;
   if (status == 204) {
     return {
@@ -74,7 +75,6 @@ export async function request<t>(url : string, opts = {})
       body: null,
     };
   }
-  console.log(status);
   if (status >= 200 && status < 300) {
     const body = await response.json();
     return {
@@ -83,7 +83,6 @@ export async function request<t>(url : string, opts = {})
     };
   }
 
-  console.log(status);
   if (status == 420) {
     const body = await response.json();
     return {
@@ -96,7 +95,6 @@ export async function request<t>(url : string, opts = {})
     };
   }
 
-  console.log(status);
   if (status == 400) {
     const body = await response.text();
     return {
@@ -108,7 +106,6 @@ export async function request<t>(url : string, opts = {})
     };
   }
 
-  console.log(status);
   if (status == 401) {
     return {
       state: "error",

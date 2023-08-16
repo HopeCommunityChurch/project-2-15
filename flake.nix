@@ -41,8 +41,8 @@
             '';
           };
 
-          services.nginx2 = {
-            enable = false;
+          services.nginx = {
+            enable = true;
             httpConfig = ''
               proxy_redirect          off;
               proxy_connect_timeout   60s;
