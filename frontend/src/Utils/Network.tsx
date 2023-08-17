@@ -3,7 +3,7 @@ export type NetworkLoading = {
   state: "loading";
 };
 
-export const notLoaded = { state: "notloaded" };
+export const notLoaded : NetworkNotLoaded = { state: "notloaded" };
 
 export type NetworkNotLoaded = {
   state: "notloaded";

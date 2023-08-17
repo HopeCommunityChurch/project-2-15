@@ -2,7 +2,7 @@ import Logo from "../../Components/PreLoginTopNav/BibleOneLogoSVG";
 import { Button } from "../../Components/Button/Button";
 import { createSignal, createEffect, Show } from "solid-js"
 import {A, useNavigate} from "@solidjs/router";
-import {loginState, LoginUser, UserLoggedIn, NotLoggedIn} from "../../Pages/LoginPage/login"
+import {loginState, LoginUser} from "../../Pages/LoginPage/login"
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
@@ -50,7 +50,7 @@ export function PreLoginTopNav() {
              ))
             .with( { state: "loggedIn"}, ({user}) => (
               <>
-                {user.name}
+                <Button type="Blue" onClick={() => nav("/app/profile")}>{user.name}</Button>
               </>
              ))
              .exhaustive()

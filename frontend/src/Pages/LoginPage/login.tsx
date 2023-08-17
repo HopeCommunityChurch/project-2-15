@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from "solid-js";
+import { Show, createEffect, createSignal } from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
 import { useNavigate } from "@solidjs/router";
@@ -74,6 +74,7 @@ export function LoginPage() {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [showP, setShowP] = createSignal(false);
+  const [loginError, setLoginError] = createSignal<Network.NetworkError | Network.NetworkNotLoaded>(Network.notLoaded);
   const nav = useNavigate();
 
   const loginPushed = (e : Event) => {
@@ -90,10 +91,10 @@ export function LoginPage() {
     })
       .then((result) => {
         match(result)
-        .with( ({ state: "error" }), ({ body }) => {
-          console.error(body);
+        .with( ({ state: "error" }), (res) => {
+          setLoginError(res);
         })
-        .with( ({ state: "success" }), ({ body }) => {
+        .with( ({ state: "success" }), () => {
           console.log(result);
           updateLoginState();
           nav("/app/studies");
@@ -108,6 +109,10 @@ export function LoginPage() {
         console.error(err);
       });
   };
+
+  createEffect(() => {
+    console.log(loginError());
+  })
 
   return (
     <div class={classes.gridContainer}>
@@ -140,6 +145,22 @@ export function LoginPage() {
             </p>
 
             <button onSubmit={ (e) => loginPushed(e) } type="submit">Log In</button>
+            {match(loginError())
+              .with({state: "notloaded"}, () => (<> </> ))
+              .with({state: "error"}, ({body}) =>
+                match(body)
+                .with({error: "AuthError"}, () => (
+                  <div>email or password wrong</div>
+                 ))
+                 .otherwise( (err) => (
+                  <div>
+                    You shouldn't hit this error so here it is raw:
+                    {JSON.stringify(err)}
+                  </div>
+                 ))
+              )
+              .exhaustive()
+            }
           </form>
         </div>
       </div>
@@ -161,3 +182,5 @@ export function LoginPage() {
     </div>
   );
 }
+
+
