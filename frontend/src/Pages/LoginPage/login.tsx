@@ -58,10 +58,6 @@ export function updateLoginState() : void {
         console.error(re)
       );
     })
-    .with({state: "notloaded"}, () => {
-    })
-    .with({state: "loading"}, () => {
-    })
     .exhaustive()
   });
 }
@@ -98,10 +94,6 @@ export function LoginPage() {
           console.log(result);
           updateLoginState();
           nav("/app/studies");
-        })
-        .with( ({ state: "notloaded" }), ({ }) => {
-        })
-        .with( ({ state: "loading" }), ({ }) => {
         })
         .exhaustive();
       })

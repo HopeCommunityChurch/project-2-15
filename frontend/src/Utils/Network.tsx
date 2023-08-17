@@ -66,7 +66,7 @@ export type NetworkState<t> =
 export const baseUrl = "/api";
 
 export async function request<t>(url : string, opts = {})
-  : Promise<NetworkState<t>> {
+  : Promise<NetworkSuccess<t> | NetworkError> {
   const response = await fetch(baseUrl + url, opts);
   const status = response.status;
   if (status == 204) {
