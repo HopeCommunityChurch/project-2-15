@@ -73,6 +73,7 @@ export function LoginPage() {
   };
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
+  const [showP, setShowP] = createSignal(false);
   const nav = useNavigate();
 
   const loginPushed = (e : Event) => {
@@ -122,12 +123,12 @@ export function LoginPage() {
             <label for="username">Username</label>
             <input type="text" id="username" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
             <label for="password">Password</label>
-            <input type="password" id="password" onKeyUp={(e) => setPassword(e.currentTarget.value)} />
+            <input type={showP()? "text" : "password"} id="password" onKeyUp={(e) => setPassword(e.currentTarget.value)} />
             <div class={classes.formGroup}>
               <div>
                 <label class={classes.checkboxContainer}>
                   View Password
-                  <input type="checkbox" id="viewPassword" />
+                  <input type="checkbox" onChange={(e) => setShowP(e.currentTarget.checked) } id="viewPassword" />
                   <span class={classes.checkmark}></span>
                 </label>
               </div>
