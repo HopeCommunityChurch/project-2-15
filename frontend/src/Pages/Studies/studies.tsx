@@ -1,7 +1,7 @@
 import { createEffect, createSignal, onMount, For, createResource } from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
-import { match, P } from 'ts-pattern';
+import { match, P } from "ts-pattern";
 
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
@@ -23,16 +23,19 @@ export function StudiesPage() {
     <>
       <PreLoginTopNav />
       <div>
-        {match(result())
-          .with({ state: "loading" }, () => <>loading</>)
-          .with({ state: "error" }, ({ body }) => <>error</>)
-          .with({ state: "success" }, ({ body }) => (
-            <div>
-              <For each={body}>{(study) => <ViewStudy study={study} />}</For>
-            </div>
-          ))
-          .with({ state: "notloaded" }, () => <>not loaded</>)
-          .exhaustive()}
+        {
+          // @ts-ignore
+          match(result())
+            .with({ state: "loading" }, () => <>loading</>)
+            .with({ state: "error" }, ({ body }) => <>error</>)
+            .with({ state: "success" }, ({ body }) => (
+              <div>
+                <For each={body}>{(study) => <ViewStudy study={study} />}</For>
+              </div>
+            ))
+            .with({ state: "notloaded" }, () => <>not loaded</>)
+            .exhaustive()
+        }
       </div>
     </>
   );

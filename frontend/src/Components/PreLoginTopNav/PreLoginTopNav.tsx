@@ -1,8 +1,8 @@
 import Logo from "../../Components/PreLoginTopNav/BibleOneLogoSVG";
 import { Button } from "../../Components/Button/Button";
-import { createSignal, createEffect, Show } from "solid-js"
-import {A, useNavigate} from "@solidjs/router";
-import {loginState, LoginUser} from "../../Pages/LoginPage/login"
+import { createSignal, createEffect, Show } from "solid-js";
+import { A, useNavigate } from "@solidjs/router";
+import { loginState, LoginUser } from "../../Pages/LoginPage/login";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
@@ -11,7 +11,7 @@ export function PreLoginTopNav() {
   const [showNavbar, setShowNavbar] = createSignal(false);
 
   const handleShowNavbar = () => {
-    setShowNavbar( n => !n);
+    setShowNavbar((n) => !n);
   };
 
   const nav = useNavigate();
@@ -41,20 +41,27 @@ export function PreLoginTopNav() {
         </nav>
         <div class={classes.buttons}>
           {
+            // @ts-ignore
             match(loginState() as LoginUser)
-            .with( { state: "notLoggedIn"}, () => (
-              <>
-              <Button type="lightBlue" onClick={() => nav("/app/login")}>Log In</Button>
-              <Button type="Blue" onClick={() => nav("/app/signup")}>Sign Up</Button>
-              </>
-             ))
-            .with( { state: "loggedIn"}, ({user}) => (
-              <>
-                <Button type="Blue" onClick={() => nav("/app/profile")}>{user.name}</Button>
-              </>
-             ))
-             .exhaustive()
-           }
+              .with({ state: "notLoggedIn" }, () => (
+                <>
+                  <Button type="lightBlue" onClick={() => nav("/app/login")}>
+                    Log In
+                  </Button>
+                  <Button type="Blue" onClick={() => nav("/app/signup")}>
+                    Sign Up
+                  </Button>
+                </>
+              ))
+              .with({ state: "loggedIn" }, ({ user }) => (
+                <>
+                  <Button type="Blue" onClick={() => nav("/app/profile")}>
+                    {user.name}
+                  </Button>
+                </>
+              ))
+              .exhaustive()
+          }
         </div>
         <div class={classes.hamburger} onClick={handleShowNavbar}>
           <Hamburger />
@@ -76,38 +83,38 @@ export function PreLoginTopNav() {
                 Messaging
               </a>
             </li>
-          {
-            match(loginState() as LoginUser)
-            .with( { state: "notLoggedIn"}, () => (
-              <>
-                <li>
-                  <A href="/app/login">
-                    <Button type="lightBlue">Log In</Button>
-                  </A>
-                </li>
-                <li>
-                  <A href="/app/signup">
-                    <Button type="Blue">Sign Up</Button>
-                  </A>
-                </li>
-              </>
-             ))
-            .with( { state: "loggedIn"}, ({user}) => (
-              <>
-                <li>
-                  <A href="/app/signup">
-                    <Button type="Blue">Profile</Button>
-                  </A>
-                </li>
-              </>
-             ))
-             .exhaustive()
-           }
+            {
+              // @ts-ignore
+              match(loginState() as LoginUser)
+                .with({ state: "notLoggedIn" }, () => (
+                  <>
+                    <li>
+                      <A href="/app/login">
+                        <Button type="lightBlue">Log In</Button>
+                      </A>
+                    </li>
+                    <li>
+                      <A href="/app/signup">
+                        <Button type="Blue">Sign Up</Button>
+                      </A>
+                    </li>
+                  </>
+                ))
+                .with({ state: "loggedIn" }, ({ user }) => (
+                  <>
+                    <li>
+                      <A href="/app/signup">
+                        <Button type="Blue">Profile</Button>
+                      </A>
+                    </li>
+                  </>
+                ))
+                .exhaustive()
+            }
           </ul>
         </div>
       </header>
-      <div class={classes.headerThingy}>
-      </div>
+      <div class={classes.headerThingy}></div>
     </>
   );
 }

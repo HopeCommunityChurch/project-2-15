@@ -21,47 +21,44 @@ export type UserLoggedIn = {
   user: PublicUser;
 };
 
-export type LoginUser =
-  | UserLoggedIn
-  | NotLoggedIn
+export type LoginUser = UserLoggedIn | NotLoggedIn;
 
 const notLoggedIn = {
   state: "notLoggedIn",
-}
-
+};
 
 const [loginStateLocal, setLoginState] = createSignal(notLoggedIn);
 
 export const loginState = loginStateLocal;
 
-export function updateLoginState() : void {
+export function updateLoginState(): void {
   Network.request<PublicUser>("/user/me", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
-  }).then( (result) => {
+  }).then((result) => {
+    // @ts-ignore
     match(result)
-    .with({state: "success"}, ({body}) => {
-      setLoginState({
-        state: "loggedIn",
-        user: body,
-      });
-    })
-    .with({state: "error"}, ({body}) => {
-      match(body)
-      .with({status: 401}, () =>
+      .with({ state: "success" }, ({ body }) => {
         setLoginState({
-          state: "notLoggedIn",
-        })
-      ).otherwise( re =>
-        console.error(re)
-      );
-    })
-    .exhaustive()
+          state: "loggedIn",
+          user: body,
+        });
+      })
+      .with({ state: "error" }, ({ body }) => {
+        // @ts-ignore
+        match(body)
+          .with({ status: 401 }, () =>
+            setLoginState({
+              state: "notLoggedIn",
+            })
+          )
+          .otherwise((re) => console.error(re));
+      })
+      .exhaustive();
   });
 }
-
 
 export function LoginPage() {
   const initialLoginStatue = {
@@ -70,10 +67,12 @@ export function LoginPage() {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [showP, setShowP] = createSignal(false);
-  const [loginError, setLoginError] = createSignal<Network.NetworkError | Network.NetworkNotLoaded>(Network.notLoaded);
+  const [loginError, setLoginError] = createSignal<Network.NetworkError | Network.NetworkNotLoaded>(
+    Network.notLoaded
+  );
   const nav = useNavigate();
 
-  const loginPushed = (e : Event) => {
+  const loginPushed = (e: Event) => {
     e.preventDefault();
     Network.request("/auth/password", {
       method: "POST",
@@ -86,16 +85,17 @@ export function LoginPage() {
       }),
     })
       .then((result) => {
+        // @ts-ignore
         match(result)
-        .with( ({ state: "error" }), (res) => {
-          setLoginError(res);
-        })
-        .with( ({ state: "success" }), () => {
-          console.log(result);
-          updateLoginState();
-          nav("/app/studies");
-        })
-        .exhaustive();
+          .with({ state: "error" }, (res) => {
+            setLoginError(res);
+          })
+          .with({ state: "success" }, () => {
+            console.log(result);
+            updateLoginState();
+            nav("/app/studies");
+          })
+          .exhaustive();
       })
       .catch((err) => {
         console.error(err);
@@ -104,7 +104,7 @@ export function LoginPage() {
 
   createEffect(() => {
     console.log(loginError());
-  })
+  });
 
   return (
     <div class={classes.gridContainer}>
@@ -112,20 +112,25 @@ export function LoginPage() {
         <div class={classes.innerLeftColumn}>
           <img src={p215Logo} alt="Logo" />
           <h1>Log In</h1>
-          <p>
-            Welcome to SKED. Please enter your login credentials below to start using the admin
-            console.
-          </p>
-          <form onSubmit={ (e) => loginPushed(e) }>
+          <p>Please enter your login credentials below to start using the admin console.</p>
+          <form onSubmit={(e) => loginPushed(e)}>
             <label for="username">Username</label>
             <input type="text" id="username" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
             <label for="password">Password</label>
-            <input type={showP()? "text" : "password"} id="password" onKeyUp={(e) => setPassword(e.currentTarget.value)} />
+            <input
+              type={showP() ? "text" : "password"}
+              id="password"
+              onKeyUp={(e) => setPassword(e.currentTarget.value)}
+            />
             <div class={classes.formGroup}>
               <div>
                 <label class={classes.checkboxContainer}>
                   View Password
-                  <input type="checkbox" onChange={(e) => setShowP(e.currentTarget.checked) } id="viewPassword" />
+                  <input
+                    type="checkbox"
+                    onChange={(e) => setShowP(e.currentTarget.checked)}
+                    id="viewPassword"
+                  />
                   <span class={classes.checkmark}></span>
                 </label>
               </div>
@@ -135,23 +140,25 @@ export function LoginPage() {
             <p class={classes.dontHaveAccount}>
               Don't have an account? <a href="#">Sign up</a>
             </p>
-
-            <button onSubmit={ (e) => loginPushed(e) } type="submit">Log In</button>
-            {match(loginError())
-              .with({state: "notloaded"}, () => (<> </> ))
-              .with({state: "error"}, ({body}) =>
-                match(body)
-                .with({error: "AuthError"}, () => (
-                  <div>email or password wrong</div>
-                 ))
-                 .otherwise( (err) => (
-                  <div>
-                    You shouldn't hit this error so here it is raw:
-                    {JSON.stringify(err)}
-                  </div>
-                 ))
-              )
-              .exhaustive()
+            <button onSubmit={(e) => loginPushed(e)} type="submit">
+              Log In
+            </button>
+            {
+              // @ts-ignore
+              match(loginError())
+                .with({ state: "notloaded" }, () => <> </>)
+                .with({ state: "error" }, ({ body }) =>
+                  // @ts-ignore
+                  match(body)
+                    .with({ error: "AuthError" }, () => <div>email or password wrong</div>)
+                    .otherwise((err) => (
+                      <div>
+                        You shouldn't hit this error so here it is raw:
+                        {JSON.stringify(err)}
+                      </div>
+                    ))
+                )
+                .exhaustive()
             }
           </form>
         </div>
@@ -174,5 +181,3 @@ export function LoginPage() {
     </div>
   );
 }
-
-
