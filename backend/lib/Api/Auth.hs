@@ -1,6 +1,12 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Api.Auth (Api, server, authCookie, AuthUser(..)) where
+module Api.Auth (
+  Api,
+  server,
+  authCookie,
+  AuthUser (..),
+  authCookieToken
+) where
 
 import Api.Errors qualified as Errs
 import Data.List qualified as List
@@ -14,9 +20,12 @@ import Database.Beam (
   insertValues,
   runInsert,
   runSelectReturningOne,
+  update,
+  runUpdate,
   select,
   val_,
   (==.),
+  (<-.),
   (>=.),
  )
 import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
@@ -50,6 +59,16 @@ instance AuthDescription "cookie" where
 
 type instance AuthServerData (AuthProtect "cookie") = AuthUser
 
+instance AuthDescription "cookie-with-token" where
+  securityName = "cookie"
+  securityScheme = OpenApi.SecurityScheme type_ (Just desc)
+    where
+      type_ = OpenApi.SecuritySchemeApiKey
+                (OpenApi.ApiKeyParams "p215-auth" OpenApi.ApiKeyCookie)
+      desc  = "p215-auth cookie"
+
+type instance AuthServerData (AuthProtect "cookie-with-token") = (AuthUser, T.CookieToken)
+
 
 authCookie
   :: HasDbConn env
@@ -71,6 +90,28 @@ authCookie env =
               Nothing -> do
                 throwError (err401 {errBody = "Missing Needed Cookie"})
               Just result -> pure result
+
+
+authCookieToken
+  :: HasDbConn env
+  => HasEnvType env
+  => env
+  -> AuthHandler Request (AuthUser, T.CookieToken)
+authCookieToken env =
+  mkAuthHandler $ \ req -> do
+    case List.lookup "Cookie" (requestHeaders req) of
+      Nothing -> throwError (err401 {errBody = "No Cookies"})
+      Just bsCookies -> do
+        case List.lookup "p215-auth" (Cookie.parseCookies bsCookies) of
+          Nothing -> do
+            throwError (err401 {errBody = "Missing Needed Cookie"})
+          Just bsToken -> do
+            let cookie = T.MkNewType (decodeUtf8 bsToken)
+            mResult <- liftIO $ runStdoutLoggingT (runReaderT (lookupSession cookie) env)
+            case mResult of
+              Nothing -> do
+                throwError (err401 {errBody = "Missing Needed Cookie"})
+              Just result -> pure (result, cookie)
 
 
 lookupSession
@@ -139,6 +180,20 @@ mkCookie userId = do
   pure (token, expiresAt)
 
 
+invalidateCookie
+  :: (MonadDb env m)
+  => T.CookieToken
+  -> m ()
+invalidateCookie cookie = do
+  now <- getCurrentTime
+  runBeam
+    $ runUpdate
+    $ update Db.db.userSession
+      (\ r -> r.created <-. val_ now)
+      (\ r -> r.token ==. val_ cookie)
+
+
+
 setCookie
   :: MonadDb env m
   => T.UserId
@@ -162,6 +217,28 @@ setCookie userId = do
   pure $ addHeader setCookie' ()
 
 
+setCookieDelete
+  :: MonadDb env m
+  => m (CookieHeader ())
+setCookieDelete = do
+  envType <- asks (.envType)
+  now <- getCurrentTime
+  let shouldBeSeure =
+        case envType of
+          Dev "local" -> False
+          _ -> True
+  let setCookie' = Cookie.defaultSetCookie
+                  { Cookie.setCookieName = "p215-auth"
+                  , Cookie.setCookieValue = "deleted"
+                  , Cookie.setCookieExpires = Just now
+                  , Cookie.setCookieHttpOnly = True
+                  , Cookie.setCookieSecure = shouldBeSeure
+                  , Cookie.setCookieSameSite = Just Cookie.sameSiteNone
+                  , Cookie.setCookiePath = Just "/"
+                  }
+  pure $ addHeader setCookie' ()
+
+
 passwordLogin
   :: MonadDb env m
   => PassLogin
@@ -175,6 +252,14 @@ passwordLogin MkPassLogin{email, password} = do
         then setCookie userId
         else Errs.throwAuthErr
 
+
+logout
+  :: MonadDb env m
+  => (AuthUser, T.CookieToken)
+  -> m (CookieHeader ())
+logout (_, token) = do
+  invalidateCookie token
+  setCookieDelete
 
 
 createUser
@@ -191,6 +276,9 @@ type Api =
     :> Description "Password login"
     :> ReqBody '[JSON] PassLogin
     :> Verb 'POST 204 '[JSON] (CookieHeader ())
+  :<|> "logout"
+    :> AuthProtect "cookie-with-token"
+    :> Verb 'POST 204 '[JSON] (CookieHeader ())
   :<|> "register"
     :> ReqBody '[JSON] User.NewUser
     :> Verb 'POST 204 '[JSON] (CookieHeader ())
@@ -201,4 +289,5 @@ server
   => ServerT Api m
 server =
   passwordLogin
+  :<|> logout
   :<|> createUser

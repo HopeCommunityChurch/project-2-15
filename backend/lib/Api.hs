@@ -4,6 +4,7 @@ import Api.Auth qualified
 import Api.Errors qualified as Errs
 import Api.User qualified
 import Api.Study qualified
+import Types qualified as T
 import Api.Document qualified
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
@@ -78,6 +79,7 @@ toHandler env myMonad =
 
 type MyContext =
   '[  AuthHandler Request AuthUser
+   ,  AuthHandler Request (AuthUser, T.CookieToken)
   ]
 
 
@@ -88,6 +90,7 @@ serverContext
   -> Context MyContext
 serverContext env =
   Api.Auth.authCookie env
+  :. Api.Auth.authCookieToken env
   :. EmptyContext
 
 
