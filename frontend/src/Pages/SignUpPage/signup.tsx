@@ -61,7 +61,7 @@ export function updateLoginState(): void {
   });
 }
 
-export function LoginPage() {
+export function SignUpPage() {
   const initialLoginStatue = {
     state: "NotLoaded",
   };
@@ -114,7 +114,7 @@ export function LoginPage() {
           <A href="/app/">
             <img src={p215Logo} alt="Logo" />
           </A>
-          <h1>Log In</h1>
+          <h1>Sign Up</h1>
           <p>Please enter your login credentials below to start using the admin console.</p>
           <form onSubmit={(e) => loginPushed(e)}>
             <label for="username">Username</label>
@@ -125,10 +125,16 @@ export function LoginPage() {
               id="password"
               onKeyUp={(e) => setPassword(e.currentTarget.value)}
             />
+            <label for="password">Repeat Password</label>
+            <input
+              type={showP() ? "text" : "password"}
+              id="password"
+              onKeyUp={(e) => setPassword(e.currentTarget.value)}
+            />
             <div class={classes.formGroup}>
               <div>
                 <label class={classes.checkboxContainer}>
-                  View Password
+                  View Passwords
                   <input
                     type="checkbox"
                     onChange={(e) => setShowP(e.currentTarget.checked)}
@@ -137,14 +143,12 @@ export function LoginPage() {
                   <span class={classes.checkmark}></span>
                 </label>
               </div>
-
-              <A href="/app/resetpassword">Forgot Password?</A>
             </div>
-            <p class={classes.dontHaveAccount}>
-              Don't have an account? <A href="/app/signup">Sign up</A>
+            <p>
+              Already have an account? <A href="/app/login">Login</A>
             </p>
             <button onSubmit={(e) => loginPushed(e)} type="submit">
-              Log In
+              Sign Up
             </button>
             {
               // @ts-ignore

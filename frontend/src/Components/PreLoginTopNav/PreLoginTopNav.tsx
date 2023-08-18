@@ -1,4 +1,4 @@
-import Logo from "../../Components/PreLoginTopNav/BibleOneLogoSVG";
+import Logo from "./P215.png";
 import { Button } from "../../Components/Button/Button";
 import { createSignal, createEffect, Show } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
@@ -19,7 +19,7 @@ export function PreLoginTopNav() {
   return (
     <>
       <header class={classes.header}>
-        <Logo class={classes.logo} />
+        <img class={classes.logo} src={Logo} />
         <nav class={classes.menu}>
           <ul>
             <li>

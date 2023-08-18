@@ -61,7 +61,7 @@ export function updateLoginState(): void {
   });
 }
 
-export function LoginPage() {
+export function ResetPasswordPage() {
   const initialLoginStatue = {
     state: "NotLoaded",
   };
@@ -114,37 +114,20 @@ export function LoginPage() {
           <A href="/app/">
             <img src={p215Logo} alt="Logo" />
           </A>
-          <h1>Log In</h1>
-          <p>Please enter your login credentials below to start using the admin console.</p>
+          <h1>Reset Password</h1>
+          <p>
+            Please provide the email address that you used when you signed up for your account. If
+            you forgot your email, please <a>contact us</a>
+          </p>
           <form onSubmit={(e) => loginPushed(e)}>
-            <label for="username">Username</label>
+            <label for="username">Email</label>
             <input type="text" id="username" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
-            <label for="password">Password</label>
-            <input
-              type={showP() ? "text" : "password"}
-              id="password"
-              onKeyUp={(e) => setPassword(e.currentTarget.value)}
-            />
-            <div class={classes.formGroup}>
-              <div>
-                <label class={classes.checkboxContainer}>
-                  View Password
-                  <input
-                    type="checkbox"
-                    onChange={(e) => setShowP(e.currentTarget.checked)}
-                    id="viewPassword"
-                  />
-                  <span class={classes.checkmark}></span>
-                </label>
-              </div>
 
-              <A href="/app/resetpassword">Forgot Password?</A>
-            </div>
-            <p class={classes.dontHaveAccount}>
-              Don't have an account? <A href="/app/signup">Sign up</A>
+            <p>
+              Remember you account? <A href="/app/login">Login</A>
             </p>
             <button onSubmit={(e) => loginPushed(e)} type="submit">
-              Log In
+              Reset Password
             </button>
             {
               // @ts-ignore

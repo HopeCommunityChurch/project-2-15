@@ -5,6 +5,7 @@
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   grid-gap: 0px;
+  overflow-x: hidden;
 }
 
 footer,
