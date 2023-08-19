@@ -7,7 +7,6 @@ import { A } from "@solidjs/router";
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
 
-import blueCircles from "./background-blue-circles.png";
 import laptopMockup from "./laptop-mockup.png";
 import p215Logo from "./P215.png";
 import { PublicUser } from "../../Types";
@@ -136,9 +135,11 @@ export function ResetPasswordPage() {
                 .with({ state: "error" }, ({ body }) =>
                   // @ts-ignore
                   match(body)
-                    .with({ error: "AuthError" }, () => <div>email or password wrong</div>)
+                    .with({ error: "AuthError" }, () => (
+                      <div class={classes.errorText}>email or password wrong</div>
+                    ))
                     .otherwise((err) => (
-                      <div>
+                      <div class={classes.errorText}>
                         You shouldn't hit this error so here it is raw:
                         {JSON.stringify(err)}
                       </div>

@@ -1,6 +1,6 @@
 import { createEffect, createSignal, onMount, For, createResource } from "solid-js";
 import { Button } from "../../Components/Button/Button";
-import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
+import { LoggedInTopNav } from "../../Components/LoggedInTopNav/LoggedInTopNav";
 import { match, P } from "ts-pattern";
 
 import * as Network from "../../Utils/Network";
@@ -21,7 +21,7 @@ export function StudiesPage() {
 
   return (
     <>
-      <PreLoginTopNav />
+      <LoggedInTopNav />
       <div>
         {
           // @ts-ignore
