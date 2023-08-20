@@ -11,6 +11,7 @@ import laptopMockup from "./laptop-mockup.png";
 import p215Logo from "./P215.png";
 import { PublicUser } from "../../Types";
 import { match } from "ts-pattern";
+import { updateLoginState } from "../LoginPage/login"
 
 const churchId = "a2a712c7-5812-4371-8fa3-2edee0c541cf";
 
@@ -65,6 +66,7 @@ export function SignUpPage() {
           })
           .with({ state: "success" }, () => {
             console.log(result);
+            updateLoginState();
             nav("/app/studies");
           })
           .exhaustive();
