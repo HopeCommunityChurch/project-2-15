@@ -12,69 +12,27 @@ import p215Logo from "./P215.png";
 import { PublicUser } from "../../Types";
 import { match } from "ts-pattern";
 
-export type NotLoggedIn = {
-  state: "notLoggedIn";
-};
-
-export type UserLoggedIn = {
-  state: "loggedIn";
-  user: PublicUser;
-};
-
-export type LoginUser = UserLoggedIn | NotLoggedIn;
-
-const notLoggedIn = {
-  state: "notLoggedIn",
-};
-
-const [loginStateLocal, setLoginState] = createSignal(notLoggedIn);
-
-export const loginState = loginStateLocal;
-
-export function updateLoginState(): void {
-  Network.request<PublicUser>("/user/me", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }).then((result) => {
-    // @ts-ignore
-    match(result)
-      .with({ state: "success" }, ({ body }) => {
-        setLoginState({
-          state: "loggedIn",
-          user: body,
-        });
-      })
-      .with({ state: "error" }, ({ body }) => {
-        // @ts-ignore
-        match(body)
-          .with({ status: 401 }, () =>
-            setLoginState({
-              state: "notLoggedIn",
-            })
-          )
-          .otherwise((re) => console.error(re));
-      })
-      .exhaustive();
-  });
-}
+const churchId = "a2a712c7-5812-4371-8fa3-2edee0c541cf";
 
 export function SignUpPage() {
-  const initialLoginStatue = {
-    state: "NotLoaded",
-  };
+  const [name, setName] = createSignal("");
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
+  const [password2, setPassword2] = createSignal("");
   const [showP, setShowP] = createSignal(false);
-  const [loginError, setLoginError] = createSignal<Network.NetworkError | Network.NetworkNotLoaded>(
-    Network.notLoaded
-  );
+
+  const [signupError, setSignupError] = createSignal<null | string>(null);
+
   const nav = useNavigate();
 
-  const loginPushed = (e: Event) => {
+  const signupPushed = (e: Event) => {
     e.preventDefault();
-    Network.request("/auth/password", {
+    if(password() != password2()) {
+      setSignupError("passwords don't match");
+      return;
+    }
+
+    Network.request("/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -82,17 +40,17 @@ export function SignUpPage() {
       body: JSON.stringify({
         email: email(),
         password: password(),
+        churchId: churchId,
+        name: name(),
       }),
     })
       .then((result) => {
-        // @ts-ignore
         match(result)
           .with({ state: "error" }, (res) => {
-            setLoginError(res);
+            setSignupError(res.toString());
           })
           .with({ state: "success" }, () => {
             console.log(result);
-            updateLoginState();
             nav("/app/studies");
           })
           .exhaustive();
@@ -103,7 +61,7 @@ export function SignUpPage() {
   };
 
   createEffect(() => {
-    console.log(loginError());
+    console.log(signupError());
   });
 
   return (
@@ -115,20 +73,22 @@ export function SignUpPage() {
           </A>
           <h1>Sign Up</h1>
           <p>Please enter your login credentials below to start using the admin console.</p>
-          <form onSubmit={(e) => loginPushed(e)}>
-            <label for="username">Username</label>
-            <input type="text" id="username" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
+          <form onSubmit={(e) => signupPushed(e)}>
+            <label for="name">Name</label>
+            <input type="text" id="name" onKeyUp={(e) => setName(e.currentTarget.value)} />
+            <label for="email">Email</label>
+            <input type="text" id="email" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
             <label for="password">Password</label>
             <input
               type={showP() ? "text" : "password"}
               id="password"
               onKeyUp={(e) => setPassword(e.currentTarget.value)}
             />
-            <label for="password">Repeat Password</label>
+            <label for="password2">Repeat Password</label>
             <input
               type={showP() ? "text" : "password"}
-              id="password"
-              onKeyUp={(e) => setPassword(e.currentTarget.value)}
+              id="password2"
+              onKeyUp={(e) => setPassword2(e.currentTarget.value)}
             />
             <div class={classes.formGroup}>
               <div>
@@ -146,27 +106,13 @@ export function SignUpPage() {
             <p>
               Already have an account? <A href="/app/login">Login</A>
             </p>
-            <button onSubmit={(e) => loginPushed(e)} type="submit">
+            <button onSubmit={(e) => signupPushed(e)} type="submit">
               Sign Up
             </button>
             {
-              // @ts-ignore
-              match(loginError())
-                .with({ state: "notloaded" }, () => <> </>)
-                .with({ state: "error" }, ({ body }) =>
-                  // @ts-ignore
-                  match(body)
-                    .with({ error: "AuthError" }, () => (
-                      <div class={classes.errorText}>email or password wrong</div>
-                    ))
-                    .otherwise((err) => (
-                      <div class={classes.errorText}>
-                        You shouldn't hit this error so here it is raw:
-                        {JSON.stringify(err)}
-                      </div>
-                    ))
-                )
-                .exhaustive()
+              (signupError() ?
+                <> </> : <div class={classes.errorText}>{signupError()}</div>
+              )
             }
           </form>
         </div>
