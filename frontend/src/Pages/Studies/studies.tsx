@@ -206,8 +206,12 @@ export function StudiesPage() {
   return (
     <>
       <LoggedInTopNav />
-      <div>
-        <table>
+      <div class={classes.studiesPage}>
+        <div class={classes.pageHeader}>
+          <h1>My Studies</h1>
+          <a href="/app/trash">View Trash</a>
+        </div>
+        <table class={classes.tableContainer}>
           <thead>
             <tr>
               <th>Study Title</th>
@@ -218,13 +222,13 @@ export function StudiesPage() {
           </thead>
           <tbody>
             {studies().map((study) => (
-              <tr>
+              <tr class={classes.tableRow} onClick={() => (window.location.href = "/details")}>
                 <td>{study["Study Title"]}</td>
-                <td>
+                <td class={classes.bibleBook}>
                   {getBookIcon(study.Book)}
                   {study.Book}
                 </td>
-                <td>{study["Shared with"]}</td>
+                <td class={classes.sharedWith}>{study["Shared with"]}</td>
                 <td>{study.datestamp}</td>
               </tr>
             ))}
