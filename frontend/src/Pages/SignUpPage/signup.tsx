@@ -27,8 +27,22 @@ export function SignUpPage() {
 
   const signupPushed = (e: Event) => {
     e.preventDefault();
+
+    // Validation
     if(password() != password2()) {
       setSignupError("passwords don't match");
+      return;
+    }
+    if( password().length < 9) {
+      setSignupError("passwords must be more than 8 characters long");
+      return;
+    }
+    if ( email() == "" ) {
+      setSignupError("empty email address");
+      return;
+    }
+    if ( name() == "" ) {
+      setSignupError("empty name");
       return;
     }
 
@@ -38,10 +52,10 @@ export function SignUpPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email: email(),
+        email: email().trim(),
         password: password(),
         churchId: churchId,
-        name: name(),
+        name: name().trim(),
       }),
     })
       .then((result) => {
@@ -111,7 +125,7 @@ export function SignUpPage() {
             </button>
             {
               (signupError() ?
-                <> </> : <div class={classes.errorText}>{signupError()}</div>
+                <div class={classes.errorText}>{signupError()}</div> : <> </>
               )
             }
           </form>
