@@ -55,6 +55,7 @@ common buildDepends
     servant-swagger-ui,
     servant-swagger-ui-redoc,
     postgresql-migration,
+    email-validate
 
   default-extensions:
     OverloadedStrings,
@@ -120,6 +121,7 @@ library
     Password,
     SwaggerHelpers,
     Orphans,
+    Fields.Email
 
   build-depends:
 

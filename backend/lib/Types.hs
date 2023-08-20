@@ -14,7 +14,7 @@ module Types (
 import Crypto.Random (
   MonadRandom (getRandomBytes),
  )
-import Data.CaseInsensitive qualified as CI
+import Fields.Email (Email)
 import Data.OpenApi (ToParamSchema)
 import Data.UUID (UUID)
 import Database.Beam (FromBackendRow)
@@ -67,8 +67,6 @@ instance Wrapped (NewType p a)
 data UserId'
 type UserId = NewType UserId' UUID
 
-data Email'
-type Email = NewType Email' (CI.CI Text)
 
 
 data ChurchId'
