@@ -135,11 +135,9 @@ export function ResetPasswordPage() {
                 .with({ state: "error" }, ({ body }) =>
                   // @ts-ignore
                   match(body)
-                    .with({ error: "AuthError" }, () => (
-                      <div class={classes.errorText}>email or password wrong</div>
-                    ))
+                    .with({ error: "AuthError" }, () => <div>email or password wrong</div>)
                     .otherwise((err) => (
-                      <div class={classes.errorText}>
+                      <div>
                         You shouldn't hit this error so here it is raw:
                         {JSON.stringify(err)}
                       </div>

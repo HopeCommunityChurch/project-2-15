@@ -11,7 +11,7 @@ import laptopMockup from "./laptop-mockup.png";
 import p215Logo from "./P215.png";
 import { PublicUser } from "../../Types";
 import { match } from "ts-pattern";
-import { updateLoginState } from "../LoginPage/login"
+import { updateLoginState } from "../LoginPage/login";
 
 const churchId = "a2a712c7-5812-4371-8fa3-2edee0c541cf";
 
@@ -30,19 +30,19 @@ export function SignUpPage() {
     e.preventDefault();
 
     // Validation
-    if(password() != password2()) {
+    if (password() != password2()) {
       setSignupError("passwords don't match");
       return;
     }
-    if( password().length < 9) {
+    if (password().length < 9) {
       setSignupError("passwords must be more than 8 characters long");
       return;
     }
-    if ( email() == "" ) {
+    if (email() == "") {
       setSignupError("empty email address");
       return;
     }
-    if ( name() == "" ) {
+    if (name() == "") {
       setSignupError("empty name");
       return;
     }
@@ -125,11 +125,7 @@ export function SignUpPage() {
             <button onSubmit={(e) => signupPushed(e)} type="submit">
               Sign Up
             </button>
-            {
-              (signupError() ?
-                <div class={classes.errorText}>{signupError()}</div> : <> </>
-              )
-            }
+            {signupError() ? <div class={classes.errorText}>{signupError()}</div> : <> </>}
           </form>
         </div>
       </div>
