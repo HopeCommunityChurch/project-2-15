@@ -60,6 +60,7 @@ export function SignUpPage() {
       }),
     })
       .then((result) => {
+        // @ts-ignore
         match(result)
           .with({ state: "error" }, (res) => {
             setSignupError(res.toString());

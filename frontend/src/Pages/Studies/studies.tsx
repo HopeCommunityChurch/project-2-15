@@ -21,7 +21,6 @@ async function getStudies(): Promise<Network.NetworkState<Array<Study>>> {
 }
 
 export function StudiesPage() {
-  console.log("test");
   const [result] = createResource([], () => getStudies(), { initialValue: { state: "loading" } });
 
   interface Study {
