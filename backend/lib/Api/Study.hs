@@ -3,11 +3,13 @@ module Api.Study where
 
 import Api.Auth (AuthUser)
 import Api.Errors qualified as Errs
+import Api.Helpers (getByIdForUser)
 import DbHelper (MonadDb)
 import Entity qualified as E
-import Entity.Study qualified as Study
 import Entity.AuthUser qualified as AuthUser
+import Entity.Study qualified as Study
 import Servant
+import Types qualified as T
 
 newtype GetStudies = GetStudies (List Study.GetStudy)
   deriving (Generic, Show)
@@ -32,6 +34,13 @@ createStudy authUser crStudy = do
   Errs.handleNotFound (E.getById @Study.GetStudy) studyId
 
 
+getStudyMeta
+  :: MonadDb env m
+  => AuthUser
+  -> T.StudyId
+  -> m Study.GetStudy
+getStudyMeta = getByIdForUser
+
 type Api =
   AuthProtect "cookie"
     :> Summary "Gets all the studies for a user"
@@ -42,6 +51,11 @@ type Api =
     :> Summary "Adds a study into the database"
     :> Description "Adds a study into the database"
     :> Post '[JSON] Study.GetStudy
+  :<|> AuthProtect "cookie"
+    :> Summary "Gets all the studies for a user"
+    :> Description "Gets all the studies for a user"
+    :> Capture "studyId" T.StudyId
+    :> Get '[JSON] Study.GetStudy
 
 
 
@@ -51,3 +65,4 @@ server
 server =
   getStudies
   :<|> createStudy
+  :<|> getStudyMeta
