@@ -1,5 +1,8 @@
 import { createEffect, createSignal, onMount, For, createResource } from "solid-js";
 import { Button } from "../../Components/Button/Button";
+
+import { DateTimeFormatter } from "js-joda"
+const { Locale } = require('@js-joda/locale_en-us');
 import { LoggedInTopNav } from "../../Components/LoggedInTopNav/LoggedInTopNav";
 import { match, P } from "ts-pattern";
 import { useNavigate } from "@solidjs/router";
@@ -76,6 +79,8 @@ type ViewStudyProps = {
   me: PublicUser;
 };
 
+const dtFormat = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Local.US);
+
 function ViewStudy(props: ViewStudyProps) {
   console.log("test");
   const nav = useNavigate();
@@ -86,11 +91,16 @@ function ViewStudy(props: ViewStudyProps) {
   );
   let shared = "no one";
   if (peoples.length > 0) {
+    // I think this should intersperse, I haven't tried it. Should probably put
+    // this in a utilities file somewhere
     shared = peoples.slice(1).reduce( (prev, cur) =>
       cur + ", " + prev
     , peoples[0]);
   }
-  const updated = "";
+  const myDoc = props.study.docs.find((doc) =>
+    doc.editors.some( (e) => e.userId == props.me.userId)
+  );
+  const updated = myDoc.updated.format(dtFormat);
   return (
     <tr class={classes.tableRow} onClick={() => (window.location.href = "/details")}>
       <td>{props.study.name}</td>
