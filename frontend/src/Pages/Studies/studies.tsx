@@ -1,8 +1,8 @@
 import { createEffect, createSignal, onMount, For, createResource } from "solid-js";
 import { Button } from "../../Components/Button/Button";
 
-import { DateTimeFormatter } from "js-joda"
-const { Locale } = require('@js-joda/locale_en-us');
+import { DateTimeFormatter } from "@js-joda/core"
+import  { Locale } from '@js-joda/locale_en-us';
 import { LoggedInTopNav } from "../../Components/LoggedInTopNav/LoggedInTopNav";
 import { match, P } from "ts-pattern";
 import { useNavigate } from "@solidjs/router";
@@ -79,7 +79,7 @@ type ViewStudyProps = {
   me: PublicUser;
 };
 
-const dtFormat = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Local.US);
+const dtFormat = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.US);
 
 function ViewStudy(props: ViewStudyProps) {
   console.log("test");
