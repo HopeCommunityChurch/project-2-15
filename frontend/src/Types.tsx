@@ -1,4 +1,4 @@
-import { Instant, LocalDateTime } from "js-joda"
+import { Instant, LocalDateTime } from "@js-joda/core"
 
 export type UUID = string & { readonly __tag: unique symbol }
 
