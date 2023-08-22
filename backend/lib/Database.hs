@@ -235,6 +235,7 @@ data DocumentT f = MkDocumentT
   , name :: C f Text
   , document :: C f (PgJSONB Object)
   , created :: C f UTCTime
+  , updated :: C f UTCTime
   }
   deriving (Generic)
   deriving anyclass (Beamable)
@@ -254,6 +255,7 @@ documentTable =
       , studyId = fieldNamed "studyId"
       , name = fieldNamed "name"
       , document = fieldNamed "document"
+      , updated = fieldNamed "updated"
       , created = fieldNamed "created"
       }
 

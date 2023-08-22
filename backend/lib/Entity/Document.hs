@@ -37,6 +37,7 @@ data GetDoc = MkGetDoc
   , name :: Text
   , document :: Object
   , editors :: List User.GetUser
+  , updated :: UTCTime
   , created :: UTCTime
   }
   deriving (Generic, Show)
@@ -51,6 +52,7 @@ instance E.Entity GetDoc where
     , name :: C f Text
     , document :: C f (PgJSONB Object)
     , editors :: C f (PgJSONB (Vector User.GetUser'))
+    , update :: C f UTCTime
     , created :: C f UTCTime
     }
     deriving anyclass (Beamable)
@@ -65,6 +67,7 @@ instance E.Entity GetDoc where
       name
       (Db.unPgJSONB document)
       (fmap E.toEntity (toList (Db.unPgJSONB editors)))
+      update
       created
 
   queryEntity mAuthUser = do
@@ -92,6 +95,7 @@ instance E.Entity GetDoc where
         doc.name
         doc.document
         editors
+        doc.updated
         doc.created
 
 instance E.GuardValue GetDoc T.DocId where
@@ -130,6 +134,7 @@ crDocument crDoc = do
           (val_ crDoc.name)
           (val_ (PgJSONB crDoc.document))
           (val_ now)
+          (val_ now)
         ]
   runBeam
     $ runInsert
@@ -147,10 +152,14 @@ updateDocument
   => T.DocId
   -> Object
   -> m ()
-updateDocument docId document =
+updateDocument docId document = do
+  now <- getCurrentTime
   runBeam
-  $ runUpdate
-  $ update
-    Db.db.document
-    (\ r -> r.document <-. val_ (PgJSONB document))
-    (\ r -> r.docId ==. val_ docId)
+    $ runUpdate
+    $ update
+      Db.db.document
+      (\ r ->
+           (r.document <-. val_ (PgJSONB document))
+        <> (r.updated <-. val_ now)
+      )
+      (\ r -> r.docId ==. val_ docId)
