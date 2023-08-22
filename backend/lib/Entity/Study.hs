@@ -31,6 +31,7 @@ data GetDocMeta = MkGetDocMeta
   , name :: Text
   , editors :: List GetUser
   , created :: UTCTime
+  , updated :: UTCTime
   }
   deriving (Generic, Show)
   deriving (FromJSON, ToJSON, ToSchema)
@@ -42,6 +43,7 @@ instance E.Entity GetDocMeta where
     , studyId :: C f T.StudyId
     , name :: C f Text
     , editors :: C f (PgJSONB (Vector GetUser'))
+    , updated :: C f UTCTime
     , created :: C f UTCTime
     }
     deriving anyclass (Beamable)
@@ -55,6 +57,7 @@ instance E.Entity GetDocMeta where
       studyId
       name
       (fmap E.toEntity (toList (Db.unPgJSONB editors)))
+      updated
       created
 
   -- Should only be used in GetStudy where access controls will exists
@@ -73,6 +76,7 @@ instance E.Entity GetDocMeta where
         doc.studyId
         doc.name
         editors
+        doc.updated
         doc.created
 
 type GetDocMeta' = DbEntity GetDocMeta Identity
