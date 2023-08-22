@@ -1,4 +1,5 @@
 import { render } from "solid-js/web";
+import { createSignal, createEffect, onMount } from "solid-js";
 import * as classes from "./styles.module.scss";
 import { Routes, Route, Router } from "@solidjs/router";
 
@@ -9,7 +10,7 @@ import { ResetPasswordPage } from "./Pages/ResetPasswordPage/resetpassword";
 import { StudiesPage } from "./Pages/Studies/studies";
 import { updateLoginState } from "./Pages/LoginPage/login";
 
-updateLoginState();
+
 
 export function App() {
   return (
@@ -25,11 +26,13 @@ export function App() {
   );
 }
 
-render(
-  () => (
-    <Router>
-      <App></App>
-    </Router>
-  ),
-  document.getElementById("root")
-);
+updateLoginState().then ( () => {
+  render(
+    () => (
+      <Router>
+        <App></App>
+      </Router>
+    ),
+    document.getElementById("root")
+  );
+});

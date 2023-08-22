@@ -31,30 +31,31 @@ const [loginStateLocal, setLoginState] = createSignal(notLoggedIn);
 
 export const loginState = loginStateLocal;
 
-export function updateLoginState(): void {
-  Network.request<PublicUser>("/user/me", {
+export async function updateLoginState(): Promise<LoginUser> {
+  return Network.request<PublicUser>("/user/me", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
   }).then((result) => {
-    // @ts-ignore
-    match(result)
+    return match(result)
       .with({ state: "success" }, ({ body }) => {
-        setLoginState({
+        const state = {
           state: "loggedIn",
           user: body,
-        });
+        };
+        setLoginState(state);
+        return state as LoginUser;
       })
       .with({ state: "error" }, ({ body }) => {
-        // @ts-ignore
         match(body)
-          .with({ status: 401 }, () =>
-            setLoginState({
-              state: "notLoggedIn",
-            })
-          )
+          .with({ status: 401 }, () => { })
           .otherwise((re) => console.error(re));
+        const state = {
+          state: "notLoggedIn",
+        };
+        setLoginState(state);
+        return state as LoginUser;
       })
       .exhaustive();
   });
@@ -92,8 +93,9 @@ export function LoginPage() {
           })
           .with({ state: "success" }, () => {
             console.log(result);
-            updateLoginState();
-            nav("/app/studies");
+            updateLoginState().then( () =>
+              nav("/app/studies")
+            );
           })
           .exhaustive();
       })
