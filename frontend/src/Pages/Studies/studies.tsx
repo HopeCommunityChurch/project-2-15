@@ -5,7 +5,7 @@ import { match, P } from "ts-pattern";
 
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
-import { Study } from "../../Types";
+import { Study, StudyRaw, toStudyFromRaw } from "../../Types";
 
 import RedIcon from "../../Assets/red-icon.svg";
 import GreenIcon from "../../Assets/green-icon.svg";
@@ -17,7 +17,10 @@ const [loggedIn, setLogged] = createSignal(false);
 export const loggedInSignal = loggedIn;
 
 async function getStudies(): Promise<Network.NetworkState<Array<Study>>> {
-  return Network.request("/study");
+  return Network.request("/study").then( (study) =>
+    // This is ugly, need a better way to do this.
+    Network.mapNetworkState(study, (s: Array<StudyRaw>) => s.map(toStudyFromRaw))
+  );
 }
 
 export function StudiesPage() {

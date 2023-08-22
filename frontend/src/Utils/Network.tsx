@@ -1,3 +1,4 @@
+import { match } from "ts-pattern";
 
 export type NetworkLoading = {
   state: "loading";
@@ -62,6 +63,22 @@ export type NetworkState<t> =
  | NetworkLoading
  | NetworkError
  | NetworkSuccess<t>
+
+export function mapNetworkState<a, b>(v : NetworkState<a>, f : (a: a) => b) : NetworkState<b> {
+  switch (v.state) {
+    case "success":
+      return {
+        state: "success",
+        body: f(v.body),
+      };
+    case "notloaded":
+      return v;
+    case "error":
+      return v;
+    case "loading":
+      return v;
+  }
+}
 
 export const baseUrl = "/api";
 
