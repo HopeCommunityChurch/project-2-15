@@ -38,6 +38,7 @@ export async function updateLoginState(): Promise<LoginUser> {
       "Content-Type": "application/json",
     },
   }).then((result) => {
+    //@ts-ignore
     return match(result)
       .with({ state: "success" }, ({ body }) => {
         const state = {
@@ -48,8 +49,9 @@ export async function updateLoginState(): Promise<LoginUser> {
         return state as LoginUser;
       })
       .with({ state: "error" }, ({ body }) => {
+        //@ts-ignore
         match(body)
-          .with({ status: 401 }, () => { })
+          .with({ status: 401 }, () => {})
           .otherwise((re) => console.error(re));
         const state = {
           state: "notLoggedIn",
@@ -93,9 +95,7 @@ export function LoginPage() {
           })
           .with({ state: "success" }, () => {
             console.log(result);
-            updateLoginState().then( () =>
-              nav("/app/studies")
-            );
+            updateLoginState().then(() => nav("/app/studies"));
           })
           .exhaustive();
       })
@@ -118,8 +118,13 @@ export function LoginPage() {
           <h1>Log In</h1>
           <p>Please enter your login credentials below to start using the admin console.</p>
           <form onSubmit={(e) => loginPushed(e)}>
-            <label for="username">Username</label>
-            <input type="text" id="username" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              placeholder="example@example.com"
+              onKeyUp={(e) => setEmail(e.currentTarget.value)}
+            />
             <label for="password">Password</label>
             <input
               type={showP() ? "text" : "password"}

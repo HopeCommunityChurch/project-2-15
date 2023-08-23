@@ -10,9 +10,15 @@
 6. Open a new tab in you terminal, and move into `frontend`
 7. Run `npm run dev`
 
-## Update single nix flake dependency
+## Update backend (root)
 
 When I update the backend and need to update the version devenv uses do:
 `nix flake lock --update-input backend`
 
-npm run dev
+## Update front end (/frontend)
+
+`rm -rf node_modules`
+`rm -rf .parcel-cache`
+`rm -rf .direnv/`
+`cd ..`
+`cd frontend/`

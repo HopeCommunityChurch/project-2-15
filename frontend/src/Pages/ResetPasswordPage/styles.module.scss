@@ -45,8 +45,7 @@
   margin-top: 20px;
 }
 
-.leftColumn input[type="text"],
-.leftColumn input[type="password"] {
+.leftColumn input[type="email"] {
   padding: 12px;
   margin-bottom: 15px;
   border: 1px solid #ccc;
@@ -54,8 +53,7 @@
   font-size: 14px;
 }
 
-.leftColumn input[type="text"]:focus,
-.leftColumn input[type="password"]:focus {
+.leftColumn input[type="email"]:focus {
   border-color: #37aefd;
 }
 

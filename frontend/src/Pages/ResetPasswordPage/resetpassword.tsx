@@ -120,7 +120,7 @@ export function ResetPasswordPage() {
           </p>
           <form onSubmit={(e) => loginPushed(e)}>
             <label for="username">Email</label>
-            <input type="text" id="username" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
+            <input type="email" id="username" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
 
             <p>
               Remember you account? <A href="/app/login">Login</A>
