@@ -211,7 +211,7 @@ setCookie userId = do
                   , Cookie.setCookieExpires = Just expiresAt
                   , Cookie.setCookieHttpOnly = True
                   , Cookie.setCookieSecure = shouldBeSeure
-                  , Cookie.setCookieSameSite = Just Cookie.sameSiteNone
+                  , Cookie.setCookieSameSite = Just Cookie.sameSiteStrict
                   , Cookie.setCookiePath = Just "/"
                   }
   pure $ addHeader setCookie' ()
@@ -233,7 +233,7 @@ setCookieDelete = do
                   , Cookie.setCookieExpires = Just now
                   , Cookie.setCookieHttpOnly = True
                   , Cookie.setCookieSecure = shouldBeSeure
-                  , Cookie.setCookieSameSite = Just Cookie.sameSiteNone
+                  , Cookie.setCookieSameSite = Just Cookie.sameSiteStrict
                   , Cookie.setCookiePath = Just "/"
                   }
   pure $ addHeader setCookie' ()
