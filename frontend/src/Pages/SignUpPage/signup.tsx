@@ -94,7 +94,7 @@ export function SignUpPage() {
             <label for="name">Name</label>
             <input type="text" id="name" onKeyUp={(e) => setName(e.currentTarget.value)} />
             <label for="email">Email</label>
-            <input type="text" id="email" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
+            <input type="email" id="email" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
             <label for="password">Password</label>
             <input
               type={showP() ? "text" : "password"}
