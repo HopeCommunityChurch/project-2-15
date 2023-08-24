@@ -60,12 +60,12 @@
 }
 @media (min-width: 470px) {
   .mobileOnlyItem {
-    display: none;
+    display: none !important;
   }
 }
 
 .mobileOnlyItem button {
-  margin-left: 0px;
+  margin: 0px 26px 8px 26px;
 }
 
 .profileButton {
@@ -101,16 +101,24 @@
 }
 
 .profileDropdown li {
-  padding: 8px 26px;
+  padding: 0px 0px;
   cursor: pointer;
+  display: flex;
   a {
     text-decoration: none;
     color: #6c6c6c;
   }
 }
 
-.profileDropdown li:hover {
-  background-color: #f6f6f6;
+.fullWidthLink {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: #6c6c6c;
+  padding: 8px 26px;
+}
+.fullWidthLink:hover {
+  background-color: #f6f6f6; // Same hover background as the li
 }
 
 .showDropdown {

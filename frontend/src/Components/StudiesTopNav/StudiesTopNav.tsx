@@ -173,11 +173,15 @@ export function StudiesTopNav() {
                         </Button>
                       </li>
                       <li>
-                        <a href="/admin">Admin Area</a>
+                        <a href="/admin" class={classes.fullWidthLink}>
+                          Admin Area
+                        </a>
                       </li>
 
                       <li>
-                        <a href="/logout">Sign Out</a>
+                        <a href="/logout" class={classes.fullWidthLink}>
+                          Sign Out
+                        </a>
                       </li>
                     </ul>
                   </div>
