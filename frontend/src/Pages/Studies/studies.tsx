@@ -85,7 +85,7 @@ function ViewStudy(props: ViewStudyProps) {
   let shared = "no one";
   if (peoples.length > 0) {
     // I think this should intersperse, I haven't tried it. Should probably put
-    // this in a utilities file somewhere
+    // this in a utilities file somewhere.
     shared = peoples.slice(1).reduce((prev, cur) => cur + ", " + prev, peoples[0]);
   }
   const myDoc = props.study.docs.find((doc) =>
