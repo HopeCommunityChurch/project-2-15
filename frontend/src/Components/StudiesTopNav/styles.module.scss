@@ -140,14 +140,27 @@
 
 .modal {
   width: 90%;
+  position: relative;
   max-width: 700px;
   background-color: #fff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow-y: scroll;
+  max-height: 93vh;
+  min-height: 50vh;
 
   h3 {
     margin-top: 0px;
+  }
+
+  .closeModalIcon {
+    cursor: pointer;
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    max-width: 20px;
+    padding: 10px;
   }
   form {
     display: flex;
@@ -170,7 +183,7 @@
   }
 
   label {
-    font-size: 14px;
+    font-size: 16px;
     margin-bottom: 5px;
     color: #666;
   }
@@ -185,6 +198,10 @@
     font-size: 16px;
     transition: background-color 0.3s ease;
     margin-bottom: 5px;
+  }
+
+  button[type="submit"] {
+    width: 100%;
   }
 
   .autocomplete {
@@ -205,6 +222,16 @@
       height: 16px; // adjust as necessary
       width: auto;
       opacity: 29%;
+    }
+
+    .closeIcon {
+      cursor: pointer;
+      opacity: 0.29;
+      position: absolute;
+      top: 6px;
+      right: 150px;
+      max-width: 16px;
+      padding: 10px;
     }
   }
 
@@ -249,14 +276,201 @@
     cursor: pointer;
   }
 
-  .removeTag {
-    margin-left: 8px;
-    font-weight: bold;
+  .removeTagIcon {
+    max-width: 12px;
+    margin-left: 9px;
   }
 
   .noResult {
     color: lightgray;
     cursor: default; // to ensure the cursor doesn't change on hover
     padding: 8px 10px;
+  }
+
+  .studyBlockPreview {
+    border-left: 3px solid #d2d2d2;
+    padding-left: 15px;
+    margin-bottom: 20px;
+  }
+
+  .reorderable {
+    min-height: 30px;
+    background-color: #eff1f2;
+    border-radius: 7px;
+    margin: 10px 0px;
+    padding: 10px 0px;
+
+    p {
+      margin: 0;
+      padding: 2px 0px;
+    }
+    .reorderableItem {
+      display: flex;
+      padding: 6px 0px;
+      .upAndDownArrows {
+        display: flex;
+        flex-direction: column;
+        img {
+          align-self: flex-start;
+          max-width: 18px;
+          padding: 7px 15px;
+          opacity: 50%;
+        }
+        .arrowUp {
+          transform: rotate(180deg);
+        }
+      }
+    }
+    .reordableItemNameContainer {
+      display: flex;
+    }
+
+    .reordableItemName {
+      font-weight: 600;
+    }
+    .reordableItemDescription {
+      font-size: 13px;
+      color: #808080;
+    }
+  }
+  .studyBlockDropdownContainer {
+    position: relative;
+    width: 100%;
+    .studyBlockDropdown {
+      position: absolute;
+      top: 75%;
+      border: 1px solid #ccc;
+      background-color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      z-index: 1002; // Ensure it stays above other elements
+      padding: 8px 0px;
+      border-radius: 7px;
+      width: 100%; // Adjust as necessary
+      max-width: 700px;
+      max-height: 400px; /* Adjust this value based on your preference */
+      overflow-y: auto;
+    }
+
+    .studyBlockCategory {
+      margin-bottom: 8px;
+
+      label {
+        padding: 0px 15px;
+      }
+    }
+
+    .studyBlockItem {
+      padding: 13px 15px 13px 15px;
+      margin: 5px 0px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+
+      &.selectedItem {
+        background-color: #ecf2fb;
+        color: #0057d1;
+      }
+
+      &:hover {
+        background-color: #f6f6f6;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      p {
+        margin: 0px;
+        font-size: 13px;
+        color: #808080;
+      }
+    }
+
+    input {
+      width: calc(100% - 200px) !important;
+      margin-right: 17px;
+    }
+
+    button {
+      font-size: 15px;
+      font-weight: 400 !important;
+      margin-bottom: 15px;
+    }
+  }
+}
+.padlockIcon {
+  max-width: 16px;
+  margin-left: 5px;
+  transform: translateY(-1px);
+  opacity: 50%;
+}
+
+.disabledButton {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+
+.tooltipContainer {
+  position: relative;
+  display: inline-block; // So that the container doesn't take up unnecessary space
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  background-color: #333;
+  color: #fff;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  margin-bottom: 5px;
+
+  &:after {
+    content: "";
+    position: absolute;
+    top: 100%; // Arrow at the bottom of the tooltip
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #333; // Arrow color
+  }
+}
+
+.fieldDescription {
+  margin-top: -7px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.studyBlockNoResults {
+  margin: 10px;
+  padding-left: 8px;
+  color: #a2a2a2;
+
+  a {
+    color: #0057d1;
+    cursor: pointer;
+  }
+}
+
+.reordableItemNameAndDescription {
+  width: 100%;
+  position: relative;
+
+  .customReordableItemName,
+  .customReordableItemDescription {
+    width: calc(100% - 44px);
+  }
+
+  .removeReordableItemIcon {
+    max-width: 12px;
+    padding: 10px;
+    right: 8px;
+    position: absolute;
+    top: -4px;
+    cursor: pointer;
   }
 }

@@ -4,16 +4,104 @@ import { createSignal, createEffect, Show } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
 import { loginState, LoginUser } from "../../Pages/LoginPage/login";
 import SearchIcon from "../../Assets/magnifying_glass.svg";
+import CloseXIcon from "../../Assets/x.svg";
+import PadlockIcon from "../../Assets/padlock.svg";
+import ArrowIcon from "../../Assets/arrow.svg";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
 
 export function StudiesTopNav() {
+  const initialStudyItems = [
+    {
+      Name: "Relate (Opening Prayer)",
+      Description:
+        "Starting with a prayer to connect personally and spiritually, asking for guidance and understanding.",
+      Required: true,
+      Custom: false,
+    },
+    {
+      Name: "Review",
+      Description:
+        "Looking back on previous studies or chapters to recall the context and overarching narrative.",
+      Required: true,
+      Custom: false,
+    },
+    {
+      Name: "Outline",
+      Description: "Creating a structured summary of the passage's main points and themes.",
+      Required: true,
+      Custom: false,
+    },
+  ];
   const [showDropdown, setShowDropdown] = createSignal(false);
+  const [showStudyBlockDropdown, setShowStudyBlockDropdown] = createSignal(false);
+  const [selectedStudyItems, setSelectedStudyItems] = createSignal(initialStudyItems);
   const [showModal, setShowModal] = createSignal(false);
   const [studyBookValue, setStudyBookValue] = createSignal("");
   const [selectedBook, setSelectedBook] = createSignal(null);
   const [focusedBookIndex, setFocusedBookIndex] = createSignal(-1);
+  const [studyBlockValue, setStudyBlockValue] = createSignal("");
+  const [showTooltip, setShowTooltip] = createSignal(false);
+  const [studyTitleValue, setStudyTitleValue] = createSignal("");
+
+  const filteredStudyBlockItems = () => {
+    return studyBlockItems.filter(
+      (item) =>
+        item.Name.toLowerCase().includes(studyBlockValue().toLowerCase()) ||
+        item.Description.toLowerCase().includes(studyBlockValue().toLowerCase())
+    );
+  };
+
+  const studyBlockItems = [
+    {
+      Name: "Break Down Segments",
+      Description: "Dividing the scripture into smaller sections or verses to analyze in detail.",
+      Required: false,
+      Custom: false,
+    },
+    {
+      Name: "Read ESV, Listen NLT",
+      Description:
+        "Reading the passage in the English Standard Version (ESV) and listening to its narration in the New Living Translation (NLT) to gain different perspectives.",
+      Required: false,
+      Custom: false,
+    },
+    {
+      Name: "Topics",
+      Description:
+        "Identifying specific subjects or themes present in the scripture to further study or discuss.",
+      Required: false,
+      Custom: false,
+    },
+    {
+      Name: "Principle",
+      Description:
+        "Extracting the core teachings or truths that can be applied universally from the passage.",
+      Required: false,
+      Custom: false,
+    },
+    {
+      Name: "Summarize",
+      Description: "Crafting a concise recap of everything learned from the passage.",
+      Required: false,
+      Custom: false,
+    },
+    {
+      Name: "Application Questions",
+      Description:
+        "Formulating questions to prompt deeper reflection on how to practically apply the scripture's teachings.",
+      Required: false,
+      Custom: false,
+    },
+    {
+      Name: "Inconsistencies",
+      Description:
+        "Recognizing and discussing any contradictions or differences found within the scripture or when compared to other passages.",
+      Required: false,
+      Custom: false,
+    },
+  ];
 
   const books = [
     "Genesis",
@@ -95,6 +183,55 @@ export function StudiesTopNav() {
     setStudyBookValue("");
   };
 
+  // Helper function to add or remove a study item from the selectedStudyItems array
+  const toggleStudyItem = (item) => {
+    const currentItems = selectedStudyItems();
+    const itemExists = currentItems.some((selectedItem) => selectedItem.Name === item.Name);
+
+    if (itemExists) {
+      setSelectedStudyItems(currentItems.filter((selectedItem) => selectedItem.Name !== item.Name));
+    } else {
+      setSelectedStudyItems([...currentItems, { ...item }]);
+    }
+    console.log("After toggle:", selectedStudyItems());
+  };
+
+  const moveItemUp = (index) => {
+    if (index === 0) return; // First item cannot move up
+    const newItems = [...selectedStudyItems()];
+    const temp = newItems[index];
+    newItems[index] = newItems[index - 1];
+    newItems[index - 1] = temp;
+    setSelectedStudyItems(newItems);
+  };
+
+  const moveItemDown = (index) => {
+    if (index === selectedStudyItems().length - 1) return; // Last item cannot move down
+    const newItems = [...selectedStudyItems()];
+    const temp = newItems[index];
+    newItems[index] = newItems[index + 1];
+    newItems[index + 1] = temp;
+    setSelectedStudyItems(newItems);
+  };
+
+  const addCustomBlock = () => {
+    const currentItems = selectedStudyItems();
+    const newCustomBlock = {
+      Name: "",
+      Description: "",
+      Custom: true,
+      Required: false,
+    };
+    setSelectedStudyItems([...currentItems, newCustomBlock]);
+  };
+
+  const updateStudyItem = (newName, newDescription, index) => {
+    const updatedItems = [...selectedStudyItems()];
+    updatedItems[index].Name = newName;
+    updatedItems[index].Description = newDescription;
+    setSelectedStudyItems(updatedItems);
+  };
+
   createEffect(() => {
     if (showDropdown()) {
       const dropdown = document.querySelector(".profileDropdown") as HTMLElement;
@@ -109,7 +246,31 @@ export function StudiesTopNav() {
     }
   });
 
+  createEffect(() => {
+    if (showStudyBlockDropdown()) {
+      const handleClickOutside = (event) => {
+        if (event.target.classList.contains("preventClose")) {
+          return; // Do not execute the rest of the function
+        }
+
+        const dropdownContainer = document.querySelector("." + classes.studyBlockDropdownContainer);
+
+        if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+          setShowStudyBlockDropdown(false);
+        }
+      };
+      document.addEventListener("click", handleClickOutside);
+
+      return () => {
+        document.removeEventListener("click", handleClickOutside);
+      };
+    }
+  });
+
   const nav = useNavigate();
+  const currentDate = new Date();
+  const formattedDate =
+    currentDate.toLocaleString("default", { month: "long" }) + " " + currentDate.getFullYear();
 
   return (
     <>
@@ -195,15 +356,34 @@ export function StudiesTopNav() {
         <div class={classes.modalBackground} onClick={() => setShowModal(false)}>
           <div class={classes.modal} onClick={(e) => e.stopPropagation()}>
             <h3>Create New Study</h3>
+            <img
+              src={CloseXIcon}
+              alt="Close Modal"
+              class={classes.closeModalIcon}
+              onClick={() => setShowModal(false)}
+            />
             <form>
               <label for="studyTitle">Title</label>
-              <input type="text" id="studyTitle" placeholder="New Title..." />
+              <input
+                type="text"
+                id="studyTitle"
+                placeholder="New Title..."
+                onInput={(e) => setStudyTitleValue(e.target.value)}
+              />
+              <p class={classes.fieldDescription}>
+                Ex: "
+                <em>
+                  {selectedBook() ? selectedBook() : "Romans"} {formattedDate} Study
+                </em>
+                " or "
+                <em>Wednesday Night {selectedBook() ? selectedBook() : "Colossians"} Study</em>"
+              </p>
               <label for="studyBook">Book</label>
               <div class={classes.autocomplete}>
                 {selectedBook() ? (
                   <span class={classes.tag} onClick={() => setSelectedBook(null)}>
                     {selectedBook()}
-                    <span class={classes.removeTag}>X</span>
+                    <img src={CloseXIcon} alt="Close" class={classes.removeTagIcon} />
                   </span>
                 ) : (
                   <>
@@ -211,7 +391,7 @@ export function StudiesTopNav() {
                     <input
                       type="text"
                       id="studyBook"
-                      placeholder="Select Book"
+                      placeholder="Bible Book Name..."
                       value={studyBookValue()}
                       onInput={(e) => {
                         setStudyBookValue(e.target.value);
@@ -265,7 +445,174 @@ export function StudiesTopNav() {
                   </ul>
                 </Show>
               </div>
-              <button type="submit">Create</button>
+              <Show when={selectedBook()}>
+                <label>Study Block</label>
+                <div class={classes.studyBlockDropdownContainer}>
+                  <div class={classes.autocomplete}>
+                    <img src={SearchIcon} class={classes.searchIcon} alt="Search" />
+                    <input
+                      type="text"
+                      id="studyBlock"
+                      placeholder="Add Study Items"
+                      value={studyBlockValue()}
+                      onInput={(e) => setStudyBlockValue(e.target.value)}
+                      onFocus={() => setShowStudyBlockDropdown(true)}
+                    />
+                    <Show when={studyBlockValue()}>
+                      <img
+                        src={CloseXIcon}
+                        class={`${classes.closeIcon} preventClose`}
+                        alt="Clear"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStudyBlockValue("");
+                        }}
+                      />
+                    </Show>
+                    <Button type="Blue">+ Template</Button>
+                  </div>
+                  <Show when={showStudyBlockDropdown()}>
+                    <div class={classes.studyBlockDropdown}>
+                      <div class={classes.studyBlockCategory}>
+                        {filteredStudyBlockItems().length > 0 ? (
+                          filteredStudyBlockItems().map((item) => (
+                            <div
+                              class={`${classes.studyBlockItem} ${
+                                selectedStudyItems().some(
+                                  (selectedItem) => selectedItem.Name === item.Name
+                                )
+                                  ? classes.selectedItem
+                                  : ""
+                              }`}
+                              onClick={() => toggleStudyItem(item)}
+                            >
+                              <strong>{item.Name}</strong>
+                              <p>{item.Description}</p>
+                            </div>
+                          ))
+                        ) : (
+                          <p class={classes.studyBlockNoResults}>
+                            No study block items match your search.
+                            <br />
+                            Maybe you're looking to create a{" "}
+                            <a class={classes.customBlockCreator} onClick={addCustomBlock}>
+                              Custom Block?
+                            </a>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Show>
+                </div>
+                <div class={classes.studyBlockPreview}>
+                  <div class={classes.reorderable}>
+                    {selectedStudyItems().map((item, index) => {
+                      const [localName, setLocalName] = createSignal(item.Name);
+                      const [localDescription, setLocalDescription] = createSignal(
+                        item.Description
+                      );
+                      return (
+                        <>
+                          <div class={classes.reorderableItem}>
+                            <div class={classes.upAndDownArrows}>
+                              <img
+                                class={classes.arrowUp}
+                                src={ArrowIcon}
+                                onClick={() => moveItemUp(index)}
+                              />
+                              <img
+                                class={classes.arrowDown}
+                                src={ArrowIcon}
+                                onClick={() => moveItemDown(index)}
+                              />
+                            </div>
+                            <div class={classes.reordableItemNameAndDescription}>
+                              <Show when={!item.Required}>
+                                <img
+                                  src={CloseXIcon}
+                                  alt="Close"
+                                  class={classes.removeReordableItemIcon}
+                                  onClick={() => {
+                                    // Create a new array without the item at the current index
+                                    const updatedStudyItems = [...selectedStudyItems()].filter(
+                                      (_, idx) => idx !== index
+                                    );
+                                    setSelectedStudyItems(updatedStudyItems);
+                                  }}
+                                />
+                              </Show>
+                              {item.Custom ? (
+                                <>
+                                  <label>Custom Name</label>
+                                  <br />
+                                  <input
+                                    class={classes.customReordableItemName}
+                                    type="text"
+                                    value={localName()}
+                                    onInput={(e) => setLocalName(e.target.value)}
+                                    onBlur={() =>
+                                      updateStudyItem(localName(), item.Description, index)
+                                    }
+                                  />
+                                  <br />
+                                </>
+                              ) : (
+                                <div class={classes.reordableItemNameContainer}>
+                                  <p class={classes.reordableItemName}>{item.Name}</p>
+                                  <Show when={item.Required}>
+                                    <img src={PadlockIcon} class={classes.padlockIcon} />
+                                  </Show>
+                                </div>
+                              )}
+                              {item.Custom ? (
+                                <>
+                                  <label>Custom Description</label>
+                                  <br />
+                                  <input
+                                    class={classes.customReordableItemDescription}
+                                    type="text"
+                                    value={localDescription()}
+                                    onInput={(e) => setLocalDescription(e.target.value)}
+                                    onBlur={() =>
+                                      updateStudyItem(item.Name, localDescription(), index)
+                                    }
+                                  />
+                                </>
+                              ) : (
+                                <p class={classes.reordableItemDescription}>{item.Description}</p>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })}
+                  </div>
+                </div>
+              </Show>
+              <div
+                class={classes.tooltipContainer}
+                onMouseEnter={() => {
+                  if (!selectedBook() || studyTitleValue().trim() === "") {
+                    setShowTooltip(true);
+                  }
+                }}
+                onMouseLeave={() => setShowTooltip(false)}
+              >
+                <button
+                  type="submit"
+                  disabled={!selectedBook() || studyTitleValue().trim() === ""}
+                  class={
+                    !selectedBook() || studyTitleValue().trim() === "" ? classes.disabledButton : ""
+                  }
+                >
+                  Create
+                </button>
+                {showTooltip() && (
+                  <div class={classes.tooltip}>
+                    Please name your study and select a book to create
+                  </div>
+                )}
+              </div>
             </form>
           </div>
         </div>
