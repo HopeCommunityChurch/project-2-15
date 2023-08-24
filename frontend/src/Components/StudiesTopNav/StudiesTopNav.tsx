@@ -211,7 +211,11 @@ export function StudiesTopNav() {
                       value={studyBookValue()}
                       onInput={(e) => {
                         setStudyBookValue(e.target.value);
-                        setFocusedBookIndex(-1); // Reset index when typing
+                        if (filteredBooks().length > 0) {
+                          setFocusedBookIndex(0);
+                        } else {
+                          setFocusedBookIndex(-1); // Reset index when there are no matches
+                        }
                       }}
                       onKeyDown={(e) => {
                         switch (e.key) {
@@ -228,6 +232,7 @@ export function StudiesTopNav() {
                             }
                             break;
                           case "Enter":
+                            e.preventDefault(); // Prevent form submission
                             if (focusedBookIndex() !== -1) {
                               selectBook(filteredBooks()[focusedBookIndex()]);
                             }
