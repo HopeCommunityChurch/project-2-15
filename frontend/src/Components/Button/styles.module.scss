@@ -10,7 +10,9 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-
+  white-space: nowrap; // Prevents the content inside from wrapping
+  overflow: hidden; // Hides any overflowed content (just a precaution)
+  text-overflow: ellipsis; // Adds an ellipsis if the content overflows (just a precaution)
   &:hover {
     background-color: var(--blue-75);
   }
@@ -24,7 +26,9 @@
   padding: 7px 15px;
   font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
+  white-space: nowrap; // Prevents the content inside from wrapping
+  overflow: hidden; // Hides any overflowed content (just a precaution)
+  text-overflow: ellipsis; // Adds an ellipsis if the content overflows (just a precaution)
 
   &:hover {
     background-color: var(--blue-75);
@@ -39,7 +43,6 @@
   padding: 5px 13px;
   font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
 
   &:hover {
     opacity: 0.7;

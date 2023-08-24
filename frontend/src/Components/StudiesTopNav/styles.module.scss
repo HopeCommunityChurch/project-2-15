@@ -1,0 +1,253 @@
+.logo {
+  max-height: 40px;
+}
+
+.header {
+  grid-column-start: 1;
+  grid-column-end: 13;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 52px;
+  position: fixed;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  z-index: 999;
+}
+
+.headerThingy {
+  width: 100vw;
+  height: 52px;
+}
+
+.menu {
+  margin-left: auto;
+
+  ul {
+    display: flex;
+    list-style: none;
+  }
+  li {
+    margin-left: 20px;
+    display: flex;
+    a {
+      text-decoration: none;
+      color: black;
+      margin: auto;
+    }
+  }
+}
+
+.buttons button {
+  margin-left: 15px;
+}
+
+.mobileNav:not(.showNavbar) {
+  display: none;
+}
+
+@media (max-width: 749px) {
+  .desktopOnlyItem {
+    display: none !important;
+  }
+}
+@media (max-width: 469px) {
+  .desktopOnlyItem2 {
+    display: none !important;
+  }
+}
+@media (min-width: 470px) {
+  .mobileOnlyItem {
+    display: none;
+  }
+}
+
+.mobileOnlyItem button {
+  margin-left: 0px;
+}
+
+.profileButton {
+  width: 40px; /* Adjust as needed */
+  height: 40px;
+  border-radius: 50%; /* Makes it circular */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #eee; /* Or any other color */
+  color: #333; /* Text color */
+  margin-left: 16px;
+  cursor: pointer;
+}
+
+.profileDropdown {
+  display: none;
+  position: absolute;
+  right: 10px; /* Adjust as per your layout */
+  top: 50px; /* Position it below the button, adjust as per your layout */
+  border: 1px solid #ccc;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1000; /* To ensure it stays on top */
+  padding: 14px 0px;
+  border-radius: 7px;
+}
+
+.profileDropdown ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.profileDropdown li {
+  padding: 8px 26px;
+  cursor: pointer;
+  a {
+    text-decoration: none;
+    color: #6c6c6c;
+  }
+}
+
+.profileDropdown li:hover {
+  background-color: #f6f6f6;
+}
+
+.showDropdown {
+  display: block;
+}
+
+.modalBackground {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001; // higher than your dropdown's z-index
+}
+
+.modal {
+  width: 90%;
+  max-width: 700px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  h3 {
+    margin-top: 0px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  input[type="text"] {
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  input[type="text"]:focus {
+    border-color: #37aefd;
+  }
+
+  label {
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #666;
+  }
+
+  button {
+    background-color: #0057d1;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-bottom: 5px;
+  }
+
+  .autocomplete {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    input[type="text"] {
+      width: 100%;
+      padding-left: 40px; // give space for the icon on the left side
+    }
+
+    .searchIcon {
+      position: absolute;
+      left: 14px; // adjust as necessary
+      transform: translateY(-50%);
+      height: 16px; // adjust as necessary
+      width: auto;
+      opacity: 29%;
+    }
+  }
+
+  .dropdownList {
+    list-style-type: none;
+    margin: 0;
+    padding: 5px 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    z-index: 1002; // higher than modal's z-index
+    overflow-y: visible; // Override any existing overflow property if it exists
+
+    .focusedBook {
+      background-color: #d8e5f8; /* You can use any color for highlighting */
+      color: #0057d1;
+    }
+  }
+
+  .dropdownList li {
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+
+  .dropdownList li:hover {
+    background-color: #f6f6f6;
+  }
+
+  .tag {
+    color: #0057d1;
+    background-color: #d8e5f8;
+    border-radius: 25px;
+    align-items: center;
+    padding: 8px 17px;
+    font-size: 14px;
+    display: inline-flex;
+    margin-bottom: 16px;
+    cursor: pointer;
+  }
+
+  .removeTag {
+    margin-left: 8px;
+    font-weight: bold;
+  }
+
+  .noResult {
+    color: lightgray;
+    cursor: default; // to ensure the cursor doesn't change on hover
+    padding: 8px 10px;
+  }
+}

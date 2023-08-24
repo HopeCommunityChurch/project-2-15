@@ -3,7 +3,7 @@ import { Button } from "../../Components/Button/Button";
 
 import { DateTimeFormatter } from "@js-joda/core";
 import { Locale } from "@js-joda/locale_en-us";
-import { LoggedInTopNav } from "../../Components/LoggedInTopNav/LoggedInTopNav";
+import { StudiesTopNav } from "../../Components/StudiesTopNav/StudiesTopNav";
 import { match, P } from "ts-pattern";
 import { useNavigate } from "@solidjs/router";
 
@@ -11,10 +11,6 @@ import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
 import { PublicUser, Study, StudyRaw, toStudyFromRaw } from "../../Types";
 
-import RedIcon from "../../Assets/red-icon.svg";
-import GreenIcon from "../../Assets/green-icon.svg";
-import YellowIcon from "../../Assets/yellow-icon.svg";
-import BlueIcon from "../../Assets/blue-icon.svg";
 import { LoginUser, loginState } from "../LoginPage/login";
 
 async function getStudies(): Promise<Network.NetworkState<Array<Study>>> {
@@ -40,7 +36,7 @@ function Studies(me: PublicUser) {
   const [result] = createResource([], () => getStudies(), { initialValue: { state: "loading" } });
   return (
     <>
-      <LoggedInTopNav />
+      <StudiesTopNav />
       <div class={classes.studiesPage}>
         <div class={classes.pageHeader}>
           <h1>My Studies</h1>

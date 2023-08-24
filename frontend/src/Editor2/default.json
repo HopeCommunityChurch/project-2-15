@@ -302,8 +302,7 @@
         },
         {
           "type": "questions",
-          "content": [
-          ]
+          "content": []
         }
       ]
     },
@@ -615,39 +614,51 @@
               "content": [
                 {
                   "type": "questionText",
-                  "content": [{
-                    "type": "paragraph",
-                    "content": [{
-                      "type": "text",
-                      "text": "What is \"this\"?"
-                    }]
-                  }]
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "What is \"this\"?"
+                        }
+                      ]
+                    }
+                  ]
                 },
                 {
                   "type": "questionAnswer",
-                  "content": [{
-                    "type": "paragraph",
-                    "content": [{
-                      "type": "text",
-                      "text": "\"This\" is probably \"that\"."
-                    }]
-                  }]
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "\"This\" is probably \"that\"."
+                        }
+                      ]
+                    }
+                  ]
                 },
                 {
                   "type": "questionAnswer",
-                  "content": [{
-                    "type": "paragraph",
-                    "content": [{
-                      "type": "text",
-                      "text": "\"This\" is probably \"that\"."
-                    }]
-                  }]
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "\"This\" is probably \"that\"."
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }
           ]
         }
       ]
-    },
+    }
   ]
 }
