@@ -181,6 +181,9 @@ export function StudiesTopNav() {
   const selectBook = (book) => {
     setSelectedBook(book);
     setStudyBookValue("");
+    if (studyTitleValue().trim() === "") {
+      setStudyTitleValue(`${selectedBook() ? selectedBook() : "Romans"} ${formattedDate} Study`);
+    }
   };
 
   // Helper function to add or remove a study item from the selectedStudyItems array
@@ -193,7 +196,6 @@ export function StudiesTopNav() {
     } else {
       setSelectedStudyItems([...currentItems, { ...item }]);
     }
-    console.log("After toggle:", selectedStudyItems());
   };
 
   const moveItemUp = (index) => {
@@ -368,6 +370,7 @@ export function StudiesTopNav() {
                 type="text"
                 id="studyTitle"
                 placeholder="New Title..."
+                value={studyTitleValue()}
                 onInput={(e) => setStudyTitleValue(e.target.value)}
               />
               <p class={classes.fieldDescription}>
@@ -469,7 +472,7 @@ export function StudiesTopNav() {
                         }}
                       />
                     </Show>
-                    <Button type="Blue">+ Template</Button>
+                    <Button type="Blue">Reset</Button>
                   </div>
                   <Show when={showStudyBlockDropdown()}>
                     <div class={classes.studyBlockDropdown}>
