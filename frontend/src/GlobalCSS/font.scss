@@ -13,13 +13,6 @@ body {
   font-size: 15px;
 }
 
-/* Media query for smaller devices */
-@media screen and (max-width: 768px) {
-  body {
-    font-size: 14px;
-  }
-}
-
 /* Heading styles */
 h1 {
   font-size: clamp(2.5rem, 6vw + 1rem, 4rem);

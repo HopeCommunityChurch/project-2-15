@@ -8,9 +8,9 @@ import { LoginPage } from "./Pages/LoginPage/login";
 import { SignUpPage } from "./Pages/SignUpPage/signup";
 import { ResetPasswordPage } from "./Pages/ResetPasswordPage/resetpassword";
 import { StudiesPage } from "./Pages/Studies/studies";
+import { StudyPage } from "./Pages/Study/study";
+import { Four04 } from "./Pages/Four04/Four04";
 import { updateLoginState } from "./Pages/LoginPage/login";
-
-
 
 export function App() {
   return (
@@ -21,12 +21,14 @@ export function App() {
         <Route path={"/app/resetpassword"} component={ResetPasswordPage} />
         <Route path={"/app/signup"} component={SignUpPage} />
         <Route path={"/app/studies"} component={StudiesPage} />
+        <Route path={"/app/study/:documentID"} component={StudyPage} />
+        <Route path="*" component={Four04} />
       </Routes>
     </div>
   );
 }
 
-updateLoginState().then ( () => {
+updateLoginState().then(() => {
   render(
     () => (
       <Router>
