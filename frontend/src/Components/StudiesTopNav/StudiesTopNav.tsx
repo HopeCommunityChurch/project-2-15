@@ -1,12 +1,13 @@
 import Logo from "./P215.png";
 import { Button } from "../Button/Button";
-import { createSignal, createEffect, Show } from "solid-js";
+import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
 import { loginState, LoginUser } from "../../Pages/LoginPage/login";
 import SearchIcon from "../../Assets/magnifying_glass.svg";
 import CloseXIcon from "../../Assets/x.svg";
 import PadlockIcon from "../../Assets/padlock.svg";
 import ArrowIcon from "../../Assets/arrow.svg";
+import NotificationBell from "../../Assets/notification-bell.svg";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
@@ -44,6 +45,7 @@ export function StudiesTopNav() {
   const [studyBlockValue, setStudyBlockValue] = createSignal("");
   const [showTooltip, setShowTooltip] = createSignal(false);
   const [studyTitleValue, setStudyTitleValue] = createSignal("");
+  const [showNotificationsDropdown, setShowNotificationsDropdown] = createSignal(false);
 
   const filteredStudyBlockItems = () => {
     return studyBlockItems.filter(
@@ -172,6 +174,29 @@ export function StudiesTopNav() {
     "Revelation",
   ];
 
+  const notificationList = [
+    {
+      studyName: "Romans August 2023 Study",
+      inviterName: "Jean Smith",
+      date: "01/30/2023",
+    },
+    {
+      studyName: "Colossians August 2023 Study",
+      inviterName: "Jean Smith",
+      date: "01/30/2023",
+    },
+    {
+      studyName: "Men's thursday night 5G study",
+      inviterName: "Jean Smith",
+      date: "01/30/2023",
+    },
+    {
+      studyName: "Study with a really long name just so we can test the limits of sizing for this",
+      inviterName: "Jean Smith",
+      date: "01/30/2023",
+    },
+  ];
+
   const filteredBooks = () => {
     return books
       .filter((book) => book.toLowerCase().includes(studyBookValue().toLowerCase()))
@@ -269,6 +294,25 @@ export function StudiesTopNav() {
     }
   });
 
+  createEffect(() => {
+    if (showNotificationsDropdown()) {
+      const handleClickOutside = (event: Event) => {
+        const dropdownContainer = document.querySelector("." + classes.notificationDropdown);
+
+        if (dropdownContainer && !dropdownContainer.contains(event.target as Node)) {
+          setShowNotificationsDropdown(false);
+        }
+      };
+
+      document.addEventListener("click", handleClickOutside);
+
+      // Cleanup: remove the event listener when the component is destroyed or the dropdown is closed
+      onCleanup(() => {
+        document.removeEventListener("click", handleClickOutside);
+      });
+    }
+  });
+
   const nav = useNavigate();
   const currentDate = new Date();
   const formattedDate =
@@ -300,6 +344,49 @@ export function StudiesTopNav() {
                 + New Study
               </Button>
             </li>
+            <li class={classes.notificationBellContainer}>
+              <div
+                class={classes.notificationBell}
+                onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown())}
+              >
+                <img src={NotificationBell} />
+                <div class={classes.notificationBadge}>{notificationList.length}</div>
+              </div>
+            </li>
+            <Show when={showNotificationsDropdown()}>
+              <div class={classes.notificationDropdown}>
+                {notificationList.map((notification) => (
+                  <div class={classes.notificationItem}>
+                    <div class={classes.notificationText}>
+                      <p>You've been invited to join {notification.studyName}</p>
+                      <div class={classes.notificationDateAndName}>
+                        <p class={classes.notificationDate}>{notification.date}</p>
+                        <p>{notification.inviterName}</p>
+                      </div>
+                    </div>
+                    <div class={classes.notificationButtons}>
+                      <Button
+                        type="Blue"
+                        onClick={() => {
+                          /* accept logic */
+                        }}
+                      >
+                        Accept
+                      </Button>
+
+                      <Button
+                        type="lightBlue"
+                        onClick={() => {
+                          /* accept logic */
+                        }}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Show>
           </ul>
         </nav>
         <div class={classes.buttons}>
@@ -340,7 +427,6 @@ export function StudiesTopNav() {
                           Admin Area
                         </a>
                       </li>
-
                       <li>
                         <a href="/logout" class={classes.fullWidthLink}>
                           Sign Out
