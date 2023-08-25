@@ -22,14 +22,14 @@ export function StudyTopNav() {
       <header class={classes.header}>
         <img class={classes.logo} src={Logo} />
         <div class={classes.studyHeaderText}>
-          <p class={classes.studyTitle}>Study Title</p>
+          <p>Study Title</p>
           <div>
-            <p class={classes.studyTemplate}>Study Template</p>
+            <p>Study Template</p>
             <p>|</p>
-            <p class={classes.studyCollaborators}>Study Collaborators</p>
+            <p>Study Collaborators</p>
           </div>
         </div>
-        <div class={classes.profileContainer}>
+        <div>
           {loginState()}
           {
             // @ts-ignore
