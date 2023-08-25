@@ -1,0 +1,100 @@
+.logo {
+  max-height: 40px;
+  margin-right: 10px;
+}
+
+.header {
+  grid-column-start: 1;
+  grid-column-end: 13;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 52px;
+  position: fixed;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  z-index: 999;
+
+  .studyHeaderText {
+    display: flex;
+    flex-direction: column;
+    margin-right: auto;
+
+    div {
+      display: flex;
+      gap: 10px;
+      color: gray;
+      font-size: 13px;
+      margin-top: -2px;
+    }
+    p {
+      margin: 0px;
+    }
+  }
+}
+
+.headerThingy {
+  width: 100vw;
+  height: 52px;
+}
+
+.profileButton {
+  width: 40px; /* Adjust as needed */
+  height: 40px;
+  border-radius: 50%; /* Makes it circular */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #eee; /* Or any other color */
+  color: #333; /* Text color */
+  margin-left: 16px;
+  cursor: pointer;
+  position: relative;
+}
+
+.profileDropdown {
+  display: none;
+  position: absolute;
+  right: 10px; /* Adjust as per your layout */
+  top: 50px; /* Position it below the button, adjust as per your layout */
+  border: 1px solid #ccc;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1000; /* To ensure it stays on top */
+  padding: 14px 0px;
+  border-radius: 7px;
+}
+
+.profileDropdown ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.profileDropdown li {
+  padding: 0px 0px;
+  cursor: pointer;
+  display: flex;
+  a {
+    text-decoration: none;
+    color: #6c6c6c;
+    display: flex;
+  }
+}
+
+.fullWidthLink {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: #6c6c6c;
+  padding: 8px 26px;
+}
+.fullWidthLink:hover {
+  background-color: #f6f6f6; // Same hover background as the li
+}
+
+.showDropdown {
+  display: block;
+}

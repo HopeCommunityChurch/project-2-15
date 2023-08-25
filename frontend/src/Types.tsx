@@ -1,17 +1,17 @@
-import { Instant, LocalDateTime } from "@js-joda/core"
+import { Instant, LocalDateTime } from "@js-joda/core";
 
-export type UUID = string & { readonly __tag: unique symbol }
+export type UUID = string & { readonly __tag: unique symbol };
 
-export type UserId = UUID & { readonly __tag: unique symbol }
+export type UserId = UUID & { readonly __tag: unique symbol };
 
 export type PublicUser = {
   userId: UserId;
   name: string;
   image?: string;
-}
+};
 
-export type DocId = UUID & { readonly __tag: unique symbol }
-export type StudyId = UUID & { readonly __tag: unique symbol }
+export type DocId = UUID & { readonly __tag: unique symbol };
+export type StudyId = UUID & { readonly __tag: unique symbol };
 
 export type DocMetaRaw = {
   created: string;
@@ -22,7 +22,7 @@ export type DocMetaRaw = {
   editors: Array<PublicUser>;
 };
 
-export type StudyTemplateId = UUID & { readonly __tag: unique symbol }
+export type StudyTemplateId = UUID & { readonly __tag: unique symbol };
 
 export type StudyRaw = {
   name: string;
@@ -30,7 +30,6 @@ export type StudyRaw = {
   studyTemplateId: StudyTemplateId;
   docs: Array<DocMetaRaw>;
 };
-
 
 export type DocMeta = {
   created: LocalDateTime;
@@ -48,8 +47,7 @@ export type Study = {
   docs: Array<DocMeta>;
 };
 
-
-export function toDocFromRaw(doc : DocMetaRaw) : DocMeta {
+export function toDocFromRaw(doc: DocMetaRaw): DocMeta {
   return {
     editors: doc.editors,
     docId: doc.docId,
@@ -60,12 +58,11 @@ export function toDocFromRaw(doc : DocMetaRaw) : DocMeta {
   };
 }
 
-
-export function toStudyFromRaw(study : StudyRaw) : Study {
+export function toStudyFromRaw(study: StudyRaw): Study {
   return {
     name: study.name,
     studyId: study.studyId,
     studyTemplateId: study.studyTemplateId,
     docs: study.docs.map(toDocFromRaw),
-  }
+  };
 }
