@@ -35,6 +35,12 @@ export function StudiesTopNav() {
       Required: true,
       Custom: false,
     },
+    {
+      Name: "Questions",
+      Description: "Be curious, my friend.",
+      Required: true,
+      Custom: false,
+    },
   ];
   const [showDropdown, setShowDropdown] = createSignal(false);
   const [showStudyBlockDropdown, setShowStudyBlockDropdown] = createSignal(false);
