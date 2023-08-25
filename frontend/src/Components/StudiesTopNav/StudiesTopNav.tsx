@@ -584,9 +584,7 @@ export function StudiesTopNav() {
                             No study block items match your search.
                             <br />
                             Maybe you're looking to create a{" "}
-                            <a class={classes.customBlockCreator} onClick={addCustomBlock}>
-                              Custom Block?
-                            </a>
+                            <a onClick={addCustomBlock}>Custom Block?</a>
                           </p>
                         )}
                       </div>
@@ -609,11 +607,7 @@ export function StudiesTopNav() {
                                 src={ArrowIcon}
                                 onClick={() => moveItemUp(index)}
                               />
-                              <img
-                                class={classes.arrowDown}
-                                src={ArrowIcon}
-                                onClick={() => moveItemDown(index)}
-                              />
+                              <img src={ArrowIcon} onClick={() => moveItemDown(index)} />
                             </div>
                             <div class={classes.reordableItemNameAndDescription}>
                               <Show when={!item.Required}>
