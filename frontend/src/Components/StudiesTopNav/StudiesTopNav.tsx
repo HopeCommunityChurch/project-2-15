@@ -11,6 +11,7 @@ import NotificationBell from "../../Assets/notification-bell.svg";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
+import useClickOutsideClose from "../../Hooks/useOutsideClickClose";
 
 export function StudiesTopNav() {
   const initialStudyItems = [
@@ -260,57 +261,24 @@ export function StudiesTopNav() {
   };
 
   createEffect(() => {
-    if (showDropdown()) {
-      const dropdown = document.querySelector(".profileDropdown") as HTMLElement;
-      const rect = dropdown.getBoundingClientRect();
-
-      if (rect.right > window.innerWidth) {
-        dropdown.style.right = "0";
-      }
-      if (rect.bottom > window.innerHeight) {
-        dropdown.style.top = `${-rect.height}px`;
-      }
-    }
+    useClickOutsideClose(showDropdown, setShowDropdown, classes.profileDropdown);
   });
 
   createEffect(() => {
-    if (showStudyBlockDropdown()) {
-      const handleClickOutside = (event) => {
-        if (event.target.classList.contains("preventClose")) {
-          return; // Do not execute the rest of the function
-        }
-
-        const dropdownContainer = document.querySelector("." + classes.studyBlockDropdownContainer);
-
-        if (dropdownContainer && !dropdownContainer.contains(event.target)) {
-          setShowStudyBlockDropdown(false);
-        }
-      };
-      document.addEventListener("click", handleClickOutside);
-
-      return () => {
-        document.removeEventListener("click", handleClickOutside);
-      };
-    }
+    useClickOutsideClose(
+      showStudyBlockDropdown,
+      setShowStudyBlockDropdown,
+      classes.studyBlockDropdownContainer,
+      ["preventClose"]
+    );
   });
 
   createEffect(() => {
-    if (showNotificationsDropdown()) {
-      const handleClickOutside = (event: Event) => {
-        const dropdownContainer = document.querySelector("." + classes.notificationDropdown);
-
-        if (dropdownContainer && !dropdownContainer.contains(event.target as Node)) {
-          setShowNotificationsDropdown(false);
-        }
-      };
-
-      document.addEventListener("click", handleClickOutside);
-
-      // Cleanup: remove the event listener when the component is destroyed or the dropdown is closed
-      onCleanup(() => {
-        document.removeEventListener("click", handleClickOutside);
-      });
-    }
+    useClickOutsideClose(
+      showNotificationsDropdown,
+      setShowNotificationsDropdown,
+      classes.notificationDropdown
+    );
   });
 
   const nav = useNavigate();
