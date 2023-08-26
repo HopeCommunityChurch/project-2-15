@@ -161,6 +161,7 @@
   h3 {
     margin-top: 0px;
     margin-bottom: 18px;
+    font-size: 1.6em;
   }
 
   .closeModalIcon {
@@ -229,7 +230,12 @@
   .personWithAccess {
     align-items: center;
     display: flex;
-    margin-top: 5px;
+    padding: 11px 13px;
+    border-radius: 7px;
+
+    &:hover {
+      background-color: #f2f2f287;
+    }
     .userInitials {
       margin-right: 12px;
       width: 40px; /* Adjust as needed */
@@ -259,6 +265,18 @@
     }
     p {
       margin: 0px;
+    }
+
+    .accessPermissions {
+      align-items: center;
+      display: flex;
+      padding: 11px 13px;
+      border-radius: 7px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #dadada87;
+      }
     }
   }
 }

@@ -30,6 +30,24 @@ export function StudyTopNav() {
       email: "toosmoove25@gmail.com",
     },
   ];
+  const otherUsersInSharedStudy = [
+    {
+      name: "Jonathan Solas",
+      email: "jonathsola@gmail.com",
+    },
+    {
+      name: "Olivia Rodriguez",
+      email: "oliveronald23@gmail.com",
+    },
+    {
+      name: "Jason Avilez",
+      email: "chocolatejason@gmail.com",
+    },
+    {
+      name: "Jordan Smoove",
+      email: "toosmoove25@gmail.com",
+    },
+  ];
   const [showDropdown, setShowDropdown] = createSignal(false);
   const [showShareModal, setShowShareModal] = createSignal(false);
 
@@ -192,6 +210,17 @@ export function StudyTopNav() {
                 </div>
                 <div class={classes.accessPermissions}>Owner</div>
               </div>
+              {otherUsersInSharedStudy.map((user) => (
+                <div class={classes.personWithAccess}>
+                  <div class={classes.userInitials}>{user.name.slice(0, 2).toUpperCase()}</div>
+                  <div class={classes.nameAndEmail}>
+                    <p>{user.name}</p>
+                    <p class={classes.email}>{user.email}</p>
+                  </div>
+                  <div class={classes.accessPermissions}>Collaborator</div>{" "}
+                  {/* assuming all other users are collaborators */}
+                </div>
+              ))}
             </form>
           </div>
         </div>
