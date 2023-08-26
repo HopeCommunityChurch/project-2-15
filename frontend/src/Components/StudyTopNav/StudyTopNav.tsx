@@ -199,6 +199,7 @@ export function StudyTopNav() {
                 <input type="text" placeholder="Add an email..." />
               </div>
               <label for="inviteByEmail">People in shared study</label>
+              {/* For Owner */}
               <div class={classes.personWithAccess}>
                 <div class={classes.userInitials}>
                   {/* {user.name.slice(0, 2).toUpperCase()} */}
@@ -210,6 +211,7 @@ export function StudyTopNav() {
                 </div>
                 <div class={classes.accessPermissions}>Owner</div>
               </div>
+              {/* For Others in study */}
               {otherUsersInSharedStudy.map((user) => (
                 <div class={classes.personWithAccess}>
                   <div class={classes.userInitials}>{user.name.slice(0, 2).toUpperCase()}</div>
@@ -218,7 +220,6 @@ export function StudyTopNav() {
                     <p class={classes.email}>{user.email}</p>
                   </div>
                   <div class={classes.accessPermissions}>Collaborator</div>{" "}
-                  {/* assuming all other users are collaborators */}
                 </div>
               ))}
             </form>
