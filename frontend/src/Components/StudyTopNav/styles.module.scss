@@ -21,6 +21,9 @@
     display: flex;
     flex-direction: column;
     margin-right: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 16px;
 
     div {
       display: flex;
@@ -31,6 +34,9 @@
     }
     p {
       margin: 0px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 }

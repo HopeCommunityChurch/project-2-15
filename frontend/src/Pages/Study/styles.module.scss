@@ -1,0 +1,19 @@
+.sidebar {
+  width: 200px;
+  transition: width 0.3s;
+  background-color: #fbfbfb;
+
+  &.closed {
+    width: 70px;
+  }
+}
+
+.documentBody {
+  flex: 1;
+  transition: width 0.3s; // smooth transition
+}
+
+.pageBody {
+  display: flex;
+  height: calc(100vh - 52px);
+}

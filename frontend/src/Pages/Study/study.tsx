@@ -9,9 +9,7 @@ import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
 import { Study } from "../../Types";
 
-const [loggedIn, setLogged] = createSignal(false);
-
-export const loggedInSignal = loggedIn;
+const [isSidebarClosed, setSidebarClosed] = createSignal(false);
 
 export function StudyPage() {
   const params = useParams();
@@ -20,7 +18,15 @@ export function StudyPage() {
   return (
     <>
       <StudyTopNav />
-      {documentID}
+      <div class={classes.pageBody}>
+        <div class={`${classes.sidebar} ${isSidebarClosed() ? classes.closed : ""}`}>
+          <button onClick={() => setSidebarClosed(!isSidebarClosed())}>
+            {isSidebarClosed() ? "Open" : "Close"}
+          </button>
+        </div>
+
+        <div class={classes.documentBody}>{documentID}</div>
+      </div>
     </>
   );
 }
