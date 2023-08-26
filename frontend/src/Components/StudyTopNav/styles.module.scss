@@ -80,6 +80,13 @@
   }
 }
 
+@media screen and (max-width: 750px) {
+  .otherUsersCurrentlyViewing,
+  .hideBelow750px {
+    display: none;
+  }
+}
+
 .profileButton {
   width: 40px; /* Adjust as needed */
   height: 40px;

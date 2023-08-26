@@ -121,11 +121,11 @@ export function StudyTopNav() {
           <p>Study Title</p>
           <div>
             <p>Study Template</p>
-            <p>|</p>
-            <p>Study Collaborators</p>
+            <p class={classes.hideBelow750px}>|</p>
+            <p class={classes.hideBelow750px}>Study Collaborators</p>
           </div>
         </div>
-        <div class={classes.otherUsersCurrentlyViewing}>
+        <div class={`${classes.otherUsersCurrentlyViewing} ${classes.hideBelow750px}`}>
           {otherUsersCurrentlyViewing.map((user) => (
             <div class={classes.userInitials}>{user.name.slice(0, 2).toUpperCase()}</div>
           ))}
