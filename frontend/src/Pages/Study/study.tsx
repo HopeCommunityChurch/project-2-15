@@ -33,7 +33,7 @@ export function StudyPage() {
     { Title: "17:14–20:34", Status: "Not Completed" },
     { Title: "21:1–22", Status: "Not Completed" },
     { Title: "21:23–22:46", Status: "Not Completed" },
-    { Title: "23", Status: "Not Completed" },
+    { Title: "Long name just in case it happens need to test haha", Status: "Not Completed" },
     { Title: "24–25", Status: "Not Completed" },
     { Title: "26–27", Status: "Not Completed" },
     { Title: "28:1–8", Status: "Not Completed" },
@@ -41,6 +41,7 @@ export function StudyPage() {
     { Title: "28:11–15", Status: "Not Completed" },
     { Title: "28:16–20", Status: "Not Completed" },
   ];
+
   return (
     <>
       <StudyTopNav />

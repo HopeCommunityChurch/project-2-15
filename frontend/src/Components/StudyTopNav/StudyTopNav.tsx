@@ -117,7 +117,7 @@ export function StudyTopNav() {
   return (
     <>
       <header class={classes.header}>
-        <img class={classes.logo} src={Logo} />
+        <img class={classes.logo} src={Logo} onClick={() => nav("/app/studies")} />
         <div class={classes.studyHeaderText}>
           <p>Study Title</p>
           <div>
@@ -166,6 +166,11 @@ export function StudyTopNav() {
                     }`}
                   >
                     <ul>
+                      <li>
+                        <a href="/app/studies" class={classes.fullWidthLink}>
+                          Home
+                        </a>
+                      </li>
                       <li>
                         <a href="/admin" class={classes.fullWidthLink}>
                           Admin Area
