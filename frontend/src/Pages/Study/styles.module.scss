@@ -4,7 +4,54 @@
   background-color: #fbfbfb;
 
   &.closed {
-    width: 70px;
+    width: 54px;
+  }
+
+  .sidebarToggle {
+    padding: 0px 10px;
+    height: 58px;
+    width: calc(100% - 27px);
+    margin-left: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #e9e9e9;
+    }
+    .reverse {
+      transform: rotate(180deg);
+    }
+
+    p {
+      margin: 0px;
+    }
+  }
+  .sectionSidebarContainer {
+    display: flex;
+    padding: 8px 10px 3px 10px;
+    width: calc(100% - 20px);
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #e9e9e9;
+    }
+
+    .sectionSidebarTitle {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sectionSidebarStatus img {
+      width: 29px;
+      margin-right: 10px;
+    }
   }
 }
 

@@ -48,6 +48,7 @@ export function StudyTopNav() {
       email: "toosmoove25@gmail.com",
     },
   ];
+
   const [showDropdown, setShowDropdown] = createSignal(false);
   const [showShareModal, setShowShareModal] = createSignal(false);
 
