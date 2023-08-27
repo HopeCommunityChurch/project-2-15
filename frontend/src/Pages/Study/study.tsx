@@ -11,9 +11,10 @@ import Arrow2Icon from "../../Assets/arrow2.svg";
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
 import { Study } from "../../Types";
+import useClickOutsideClose from "../../Hooks/useOutsideClickClose";
 
 export function StudyPage() {
-  const [isSidebarClosed, setSidebarClosed] = createSignal(false);
+  const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const documentID = useParams().documentID;
   const sectionTitles = [
     { Title: "1:1–17", Status: "Completed" },
@@ -42,19 +43,48 @@ export function StudyPage() {
     { Title: "28:16–20", Status: "Not Completed" },
   ];
 
+  // Function to handle the sidebar state based on viewport width
+  const handleSidebarState = () => {
+    if (window.innerWidth <= 750) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+  };
+
+  onMount(() => {
+    // Set initial state based on viewport width
+    handleSidebarState();
+
+    // Add resize listener
+    window.addEventListener("resize", handleSidebarState);
+
+    // Cleanup listener when component is destroyed
+    return () => {
+      window.removeEventListener("resize", handleSidebarState);
+    };
+  });
+
+  createEffect(() => {
+    if (window.innerWidth <= 750) {
+      // Could't get this to automaically close sidebar on mobile when a user clicks outside of the sidebar
+      // useClickOutsideClose(isSidebarOpen, setSidebarOpen(), classes.sidebar);
+    }
+  });
+
   return (
     <>
-      <StudyTopNav />
+      <StudyTopNav isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div class={classes.pageBody}>
-        <div class={`${classes.sidebar} ${isSidebarClosed() ? classes.closed : ""}`}>
-          <div onClick={() => setSidebarClosed(!isSidebarClosed())} class={classes.sidebarToggle}>
-            {isSidebarClosed() ? (
-              <img src={Arrow2Icon} class={classes.reverse} />
-            ) : (
+        <div class={`${classes.sidebar} ${isSidebarOpen() ? "" : classes.closed}`}>
+          <div onClick={() => setSidebarOpen(!isSidebarOpen())} class={classes.sidebarToggle}>
+            {isSidebarOpen() ? (
               <>
                 <img src={Arrow2Icon} />
                 <p>COLLAPSE</p>
               </>
+            ) : (
+              <img src={Arrow2Icon} class={classes.reverse} />
             )}
           </div>
           {sectionTitles.map((section) => (
@@ -66,9 +96,9 @@ export function StudyPage() {
                   <img src={GrayCircleIcon} />
                 ) : null}
               </span>
-              {isSidebarClosed() ? null : (
+              {isSidebarOpen() ? (
                 <span class={classes.sectionSidebarTitle}>{section.Title}</span>
-              )}
+              ) : null}
             </div>
           ))}
         </div>

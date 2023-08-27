@@ -1,7 +1,13 @@
+.hamburgerMenuMobile {
+  padding: 16px 0px 16px 16px;
+  cursor: pointer;
+}
+
 .logo {
   max-height: 40px;
   margin-right: 10px;
   cursor: pointer;
+  margin-left: 16px;
 }
 
 .header {
@@ -9,7 +15,7 @@
   grid-column-end: 13;
   display: flex;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 20px 0 4px;
   height: 52px;
   position: fixed;
   width: 100%;
@@ -84,6 +90,12 @@
 @media screen and (max-width: 750px) {
   .otherUsersCurrentlyViewing,
   .hideBelow750px {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 751px) {
+  .hamburgerMenuMobile {
     display: none;
   }
 }

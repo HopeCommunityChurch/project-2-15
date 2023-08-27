@@ -6,12 +6,18 @@ import { A, useNavigate } from "@solidjs/router";
 import { loginState, LoginUser } from "../../Pages/LoginPage/login";
 import CloseXIcon from "../../Assets/x.svg";
 import SearchIcon from "../../Assets/magnifying_glass.svg";
+import HamburgerMenuIcon from "../../Assets/hamburger-menu-icon.svg";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
 import useClickOutsideClose from "../../Hooks/useOutsideClickClose";
 
-export function StudyTopNav() {
+type StudyTopNavProps = {
+  isSidebarOpen: () => boolean;
+  setSidebarOpen: (value: boolean) => void;
+};
+
+export function StudyTopNav(props: StudyTopNavProps) {
   const otherUsersCurrentlyViewing = [
     {
       name: "Jonathan Solas",
@@ -117,6 +123,12 @@ export function StudyTopNav() {
   return (
     <>
       <header class={classes.header}>
+        <img
+          src={HamburgerMenuIcon}
+          onClick={() => props.setSidebarOpen(!props.isSidebarOpen())}
+          class={classes.hamburgerMenuMobile}
+        />
+
         <img class={classes.logo} src={Logo} onClick={() => nav("/app/studies")} />
         <div class={classes.studyHeaderText}>
           <p>Study Title</p>
