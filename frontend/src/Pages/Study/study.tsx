@@ -73,7 +73,11 @@ export function StudyPage() {
           ))}
         </div>
 
-        <div class={classes.documentBody}>{documentID}</div>
+        <div class={classes.documentBody}>
+          {documentID}
+          <br />
+          Insert the document processor here
+        </div>
       </div>
     </>
   );
