@@ -202,16 +202,19 @@
     padding: 10px;
   }
 
-  input[type="text"] {
+  input[type="text"],
+  textarea {
     padding: 12px;
     margin-bottom: 15px;
-    border: 1px solid #ccc;
+    border: 2px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
   }
 
-  input[type="text"]:focus {
+  input[type="text"]:focus,
+  textarea:focus {
     border-color: #37aefd;
+    outline: none;
   }
   form {
     display: flex;
@@ -225,7 +228,8 @@
     margin-bottom: 5px;
     color: #666;
   }
-  .autocomplete {
+
+  .emailSearchField {
     position: relative;
     display: flex;
     align-items: center;
@@ -245,15 +249,107 @@
       opacity: 29%;
     }
 
-    .closeIcon {
-      cursor: pointer;
-      opacity: 0.29;
-      position: absolute;
-      top: 6px;
-      right: 95px;
-      max-width: 16px;
-      padding: 10px;
+    .errorInput {
+      border-color: red !important;
     }
+  }
+
+  .emailTagsContainer {
+    display: flex;
+    .emailTag {
+      color: #0057d1;
+      background-color: #d8e5f8;
+      border-radius: 25px;
+      align-items: center;
+      padding: 8px 17px;
+      font-size: 14px;
+      display: inline-flex;
+      margin-bottom: 16px;
+      width: fit-content;
+      margin-right: 9px;
+    }
+
+    .removeTagIcon {
+      max-width: 12px;
+      margin-left: 9px;
+      cursor: pointer;
+    }
+  }
+
+  .notifyPeopleCheckbox {
+    /* Add the checkbox styles */
+
+    display: flex;
+    position: relative;
+    padding-left: 27px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    label {
+      margin: 0px;
+    }
+
+    input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+
+    .checkmark {
+      position: absolute;
+      top: 3px;
+      left: 0;
+      height: 18px;
+      width: 18px;
+      background-color: #eee;
+      border-radius: 4px;
+    }
+
+    &:hover input ~ .checkmark {
+      background-color: #ccc;
+    }
+
+    input:checked ~ .checkmark {
+      background-color: #0057d1;
+    }
+
+    .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+    }
+
+    input:checked ~ .checkmark:after {
+      display: block;
+    }
+
+    .checkmark:after {
+      left: 6px;
+      top: 2px;
+      width: 4px;
+      height: 9px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      -webkit-transform: rotate(45deg);
+      -ms-transform: rotate(45deg);
+      transform: rotate(45deg);
+    }
+  }
+
+  .inviteMessage {
+    min-height: 120px;
+  }
+  .errorMsg {
+    color: red;
+    margin-top: -6px;
+    font-size: 13px;
   }
 
   .personWithAccess {
@@ -307,5 +403,22 @@
         background-color: #dadada87;
       }
     }
+  }
+
+  button[type="submit"] {
+    width: 100%;
+    background-color: #0057d1;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-bottom: 5px;
+  }
+
+  textarea {
+    resize: none;
   }
 }

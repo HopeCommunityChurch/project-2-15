@@ -142,3 +142,7 @@
   overflow-wrap: anywhere;
   position: relative;
 }
+
+.noSelect {
+  user-select: none;
+}

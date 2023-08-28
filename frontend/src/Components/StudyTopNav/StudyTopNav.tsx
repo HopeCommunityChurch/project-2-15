@@ -57,6 +57,8 @@ export function StudyTopNav(props: StudyTopNavProps) {
 
   const [showDropdown, setShowDropdown] = createSignal(false);
   const [showShareModal, setShowShareModal] = createSignal(false);
+  const [emailInputErrorMsg, setEmailInputErrorMsg] = createSignal("");
+  const [emailTags, setEmailTags] = createSignal<string[]>([]);
 
   function applyUniqueColorsToElements() {
     // List of colors
@@ -108,6 +110,25 @@ export function StudyTopNav(props: StudyTopNavProps) {
       (el as HTMLElement).style.backgroundColor = getUniqueColor();
     });
   }
+
+  const handleKeyPress = (event: KeyboardEvent) => {
+    const target = event.target as HTMLInputElement;
+
+    if (event.key === "Enter" || event.keyCode === 13) {
+      event.preventDefault();
+      const inputValue = target.value.trim();
+      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+      const isValidEmail = emailRegex.test(inputValue);
+
+      if (!isValidEmail) {
+        setEmailInputErrorMsg("Please enter a valid email address.");
+      } else {
+        setEmailInputErrorMsg("");
+        setEmailTags([...emailTags(), inputValue]);
+        target.value = ""; // Clear input field after adding tag
+      }
+    }
+  };
 
   // On component mount
   createEffect(() => {
@@ -211,35 +232,73 @@ export function StudyTopNav(props: StudyTopNavProps) {
               class={classes.closeModalIcon}
               onClick={() => setShowShareModal(false)}
             />
-            <form>
-              <div class={classes.autocomplete}>
+            <form
+              onsubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <div class={classes.emailSearchField}>
                 <img src={SearchIcon} class={classes.searchIcon} alt="Search" />
-                <input type="text" placeholder="Add an email..." />
+
+                <input
+                  type="text"
+                  placeholder="Add an email..."
+                  onKeyPress={handleKeyPress}
+                  class={emailInputErrorMsg() ? `${classes.errorInput}` : ""}
+                />
               </div>
-              <label for="inviteByEmail">People in shared study</label>
-              {/* For Owner */}
-              <div class={classes.personWithAccess}>
-                <div class={classes.userInitials}>
-                  {/* {user.name.slice(0, 2).toUpperCase()} */}
-                  JH
-                </div>
-                <div class={classes.nameAndEmail}>
-                  <p>James Hendrie (you)</p>
-                  <p class={classes.email}>jhendrie25@gmail.com</p>
-                </div>
-                <div class={classes.accessPermissions}>Owner</div>
+              {emailInputErrorMsg() && <p class={classes.errorMsg}>{emailInputErrorMsg()}</p>}
+              <div class={classes.emailTagsContainer}>
+                {emailTags().map((tag) => (
+                  <span class={classes.emailTag}>
+                    {tag}
+                    <img
+                      src={CloseXIcon}
+                      alt="Close"
+                      class={classes.removeTagIcon}
+                      onclick={() => setEmailTags(emailTags().filter((email) => email !== tag))}
+                    />
+                  </span>
+                ))}
               </div>
-              {/* For Others in study */}
-              {otherUsersInSharedStudy.map((user) => (
+              <Show when={emailTags().length > 0}>
+                <div class={classes.notifyPeopleCheckbox}>
+                  <label>
+                    Notify People
+                    <input type="checkbox" id="notifyPeople" checked />
+                    <span class={classes.checkmark}></span>
+                  </label>
+                </div>
+                <textarea placeholder="Message" class={classes.inviteMessage} />
+                <button type="submit">Invite</button>
+              </Show>
+              <Show when={emailTags().length === 0}>
+                <label>People in shared study</label>
+                {/* For Owner */}
                 <div class={classes.personWithAccess}>
-                  <div class={classes.userInitials}>{user.name.slice(0, 2).toUpperCase()}</div>
-                  <div class={classes.nameAndEmail}>
-                    <p>{user.name}</p>
-                    <p class={classes.email}>{user.email}</p>
+                  <div class={classes.userInitials}>
+                    {/* {user.name.slice(0, 2).toUpperCase()} */}
+                    JH
                   </div>
-                  <div class={classes.accessPermissions}>Collaborator</div>{" "}
+                  <div class={classes.nameAndEmail}>
+                    <p>James Hendrie (you)</p>
+                    <p class={classes.email}>jhendrie25@gmail.com</p>
+                  </div>
+                  <div class={classes.accessPermissions}>Owner</div>
                 </div>
-              ))}
+
+                {/* For Others in study */}
+                {otherUsersInSharedStudy.map((user) => (
+                  <div class={classes.personWithAccess}>
+                    <div class={classes.userInitials}>{user.name.slice(0, 2).toUpperCase()}</div>
+                    <div class={classes.nameAndEmail}>
+                      <p>{user.name}</p>
+                      <p class={classes.email}>{user.email}</p>
+                    </div>
+                    <div class={classes.accessPermissions}>Collaborator</div>{" "}
+                  </div>
+                ))}
+              </Show>
             </form>
           </div>
         </div>

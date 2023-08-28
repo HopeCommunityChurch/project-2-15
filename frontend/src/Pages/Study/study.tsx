@@ -68,10 +68,13 @@ export function StudyPage() {
         isResizing = true;
         startX = e.clientX;
         startWidth = sidebar.offsetWidth;
+
+        document.body.classList.add(classes.noSelect);
         document.addEventListener("mousemove", handleMouseMove);
         document.addEventListener("mouseup", () => {
           // Stop resizing
           isResizing = false;
+          document.body.classList.remove(classes.noSelect);
           document.removeEventListener("mousemove", handleMouseMove);
         });
       });
