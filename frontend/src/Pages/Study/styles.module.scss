@@ -1,25 +1,41 @@
-@media screen and (max-width: 750px) {
-  .sidebar.closed {
-    width: 0px !important;
-  }
-}
-
 .sidebar {
-  width: 200px;
-  transition: width 0.3s;
+  transition: none !important;
   background-color: #fbfbfb;
   height: calc(100vh - 52px);
-  overflow-y: auto;
+  scrollbar-width: thin;
+  resize: horizontal; /* Allows only horizontal resizing */
+  overflow: auto; /* Required for 'resize' to work */
+  width: 200px; /* Initial width */
+  min-width: 150px; /* Minimum width */
+  max-width: 500px; /* Maximum width */
+  position: relative;
+  border-right: 5px solid #fbfbfb; /* something so page doesn't jump when hover border is applied */
+  cursor: ew-resize; /* Horizontal resize cursor */
 
+  &:hover {
+    border-right: 5px solid #e9e9e9;
+  }
+
+  &::-webkit-scrollbar {
+    width: 10px; /* Width of vertical scrollbars */
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #dadada; /* Color of the thumb */
+    border-radius: 5px; /* Rounded corners */
+    border: 2px solid #f5f5f5; /* Border color of the track */
+  }
   &.closed {
-    width: 54px;
+    width: 54px !important;
+    min-width: 54px !important;
+    resize: none;
+    border-right: none !important;
+    cursor: auto !important;
   }
 
   .sidebarToggle {
-    padding: 0px 10px;
+    padding: 0 10px 0 16px;
     height: 58px;
     width: calc(100% - 27px);
-    margin-left: 6px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -65,14 +81,64 @@
   }
 }
 
+@media screen and (max-width: 750px) {
+  .sidebar.closed {
+    width: 0px !important;
+    min-width: 0px !important;
+  }
+
+  .sidebar {
+    top: -52px;
+    position: absolute;
+    z-index: 1000;
+    height: 100vh !important;
+    width: 90% !important;
+    max-width: 300px !important;
+    border-right: none !important;
+    cursor: auto !important;
+
+    &:hover {
+      border-right: none !important;
+    }
+  }
+
+  .mobileSidebarDarkFullscreenBackground {
+    z-index: 999;
+    background-color: #00000080;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+}
+
+.mobileSidebarDarkFullscreenBackground {
+  display: none;
+}
+
 .documentBody {
   flex: 1;
   transition: width 0.3s; // smooth transition
   overflow-y: scroll;
+  padding: 20px;
+  scrollbar-width: thin;
+  &::-webkit-scrollbar {
+    width: 10px; /* Width of vertical scrollbars */
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #dadada; /* Color of the thumb */
+    border-radius: 5px; /* Rounded corners */
+    border: 2px solid #f5f5f5; /* Border color of the track */
+  }
 }
 
 .pageBody {
   display: flex;
   height: calc(100vh - 52px);
   overflow-wrap: anywhere;
+  position: relative;
 }

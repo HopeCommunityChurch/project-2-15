@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onMount, For, createResource } from "solid-js";
+import { createEffect, createSignal, onMount, For, createResource, Show } from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
 import { match, P } from "ts-pattern";
@@ -11,7 +11,6 @@ import Arrow2Icon from "../../Assets/arrow2.svg";
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
 import { Study } from "../../Types";
-import useClickOutsideClose from "../../Hooks/useOutsideClickClose";
 
 export function StudyPage() {
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
@@ -51,7 +50,6 @@ export function StudyPage() {
       setSidebarOpen(true);
     }
   };
-
   onMount(() => {
     // Set initial state based on viewport width
     handleSidebarState();
@@ -59,17 +57,39 @@ export function StudyPage() {
     // Add resize listener
     window.addEventListener("resize", handleSidebarState);
 
+    const sidebar = document.querySelector(`.${classes.sidebar}`) as HTMLElement;
+    let isResizing = false;
+    let startWidth;
+    let startX;
+
+    // Start resizing when the user clicks on the right border
+    if (sidebar) {
+      sidebar.addEventListener("mousedown", (e: MouseEvent) => {
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = sidebar.offsetWidth;
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", () => {
+          // Stop resizing
+          isResizing = false;
+          document.removeEventListener("mousemove", handleMouseMove);
+        });
+      });
+    }
+
+    function handleMouseMove(e) {
+      if (!isResizing) return;
+
+      const width = startWidth + (e.clientX - startX);
+
+      // Apply the width, but within the defined min and max boundaries
+      sidebar.style.width = Math.max(Math.min(width, 500), 150) + "px";
+    }
+
     // Cleanup listener when component is destroyed
     return () => {
       window.removeEventListener("resize", handleSidebarState);
     };
-  });
-
-  createEffect(() => {
-    if (window.innerWidth <= 750) {
-      // Could't get this to automaically close sidebar on mobile when a user clicks outside of the sidebar
-      // useClickOutsideClose(isSidebarOpen, setSidebarOpen(), classes.sidebar);
-    }
   });
 
   return (
@@ -102,6 +122,12 @@ export function StudyPage() {
             </div>
           ))}
         </div>
+        <Show when={isSidebarOpen()}>
+          <div
+            class={classes.mobileSidebarDarkFullscreenBackground}
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        </Show>
 
         <div class={classes.documentBody}>
           {documentID}

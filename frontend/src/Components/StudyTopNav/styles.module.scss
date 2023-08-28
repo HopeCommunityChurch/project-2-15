@@ -1,5 +1,5 @@
 .hamburgerMenuMobile {
-  padding: 16px 0px 16px 16px;
+  padding: 16px 16px 16px 16px;
   cursor: pointer;
 }
 
@@ -7,7 +7,6 @@
   max-height: 40px;
   margin-right: 10px;
   cursor: pointer;
-  margin-left: 16px;
 }
 
 .header {
@@ -97,6 +96,9 @@
 @media screen and (min-width: 751px) {
   .hamburgerMenuMobile {
     display: none;
+  }
+  .logo {
+    margin-left: 16px;
   }
 }
 
