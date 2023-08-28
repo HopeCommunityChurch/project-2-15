@@ -270,7 +270,10 @@ export function StudyTopNav(props: StudyTopNavProps) {
                   </label>
                 </div>
                 <textarea placeholder="Message" class={classes.inviteMessage} />
-                <button type="submit">Invite</button>
+                <div class={classes.shareBottomButtons}>
+                  <button onclick={() => setEmailTags([])}>Cancel</button>
+                  <button type="submit">Invite</button>
+                </div>
               </Show>
               <Show when={emailTags().length === 0}>
                 <label>People in shared study</label>

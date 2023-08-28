@@ -404,20 +404,31 @@
       }
     }
   }
+  .shareBottomButtons {
+    display: flex;
+    gap: 10px;
 
-  button[type="submit"] {
-    width: 100%;
-    background-color: #0057d1;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
-    margin-bottom: 5px;
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+      margin-bottom: 5px;
+    }
+    button[type="submit"] {
+      background-color: #0057d1;
+      color: white;
+      border: none;
+    }
+
+    button:not([type="submit"]) {
+      background-color: #eef5ff;
+      color: #0057d1;
+      border: 2px solid #9fc5ff;
+    }
   }
-
   textarea {
     resize: none;
   }

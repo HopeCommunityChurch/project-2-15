@@ -64,20 +64,22 @@ export function StudyPage() {
 
     // Start resizing when the user clicks on the right border
     if (sidebar) {
-      sidebar.addEventListener("mousedown", (e: MouseEvent) => {
-        isResizing = true;
-        startX = e.clientX;
-        startWidth = sidebar.offsetWidth;
+      document
+        .querySelector(`.${classes.sidebarResizeHandle}`)
+        .addEventListener("mousedown", (e: MouseEvent) => {
+          isResizing = true;
+          startX = e.clientX;
+          startWidth = sidebar.offsetWidth;
 
-        document.body.classList.add(classes.noSelect);
-        document.addEventListener("mousemove", handleMouseMove);
-        document.addEventListener("mouseup", () => {
-          // Stop resizing
-          isResizing = false;
-          document.body.classList.remove(classes.noSelect);
-          document.removeEventListener("mousemove", handleMouseMove);
+          document.body.classList.add(classes.noSelect);
+          document.addEventListener("mousemove", handleMouseMove);
+          document.addEventListener("mouseup", () => {
+            // Stop resizing
+            isResizing = false;
+            document.body.classList.remove(classes.noSelect);
+            document.removeEventListener("mousemove", handleMouseMove);
+          });
         });
-      });
     }
 
     function handleMouseMove(e) {
@@ -99,31 +101,38 @@ export function StudyPage() {
     <>
       <StudyTopNav isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div class={classes.pageBody}>
-        <div class={`${classes.sidebar} ${isSidebarOpen() ? "" : classes.closed}`}>
-          <div onClick={() => setSidebarOpen(!isSidebarOpen())} class={classes.sidebarToggle}>
-            {isSidebarOpen() ? (
-              <>
-                <img src={Arrow2Icon} />
-                <p>COLLAPSE</p>
-              </>
-            ) : (
-              <img src={Arrow2Icon} class={classes.reverse} />
-            )}
-          </div>
-          {sectionTitles.map((section) => (
-            <div class={classes.sectionSidebarContainer}>
-              <span class={classes.sectionSidebarStatus}>
-                {section.Status === "Completed" ? (
-                  <img src={BlueCheckIcon} />
-                ) : section.Status === "Not Completed" ? (
-                  <img src={GrayCircleIcon} />
-                ) : null}
-              </span>
+        <div class={classes.sidebarContainer}>
+          <div class={`${classes.sidebar} ${isSidebarOpen() ? "" : classes.closed}`}>
+            <div onClick={() => setSidebarOpen(!isSidebarOpen())} class={classes.sidebarToggle}>
               {isSidebarOpen() ? (
-                <span class={classes.sectionSidebarTitle}>{section.Title}</span>
-              ) : null}
+                <>
+                  <img src={Arrow2Icon} />
+                  <p>COLLAPSE</p>
+                </>
+              ) : (
+                <img src={Arrow2Icon} class={classes.reverse} />
+              )}
             </div>
-          ))}
+            <div class={classes.allSectionSidebarContainer}>
+              {sectionTitles.map((section) => (
+                <div class={classes.sectionSidebarContainer}>
+                  <span class={classes.sectionSidebarStatus}>
+                    {section.Status === "Completed" ? (
+                      <img src={BlueCheckIcon} />
+                    ) : section.Status === "Not Completed" ? (
+                      <img src={GrayCircleIcon} />
+                    ) : null}
+                  </span>
+                  {isSidebarOpen() ? (
+                    <span class={classes.sectionSidebarTitle}>{section.Title}</span>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div
+            class={`${classes.sidebarResizeHandle} ${isSidebarOpen() ? "" : classes.closed}`}
+          ></div>
         </div>
         <Show when={isSidebarOpen()}>
           <div
