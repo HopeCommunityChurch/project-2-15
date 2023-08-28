@@ -397,7 +397,7 @@ export function StudiesTopNav() {
                         </Button>
                       </li>
                       <li>
-                        <a href="/admin" class={classes.fullWidthLink}>
+                        <a href="/app/admin" class={classes.fullWidthLink}>
                           Admin Area
                         </a>
                       </li>
