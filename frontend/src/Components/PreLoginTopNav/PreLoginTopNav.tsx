@@ -55,8 +55,8 @@ export function PreLoginTopNav() {
               ))
               .with({ state: "loggedIn" }, ({ user }) => (
                 <>
-                  <Button type="Blue" onClick={() => nav("/app/profile")}>
-                    {user.name}
+                  <Button type="Blue" onClick={() => nav("/app/studies")}>
+                    Go to App
                   </Button>
                 </>
               ))

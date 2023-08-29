@@ -1,4 +1,4 @@
-import Logo from "./P215.png";
+import Logo from "../../Assets/p215-full-logo.svg";
 import { Button } from "../Button/Button";
 import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
@@ -395,6 +395,11 @@ export function StudiesTopNav() {
                         <Button type="Blue" onClick={() => setShowModal(true)}>
                           + New Study
                         </Button>
+                      </li>
+                      <li>
+                        <a href="/app/account" class={classes.fullWidthLink}>
+                          My Account
+                        </a>
                       </li>
                       <li>
                         <a href="/app/admin" class={classes.fullWidthLink}>

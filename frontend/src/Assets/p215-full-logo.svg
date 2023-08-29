@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="208.643" height="49.345" viewBox="0 0 208.643 49.345">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_2783" data-name="Rectangle 2783" width="49.345" height="49.345" fill="#0057d1"/>
+    </clipPath>
+  </defs>
+  <g id="Group_8934" data-name="Group 8934" transform="translate(-14.144 -123)">
+    <g id="Group_5578" data-name="Group 5578" transform="translate(14.144 123)">
+      <g id="Group_5578-2" data-name="Group 5578" clip-path="url(#clip-path)">
+        <path id="Path_4517" data-name="Path 4517" d="M23.052.052A24.67,24.67,0,0,0,9.14,43.838l7.121-16.512H7.871l1.857-3.891h8.211l4.081-9.462,4.421,1.857-3.191,7.605h7.17v3.891h-8.8L13.5,46.67A24.673,24.673,0,1,0,23.052.052M36.037,27.5l-2.255-.265s2.123-6.279-1.9-10.567A20.964,20.964,0,0,0,22.639,11.1L23.7,9.064s6.853,1.857,9.993,5.969S37.186,21.8,36.037,27.5m4.156,0H37.761c1.238-7.65-.044-9.595-2.3-13.044S24.452,7.87,24.452,7.87l.91-1.724a24.289,24.289,0,0,1,12.576,7.517c4.6,4.952,2.255,13.84,2.255,13.84m1.99,0a17.231,17.231,0,0,0-2.83-15.122c-4.82-6.411-13.265-7.561-13.265-7.561l1.061-1.99s7.472.487,13.84,7.959,3.8,16.714,3.8,16.714Z" transform="translate(0 0)" fill="#0057d1"/>
+      </g>
+    </g>
+    <text id="Project" transform="translate(72.638 155.195)" fill="#5e6365" font-size="27" font-family="Rubik-Medium, Rubik" font-weight="500" letter-spacing="-0.017em"><tspan x="0" y="0">Project</tspan></text>
+    <text id="_2:15" data-name="2:15" transform="translate(172.786 155.195)" fill="#717171" font-size="27" font-family="Rubik-Italic, Rubik" font-style="italic" letter-spacing="-0.005em"><tspan x="0" y="0">2:15</tspan></text>
+  </g>
+</svg>

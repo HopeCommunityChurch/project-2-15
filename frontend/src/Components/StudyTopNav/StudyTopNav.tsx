@@ -205,6 +205,11 @@ export function StudyTopNav(props: StudyTopNavProps) {
                         </a>
                       </li>
                       <li>
+                        <a href="/app/account" class={classes.fullWidthLink}>
+                          My Account
+                        </a>
+                      </li>
+                      <li>
                         <a href="/app/admin" class={classes.fullWidthLink}>
                           Admin Area
                         </a>
