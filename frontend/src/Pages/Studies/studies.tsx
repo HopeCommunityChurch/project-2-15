@@ -25,14 +25,14 @@ export function StudiesPage() {
   //@ts-ignore
   return match(loginState() as LoginUser)
     .with({ state: "notLoggedIn" }, () => {
-      nav("/app/login");
+      nav("/app/login?redirect=/app/studies");
       return <> </>;
     })
     .with({ state: "loggedIn" }, ({ user }) => Studies(user))
     .exhaustive();
 }
 
-function Studies(me: PublicUser) {
+function Studies(currentUser: PublicUser) {
   const [result] = createResource([], () => getStudies(), { initialValue: { state: "loading" } });
   return (
     <>
@@ -57,7 +57,9 @@ function Studies(me: PublicUser) {
                 .with({ state: "loading" }, () => <>loading</>)
                 .with({ state: "error" }, ({ body }) => <>error</>)
                 .with({ state: "success" }, ({ body }) => (
-                  <For each={body}>{(study) => <ViewStudy study={study} me={me} />}</For>
+                  <For each={body}>
+                    {(study) => <ViewStudy study={study} currentUser={currentUser} />}
+                  </For>
                 ))
                 .with({ state: "notloaded" }, () => <>not loaded</>)
                 .exhaustive()
@@ -71,7 +73,7 @@ function Studies(me: PublicUser) {
 
 type ViewStudyProps = {
   study: Study;
-  me: PublicUser;
+  currentUser: PublicUser;
 };
 
 const dtFormat = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.US);
@@ -80,7 +82,7 @@ function ViewStudy(props: ViewStudyProps) {
   console.log("test");
   const nav = useNavigate();
   const peoples = props.study.docs.flatMap((doc) =>
-    doc.editors.filter((e) => e.userId != props.me.userId).map((e) => e.name)
+    doc.editors.filter((e) => e.userId != props.currentUser.userId).map((e) => e.name)
   );
   let shared = "no one";
   if (peoples.length > 0) {
@@ -89,7 +91,7 @@ function ViewStudy(props: ViewStudyProps) {
     shared = peoples.slice(1).reduce((prev, cur) => cur + ", " + prev, peoples[0]);
   }
   const myDoc = props.study.docs.find((doc) =>
-    doc.editors.some((e) => e.userId == props.me.userId)
+    doc.editors.some((e) => e.userId == props.currentUser.userId)
   );
   const updated = myDoc.updated.format(dtFormat);
   return (
