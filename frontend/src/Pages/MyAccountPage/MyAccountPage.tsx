@@ -9,6 +9,7 @@ import * as classes from "./styles.module.scss";
 
 export function MyAccountPage() {
   const dummyUserInfo = {
+    profilePicture: null,
     firstName: "Jon",
     lastName: "Boi",
     email: "jonboimaximus2000@yurrr.com",
@@ -25,15 +26,6 @@ export function MyAccountPage() {
   const [curPass, setCurPass] = createSignal("");
   const [newPass, setNewPass] = createSignal("");
   const [confirmNewPass, setConfirmNewPass] = createSignal("");
-
-  const handleImageUpload = (e: Event) => {
-    const fileInput = e.target as HTMLInputElement;
-    if (fileInput.files && fileInput.files.length > 0) {
-      setIsImageUploaded(true);
-    } else {
-      setIsImageUploaded(false);
-    }
-  };
 
   // Derived state to check if any field value has changed
   createEffect(() => {
@@ -73,29 +65,21 @@ export function MyAccountPage() {
         <section class={classes.profilePictureSection}>
           <h2 class={classes.sectionTitle}>Profile Picture</h2>
           <div class={classes.profilePicAndUpdateOptions}>
-            <img
-              class={classes.profilePicture}
-              src="default-profile-picture.jpg"
-              alt="Profile Picture"
-            />
-            <div class={classes.updateProfilePicture}>
-              <p>Want to update your picture?</p>
+            <div class={classes.profilePictureContainer}>
+              <img
+                class={classes.profilePicture}
+                src="default-profile-picture.jpg"
+                alt="Profile Picture"
+              />
+              <label for="profile-picture-upload">
+                <div>+</div>
+              </label>
               <input
                 class={classes.fileInput}
                 type="file"
                 id="profile-picture-upload"
                 accept="image/*"
-                onChange={handleImageUpload}
               />
-              <button
-                class={classes.button}
-                type="button"
-                id="update-profile-picture"
-                onClick={handleUpdateProfilePicture}
-                disabled={!isImageUploaded()}
-              >
-                Update Picture
-              </button>
             </div>
           </div>
         </section>
@@ -104,70 +88,76 @@ export function MyAccountPage() {
         <section class={classes.personalInformationSection}>
           <h2 class={classes.sectionTitle}>Personal Information</h2>
           <form id="personal-information-form" onSubmit={handleUpdatePersonalInformation}>
-            <label class={classes.label} for="first-name">
-              First Name:
-            </label>
-            <input
-              class={classes.input}
-              type="text"
-              id="first-name"
-              name="first-name"
-              value={firstName()}
-              onInput={(e) => setFirstName(e.currentTarget.value)}
-            />
-
-            <label class={classes.label} for="last-name">
-              Last Name:
-            </label>
-            <input
-              class={classes.input}
-              type="text"
-              id="last-name"
-              name="last-name"
-              value={lastName()}
-              onInput={(e) => setLastName(e.currentTarget.value)}
-            />
-
-            <label class={classes.label} for="email">
-              Email:
-            </label>
-            <input
-              class={classes.input}
-              type="email"
-              id="email"
-              name="email"
-              value={email()}
-              onInput={(e) => setEmail(e.currentTarget.value)}
-            />
-
-            <label class={classes.label} for="phone">
-              Phone Number:
-            </label>
-            <input
-              class={classes.input}
-              type="tel"
-              id="phone"
-              name="phone"
-              value={phoneNumber()}
-              onInput={(e) => setPhoneNumber(e.currentTarget.value)}
-            />
-
-            <label class={classes.label} for="language">
-              Preferred Language:
-            </label>
-            <select
-              class={classes.select}
-              id="language"
-              name="language"
-              value={preferredLang()}
-              onInput={(e) => setPreferredLang(e.currentTarget.value)}
-            >
-              <option value="en">English</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              {/* Add other languages here */}
-            </select>
-
+            <div class={classes.halfWidth}>
+              <label class={classes.label} for="first-name">
+                First Name:
+              </label>
+              <input
+                class={classes.input}
+                type="text"
+                id="first-name"
+                name="first-name"
+                value={firstName()}
+                onInput={(e) => setFirstName(e.currentTarget.value)}
+              />
+            </div>
+            <div class={classes.halfWidth}>
+              <label class={classes.label} for="last-name">
+                Last Name:
+              </label>
+              <input
+                class={classes.input}
+                type="text"
+                id="last-name"
+                name="last-name"
+                value={lastName()}
+                onInput={(e) => setLastName(e.currentTarget.value)}
+              />
+            </div>
+            <div class={classes.halfWidth}>
+              <label class={classes.label} for="email">
+                Email:
+              </label>
+              <input
+                class={classes.input}
+                type="email"
+                id="email"
+                name="email"
+                value={email()}
+                onInput={(e) => setEmail(e.currentTarget.value)}
+              />
+            </div>
+            <div class={classes.halfWidth}>
+              <label class={classes.label} for="phone">
+                Phone Number:
+              </label>
+              <input
+                class={classes.input}
+                type="tel"
+                id="phone"
+                name="phone"
+                value={phoneNumber()}
+                onInput={(e) => setPhoneNumber(e.currentTarget.value)}
+              />
+            </div>
+            <div class={classes.halfWidth}>
+              <label class={classes.label} for="language">
+                Preferred Language:
+              </label>
+              <select
+                class={classes.select}
+                id="language"
+                name="language"
+                value={preferredLang()}
+                onInput={(e) => setPreferredLang(e.currentTarget.value)}
+              >
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                {/* Add other languages here */}
+              </select>
+            </div>
+            <div class={classes.halfWidth}></div>
             <button
               class={classes.button}
               type="submit"
@@ -195,29 +185,30 @@ export function MyAccountPage() {
               name="current-password"
               onInput={(e) => setCurPass(e.currentTarget.value)}
             />
-
-            <label class={classes.label} for="new-password">
-              New Password:
-            </label>
-            <input
-              class={classes.input}
-              type="password"
-              id="new-password"
-              name="new-password"
-              onInput={(e) => setNewPass(e.currentTarget.value)}
-            />
-
-            <label class={classes.label} for="confirm-password">
-              Confirm New Password:
-            </label>
-            <input
-              class={classes.input}
-              type="password"
-              id="confirm-password"
-              name="confirm-password"
-              onInput={(e) => setConfirmNewPass(e.currentTarget.value)}
-            />
-
+            <div class={classes.halfWidth}>
+              <label class={classes.label} for="new-password">
+                New Password:
+              </label>
+              <input
+                class={classes.input}
+                type="password"
+                id="new-password"
+                name="new-password"
+                onInput={(e) => setNewPass(e.currentTarget.value)}
+              />
+            </div>
+            <div class={classes.halfWidth}>
+              <label class={classes.label} for="confirm-password">
+                Confirm New Password:
+              </label>
+              <input
+                class={classes.input}
+                type="password"
+                id="confirm-password"
+                name="confirm-password"
+                onInput={(e) => setConfirmNewPass(e.currentTarget.value)}
+              />
+            </div>
             <button
               class={classes.button}
               type="submit"

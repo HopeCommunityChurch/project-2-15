@@ -45,15 +45,37 @@
         margin: 0px;
       }
     }
-    .profilePicture {
-      object-fit: cover;
-      border-radius: 50%;
-      background-color: #eee;
-      width: 130px;
-      min-width: 130px;
-      max-width: 130px;
-      height: 130px;
-      min-height: 130px;
+    .profilePictureContainer {
+      position: relative;
+      .profilePicture {
+        object-fit: cover;
+        border-radius: 50%;
+        background-color: #eee;
+        width: 130px;
+        min-width: 130px;
+        max-width: 130px;
+        height: 130px;
+        min-height: 130px;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      div {
+        height: 30px;
+        width: 30px;
+        background-color: #0057d1;
+        display: flex;
+        color: white;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        cursor: pointer;
+      }
     }
   }
   .fileInput {
@@ -98,6 +120,19 @@
 
     &:hover {
       background-color: #c82333;
+    }
+  }
+}
+@media screen and (min-width: 810px) {
+  .pageBody {
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+      gap: 10px;
+    }
+    .halfWidth {
+      width: 350px;
     }
   }
 }
