@@ -183,7 +183,7 @@ export function MyAccountPage() {
         <section class={classes.accountSettingsSection}>
           <h2 class={classes.sectionTitle}>Account Settings</h2>
 
-          {/* Change Password */}
+          {/* Change Pswd */}
           <form id="change-password-form" onSubmit={handleChangePassword}>
             <label class={classes.label} for="current-password">
               Current Password:
