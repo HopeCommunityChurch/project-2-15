@@ -1,0 +1,59 @@
+.topTextEditingToolbar {
+  height: 40px;
+  background-color: #eef2fa;
+  width: calc(100% - 14px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0px 7px;
+
+  .toobarTextDropdown {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    padding: 7px;
+    border-radius: 7px;
+    cursor: pointer;
+    gap: 20px;
+    background-color: transparent;
+
+    &:hover {
+      background-color: #e0e4eb;
+    }
+
+    p {
+      margin: 0px;
+      text-wrap: nowrap;
+      font-size: 14px;
+    }
+
+    img {
+      max-width: 12px;
+    }
+  }
+  .toolbarIcon {
+    max-height: 16px;
+    padding: 7px;
+    border-radius: 7px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #e0e4eb;
+    }
+
+    &.collapseTopBar {
+      max-height: 5px;
+      transform: rotate(180deg);
+      margin-left: auto;
+      padding: 12px 9px;
+    }
+  }
+
+  .seperator {
+    background-color: #00000017;
+    width: 1.5px;
+    height: 70%;
+    margin: 0px 5px;
+    min-width: 1.5px;
+  }
+}

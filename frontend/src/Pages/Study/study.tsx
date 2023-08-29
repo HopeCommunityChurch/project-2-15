@@ -1,13 +1,13 @@
 import { createEffect, createSignal, onMount, For, createResource, Show } from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
+import { TextEditorToolbar } from "../../Components/TextEditorToolbar/TextEditorToolbar";
 import { match, P } from "ts-pattern";
 import { useParams } from "@solidjs/router";
 import { StudyTopNav } from "../../Components/StudyTopNav/StudyTopNav";
 import BlueCheckIcon from "../../Assets/blue-check-icon.svg";
 import GrayCircleIcon from "../../Assets/gray-circle-icon.svg";
 import Arrow2Icon from "../../Assets/arrow2.svg";
-
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
 import { Study } from "../../Types";
@@ -100,6 +100,7 @@ export function StudyPage() {
   return (
     <>
       <StudyTopNav isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <TextEditorToolbar />
       <div class={classes.pageBody}>
         <div class={classes.sidebarContainer}>
           <div class={`${classes.sidebar} ${isSidebarOpen() ? "" : classes.closed}`}>

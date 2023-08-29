@@ -6,7 +6,7 @@
     flex: 1;
     transition: none !important;
     background-color: #fbfbfb;
-    height: calc(100vh - 52px);
+    height: calc(100vh - 92px);
     overflow: auto; /* Required for 'resize' to work */
     width: 200px; /* Initial width */
     min-width: 150px; /* Minimum width */
@@ -101,7 +101,7 @@
   }
 
   .sidebar {
-    top: -52px;
+    top: -92px;
     position: absolute;
     z-index: 1000;
     height: 100vh !important;
@@ -155,7 +155,7 @@
 
 .pageBody {
   display: flex;
-  height: calc(100vh - 52px);
+  height: calc(100vh - 92px);
   overflow-wrap: anywhere;
   position: relative;
 }

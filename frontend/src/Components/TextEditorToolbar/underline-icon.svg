@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="uuid-ad20d835-777f-4716-b486-856e3bf8740e" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+  <defs>
+    <style>
+      .uuid-46ba207e-fb53-444c-b40e-fda0ca594b6e {
+        fill: #3b3e3d;
+        stroke-width: 0px;
+      }
+    </style>
+  </defs>
+  <path id="uuid-8b66ac79-e4d3-4ef6-827f-b768fa15bc56" data-name="Path 6846" class="uuid-46ba207e-fb53-444c-b40e-fda0ca594b6e" d="m9.0198,18.3866c1.7233,1.3214,3.8591,1.9893,6.0281,1.8851,2.1502.102,4.2663-.5664,5.9677-1.8851,1.5456-1.319,2.3867-3.284,2.274-5.3128V0h-4.7082v13.0739c.0936.9982-.2324,1.9903-.8997,2.7385-.7286.628-1.6749.9443-2.6347.8806-.9758.0622-1.9378-.2559-2.6841-.8876-.6879-.7361-1.0329-1.7284-.9501-2.7325V0h-4.7042v13.0739c-.1016,2.0347.7534,4,2.3113,5.3128Z"/>
+  <rect id="uuid-2534b352-46a8-421d-a7af-549fefd3dc98" data-name="Rectangle 8154" class="uuid-46ba207e-fb53-444c-b40e-fda0ca594b6e" x=".0884" y="23.8309" width="29.8233" height="6.1691"/>
+</svg>
