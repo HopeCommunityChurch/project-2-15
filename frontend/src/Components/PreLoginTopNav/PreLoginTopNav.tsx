@@ -103,8 +103,8 @@ export function PreLoginTopNav() {
                 .with({ state: "loggedIn" }, ({ user }) => (
                   <>
                     <li>
-                      <A href="/app/signup">
-                        <Button type="Blue">Profile</Button>
+                      <A href="/app/studies">
+                        <Button type="Blue">Go to App</Button>
                       </A>
                     </li>
                   </>
