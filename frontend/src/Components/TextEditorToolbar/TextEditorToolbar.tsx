@@ -21,8 +21,13 @@ import IndentIcon from "./indent-icon.svg";
 import OutdentIcon from "./outdent-icon.svg";
 import ClearFormattingIcon from "./clear-formatting-icon.svg";
 import QuestionIcon from "./question-icon.svg";
+import * as Editor from "../../Editor2/Editor";
 
-export function TextEditorToolbar() {
+type ToolbarProps = {
+  editor : Editor.P215Editor;
+};
+
+export function TextEditorToolbar(props : ToolbarProps) {
   const [showExtendedToolbar, setShowExtendedToolbar] = createSignal(false);
 
   return (
@@ -39,7 +44,7 @@ export function TextEditorToolbar() {
       <ToolbarGroup2 />
       <ToolbarGroup3 />
       <ToolbarGroup4 />
-      <ToolbarGroup5 />
+      <ToolbarGroup5 editor={props.editor} />
       <ToolbarGroup6 />
       <ClearFormattingSection />
       <div class={classes.extendedMenuContainer}>
@@ -57,7 +62,7 @@ export function TextEditorToolbar() {
             <ToolbarGroup2 />
             <ToolbarGroup3 />
             <ToolbarGroup4 />
-            <ToolbarGroup5 />
+            <ToolbarGroup5 editor={props.editor} />
             <ToolbarGroup6 />
             <ClearFormattingSection />
           </div>
@@ -114,12 +119,19 @@ function ToolbarGroup4() {
     </div>
   );
 }
-function ToolbarGroup5() {
+function ToolbarGroup5(props : ToolbarProps) {
+  let addQestionClick = (e : MouseEvent) => {
+    e.preventDefault();
+    props.editor.addQuestion();
+  };
   return (
     <div class={classes.toolbarGroup5}>
       <img src={ReferenceIcon} class={classes.toolbarIcon} />
       <img src={RephraseIcon} class={classes.toolbarIcon} />
-      <img src={QuestionIcon} class={classes.toolbarIcon} />
+      <img
+        src={QuestionIcon}
+        class={classes.toolbarIcon}
+        onClick={ addQestionClick } />
       <div class={classes.seperator} />
     </div>
   );

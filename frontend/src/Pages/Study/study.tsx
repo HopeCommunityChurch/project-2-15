@@ -53,7 +53,7 @@ export function StudyPage() {
   };
 
   let editorRoot : HTMLDivElement;
-  let editor : Editor.P215Editor;
+  let editor : Editor.P215Editor = new Editor.P215Editor(null);;
   onMount(() => {
     // Set initial state based on viewport width
     handleSidebarState();
@@ -95,7 +95,7 @@ export function StudyPage() {
       sidebar.style.width = Math.max(Math.min(width, 500), 150) + "px";
     }
 
-    editor = new Editor.P215Editor(null, editorRoot);
+    editor.addEditor(editorRoot);
 
     // Cleanup listener when component is destroyed
     return () => {
@@ -107,7 +107,7 @@ export function StudyPage() {
   return (
     <>
       <StudyTopNav isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
-      <TextEditorToolbar />
+      <TextEditorToolbar editor={editor}/>
       <div class={classes.pageBody}>
         <div class={classes.sidebarContainer}>
           <div class={`${classes.sidebar} ${isSidebarOpen() ? "" : classes.closed}`}>

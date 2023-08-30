@@ -169,11 +169,12 @@ class SectionView implements NodeView {
 function getRandomStr() : string {
   const arrayb = new Uint8Array(10);
   let b = self.crypto.getRandomValues(arrayb);
-  return b.reduce( (a,b) => a + b , "");
+  return btoa(b.reduce( (a,b) => a + b , ""));
 }
 
 const newQuestionNode : () => [string, Node] = () => {
   const questionId = getRandomStr();
+  console.log(questionId);
   const p = textSchema.nodes.paragraph.create();
   const questionText = textSchema.nodes.questionText.create({}, p);
   const result = textSchema.nodes.question.create({questionId}, questionText)
@@ -552,7 +553,9 @@ const questionPopup = (x, y, qId, questionMap, view : EditorView) => {
 };
 
 
-export const questionReferenceMarkView = (questionMap : Dictionary<QuestionMapItem>, view : EditorView) => (mark : Mark) => {
+export const questionReferenceMarkView = (questionMap : Dictionary<QuestionMapItem>) => (mark : Mark, view : EditorView) => {
+  console.log(view);
+  console.log(questionMap);
   const mview = document.createElement("questionRef");
   mview.className = classes.questionRef;
   const qId = mark.attrs.questionId
@@ -730,7 +733,7 @@ export class P215Editor {
   state : EditorState;
   view : EditorView;
   questionMap : Dictionary<QuestionMapItem>;
-  constructor(initialState, editorRoot) {
+  constructor(initialState) {
     let node = Node.fromJSON(textSchema, defaultText);
     this.state = EditorState.create({
       schema: textSchema,
@@ -752,8 +755,11 @@ export class P215Editor {
     });
 
     this.questionMap = {};
-    var that = this;
 
+  }
+
+  addEditor(editorRoot : HTMLElement) {
+    let that = this;
     this.view = new EditorView(editorRoot, {
       state: that.state,
       nodeViews: {
@@ -778,7 +784,7 @@ export class P215Editor {
       },
       markViews: {
         referenceTo: referenceToMarkView,
-        questionReference: questionReferenceMarkView(that.questionMap, that.view),
+        questionReference: questionReferenceMarkView(that.questionMap),
       },
       dispatchTransaction: (transaction) => {
         // console.log(JSON.stringify(transaction.doc.toJSON()));
@@ -790,6 +796,10 @@ export class P215Editor {
 
   removeEditor () {
     this.view.destroy();
+  }
+
+  addQuestion() {
+    addQuestion(this.view.state, this.view.dispatch);
   }
 };
 
