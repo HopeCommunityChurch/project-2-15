@@ -1,4 +1,12 @@
-import { createEffect, createSignal, onMount, For, createResource, Show } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  onMount,
+  For,
+  createResource,
+  Show,
+  onCleanup,
+} from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
 import { TextEditorToolbar } from "../../Components/TextEditorToolbar/TextEditorToolbar";
@@ -43,6 +51,14 @@ export function StudyPage() {
     { Title: "28:11–15", Status: "Not Completed" },
     { Title: "28:16–20", Status: "Not Completed" },
   ];
+
+  createEffect(() => {
+    const isStudyPage = document.querySelector(`.${classes.documentBody}`);
+
+    if (isStudyPage) {
+      document.body.style.overflow = "hidden";
+    }
+  });
 
   createEffect(() => {
     const setHeight = () => {
