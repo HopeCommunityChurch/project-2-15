@@ -1,3 +1,7 @@
+html {
+  overflow: hidden;
+}
+
 .sidebarContainer {
   display: flex;
   align-items: stretch; // ensures both children stretch to the full height of the container
@@ -98,6 +102,7 @@
   .sidebar.closed {
     width: 0px !important;
     min-width: 0px !important;
+    display: none !important;
   }
 
   .sidebar {
@@ -124,7 +129,7 @@
   }
 
   .documentBody.sidenavOpen {
-    left: 5px;
+    left: 0;
     position: absolute;
   }
 }
@@ -163,8 +168,35 @@
   height: calc(100vh - 92px);
   overflow-wrap: anywhere;
   position: relative;
+
+  &.collapsed {
+    transform: translateY(-52px);
+    height: calc(100vh - 40px);
+
+    .sidebar {
+      height: calc(100vh - 40px);
+    }
+  }
 }
 
 .noSelect {
   user-select: none;
+}
+
+@media screen and (max-width: 620px) {
+  .pageBody {
+    display: flex;
+    height: calc(100vh - 132px) !important;
+    overflow-wrap: anywhere;
+    position: relative;
+
+    &.collapsed {
+      transform: translateY(-52px);
+      height: calc(100vh - 80px) !important;
+
+      .sidebar {
+        height: calc(100vh - 40px);
+      }
+    }
+  }
 }
