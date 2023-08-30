@@ -10,7 +10,7 @@ import "./styles.css"
 import * as classes from "./styles.module.css"
 import defaultText from "./default.json"
 
-export const textSchema = new Schema({
+const textSchema = new Schema({
   nodes: {
     doc: {
       content: "section*"
@@ -146,7 +146,6 @@ export const textSchema = new Schema({
   },
 });
 
-let node = Node.fromJSON(textSchema, defaultText);
 
 
 // var blockMap : Dictionary<BlockMapItem> = {};
@@ -167,8 +166,14 @@ class SectionView implements NodeView {
   }
 }
 
+function getRandomStr() : string {
+  const arrayb = new Uint8Array(10);
+  let b = self.crypto.getRandomValues(arrayb);
+  return b.reduce( (a,b) => a + b , "");
+}
+
 const newQuestionNode : () => [string, Node] = () => {
-  const questionId = crypto.randomUUID();
+  const questionId = getRandomStr();
   const p = textSchema.nodes.paragraph.create();
   const questionText = textSchema.nodes.questionText.create({}, p);
   const result = textSchema.nodes.question.create({questionId}, questionText)
@@ -469,7 +474,7 @@ export class ChunkCommentView implements NodeView {
 
 }
 
-const questionPopup = (x, y, qId, questionMap) => {
+const questionPopup = (x, y, qId, questionMap, view : EditorView) => {
   let qNode = questionMap[qId];
   console.log(qNode);
   if (!qNode.editor) {
@@ -547,7 +552,7 @@ const questionPopup = (x, y, qId, questionMap) => {
 };
 
 
-export const questionReferenceMarkView = (questionMap : Dictionary<QuestionMapItem>) => (mark : Mark) => {
+export const questionReferenceMarkView = (questionMap : Dictionary<QuestionMapItem>, view : EditorView) => (mark : Mark) => {
   const mview = document.createElement("questionRef");
   mview.className = classes.questionRef;
   const qId = mark.attrs.questionId
@@ -555,7 +560,7 @@ export const questionReferenceMarkView = (questionMap : Dictionary<QuestionMapIt
   let pop = null;
   mview.onclick = (e) => {
     e.preventDefault();
-    questionPopup(e.pageX, e.pageY, qId, questionMap);
+    questionPopup(e.pageX, e.pageY, qId, questionMap, view);
   };
   return { dom: mview }
 }
@@ -708,24 +713,6 @@ const addQuestion = (state : EditorState, dispatch?: ((tr: Transaction) => void)
   }
 };
 
-let state = EditorState.create({
-  schema: textSchema,
-  doc: node,
-  plugins: [
-    history(),
-    keymap({
-      "Mod-z": undo,
-      "Mod-y": redo,
-      "Tab": increaseLevel,
-      "Mod-]": increaseLevel,
-      "Shift-Tab": decreaseLevel,
-      "Mod-[": decreaseLevel,
-    }),
-    keymap(baseKeymap),
-    currentChunkPlug,
-    // referencePlugin
-  ],
-});
 
 interface QuestionMapItem {
   node : Node;
@@ -739,46 +726,71 @@ interface Dictionary<T extends notUndefined = notUndefined> {
   [key: string]: T | undefined;
 }
 
-var questionMap : Dictionary<QuestionMapItem> = {};
+export class P215Editor {
+  state : EditorState;
+  view : EditorView;
+  questionMap : Dictionary<QuestionMapItem>;
+  constructor(initialState, editorRoot) {
+    let node = Node.fromJSON(textSchema, defaultText);
+    this.state = EditorState.create({
+      schema: textSchema,
+      doc: node,
+      plugins: [
+        history(),
+        keymap({
+          "Mod-z": undo,
+          "Mod-y": redo,
+          "Tab": increaseLevel,
+          "Mod-]": increaseLevel,
+          "Shift-Tab": decreaseLevel,
+          "Mod-[": decreaseLevel,
+        }),
+        keymap(baseKeymap),
+        currentChunkPlug,
+        // referencePlugin
+      ],
+    });
 
-let view = new EditorView(document.getElementById('editorRoot'), {
-  state,
-  nodeViews: {
-    section(node) {
-      return new SectionView(node);
-    },
-    questions(node, view, getPos) {
-      return new QuestionsView(node, view, getPos);
-    },
-    chunk(node, view, getPos) {
-      return new ChunkView(node, view, getPos);
-    },
-    chunkComment(node, view, getPos) {
-      return new ChunkCommentView(node, view, getPos);
-    },
-    question (node, view, getPos) {
-      return new QuestionView(questionMap, node, view, getPos);
-    },
-    questionAnswer (node) {
-      return new QuestionAnswerView(node);
-    },
-  },
-  markViews: {
-    referenceTo: referenceToMarkView,
-    questionReference: questionReferenceMarkView(questionMap),
-  },
-  dispatchTransaction: (transaction) => {
-    // console.log(JSON.stringify(transaction.doc.toJSON()));
-    let newState = view.state.apply(transaction);
-    view.updateState(newState);
+    this.questionMap = {};
+    var that = this;
+
+    this.view = new EditorView(editorRoot, {
+      state: that.state,
+      nodeViews: {
+        section(node) {
+          return new SectionView(node);
+        },
+        questions(node, view, getPos) {
+          return new QuestionsView(node, view, getPos);
+        },
+        chunk(node, view, getPos) {
+          return new ChunkView(node, view, getPos);
+        },
+        chunkComment(node, view, getPos) {
+          return new ChunkCommentView(node, view, getPos);
+        },
+        question (node, view, getPos) {
+          return new QuestionView(that.questionMap, node, view, getPos);
+        },
+        questionAnswer (node) {
+          return new QuestionAnswerView(node);
+        },
+      },
+      markViews: {
+        referenceTo: referenceToMarkView,
+        questionReference: questionReferenceMarkView(that.questionMap, that.view),
+      },
+      dispatchTransaction: (transaction) => {
+        // console.log(JSON.stringify(transaction.doc.toJSON()));
+        let newState = that.view.state.apply(transaction);
+        that.view.updateState(newState);
+      }
+    });
   }
-});
 
-
-const addQuestionButton = document.createElement("button");
-addQuestionButton.innerText = "add question";
-addQuestionButton.onclick = (e) => {
-  e.preventDefault();
-  addQuestion(view.state, view.dispatch);
+  removeEditor () {
+    this.view.destroy();
+  }
 };
-document.getElementById("editorRoot").insertBefore(addQuestionButton, view.dom);
+
+

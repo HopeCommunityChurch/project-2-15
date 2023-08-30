@@ -11,6 +11,7 @@ import Arrow2Icon from "../../Assets/arrow2.svg";
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
 import { Study } from "../../Types";
+import * as Editor from "../../Editor2/Editor";
 
 export function StudyPage() {
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
@@ -50,6 +51,9 @@ export function StudyPage() {
       setSidebarOpen(true);
     }
   };
+
+  let editorRoot : HTMLDivElement;
+  let editor : Editor.P215Editor;
   onMount(() => {
     // Set initial state based on viewport width
     handleSidebarState();
@@ -91,11 +95,14 @@ export function StudyPage() {
       sidebar.style.width = Math.max(Math.min(width, 500), 150) + "px";
     }
 
+    editor = new Editor.P215Editor(null, editorRoot);
+
     // Cleanup listener when component is destroyed
     return () => {
       window.removeEventListener("resize", handleSidebarState);
     };
   });
+
 
   return (
     <>
@@ -142,7 +149,7 @@ export function StudyPage() {
           ></div>
         </Show>
 
-        <div class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}>
+        <div ref={editorRoot} class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}>
           {documentID}
           <br />
           Insert the document processor here
