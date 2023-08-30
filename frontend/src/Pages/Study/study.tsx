@@ -58,12 +58,16 @@ export function StudyPage() {
     window.addEventListener("resize", setHeight);
     document.addEventListener("click", setHeight);
     document.addEventListener("touchstart", setHeight);
+    document.addEventListener("focus", setHeight, true);
+    document.addEventListener("focusin", setHeight);
 
     // Cleanup
     return () => {
       window.removeEventListener("resize", setHeight);
       document.removeEventListener("click", setHeight);
       document.removeEventListener("touchstart", setHeight);
+      document.removeEventListener("focus", setHeight, true);
+      document.removeEventListener("focusin", setHeight);
     };
   });
 
@@ -181,102 +185,6 @@ export function StudyPage() {
           class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
         >
           {documentID}
-          <br />
-          Insert the document processor hereInsert the document processor hereInsert the document
-          processor hereInsert the document processor hereInsert the document processor hereInsert
-          the document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          heree document processor hereInsert the document processor hereInsert the document
-          processor hereInsert the document processor hereInsert the document processor hereInsert
-          the document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor heree document
-          processor hereInsert the document processor hereInsert the document processor hereInsert
-          the document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor heree document processor hereInsert
-          the document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor heree document processor hereInsert the document
-          processor hereInsert the document processor hereInsert the document processor hereInsert
-          the document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor hereInsert the document processor hereInsert the document processor
-          hereInsert the document processor hereInsert the document processor hereInsert the
-          document processor here
         </div>
       </div>
     </>
