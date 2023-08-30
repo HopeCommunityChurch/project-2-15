@@ -142,7 +142,7 @@ export function StudyPage() {
           ></div>
         </Show>
 
-        <div class={classes.documentBody}>
+        <div class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}>
           {documentID}
           <br />
           Insert the document processor here

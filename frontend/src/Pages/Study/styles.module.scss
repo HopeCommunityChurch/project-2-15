@@ -122,6 +122,11 @@
     top: 0;
     left: 0;
   }
+
+  .documentBody.sidenavOpen {
+    left: 5px;
+    position: absolute;
+  }
 }
 
 @media screen and (min-width: 751px) {
