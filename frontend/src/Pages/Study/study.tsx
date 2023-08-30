@@ -44,6 +44,25 @@ export function StudyPage() {
     { Title: "28:16–20", Status: "Not Completed" },
   ];
 
+  createEffect(() => {
+    const setHeight = () => {
+      // Use window.innerHeight to get the correct height
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
+
+    // Set the height initially
+    setHeight();
+
+    // Update height when the window is resized
+    window.addEventListener("resize", setHeight);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", setHeight);
+    };
+  });
+
   // Function to handle the sidebar state based on viewport width
   const handleSidebarState = () => {
     if (window.innerWidth <= 750) {
@@ -53,8 +72,8 @@ export function StudyPage() {
     }
   };
 
-  let editorRoot : HTMLDivElement;
-  let editor : Editor.P215Editor;
+  let editorRoot: HTMLDivElement;
+  let editor: Editor.P215Editor;
   onMount(() => {
     // Set initial state based on viewport width
     handleSidebarState();
@@ -103,7 +122,6 @@ export function StudyPage() {
       window.removeEventListener("resize", handleSidebarState);
     };
   });
-
 
   return (
     <>
@@ -154,7 +172,10 @@ export function StudyPage() {
           ></div>
         </Show>
 
-        <div ref={editorRoot} class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}>
+        <div
+          ref={editorRoot}
+          class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
+        >
           {documentID}
           <br />
           Insert the document processor hereInsert the document processor hereInsert the document
