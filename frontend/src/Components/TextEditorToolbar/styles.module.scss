@@ -7,6 +7,21 @@
   gap: 5px;
   padding: 0px 7px;
 
+  .toolbarGroup1,
+  .toolbarGroup2,
+  .toolbarGroup3,
+  .toolbarGroup4,
+  .toolbarGroup5,
+  .toolbarGroup6 {
+    height: 40px;
+    display: flex;
+    gap: 5px;
+    height: 30px;
+
+    div {
+      margin-top: 4.5px;
+    }
+  }
   .toobarTextDropdown {
     display: flex;
     align-items: center;
@@ -33,6 +48,7 @@
   }
   .toolbarIcon {
     max-height: 16px;
+    min-height: 16px;
     padding: 7px;
     border-radius: 7px;
     cursor: pointer;
@@ -41,11 +57,37 @@
       background-color: #e0e4eb;
     }
 
+    &.extendedMenuToggle {
+      display: none;
+    }
     &.collapseTopBar {
       max-height: 5px;
+      min-height: 5px;
+
       transform: rotate(180deg);
       margin-left: auto;
       padding: 12px 9px;
+    }
+  }
+
+  .extendedMenuContainer {
+    position: relative; // Relative positioning for the parent container
+  }
+
+  .extendedToolbar {
+    position: absolute;
+    transform: translateY(6px);
+    height: 40px;
+    right: 0; // Align with the right edge of the extendedMenuContainer
+    background-color: #eef2fa;
+    display: none;
+    z-index: 1;
+    align-items: center;
+    padding: 0px 6px;
+    border-radius: 8px;
+
+    > div {
+      display: none;
     }
   }
 
@@ -55,5 +97,93 @@
     height: 70%;
     margin: 0px 5px;
     min-width: 1.5px;
+  }
+}
+@media screen and (max-width: 1109px) {
+  .clearFormatting {
+    display: none;
+  }
+
+  .extendedToolbar > .clearFormatting {
+    display: flex !important;
+  }
+
+  .extendedToolbar {
+    display: flex !important;
+  }
+
+  .extendedMenuToggle {
+    display: flex !important;
+    max-height: 13px;
+    min-height: 13px;
+    padding: 8.5px;
+
+    &.expanded {
+      background-color: #d3e3fd;
+    }
+  }
+}
+
+@media screen and (max-width: 1080px) {
+  .topTextEditingToolbar > .toolbarGroup6 {
+    display: none !important;
+  }
+  .extendedToolbar > .toolbarGroup6 {
+    display: flex !important;
+  }
+}
+
+@media screen and (max-width: 930px) {
+  .topTextEditingToolbar > .toolbarGroup5 {
+    display: none !important;
+  }
+  .extendedToolbar > .toolbarGroup5 {
+    display: flex !important;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .topTextEditingToolbar > .toolbarGroup4 {
+    display: none !important;
+  }
+  .extendedToolbar > .toolbarGroup4 {
+    display: flex !important;
+  }
+}
+
+@media screen and (max-width: 710px) {
+  .topTextEditingToolbar > .toolbarGroup3 {
+    display: none !important;
+  }
+  .extendedToolbar > .toolbarGroup3 {
+    display: flex !important;
+  }
+}
+
+@media screen and (max-width: 620px) {
+  .topTextEditingToolbar > .toolbarGroup2 {
+    display: none !important;
+  }
+  .extendedToolbar > .toolbarGroup2 {
+    display: flex !important;
+  }
+  .extendedToolbar {
+    max-width: 100vw;
+    flex-wrap: wrap;
+    height: auto !important;
+    left: 0;
+    right: auto !important;
+  }
+  .extendedMenuContainer {
+    position: inherit !important;
+  }
+}
+
+@media screen and (max-width: 430px) {
+  .topTextEditingToolbar > .toolbarGroup1 {
+    display: none !important;
+  }
+  .extendedToolbar > .toolbarGroup1 {
+    display: flex !important;
   }
 }
