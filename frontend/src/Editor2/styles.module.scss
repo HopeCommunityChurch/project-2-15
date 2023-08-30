@@ -23,7 +23,6 @@ body {
   }
 }
 
-
 .chunkButton {
   position: absolute;
   background-color: red;
@@ -32,7 +31,6 @@ body {
   left: -8px;
   cursor: pointer;
 }
-
 
 .chunk {
   margin: 0px;
@@ -64,12 +62,13 @@ body {
 }
 
 .selected {
-  border: 1px solid #00f4;
+  /* border: 1px solid #00f4; */
   border-radius: 3px;
 }
 
 .bibleText {
-  padding: 10px;
+  // padding: 10px;
+  padding: 0px;
 }
 
 .content {
@@ -113,7 +112,7 @@ body {
   border: 1px solid black;
   grid-template-areas:
     "mover close"
-    "editor editor" ;
+    "editor editor";
   grid-template-columns: 1fr 20px;
   grid-template-rows: 20px 1fr;
   align-items: stretch;
@@ -126,14 +125,14 @@ body {
 
 .questionRefPopup mover {
   grid-area: mover;
-  width:100%;
+  width: 100%;
   height: 100%;
   cursor: grab;
 }
 
 .questionRefPopup closer {
   grid-area: close;
-  width:100%;
+  width: 100%;
   height: 100%;
   cursor: pointer;
 }
@@ -141,7 +140,7 @@ body {
 questionouter {
   display: grid;
   grid-template-areas: "q qt" "b a";
-  grid-template-columns:  1.4em 1fr;
+  grid-template-columns: 1.4em 1fr;
 }
 
 questionouter > div {
@@ -162,7 +161,7 @@ questiontext {
 
 questionanswerouter {
   display: grid;
-  grid-template-columns:  1.4em 1fr;
+  grid-template-columns: 1.4em 1fr;
 }
 
 questionanswerouter > div {

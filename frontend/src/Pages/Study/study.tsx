@@ -54,12 +54,16 @@ export function StudyPage() {
     // Set the height initially
     setHeight();
 
-    // Update height when the window is resized
+    // Update height when the window is resized or touch or click
     window.addEventListener("resize", setHeight);
+    document.addEventListener("click", setHeight);
+    document.addEventListener("touchstart", setHeight);
 
     // Cleanup
     return () => {
       window.removeEventListener("resize", setHeight);
+      document.removeEventListener("click", setHeight);
+      document.removeEventListener("touchstart", setHeight);
     };
   });
 
