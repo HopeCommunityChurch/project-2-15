@@ -1,4 +1,12 @@
-import { createEffect, createSignal, onMount, For, createResource, Show } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  onMount,
+  For,
+  createResource,
+  Show,
+  onCleanup,
+} from "solid-js";
 import { Button } from "../../Components/Button/Button";
 import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
 import { TextEditorToolbar } from "../../Components/TextEditorToolbar/TextEditorToolbar";
@@ -15,6 +23,7 @@ import * as Editor from "../../Editor2/Editor";
 
 export function StudyPage() {
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
+  const [isTopbarOpen, setTopbarOpen] = createSignal(true);
   const documentID = useParams().documentID;
   const sectionTitles = [
     { Title: "1:1–17", Status: "Completed" },
@@ -43,6 +52,41 @@ export function StudyPage() {
     { Title: "28:16–20", Status: "Not Completed" },
   ];
 
+  createEffect(() => {
+    const isStudyPage = document.querySelector(`.${classes.documentBody}`);
+
+    if (isStudyPage) {
+      document.body.style.overflow = "hidden";
+    }
+  });
+
+  createEffect(() => {
+    const setHeight = () => {
+      // Use window.innerHeight to get the correct height
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
+
+    // Set the height initially
+    setHeight();
+
+    // Update height when the window is resized or touch or click
+    window.addEventListener("resize", setHeight);
+    document.addEventListener("click", setHeight);
+    document.addEventListener("touchstart", setHeight);
+    document.addEventListener("focus", setHeight, true);
+    document.addEventListener("focusin", setHeight);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", setHeight);
+      document.removeEventListener("click", setHeight);
+      document.removeEventListener("touchstart", setHeight);
+      document.removeEventListener("focus", setHeight, true);
+      document.removeEventListener("focusin", setHeight);
+    };
+  });
+
   // Function to handle the sidebar state based on viewport width
   const handleSidebarState = () => {
     if (window.innerWidth <= 750) {
@@ -53,7 +97,7 @@ export function StudyPage() {
   };
 
   let editorRoot : HTMLDivElement;
-  let editor : Editor.P215Editor = new Editor.P215Editor(null);;
+  let editor : Editor.P215Editor = new Editor.P215Editor(null);
   onMount(() => {
     // Set initial state based on viewport width
     handleSidebarState();
@@ -103,12 +147,15 @@ export function StudyPage() {
     };
   });
 
-
   return (
     <>
-      <StudyTopNav isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
-      <TextEditorToolbar editor={editor}/>
-      <div class={classes.pageBody}>
+      <StudyTopNav
+        isSidebarOpen={isSidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        isTopbarOpen={isTopbarOpen}
+      />
+      <TextEditorToolbar editor={editor} isTopbarOpen={isTopbarOpen} setTopbarOpen={setTopbarOpen} />
+      <div class={`${classes.pageBody} ${isTopbarOpen() ? "" : classes.collapsed}`}>
         <div class={classes.sidebarContainer}>
           <div class={`${classes.sidebar} ${isSidebarOpen() ? "" : classes.closed}`}>
             <div onClick={() => setSidebarOpen(!isSidebarOpen())} class={classes.sidebarToggle}>
@@ -149,10 +196,11 @@ export function StudyPage() {
           ></div>
         </Show>
 
-        <div ref={editorRoot} class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}>
+        <div
+          ref={editorRoot}
+          class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
+        >
           {documentID}
-          <br />
-          Insert the document processor here
         </div>
       </div>
     </>

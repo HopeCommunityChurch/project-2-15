@@ -14,6 +14,7 @@ import useClickOutsideClose from "../../Hooks/useOutsideClickClose";
 
 type StudyTopNavProps = {
   isSidebarOpen: () => boolean;
+  isTopbarOpen: () => boolean;
   setSidebarOpen: (value: boolean) => void;
 };
 
@@ -143,7 +144,7 @@ export function StudyTopNav(props: StudyTopNavProps) {
 
   return (
     <>
-      <header class={classes.header}>
+      <header class={`${classes.header} ${props.isTopbarOpen() ? "" : classes.collapsed}`}>
         <img
           src={HamburgerMenuIcon}
           onClick={() => props.setSidebarOpen(!props.isSidebarOpen())}

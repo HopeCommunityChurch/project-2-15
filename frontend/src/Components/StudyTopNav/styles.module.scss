@@ -23,6 +23,10 @@
   background-color: #fff;
   z-index: 999;
 
+  &.collapsed {
+    transform: translateY(-52px);
+  }
+
   .studyHeaderText {
     display: flex;
     flex-direction: column;

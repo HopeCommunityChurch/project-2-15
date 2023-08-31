@@ -22,54 +22,101 @@ import OutdentIcon from "./outdent-icon.svg";
 import ClearFormattingIcon from "./clear-formatting-icon.svg";
 import QuestionIcon from "./question-icon.svg";
 import * as Editor from "../../Editor2/Editor";
+import EnterIcon from "./enter-icon.svg";
 
-type ToolbarProps = {
+
+type TextEditorToolbarProps = {
   editor : Editor.P215Editor;
+  isTopbarOpen: () => boolean;
+  setTopbarOpen: (value: boolean) => void;
 };
 
-export function TextEditorToolbar(props : ToolbarProps) {
+export function TextEditorToolbar(props: TextEditorToolbarProps) {
   const [showExtendedToolbar, setShowExtendedToolbar] = createSignal(false);
 
   return (
-    <div class={classes.topTextEditingToolbar}>
-      <img src={UndoIcon} class={classes.toolbarIcon} />
-      <img src={RedoIcon} class={classes.toolbarIcon} />
-      <div class={classes.seperator} />
-      <button class={classes.toobarTextDropdown}>
-        <p>100%</p>
-        <img src={ArrowIcon} />
-      </button>
-      <div class={classes.seperator} />
-      <ToolbarGroup1 />
-      <ToolbarGroup2 />
-      <ToolbarGroup3 />
-      <ToolbarGroup4 />
-      <ToolbarGroup5 editor={props.editor} />
-      <ToolbarGroup6 />
-      <ClearFormattingSection />
-      <div class={classes.extendedMenuContainer}>
+    <>
+      <div
+        class={`${classes.topTextEditingToolbar} ${props.isTopbarOpen() ? "" : classes.collapsed}`}
+      >
+        <img src={UndoIcon} class={classes.toolbarIcon} />
+        <img src={RedoIcon} class={classes.toolbarIcon} />
+        <div class={classes.seperator} />
+        <button class={classes.toobarTextDropdown}>
+          <p>100%</p>
+          <img src={ArrowIcon} />
+        </button>
+        <div class={classes.seperator} />
+        <ToolbarGroup1 />
+        <ToolbarGroup2 />
+        <ToolbarGroup3 />
+        <ToolbarGroup4 />
+        <ToolbarGroup5 editor={props.editor} />
+        <ToolbarGroup6 />
+        <ClearFormattingSection />
+        <div class={classes.extendedMenuContainer}>
+          <img
+            src={VerticalElipsesIcon}
+            class={`${classes.toolbarIcon} ${classes.extendedMenuToggle} ${
+              showExtendedToolbar() ? classes.expanded : ""
+            }`}
+            onClick={() => setShowExtendedToolbar(!showExtendedToolbar())}
+          />
+          {/* Conditionally show extended toolbar */}
+          <Show when={showExtendedToolbar()}>
+            <div class={classes.extendedToolbar}>
+              <ToolbarGroup1 />
+              <ToolbarGroup2 />
+              <ToolbarGroup3 />
+              <ToolbarGroup4 />
+              <ToolbarGroup5 editor={props.editor} />
+              <ToolbarGroup6 />
+              <ClearFormattingSection />
+            </div>
+          </Show>
+        </div>
         <img
-          src={VerticalElipsesIcon}
-          class={`${classes.toolbarIcon} ${classes.extendedMenuToggle} ${
-            showExtendedToolbar() ? classes.expanded : ""
-          }`}
-          onClick={() => setShowExtendedToolbar(!showExtendedToolbar())}
+          src={ArrowIcon}
+          class={`${classes.toolbarIcon} ${classes.collapseTopBar}`}
+          onClick={() => {
+            props.setTopbarOpen(!props.isTopbarOpen());
+          }}
         />
-        {/* Conditionally show extended toolbar */}
-        <Show when={showExtendedToolbar()}>
-          <div class={classes.extendedToolbar}>
-            <ToolbarGroup1 />
-            <ToolbarGroup2 />
-            <ToolbarGroup3 />
-            <ToolbarGroup4 />
-            <ToolbarGroup5 editor={props.editor} />
-            <ToolbarGroup6 />
-            <ClearFormattingSection />
-          </div>
-        </Show>
       </div>
-      <img src={ArrowIcon} class={`${classes.toolbarIcon} ${classes.collapseTopBar}`} />
-    </div>
+      <div
+        class={`${classes.mobileTopTextEditingToolbar} ${
+          props.isTopbarOpen() ? "" : classes.collapsed
+        }`}
+      >
+        <img src={UndoIcon} class={classes.toolbarIcon} />
+        <img src={RedoIcon} class={classes.toolbarIcon} />
+        <div class={classes.seperator} />
+        <img src={ReferenceIcon} class={classes.toolbarIcon} />
+        <img src={RephraseIcon} class={classes.toolbarIcon} />
+        <img src={QuestionIcon} class={classes.toolbarIcon} />
+        <img src={CommentIcon} class={classes.toolbarIcon} />
+        <div class={classes.seperator} />
+        <img src={VerticalElipsesIcon} class={classes.toolbarIcon} />
+        <img
+          src={ArrowIcon}
+          class={`${classes.toolbarIcon} ${classes.collapseTopBar}`}
+          onClick={() => {
+            props.setTopbarOpen(!props.isTopbarOpen());
+          }}
+        />
+      </div>
+      <div class={classes.mobileBottomTextEditingToolbar}>
+        <img src={BoldIcon} class={classes.toolbarIcon} />
+        <img src={ItalicIcon} class={classes.toolbarIcon} />
+        <img src={UnderlineIcon} class={classes.toolbarIcon} />
+        <img src={TextColorIcon} class={classes.toolbarIcon} />
+        <img src={HilightIcon} class={classes.toolbarIcon} />
+        <div class={classes.seperator} />
+        <img src={OutdentIcon} class={classes.toolbarIcon} />
+        <img src={IndentIcon} class={classes.toolbarIcon} />
+        <img src={EnterIcon} class={classes.toolbarIcon} />
+      </div>
+    </>
   );
 }
 
@@ -113,13 +160,18 @@ function ToolbarGroup3() {
 function ToolbarGroup4() {
   return (
     <div class={classes.toolbarGroup4}>
-      <img src={IndentIcon} class={classes.toolbarIcon} />
       <img src={OutdentIcon} class={classes.toolbarIcon} />
+      <img src={IndentIcon} class={classes.toolbarIcon} />
       <div class={classes.seperator} />
     </div>
   );
 }
-function ToolbarGroup5(props : ToolbarProps) {
+
+type GroupProp = {
+  editor : Editor.P215Editor;
+};
+
+function ToolbarGroup5(props : GroupProp) {
   let addQestionClick = (e : MouseEvent) => {
     e.preventDefault();
     props.editor.addQuestion();
