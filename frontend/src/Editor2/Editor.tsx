@@ -560,6 +560,7 @@ export const questionReferenceMarkView = (questionMap : Dictionary<QuestionMapIt
     e.preventDefault();
     questionPopup(e.pageX, e.pageY, qId, questionMap, view);
   };
+  return { dom: mview };
 }
 
 export const referenceToMarkView = (mark: Mark, view: EditorView) => {
