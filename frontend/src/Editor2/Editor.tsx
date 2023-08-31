@@ -170,7 +170,6 @@ function getRandomStr(): string {
 
 const newQuestionNode: () => [string, Node] = () => {
   const questionId = getRandomStr();
-  console.log(questionId);
   const p = textSchema.nodes.paragraph.create();
   const questionText = textSchema.nodes.questionText.create({}, p);
   const result = textSchema.nodes.question.create({ questionId }, questionText);
@@ -473,7 +472,6 @@ export class ChunkCommentView implements NodeView {
 
 const questionPopup = (x, y, qId, questionMap, view: EditorView) => {
   let qNode = questionMap[qId];
-  console.log(qNode);
   if (!qNode.editor) {
     const pop = document.createElement("questionRefPopup");
     pop.className = classes.questionRefPopup;
@@ -549,8 +547,6 @@ const questionPopup = (x, y, qId, questionMap, view: EditorView) => {
 
 
 export const questionReferenceMarkView = (questionMap : Dictionary<QuestionMapItem>) => (mark : Mark, view : EditorView) => {
-  console.log(view);
-  console.log(questionMap);
   const mview = document.createElement("questionRef");
   mview.className = classes.questionRef;
   const qId = mark.attrs.questionId
