@@ -324,31 +324,31 @@ export class ChunkView implements NodeView {
     this.contentDOM.setAttribute("level", node.attrs.level);
     this.dom.appendChild(this.contentDOM);
 
-    this.dom.onmouseenter = (e) => {
-      let hasChunkComment = this.hasComment(node);
+    // this.dom.onmouseenter = (e) => {
+    //   let hasChunkComment = this.hasComment(node);
 
-      if (hasChunkComment) return;
+    //   if (hasChunkComment) return;
 
-      e.preventDefault();
-      let widget = Decoration.widget(getPos()+1, () => {
-        const but = document.createElement("div");
-        but.className = classes.chunkButton;
-        but.onclick = () => {
-          const chunkCom = textSchema.nodes.chunkComment.create({
-            content: Fragment.empty,
-          });
-          view.dispatch(view.state.tr.insert(getPos()+1, chunkCom));
-        };
-        return but;
-      });
-      view.setProps({
-        decorations: (state) => {
-          return DecorationSet.create(state.doc, [
-            widget
-          ]);
-        },
-      });
-    }
+    //   e.preventDefault();
+    //   let widget = Decoration.widget(getPos()+1, () => {
+    //     const but = document.createElement("div");
+    //     but.className = classes.chunkButton;
+    //     but.onclick = () => {
+    //       const chunkCom = textSchema.nodes.chunkComment.create({
+    //         content: Fragment.empty,
+    //       });
+    //       view.dispatch(view.state.tr.insert(getPos()+1, chunkCom));
+    //     };
+    //     return but;
+    //   });
+    //   view.setProps({
+    //     decorations: (state) => {
+    //       return DecorationSet.create(state.doc, [
+    //         widget
+    //       ]);
+    //     },
+    //   });
+    // }
   }
 
   hasComment (node : Node) {
