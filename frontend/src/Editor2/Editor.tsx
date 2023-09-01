@@ -18,6 +18,9 @@ import "./styles.css";
 import * as classes from "./styles.module.scss";
 import defaultText from "./default.json";
 
+import DragHandleIcon from "../Assets/drag-handle.svg";
+import CloseXIcon from "../Assets/x.svg";
+
 const textSchema = new Schema({
   nodes: {
     doc: {
@@ -165,7 +168,7 @@ class SectionView implements NodeView {
 function getRandomStr(): string {
   const arrayb = new Uint8Array(10);
   let b = self.crypto.getRandomValues(arrayb);
-  return btoa(b.reduce( (a,b) => a + b , ""));
+  return btoa(b.reduce((a, b) => a + b, ""));
 }
 
 const newQuestionNode: () => [string, Node] = () => {
@@ -492,8 +495,20 @@ const questionPopup = (x, y, qId, questionMap, view: EditorView) => {
       };
       document.addEventListener("mousemove", mousemove);
     };
-    let closer = pop.appendChild(document.createElement("closer"));
-    closer.innerHTML = "X";
+    // Add drag handle
+    let dragHandle = mover.appendChild(document.createElement("drag"));
+    let dragHandleIcon = document.createElement("img");
+    dragHandle.className = classes.dragHandle;
+    dragHandleIcon.src = DragHandleIcon;
+    dragHandle.appendChild(dragHandleIcon);
+    let popUpTitle = mover.appendChild(document.createElement("p"));
+    popUpTitle.innerHTML = "Question";
+    // Add close Icon
+    let closer = mover.appendChild(document.createElement("closer"));
+    let closeImage = document.createElement("img");
+    closer.className = classes.closer;
+    closeImage.src = CloseXIcon;
+    closer.appendChild(closeImage);
     closer.onclick = (e) => {
       qNode.editor.destroy();
       qNode.editor = null;
@@ -545,19 +560,19 @@ const questionPopup = (x, y, qId, questionMap, view: EditorView) => {
   }
 };
 
-
-export const questionReferenceMarkView = (questionMap : Dictionary<QuestionMapItem>) => (mark : Mark, view : EditorView) => {
-  const mview = document.createElement("questionRef");
-  mview.className = classes.questionRef;
-  const qId = mark.attrs.questionId
-  mview.setAttribute("questionId", qId);
-  let pop = null;
-  mview.onclick = (e) => {
-    e.preventDefault();
-    questionPopup(e.pageX, e.pageY, qId, questionMap, view);
+export const questionReferenceMarkView =
+  (questionMap: Dictionary<QuestionMapItem>) => (mark: Mark, view: EditorView) => {
+    const mview = document.createElement("questionRef");
+    mview.className = classes.questionRef;
+    const qId = mark.attrs.questionId;
+    mview.setAttribute("questionId", qId);
+    let pop = null;
+    mview.onclick = (e) => {
+      e.preventDefault();
+      questionPopup(e.pageX, e.pageY, qId, questionMap, view);
+    };
+    return { dom: mview };
   };
-  return { dom: mview };
-}
 
 export const referenceToMarkView = (mark: Mark, view: EditorView) => {
   const mview = document.createElement("span");
@@ -708,9 +723,9 @@ interface Dictionary<T extends notUndefined = notUndefined> {
 }
 
 export class P215Editor {
-  state : EditorState;
-  view : EditorView;
-  questionMap : Dictionary<QuestionMapItem>;
+  state: EditorState;
+  view: EditorView;
+  questionMap: Dictionary<QuestionMapItem>;
   constructor(initialState) {
     let node = Node.fromJSON(textSchema, defaultText);
     this.state = EditorState.create({
@@ -733,10 +748,9 @@ export class P215Editor {
     });
 
     this.questionMap = {};
-
   }
 
-  addEditor(editorRoot : HTMLElement) {
+  addEditor(editorRoot: HTMLElement) {
     let that = this;
     this.view = new EditorView(editorRoot, {
       state: that.state,
@@ -779,5 +793,4 @@ export class P215Editor {
   addQuestion() {
     addQuestion(this.view.state, this.view.dispatch);
   }
-};
-
+}

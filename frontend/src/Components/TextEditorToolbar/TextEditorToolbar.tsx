@@ -24,9 +24,8 @@ import QuestionIcon from "./question-icon.svg";
 import * as Editor from "../../Editor2/Editor";
 import EnterIcon from "./enter-icon.svg";
 
-
 type TextEditorToolbarProps = {
-  editor : Editor.P215Editor;
+  editor: Editor.P215Editor;
   isTopbarOpen: () => boolean;
   setTopbarOpen: (value: boolean) => void;
 };
@@ -83,39 +82,6 @@ export function TextEditorToolbar(props: TextEditorToolbarProps) {
           }}
         />
       </div>
-      <div
-        class={`${classes.mobileTopTextEditingToolbar} ${
-          props.isTopbarOpen() ? "" : classes.collapsed
-        }`}
-      >
-        <img src={UndoIcon} class={classes.toolbarIcon} />
-        <img src={RedoIcon} class={classes.toolbarIcon} />
-        <div class={classes.seperator} />
-        <img src={ReferenceIcon} class={classes.toolbarIcon} />
-        <img src={RephraseIcon} class={classes.toolbarIcon} />
-        <img src={QuestionIcon} class={classes.toolbarIcon} />
-        <img src={CommentIcon} class={classes.toolbarIcon} />
-        <div class={classes.seperator} />
-        <img src={VerticalElipsesIcon} class={classes.toolbarIcon} />
-        <img
-          src={ArrowIcon}
-          class={`${classes.toolbarIcon} ${classes.collapseTopBar}`}
-          onClick={() => {
-            props.setTopbarOpen(!props.isTopbarOpen());
-          }}
-        />
-      </div>
-      <div class={classes.mobileBottomTextEditingToolbar}>
-        <img src={BoldIcon} class={classes.toolbarIcon} />
-        <img src={ItalicIcon} class={classes.toolbarIcon} />
-        <img src={UnderlineIcon} class={classes.toolbarIcon} />
-        <img src={TextColorIcon} class={classes.toolbarIcon} />
-        <img src={HilightIcon} class={classes.toolbarIcon} />
-        <div class={classes.seperator} />
-        <img src={OutdentIcon} class={classes.toolbarIcon} />
-        <img src={IndentIcon} class={classes.toolbarIcon} />
-        <img src={EnterIcon} class={classes.toolbarIcon} />
-      </div>
     </>
   );
 }
@@ -168,11 +134,11 @@ function ToolbarGroup4() {
 }
 
 type GroupProp = {
-  editor : Editor.P215Editor;
+  editor: Editor.P215Editor;
 };
 
-function ToolbarGroup5(props : GroupProp) {
-  let addQestionClick = (e : MouseEvent) => {
+function ToolbarGroup5(props: GroupProp) {
+  let addQestionClick = (e: MouseEvent) => {
     e.preventDefault();
     props.editor.addQuestion();
   };
@@ -180,10 +146,7 @@ function ToolbarGroup5(props : GroupProp) {
     <div class={classes.toolbarGroup5}>
       <img src={ReferenceIcon} class={classes.toolbarIcon} />
       <img src={RephraseIcon} class={classes.toolbarIcon} />
-      <img
-        src={QuestionIcon}
-        class={classes.toolbarIcon}
-        onClick={ addQestionClick } />
+      <img src={QuestionIcon} class={classes.toolbarIcon} onClick={addQestionClick} />
       <div class={classes.seperator} />
     </div>
   );

@@ -1,6 +1,4 @@
-.topTextEditingToolbar,
-.mobileTopTextEditingToolbar,
-.mobileBottomTextEditingToolbar {
+.topTextEditingToolbar {
   height: 40px;
   background-color: #eef2fa;
   width: calc(100% - 14px);
@@ -112,16 +110,6 @@
   }
 }
 
-.mobileTopTextEditingToolbar {
-  display: none !important;
-}
-
-.mobileBottomTextEditingToolbar {
-  display: none !important;
-  position: absolute;
-  bottom: 0;
-}
-
 @media screen and (max-width: 1109px) {
   .clearFormatting {
     display: none;
@@ -199,15 +187,6 @@
   }
   .extendedMenuContainer {
     position: inherit !important;
-  }
-
-  .mobileTopTextEditingToolbar,
-  .mobileBottomTextEditingToolbar {
-    display: flex !important;
-  }
-
-  .topTextEditingToolbar {
-    display: none !important;
   }
 }
 

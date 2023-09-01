@@ -97,44 +97,64 @@ body {
 
 .questionRef {
   display: inline;
-  border: 1px dashed blue;
+  background-color: #ffff004d;
   box-sizing: border-box;
   position: relative;
-  cursor: pointer;
 }
 
 .questionRefPopup {
-  display: grid;
   position: absolute;
+  display: flex;
+  flex-direction: column;
   width: 300px;
   height: 200px;
   background-color: white;
-  border: 1px solid black;
-  grid-template-areas:
-    "mover close"
-    "editor editor";
-  grid-template-columns: 1fr 20px;
-  grid-template-rows: 20px 1fr;
-  align-items: stretch;
+  border-radius: 10px;
+  border: 1.5px solid #eeeeee;
+  box-shadow: 0 0 10px #00000029;
+  z-index: 3;
 }
 
 .questionEditorHolder {
   grid-area: editor;
-  margin-top: 5px;
+  padding: 10px;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .questionRefPopup mover {
-  grid-area: mover;
-  width: 100%;
-  height: 100%;
+  display: flex;
+  width: calc(100% - 20px);
+  height: 40px;
   cursor: grab;
-}
+  background-color: #eee;
+  align-items: center;
+  border-radius: 10px 10px 0px 0px;
+  padding: 0px 10px;
+  user-select: none;
 
-.questionRefPopup closer {
-  grid-area: close;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
+  .dragHandle {
+    pointer-events: none;
+    img {
+      transform: translateY(-2px);
+    }
+  }
+
+  p {
+    margin: 0 0 0 9px;
+    transform: translateY(-1px);
+    pointer-events: none;
+  }
+
+  .closer {
+    cursor: pointer;
+    margin-left: auto;
+    background-color: #eee;
+
+    img {
+      max-width: 12px;
+    }
+  }
 }
 
 questionouter {

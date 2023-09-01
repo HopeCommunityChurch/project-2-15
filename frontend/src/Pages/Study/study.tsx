@@ -60,33 +60,6 @@ export function StudyPage() {
     }
   });
 
-  createEffect(() => {
-    const setHeight = () => {
-      // Use window.innerHeight to get the correct height
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty("--vh", `${vh}px`);
-    };
-
-    // Set the height initially
-    setHeight();
-
-    // Update height when the window is resized or touch or click
-    window.addEventListener("resize", setHeight);
-    document.addEventListener("click", setHeight);
-    document.addEventListener("touchstart", setHeight);
-    document.addEventListener("focus", setHeight, true);
-    document.addEventListener("focusin", setHeight);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("resize", setHeight);
-      document.removeEventListener("click", setHeight);
-      document.removeEventListener("touchstart", setHeight);
-      document.removeEventListener("focus", setHeight, true);
-      document.removeEventListener("focusin", setHeight);
-    };
-  });
-
   // Function to handle the sidebar state based on viewport width
   const handleSidebarState = () => {
     if (window.innerWidth <= 750) {
@@ -96,8 +69,8 @@ export function StudyPage() {
     }
   };
 
-  let editorRoot : HTMLDivElement;
-  let editor : Editor.P215Editor = new Editor.P215Editor(null);
+  let editorRoot: HTMLDivElement;
+  let editor: Editor.P215Editor = new Editor.P215Editor(null);
   onMount(() => {
     // Set initial state based on viewport width
     handleSidebarState();
@@ -154,7 +127,11 @@ export function StudyPage() {
         setSidebarOpen={setSidebarOpen}
         isTopbarOpen={isTopbarOpen}
       />
-      <TextEditorToolbar editor={editor} isTopbarOpen={isTopbarOpen} setTopbarOpen={setTopbarOpen} />
+      <TextEditorToolbar
+        editor={editor}
+        isTopbarOpen={isTopbarOpen}
+        setTopbarOpen={setTopbarOpen}
+      />
       <div class={`${classes.pageBody} ${isTopbarOpen() ? "" : classes.collapsed}`}>
         <div class={classes.sidebarContainer}>
           <div class={`${classes.sidebar} ${isSidebarOpen() ? "" : classes.closed}`}>
@@ -199,9 +176,7 @@ export function StudyPage() {
         <div
           ref={editorRoot}
           class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
-        >
-          {documentID}
-        </div>
+        ></div>
       </div>
     </>
   );

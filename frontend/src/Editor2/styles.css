@@ -12,9 +12,9 @@
   caret-color: transparent;
 }
 
-.ProseMirror-selectednode {
+/* .ProseMirror-selectednode {
   outline: 2px solid #8cf;
-}
+} */
 
 /* Make sure li selections wrap around markers */
 
