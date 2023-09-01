@@ -198,7 +198,6 @@ class QuestionsView implements NodeView {
     header.innerText = "Questions";
     const addButton = document.createElement("button");
     addButton.innerHTML = "+ Question";
-    addButton.className = classes.addQuestionsButton;
     addButton.onclick = (e) => {
       e.preventDefault();
       const qnode = newQuestionNode()[1];
