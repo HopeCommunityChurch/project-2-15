@@ -85,6 +85,23 @@ body {
 
 .questions h3 {
   margin: 0px;
+
+  button {
+    color: #0057d1;
+    margin-left: 10px;
+    background-color: #eef5ff;
+    white-space: nowrap;
+    border: none;
+    border-radius: 5px;
+    padding: 7px 15px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: #ddeafc;
+    }
+  }
 }
 
 .reference {
@@ -191,4 +208,21 @@ questionanswerouter > div {
 questionanswer {
   display: block;
   margin-bottom: 3px;
+}
+
+.addAnswer {
+  color: #0057d1;
+  margin-left: 10px;
+  background-color: #eef5ff;
+  white-space: nowrap;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 11px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #ddeafc;
+  }
 }

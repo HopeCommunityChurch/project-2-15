@@ -197,7 +197,8 @@ class QuestionsView implements NodeView {
     header.setAttribute("contenteditable", "false");
     header.innerText = "Questions";
     const addButton = document.createElement("button");
-    addButton.innerHTML = "Add Question";
+    addButton.innerHTML = "+ Question";
+    addButton.className = classes.addQuestionsButton;
     addButton.onclick = (e) => {
       e.preventDefault();
       const qnode = newQuestionNode()[1];
@@ -261,7 +262,8 @@ export class QuestionView implements NodeView {
       const tr2 = tr1.setSelection(sel);
       view.dispatch(tr2);
     };
-    addAnswer.innerText = "Add Answer";
+    addAnswer.innerText = "+ Answer";
+    addAnswer.className = classes.addAnswer;
     this.dom.appendChild(addAnswer);
   }
 
