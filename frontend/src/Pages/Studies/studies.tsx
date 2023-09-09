@@ -79,7 +79,6 @@ type ViewStudyProps = {
 const dtFormat = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.US);
 
 function ViewStudy(props: ViewStudyProps) {
-  console.log("test");
   const nav = useNavigate();
   const peoples = props.study.docs.flatMap((doc) =>
     doc.editors.filter((e) => e.userId != props.currentUser.userId).map((e) => e.name)
@@ -94,8 +93,9 @@ function ViewStudy(props: ViewStudyProps) {
     doc.editors.some((e) => e.userId == props.currentUser.userId)
   );
   const updated = myDoc.updated.format(dtFormat);
+  const url = "/app/study/" + myDoc.docId;
   return (
-    <tr class={classes.tableRow} onClick={() => (window.location.href = "/details")}>
+    <tr class={classes.tableRow} onClick={() => nav(url)}>
       <td>{props.study.name}</td>
       <td class={classes.sharedWith}>{shared}</td>
       <td>{updated}</td>

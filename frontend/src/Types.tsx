@@ -66,3 +66,11 @@ export function toStudyFromRaw(study: StudyRaw): Study {
     docs: study.docs.map(toDocFromRaw),
   };
 }
+
+export type Doc = {
+  docId : DocId;
+  document: any;
+  editor: Array<PublicUser>;
+  name: string;
+  study: StudyId;
+};

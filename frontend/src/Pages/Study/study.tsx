@@ -18,13 +18,47 @@ import GrayCircleIcon from "../../Assets/gray-circle-icon.svg";
 import Arrow2Icon from "../../Assets/arrow2.svg";
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
-import { Study } from "../../Types";
+import { PublicUser, Study, Doc } from "../../Types";
 import * as Editor from "../../Editor2/Editor";
+import { LoginUser, loginState } from "../LoginPage/login";
+import { useNavigate } from "@solidjs/router";
+
+async function getStudy(documentId): Promise<Network.NetworkState<Doc>> {
+  return Network.request("/document/" + documentId);
+}
 
 export function StudyPage() {
+  const nav = useNavigate();
+  const documentID = useParams().documentID;
+  const [result] = createResource([], () => getStudy(documentID), { initialValue: { state: "loading" } });
+
+  createEffect( () => {
+    console.log(result());
+  });
+
+  return <>
+    {
+      match(loginState() as LoginUser)
+      .with({ state: "notLoggedIn" }, () => {
+        nav("/app/login?redirect=/app/study/"+documentID);
+        return <> </>;
+      })
+      .with({ state: "loggedIn" }, ({ user }) =>
+        match(result())
+          .with({ state: "loading" }, () => <></>)
+          .with({ state: "error" }, () => <></>)
+          .with({ state: "success" }, ({ body }) => (StudyLoggedIn(body, user)))
+          .with({ state: "notloaded" }, () => <>not loaded</>)
+          .exhaustive()
+      )
+      .exhaustive()
+    }
+  </>;
+}
+
+function StudyLoggedIn(doc : Doc, currentUser : PublicUser) {
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const [isTopbarOpen, setTopbarOpen] = createSignal(true);
-  const documentID = useParams().documentID;
   const sectionTitles = [
     { Title: "1:1–17", Status: "Completed" },
     { Title: "1:18–2:23", Status: "Completed" },
