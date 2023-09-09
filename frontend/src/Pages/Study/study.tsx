@@ -47,7 +47,7 @@ export function StudyPage() {
       .with({ state: "loggedIn" }, ({ user }) =>
         match(result())
           .with({ state: "loading" }, () => <></>)
-          .with({ state: "error" }, () => <></>)
+          .with({ state: "error" }, ({body}) => <>{JSON.stringify(body)}</>)
           .with({ state: "success" }, ({ body }) => (StudyLoggedIn(body, user)))
           .with({ state: "notloaded" }, () => <>not loaded</>)
           .exhaustive()
