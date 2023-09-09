@@ -19,7 +19,7 @@ import Arrow2Icon from "../../Assets/arrow2.svg";
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
 import { PublicUser, Study, Doc } from "../../Types";
-import * as Editor from "../../Editor2/Editor";
+import * as Editor from "../../Editor/Editor";
 import { LoginUser, loginState } from "../LoginPage/login";
 import { useNavigate } from "@solidjs/router";
 
@@ -104,7 +104,10 @@ function StudyLoggedIn(doc : Doc, currentUser : PublicUser) {
   };
 
   let editorRoot: HTMLDivElement;
-  let editor: Editor.P215Editor = new Editor.P215Editor(null);
+  let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
+  editor.onUpdate( (value) => {
+    console.log(value);
+  });
   onMount(() => {
     // Set initial state based on viewport width
     handleSidebarState();

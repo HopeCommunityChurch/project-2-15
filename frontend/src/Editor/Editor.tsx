@@ -1,41 +1,43 @@
-import {EditorState, Plugin, PluginKey, Transaction, EditorStateConfig, Selection} from "prosemirror-state"
-import {EditorView, NodeView, DecorationSet, Decoration} from "prosemirror-view"
-import {undoItem, redoItem, MenuItem, MenuItemSpec, menuBar} from "prosemirror-menu"
-import {undo, redo, history} from "prosemirror-history"
-import {keymap} from "prosemirror-keymap"
-import {Schema, Node, Mark, Fragment} from "prosemirror-model"
-import {StepMap} from "prosemirror-transform"
-import {baseKeymap} from "prosemirror-commands"
-import "./styles.css"
-import * as classes from "./styles.module.css"
-import defaultText from "./default.json"
+import {
+  EditorState,
+  Plugin,
+  PluginKey,
+  Transaction,
+  EditorStateConfig,
+  Selection,
+  TextSelection,
+} from "prosemirror-state";
+import { EditorView, NodeView, DecorationSet, Decoration } from "prosemirror-view";
+import { undoItem, redoItem, MenuItem, MenuItemSpec, menuBar } from "prosemirror-menu";
+import { undo, redo, history } from "prosemirror-history";
+import { keymap } from "prosemirror-keymap";
+import { Schema, Node, Mark, Fragment } from "prosemirror-model";
+import { StepMap } from "prosemirror-transform";
+import { baseKeymap } from "prosemirror-commands";
+import "./styles.css";
+import * as classes from "./styles.module.scss";
+import defaultText from "./default.json";
 
-export const textSchema = new Schema({
+import DragHandleIcon from "../Assets/drag-handle.svg";
+import CloseXIcon from "../Assets/x.svg";
+
+const textSchema = new Schema({
   nodes: {
     doc: {
-      content: "section*"
+      content: "section*",
+    },
+    paragraph: {
+      content: "text*",
+      group: "richText",
+      toDOM: () => {
+        return ["p", 0];
+      },
     },
     section: {
       content: "studyElement*",
       isolating: true,
       defining: true,
-      attrs: { book: { default: "Genesis" }, verses: { default: "1:1" }},
-    },
-    blockItemsHolder: {
-      content: "blockItems*",
-      group: "studyElement",
-    },
-    blockItems: {
-      content: "blockItem+",
-      attrs: { blockId : {} },
-    },
-    referenceFrom: {
-      attrs: { referenceId : {} },
-      group: "blockItem",
-    },
-    comment : {
-      content: "text*",
-      group: "blockItem",
+      attrs: { header: { default: "Genesis 1:1" } },
     },
     bibleText: {
       content: "chunk*",
@@ -46,38 +48,56 @@ export const textSchema = new Schema({
         return [
           "div",
           {
-            "class": classes.bibleText,
+            class: classes.bibleText,
           },
-          0
-        ]
-      }
+          0,
+        ];
+      },
+    },
+    questionDoc: {
+      content: "question",
     },
     questions: {
-      content: "question+",
+      content: "question*",
       group: "studyElement",
       isolating: true,
       defining: true,
     },
     question: {
-      content: "text*",
+      content: "(questionAnswer | questionText )*",
+      attrs: { questionId: { default: null } },
+      isolating: true,
+      defining: true,
+      draggable: true,
       toDOM: () => {
-        return [
-          "li",
-          { "class": classes.question},
-          0
-        ]
-      }
+        return ["question", { class: classes.question }, 0];
+      },
     },
-    chunkComment : {
+    questionText: {
+      isolating: true,
+      defining: true,
+      content: "richText*",
+      toDOM: () => {
+        return ["questionText", 0];
+      },
+    },
+    questionAnswer: {
+      content: "richText*",
+      draggable: true,
+      toDOM: () => {
+        return ["questionAnswer", 0];
+      },
+    },
+    chunkComment: {
       content: "text*",
       inline: true,
       atom: true,
       draggable: false,
       defining: true,
       selectable: false,
-      attrs : { referenceId : {default: null}, color: { default : "red"}},
-      toDOM : () => ["chunkComment", 0],
-      parseDOM: [{tag: "chunkComment"}]
+      attrs: { referenceId: { default: null }, color: { default: "red" } },
+      toDOM: () => ["chunkComment", 0],
+      parseDOM: [{ tag: "chunkComment" }],
     },
     chunk: {
       content: "(chunkComment | text)*",
@@ -86,18 +106,18 @@ export const textSchema = new Schema({
         return [
           "div",
           {
-            "class": classes.chunk,
-            "level": node.attrs.level,
-            "style": "margin-left:" + 1.5 * node.attrs.level + "em;",
+            class: classes.chunk,
+            level: node.attrs.level,
+            style: "margin-left:" + 1.5 * node.attrs.level + "em;",
           },
-          0
-        ]
+          0,
+        ];
       },
     },
-    text: {inline: true},
+    text: { inline: true },
   },
   marks: {
-    reference: {
+    referenceTo: {
       attrs: { referenceId: {} },
       excludes: "",
       toDOM: (mark) => {
@@ -105,110 +125,197 @@ export const textSchema = new Schema({
           "span",
           {
             "data-type": "reference",
-            "class": classes.reference,
-            "referenceId": mark.attrs.referenceId,
+            class: classes.reference,
+            referenceId: mark.attrs.referenceId,
           },
-          0
-        ]
-      }
+          0,
+        ];
+      },
     },
-    blockItemReference : {
-      attrs: { blockId: {} },
+    questionReference: {
+      attrs: { questionId: {} },
       excludes: "",
+      toDOM: (mark) => [
+        "questionRef",
+        {
+          class: classes.questionRef,
+          questionId: mark.attrs.questionId,
+        },
+        0,
+      ],
     },
   },
 });
 
-interface BlockMapItem {
-  node : Node;
-  getPos : () => number;
-}
+// var blockMap : Dictionary<BlockMapItem> = {};
 
-type notUndefined = string | number | boolean | symbol | object;
-
-interface Dictionary<T extends notUndefined = notUndefined> {
-  [key: string]: T | undefined;
-}
-
-export class BlockItemsView implements NodeView {
-  dom : HTMLElement
-  contentDOM : HTMLElement
-  blockId : string;
-  blockMap : Dictionary<BlockMapItem>;
-  constructor (blockMap : Dictionary<BlockMapItem>, node : Node, getPos : () => number) {
-    this.blockId = node.attrs.blockId
-    this.blockMap = blockMap;
-    blockMap[this.blockId] = {
-      node: node,
-      getPos: getPos,
-    };
-    this.dom = document.createElement("div");
-    this.contentDOM = document.createElement("div");
-  }
-
-  update (node: Node) {
-    this.blockMap[this.blockId].node = node;
-    return true;
-  }
-}
-
-
-export class BlockItemsHolderView implements NodeView {
-  dom : HTMLElement
-  contentDOM : HTMLElement
-  constructor (node : Node) {
-    this.dom = document.createElement("div");
-    this.contentDOM = document.createElement("div");
-  }
-
-  update () {
-    return true;
-  }
-}
-
-
-export class SectionView implements NodeView {
-  dom : HTMLElement
-  contentDOM : HTMLElement
-  constructor (node : Node) {
+class SectionView implements NodeView {
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+  constructor(node: Node) {
     this.dom = document.createElement("div");
     this.dom.className = classes.section;
     const header = document.createElement("h2");
     header.setAttribute("contenteditable", "false");
-    header.innerText = node.attrs.book + " " + node.attrs.verses;
-    this.dom.appendChild(header)
+    header.innerText = node.attrs.header;
+    this.dom.appendChild(header);
     this.contentDOM = document.createElement("div");
     this.contentDOM.className = classes.content;
     this.dom.appendChild(this.contentDOM);
   }
 }
 
-export class QuestionsView implements NodeView {
-  dom : HTMLElement
-  contentDOM : HTMLElement
-  constructor (node : Node) {
+function getRandomStr(): string {
+  const arrayb = new Uint8Array(10);
+  let b = self.crypto.getRandomValues(arrayb);
+  return btoa(b.reduce((a, b) => a + b, ""));
+}
+
+const newQuestionNode: () => [string, Node] = () => {
+  const questionId = getRandomStr();
+  const p = textSchema.nodes.paragraph.create();
+  const questionText = textSchema.nodes.questionText.create({}, p);
+  const result = textSchema.nodes.question.create({ questionId }, questionText);
+  return [questionId, result];
+};
+
+const newQuestionAnswerNode = () => {
+  const p = textSchema.nodes.paragraph.create();
+  const questionAnswer = textSchema.nodes.questionAnswer.create({}, p);
+  return questionAnswer;
+};
+
+class QuestionsView implements NodeView {
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+  node: Node;
+  constructor(node: Node, view: EditorView, getPos: () => number) {
+    this.node = node;
     this.dom = document.createElement("div");
     this.dom.className = classes.questions;
     const header = document.createElement("h3");
     header.setAttribute("contenteditable", "false");
-    header.innerText = "Questions"
-    this.dom.appendChild(header)
-    this.contentDOM = document.createElement("ul");
-    this.contentDOM.className = classes.content;
+    header.innerText = "Questions";
+    const addButton = document.createElement("button");
+    addButton.innerHTML = "+ Question";
+    addButton.onclick = (e) => {
+      e.preventDefault();
+      const qnode = newQuestionNode()[1];
+      const length = this.node.content.size;
+      const pos = getPos() + length;
+      const tr1 = view.state.tr.insert(pos + 1, qnode);
+      const sel = TextSelection.create(tr1.doc, pos + 4);
+      const tr2 = tr1.setSelection(sel);
+      view.dispatch(tr2);
+    };
+    header.appendChild(addButton);
+    this.dom.appendChild(header);
+    this.contentDOM = document.createElement("questions");
     this.dom.appendChild(this.contentDOM);
+  }
+  update(node: Node) {
+    this.node = node;
+    return true;
+  }
+}
+
+export class QuestionView implements NodeView {
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+  questionId: string;
+  node: Node;
+  questionMap: Dictionary<QuestionMapItem>;
+  constructor(
+    questionMap: Dictionary<QuestionMapItem>,
+    node: Node,
+    view: EditorView,
+    getPos: () => number
+  ) {
+    this.node = node;
+    this.questionId = node.attrs.questionId;
+
+    if (!questionMap[this.questionId]) {
+      this.questionMap = questionMap;
+      questionMap[this.questionId] = {
+        node: node,
+        getPos: getPos,
+        editor: null,
+      };
+    }
+
+    this.dom = document.createElement("questionOuter");
+    const qtext = document.createElement("div");
+    qtext.setAttribute("contenteditable", "false");
+    qtext.innerText = "Q:";
+    this.dom.appendChild(qtext);
+    this.contentDOM = document.createElement("question");
+    this.dom.appendChild(this.contentDOM);
+    const addAnswer = document.createElement("button");
+    addAnswer.onclick = (e) => {
+      e.preventDefault();
+      const qnode = newQuestionAnswerNode();
+      const length = this.node.content.size;
+      const pos = getPos() + length;
+      const tr1 = view.state.tr.insert(pos + 1, qnode);
+      const sel = TextSelection.create(tr1.doc, pos + 3);
+      const tr2 = tr1.setSelection(sel);
+      view.dispatch(tr2);
+    };
+    addAnswer.innerText = "+ Answer";
+    addAnswer.className = classes.addAnswer;
+    this.dom.appendChild(addAnswer);
+  }
+
+  update(node: Node) {
+    this.node = node;
+    if (this.questionMap) {
+      let innerView = this.questionMap[this.questionId].editor;
+      if (innerView) {
+        let state = innerView.state;
+        let start = node.content.findDiffStart(state.doc.content);
+        if (start != null) {
+          let { a: endA, b: endB } = node.content.findDiffEnd(state.doc.content);
+          let overlap = start - Math.min(endA, endB);
+          if (overlap > 0) {
+            endA += overlap;
+            endB += overlap;
+          }
+          innerView.dispatch(
+            state.tr.replace(start, endB, node.slice(start, endA)).setMeta("fromOutside", true)
+          );
+        }
+      }
+    }
+    return true;
+  }
+}
+
+export class QuestionAnswerView implements NodeView {
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+  constructor(node: Node) {
+    this.dom = document.createElement("questionanswerouter");
+    const qtext = document.createElement("div");
+    qtext.setAttribute("contenteditable", "false");
+    qtext.innerText = "A:";
+    this.dom.appendChild(qtext);
+    this.contentDOM = document.createElement("questionanswer");
+    this.dom.appendChild(this.contentDOM);
+  }
+  update() {
+    return true;
   }
 }
 
 export class ChunkView implements NodeView {
-  dom : HTMLElement
-  contentDOM : HTMLElement
-  button : HTMLElement
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+  button: HTMLElement;
 
   constructor(node: Node, view: EditorView, getPos: () => number) {
     this.dom = document.createElement("p");
 
     this.setPadding(node);
-
 
     this.dom.className = classes.outerChunk;
     this.contentDOM = document.createElement("p");
@@ -216,59 +323,58 @@ export class ChunkView implements NodeView {
     this.contentDOM.setAttribute("level", node.attrs.level);
     this.dom.appendChild(this.contentDOM);
 
-    this.dom.onmouseenter = (e) => {
-      let hasChunkComment = this.hasComment(node);
+    // this.dom.onmouseenter = (e) => {
+    //   let hasChunkComment = this.hasComment(node);
 
-      if (hasChunkComment) return;
+    //   if (hasChunkComment) return;
 
-      e.preventDefault();
-      let widget = Decoration.widget(getPos()+1, () => {
-        const but = document.createElement("div");
-        but.className = classes.chunkButton;
-        but.onclick = () => {
-          const chunkCom = textSchema.nodes.chunkComment.create({
-            content: Fragment.empty,
-          });
-          view.dispatch(view.state.tr.insert(getPos()+1, chunkCom));
-        };
-        return but;
-      });
-      view.setProps({
-        decorations: (state) => {
-          return DecorationSet.create(state.doc, [
-            widget
-          ]);
-        },
-      });
-    }
+    //   e.preventDefault();
+    //   let widget = Decoration.widget(getPos()+1, () => {
+    //     const but = document.createElement("div");
+    //     but.className = classes.chunkButton;
+    //     but.onclick = () => {
+    //       const chunkCom = textSchema.nodes.chunkComment.create({
+    //         content: Fragment.empty,
+    //       });
+    //       view.dispatch(view.state.tr.insert(getPos()+1, chunkCom));
+    //     };
+    //     return but;
+    //   });
+    //   view.setProps({
+    //     decorations: (state) => {
+    //       return DecorationSet.create(state.doc, [
+    //         widget
+    //       ]);
+    //     },
+    //   });
+    // }
   }
 
-  hasComment (node : Node) {
+  hasComment(node: Node) {
     let hasChunkComment = false;
-    node.descendants((node:Node) => {
-      if(node.type.name == "chunkComment") hasChunkComment = true;
+    node.descendants((node: Node) => {
+      if (node.type.name == "chunkComment") hasChunkComment = true;
       return false;
     });
     return hasChunkComment;
   }
 
-  setPadding (node : Node) {
-    let style = "padding-left: calc(" + 1.5 * node.attrs.level + "em + 7px);";
+  setPadding(node: Node) {
+    let style = "padding-left: calc(" + 2 * node.attrs.level + "em + 7px);";
     this.dom.setAttribute("style", style);
   }
 }
 
 export class ChunkCommentView implements NodeView {
-  dom : HTMLElement
-  contentDOM : HTMLElement
-  popup : HTMLElement
-  node : Node
-  outerView : EditorView
-  innerView : EditorView
-  getPos : () => number
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+  popup: HTMLElement;
+  node: Node;
+  outerView: EditorView;
+  innerView: EditorView;
+  getPos: () => number;
 
-
-  constructor(node: Node, view: EditorView, getPos : () => number) {
+  constructor(node: Node, view: EditorView, getPos: () => number) {
     this.getPos = getPos;
     this.outerView = view;
     this.node = node;
@@ -276,75 +382,75 @@ export class ChunkCommentView implements NodeView {
     this.dom.className = classes.chunkButton;
     this.popup = null;
     this.dom.onclick = (e) => {
-      if(!this.popup) this.open();
-    }
+      if (!this.popup) this.open();
+    };
   }
 
-  close () {
+  close() {
     if (this.popup) {
       this.innerView.destroy();
       this.innerView = null;
       this.dom.textContent = "";
       // I don't know why I have to do this. Probably because of some magic in
       // prosemirror.
-      setTimeout( () => {
+      setTimeout(() => {
         this.popup = null;
       }, 0);
     }
   }
 
-  update(node : Node) {
-    console.log(node);
+  update(node: Node) {
     // if (!node.sameMarkup(this.node)) return false
-    this.node = node
+    this.node = node;
     if (this.innerView) {
-      let state = this.innerView.state
-      let start = node.content.findDiffStart(state.doc.content)
+      let state = this.innerView.state;
+      let start = node.content.findDiffStart(state.doc.content);
       if (start != null) {
-        let {a: endA, b: endB} = node.content.findDiffEnd(state.doc.content)
-        let overlap = start - Math.min(endA, endB)
-        if (overlap > 0) { endA += overlap; endB += overlap }
+        let { a: endA, b: endB } = node.content.findDiffEnd(state.doc.content);
+        let overlap = start - Math.min(endA, endB);
+        if (overlap > 0) {
+          endA += overlap;
+          endB += overlap;
+        }
         this.innerView.dispatch(
-          state.tr
-            .replace(start, endB, node.slice(start, endA))
-            .setMeta("fromOutside", true))
+          state.tr.replace(start, endB, node.slice(start, endA)).setMeta("fromOutside", true)
+        );
       }
     }
-    return true
+    return true;
   }
 
-  open () {
+  open() {
     let pop = this.dom.appendChild(document.createElement("div"));
     this.popup = pop;
     pop.className = classes.chunkCommentPopup;
 
     let closeBut = pop.appendChild(document.createElement("button"));
-    closeBut.innerText = "Close"
+    closeBut.innerText = "Close";
     closeBut.onclick = (e) => {
       e.preventDefault();
       this.close();
     };
 
     let addRefBut = pop.appendChild(document.createElement("button"));
-    addRefBut.innerText = "Add Reference"
+    addRefBut.innerText = "Add Reference";
     addRefBut.onclick = (e) => {
-      console.log("test");
       e.preventDefault();
-      const rId = crypto.randomUUID();
-      const meta = {
-        addedReference: true,
-        currentSelection:null,
-        referenceId: rId,
-      };
-      const tr =
-        this.outerView.state.tr
-          .setNodeAttribute(this.getPos(), "referenceId", rId)
-          .setMeta(referencePluginKey, meta);
-      this.outerView.dispatch(tr);
-    }
+      // const rId = crypto.randomUUID();
+      // const meta = {
+      //   addedReference: true,
+      //   currentSelection:null,
+      //   referenceId: rId,
+      // };
+      // const tr =
+      //   this.outerView.state.tr
+      //     .setNodeAttribute(this.getPos(), "referenceId", rId)
+      //     .setMeta(referencePluginKey, meta);
+      // this.outerView.dispatch(tr);
+    };
 
     let editorHolder = pop.appendChild(document.createElement("div"));
-    this.innerView = new EditorView( editorHolder, {
+    this.innerView = new EditorView(editorHolder, {
       state: EditorState.create({
         doc: this.node,
       }),
@@ -352,30 +458,129 @@ export class ChunkCommentView implements NodeView {
     });
   }
 
-  dispatchInner(tr) {
-    let {state, transactions} = this.innerView.state.applyTransaction(tr)
-    this.innerView.updateState(state)
+  dispatchInner(tr: Transaction) {
+    let { state, transactions } = this.innerView.state.applyTransaction(tr);
+    this.innerView.updateState(state);
 
     if (!tr.getMeta("fromOutside")) {
-      let outerTr = this.outerView.state.tr, offsetMap = StepMap.offset(this.getPos() + 1)
+      let outerTr = this.outerView.state.tr,
+        offsetMap = StepMap.offset(this.getPos() + 1);
       for (let i = 0; i < transactions.length; i++) {
-        let steps = transactions[i].steps
-        for (let j = 0; j < steps.length; j++)
-          outerTr.step(steps[j].map(offsetMap))
+        let steps = transactions[i].steps;
+        for (let j = 0; j < steps.length; j++) outerTr.step(steps[j].map(offsetMap));
       }
-      if (outerTr.docChanged) this.outerView.dispatch(outerTr)
+      if (outerTr.docChanged) this.outerView.dispatch(outerTr);
     }
   }
-
 }
 
+const questionPopup = (x, y, qId, questionMap, view: EditorView) => {
+  let qNode = questionMap[qId];
+  if (!qNode.editor) {
+    const pop = document.createElement("questionRefPopup");
+    pop.className = classes.questionRefPopup;
+    document.body.appendChild(pop);
+    pop.style.left = "calc(" + x + "px - 20px)";
+    pop.style.top = "calc(" + y + "px + 1em)";
+    let mover = pop.appendChild(document.createElement("mover"));
+    mover.onmousedown = (e) => {
+      const rec = pop.getBoundingClientRect();
+      const diffX = e.pageX - rec.x;
+      const diffY = e.pageY - rec.y;
+      document.addEventListener("mouseup", (e) => {
+        document.removeEventListener("mousemove", mousemove);
+      });
+      var mousemove = (e) => {
+        pop.style.left = "calc(" + (e.pageX - diffX) + "px)";
+        pop.style.top = "calc(" + (e.pageY - diffY) + "px)";
+      };
+      document.addEventListener("mousemove", mousemove);
+    };
+    // Add drag handle
+    let dragHandle = mover.appendChild(document.createElement("drag"));
+    let dragHandleIcon = document.createElement("img");
+    dragHandle.className = classes.dragHandle;
+    dragHandleIcon.src = DragHandleIcon;
+    dragHandle.appendChild(dragHandleIcon);
+    let popUpTitle = mover.appendChild(document.createElement("p"));
+    popUpTitle.innerHTML = "Question";
+    // Add close Icon
+    let closer = mover.appendChild(document.createElement("closer"));
+    let closeImage = document.createElement("img");
+    closer.className = classes.closer;
+    closeImage.src = CloseXIcon;
+    closer.appendChild(closeImage);
+    closer.onclick = (e) => {
+      qNode.editor.destroy();
+      qNode.editor = null;
+      pop.parentNode.removeChild(pop);
+    };
 
-export const referenceToMarkView = (mark : Mark, view : EditorView) => {
+    let editorHolder = pop.appendChild(document.createElement("div"));
+    editorHolder.className = classes.questionEditorHolder;
+
+    let dispatchInner = (tr: Transaction) => {
+      let { state, transactions } = qNode.editor.state.applyTransaction(tr);
+      qNode.editor.updateState(state);
+
+      if (!tr.getMeta("fromOutside")) {
+        let outerTr = view.state.tr;
+        let offsetMap = StepMap.offset(qNode.getPos() + 1);
+        for (let i = 0; i < transactions.length; i++) {
+          let steps = transactions[i].steps;
+          for (let j = 0; j < steps.length; j++) outerTr.step(steps[j].map(offsetMap));
+        }
+        if (outerTr.docChanged) view.dispatch(outerTr);
+      }
+    };
+
+    qNode.editor = new EditorView(editorHolder, {
+      state: EditorState.create({
+        schema: textSchema,
+        doc: qNode.node,
+        plugins: [
+          history(),
+          keymap({
+            "Mod-z": undo,
+            "Mod-y": redo,
+            Tab: increaseLevel,
+            "Mod-]": increaseLevel,
+            "Shift-Tab": decreaseLevel,
+            "Mod-[": decreaseLevel,
+          }),
+          keymap(baseKeymap),
+        ],
+      }),
+      nodeViews: {
+        questionAnswer(node) {
+          return new QuestionAnswerView(node);
+        },
+      },
+      dispatchTransaction: dispatchInner,
+    });
+  }
+};
+
+export const questionReferenceMarkView =
+  (questionMap: Dictionary<QuestionMapItem>) => (mark: Mark, view: EditorView) => {
+    const mview = document.createElement("questionRef");
+    mview.className = classes.questionRef;
+    const qId = mark.attrs.questionId;
+    mview.setAttribute("questionId", qId);
+    let pop = null;
+    mview.onclick = (e) => {
+      e.preventDefault();
+      questionPopup(e.pageX, e.pageY, qId, questionMap, view);
+    };
+    return { dom: mview };
+  };
+
+export const referenceToMarkView = (mark: Mark, view: EditorView) => {
   const mview = document.createElement("span");
   mview.className = classes.referenceTo;
-  const rId = mark.attrs.referenceId
+  const rId = mark.attrs.referenceId;
   mview.setAttribute("referenceId", rId);
-  let qselector = 'span[data-type="reference"][referenceId="'+ rId +'"]'
+  let qselector = 'span[data-type="reference"][referenceId="' + rId + '"]';
   mview.onmouseenter = (e) => {
     // e.preventDefault();
     // var references = document.querySelectorAll(qselector);
@@ -390,265 +595,214 @@ export const referenceToMarkView = (mark : Mark, view : EditorView) => {
     //   r.classList.remove(classes.referenceTo);
     // })
   };
-  return { dom: mview }
-}
+  return { dom: mview };
+};
 
-const nodeIsChunk = (node : Node) => {
-  if (node.type.name === "section")
-    return true;
-  if (node.type.name === "bibleText")
-    return true;
-  if (node.type.name != "chunk")
-    return false;
-}
+const nodeIsChunk = (node: Node) => {
+  if (node.type.name === "section") return true;
+  if (node.type.name === "bibleText") return true;
+  if (node.type.name != "chunk") return false;
+};
 
-const increaseLevel = (state : EditorState, dispatch?: ((tr: Transaction) => void) ) => {
+let currentChunkPlug = new Plugin({
+  props: {
+    decorations(state: EditorState) {
+      const selection = state.selection;
+      const decorations = [];
+
+      if (!selection.empty) return null;
+
+      state.doc.nodesBetween(selection.from, selection.to, (node, position) => {
+        const result = nodeIsChunk(node);
+        if (result === true) return true;
+        if (result === false) return false;
+        decorations.push(
+          Decoration.node(position, position + node.nodeSize, { class: classes.selected })
+        );
+      });
+
+      return DecorationSet.create(state.doc, decorations);
+    },
+  },
+});
+
+const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   let from = state.selection.from;
   let to = state.selection.to;
-  let toTransform  = [];
+  let toTransform = [];
   // Why is this stupid?
   state.doc.nodesBetween(from, to, (node, pos) => {
-    const result = nodeIsChunk(node)
-    if (result === true)
-      return true;
-    if (result === false)
-      return false;
-    toTransform.push({pos, node});
+    const result = nodeIsChunk(node);
+    if (result === true) return true;
+    if (result === false) return false;
+    toTransform.push({ pos, node });
     return false;
   });
   if (toTransform.length == 0) return false;
   let type = textSchema.nodes.chunk;
   if (dispatch)
     dispatch(
-      toTransform.reduce((pre, {pos, node}) => {
-        return pre.setNodeMarkup(pos, type, {level: node.attrs.level+1}, null);
+      toTransform.reduce((pre, { pos, node }) => {
+        return pre.setNodeMarkup(pos, type, { level: node.attrs.level + 1 }, null);
       }, state.tr)
     );
   return true;
 };
 
-const decreaseLevel = (state : EditorState, dispatch?: ((tr: Transaction) => void) ) => {
+const decreaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   let type = textSchema.nodes.chunk;
   let from = state.selection.from;
   let to = state.selection.to;
-  let toTransform  = [];
+  let toTransform = [];
   // Why is this stupid?
   state.doc.nodesBetween(from, to, (node, pos) => {
-    const result = nodeIsChunk(node)
-    if (result === true)
-      return true;
-    if (result === false)
-      return false;
-    toTransform.push({pos, node});
+    const result = nodeIsChunk(node);
+    if (result === true) return true;
+    if (result === false) return false;
+    toTransform.push({ pos, node });
     return false;
   });
   if (toTransform.length == 0) return false;
-  let nextState = toTransform.reduce((pre, {pos, node}) => {
+  let nextState = toTransform.reduce((pre, { pos, node }) => {
     let level = node.attrs.level;
-    let nextLevel = (level !=0)? level-1 : level;
-    return pre.setNodeMarkup(pos, type, {level: nextLevel}, null);
-  }, state.tr)
-  if (dispatch) dispatch( nextState);
+    let nextLevel = level != 0 ? level - 1 : level;
+    return pre.setNodeMarkup(pos, type, { level: nextLevel }, null);
+  }, state.tr);
+  if (dispatch) dispatch(nextState);
   return true;
 };
 
-
-const addReference = (state : EditorState, dispatch?: ((tr: Transaction) => void), view?: EditorView ) => {
-  let currentSelection = state.selection;
-  let anc = currentSelection.$anchor;
-  let from = state.selection.from;
-  let to = state.selection.to;
+const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  const from = state.selection.from;
+  const to = state.selection.to;
+  if (from === to) {
+    return false;
+  }
   if (dispatch) {
-    let sectionNode = anc.node(1);
-    let hasBlockItemsHolder = anc.node(1).child(0).type.name == "blockItemsHolder";
-    console.log(hasBlockItemsHolder);
-    let tr = state.tr;
-    let posOfSection = null;
-    state.doc.descendants((node, pos) => {
+    const r = newQuestionNode();
+    const qId = r[0];
+    const qNode = r[1];
+
+    // Make the mark
+    const qMark = textSchema.marks.questionReference.create({ questionId: qId });
+    let tr = state.tr.addMark(from, to, qMark);
+
+    // Find the position of the questions
+    const sectionNode: Node = state.selection.$anchor.node(1);
+    let posOfQuestions = null;
+    let nodeQuestions = null;
+    state.doc.descendants((node: Node, pos: number) => {
       if (node.eq(sectionNode)) {
-        posOfSection = pos
+        return true;
+      }
+      if (node.type.name === "questions") {
+        posOfQuestions = pos;
+        nodeQuestions = node;
       }
       return false;
     });
-    if (!hasBlockItemsHolder) {
-      console.log(posOfSection);
-      let newNode = textSchema.nodes.blockItemsHolder.create()
-      tr = tr.insert(posOfSection+1, newNode);
-      dispatch(tr);
-    }
-    // anc.node(1).nodesBetween(0,1, (n, p) => console.log(p));
-    // const rId = crypto.randomUUID();
-    // let referenceToMarkType = textSchema.marks.referenceTo;
-    // const mark = referenceToMarkType.create({referenceId: rId})
-    // let newState = state.tr.addMark(from, to, mark).setMeta(referencePluginKey, {addedReference: true, currentSelection, referenceId: rId});
-    // dispatch(newState);
+    const qlength = nodeQuestions.content.size;
+    const pos = posOfQuestions + qlength + 1;
+    const tr1 = tr.insert(pos, qNode);
+    // const sel = TextSelection.create(tr1.doc, pos+3);
+    // const tr2 = tr1.setSelection(sel);
+    dispatch(tr1);
+    return true;
   }
-  return true;
 };
 
-interface ReferencePluginState {
-  isLooking : boolean;
-  selection?: Selection;
-  referenceId? : string;
+interface QuestionMapItem {
+  node: Node;
+  getPos: () => number;
+  editor: EditorView | null;
 }
 
-let referencePluginKey = new PluginKey<ReferencePluginState>("referencePlugin");
+type notUndefined = string | number | boolean | symbol | object;
 
-let referencePlugin = new Plugin({
-  key: referencePluginKey,
-  state: {
-    init () {
-      return {isLooking : false}
-    },
-    apply ( tr : Transaction, value : ReferencePluginState) {
-      const meta = tr.getMeta(referencePluginKey);
-      if ( meta && meta.addedReference === true) {
-        console.log(meta);
-        return {
-          isLooking : true,
-          selection : meta.currentSelection,
-          referenceId: meta.referenceId,
-        };
-      } else if (meta && meta.referenceDone) {
-        return {isLooking : false};
-      } else {
-        return {
-          isLooking : value.isLooking,
-          selection : value.selection,
-          referenceId : value.referenceId,
-        };
-      }
-    }
-  },
-  props: {
-    handleDOMEvents: {
-      "mouseup": (view : EditorView, e) => {
-        const state = referencePluginKey.getState(view.state)
-        if (state.isLooking) {
-          const selection = view.state.selection;
-          const from = selection.from;
-          const to = selection.to;
-          if (selection.empty) {
-            return false;
-          }
-          e.preventDefault();
-          let referenceMarkType = textSchema.marks.reference;
-          const mark = referenceMarkType.create({referenceId: state.referenceId});
-          const newstate = view.state.tr
-                            .addMark(from, to, mark)
-                            .setMeta(referencePluginKey, {referenceDone: true});
-          view.dispatch(newstate);
-          return true;
-        } else {
-          return false;
-        }
+interface Dictionary<T extends notUndefined = notUndefined> {
+  [key: string]: T | undefined;
+}
+
+export class P215Editor {
+
+  state: EditorState;
+  view: EditorView;
+  questionMap: Dictionary<QuestionMapItem>;
+  updateHanlders : Array<(change : any) => void>;
+
+  constructor(initialState) {
+    let node = Node.fromJSON(textSchema, defaultText);
+    this.updateHanlders = [];
+    this.state = EditorState.create({
+      schema: textSchema,
+      doc: node,
+      plugins: [
+        history(),
+        keymap({
+          "Mod-z": undo,
+          "Mod-y": redo,
+          Tab: increaseLevel,
+          "Mod-]": increaseLevel,
+          "Shift-Tab": decreaseLevel,
+          "Mod-[": decreaseLevel,
+        }),
+        keymap(baseKeymap),
+        currentChunkPlug,
+        // referencePlugin
+      ],
+    });
+
+    this.questionMap = {};
+  }
+
+  addEditor(editorRoot: HTMLElement) {
+    let that = this;
+    this.view = new EditorView(editorRoot, {
+      state: that.state,
+      nodeViews: {
+        section(node) {
+          return new SectionView(node);
+        },
+        questions(node, view, getPos) {
+          return new QuestionsView(node, view, getPos);
+        },
+        chunk(node, view, getPos) {
+          return new ChunkView(node, view, getPos);
+        },
+        chunkComment(node, view, getPos) {
+          return new ChunkCommentView(node, view, getPos);
+        },
+        question(node, view, getPos) {
+          return new QuestionView(that.questionMap, node, view, getPos);
+        },
+        questionAnswer(node) {
+          return new QuestionAnswerView(node);
+        },
       },
-    },
-  },
-});
-
-let node = Node.fromJSON(textSchema, defaultText);
-
-let currentChunkPlug = new Plugin({
-  props: {
-    decorations(state : EditorState) {
-      const selection = state.selection;
-      const decorations = [];
-
-      if (!selection.empty)
-        return null;
-
-      state.doc.nodesBetween(selection.from, selection.to, (node, position) => {
-        const result = nodeIsChunk(node)
-        if (result === true)
-          return true;
-        if (result === false)
-          return false;
-        decorations.push(Decoration.node(position, position + node.nodeSize, {class: classes.selected}));
-      });
-
-      return DecorationSet.create(state.doc, decorations);
-    }
+      markViews: {
+        referenceTo: referenceToMarkView,
+        questionReference: questionReferenceMarkView(that.questionMap),
+      },
+      dispatchTransaction: (transaction) => {
+        // console.log(JSON.stringify(transaction.doc.toJSON()));
+        let newState = that.view.state.apply(transaction);
+        that.view.updateState(newState);
+        this.updateHanlders.forEach( (handler) => {
+          handler(transaction.doc.toJSON());
+        });
+      },
+    });
   }
-});
 
-
-const indentMenuItem : MenuItemSpec = {
-  run: increaseLevel,
-  select: increaseLevel,
-  label: "indent",
-};
-
-const backIndentMenuItem : MenuItemSpec = {
-  run: decreaseLevel,
-  select: decreaseLevel,
-  label: "unindent",
-};
-
-
-const addReferenceMenuItem : MenuItemSpec = {
-  run: addReference,
-  select: addReference,
-  label: "add reference",
-};
-
-const menuStuff = [
-  undoItem,
-  redoItem,
-  // new MenuItem(indentMenuItem),
-  // new MenuItem(backIndentMenuItem),
-  new MenuItem(addReferenceMenuItem),
-];
-
-let state = EditorState.create({
-  schema: textSchema,
-  doc: node,
-  plugins: [
-    history(),
-    keymap({
-      "Mod-z": undo,
-      "Mod-y": redo,
-      "Tab": increaseLevel,
-      "Shift-Tab": decreaseLevel,
-    }),
-    keymap(baseKeymap),
-    currentChunkPlug,
-    menuBar({content: [menuStuff]}),
-    referencePlugin
-  ],
-});
-
-var blockMap : Dictionary<BlockMapItem> = {};
-
-let view = new EditorView(document.getElementById('editorRoot'), {
-  state,
-  nodeViews: {
-    section(node) {
-      return new SectionView(node);
-    },
-    questions(node) {
-      return new QuestionsView(node);
-    },
-    chunk(node, view, getPos) {
-      return new ChunkView(node, view, getPos);
-    },
-    chunkComment(node, view, getPos) {
-      return new ChunkCommentView(node, view, getPos);
-    },
-    blockItems(node, view, getPos) {
-      return new BlockItemsView(blockMap, node, getPos);
-    },
-    blockItemsHolder(node) {
-      return new BlockItemsHolderView(node);
-    },
-  },
-  markViews: {
-    referenceTo: referenceToMarkView,
-  },
-  dispatchTransaction: (transaction) => {
-    // console.log(JSON.stringify(transaction.doc.toJSON()));
-    let newState = view.state.apply(transaction);
-    view.updateState(newState);
+  removeEditor() {
+    this.view.destroy();
   }
-});
 
+  addQuestion() {
+    addQuestion(this.view.state, this.view.dispatch);
+  }
+
+  onUpdate(f : (change : any) => void) {
+    this.updateHanlders.push(f);
+  }
+}
