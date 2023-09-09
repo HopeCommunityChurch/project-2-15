@@ -19,6 +19,7 @@
   "dependencies": {
     "@js-joda/core": "^5.5.3",
     "@js-joda/locale_en-us": "^4.8.10",
+    "@solid-primitives/scheduled": "^1.4.1",
     "@solidjs/router": "^0.8.2",
     "babel-preset-solid": "^1.7.7",
     "prosemirror-commands": "^1.2.1",

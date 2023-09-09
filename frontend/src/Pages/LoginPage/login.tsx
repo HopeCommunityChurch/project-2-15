@@ -64,9 +64,6 @@ export async function updateLoginState(): Promise<LoginUser> {
 }
 
 export function LoginPage() {
-  const initialLoginStatue = {
-    state: "NotLoaded",
-  };
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [showP, setShowP] = createSignal(false);

@@ -22,6 +22,7 @@ import { PublicUser, Study, Doc } from "../../Types";
 import * as Editor from "../../Editor/Editor";
 import { LoginUser, loginState } from "../LoginPage/login";
 import { useNavigate } from "@solidjs/router";
+import { throttle } from "@solid-primitives/scheduled";
 
 async function getStudy(documentId): Promise<Network.NetworkState<Doc>> {
   return Network.request("/document/" + documentId);
@@ -105,9 +106,23 @@ function StudyLoggedIn(doc : Doc, currentUser : PublicUser) {
 
   let editorRoot: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
+  const updateSignal = throttle( (change) =>
+    Network.request("/document/"+ doc.docId , {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(change),
+    }).then( (res) => {
+      console.log(res);
+    }).catch( (err) => {
+      console.log(err);
+    })
+  , 500);
   editor.onUpdate( (value) => {
-    console.log(value);
+    updateSignal(value);
   });
+
   onMount(() => {
     // Set initial state based on viewport width
     handleSidebarState();

@@ -16,7 +16,6 @@ import { StepMap } from "prosemirror-transform";
 import { baseKeymap } from "prosemirror-commands";
 import "./styles.css";
 import * as classes from "./styles.module.scss";
-import defaultText from "./default.json";
 
 import DragHandleIcon from "../Assets/drag-handle.svg";
 import CloseXIcon from "../Assets/x.svg";
@@ -731,7 +730,7 @@ export class P215Editor {
   updateHanlders : Array<(change : any) => void>;
 
   constructor(initialState) {
-    let node = Node.fromJSON(textSchema, defaultText);
+    let node = Node.fromJSON(textSchema, initialState);
     this.updateHanlders = [];
     this.state = EditorState.create({
       schema: textSchema,
