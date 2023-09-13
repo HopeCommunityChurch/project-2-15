@@ -36,7 +36,7 @@ function Studies(currentUser: PublicUser) {
   const [result] = createResource([], () => getStudies(), { initialValue: { state: "loading" } });
   return (
     <>
-      <StudiesTopNav />
+      <StudiesTopNav currentUser={currentUser} />
       <div class={classes.studiesPage}>
         <div class={classes.pageHeader}>
           <h1>My Studies</h1>

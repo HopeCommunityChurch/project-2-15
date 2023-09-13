@@ -82,8 +82,12 @@ export function mapNetworkState<a, b>(v : NetworkState<a>, f : (a: a) => b) : Ne
 
 export const baseUrl = "/api";
 
+export type SimpleNetworkState<t> =
+  | NetworkSuccess<t>
+  | NetworkError
+
 export async function request<t>(url : string, opts = {})
-  : Promise<NetworkSuccess<t> | NetworkError> {
+  : Promise<SimpleNetworkState<t>> {
   const response = await fetch(baseUrl + url, opts);
   const status = response.status;
   if (status == 204) {

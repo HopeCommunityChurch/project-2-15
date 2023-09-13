@@ -2,18 +2,23 @@ import Logo from "../../Assets/p215-full-logo.svg";
 import { Button } from "../Button/Button";
 import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import { loginState, LoginUser } from "../../Pages/LoginPage/login";
+import { PublicUser, StudyRaw } from "../../Types";
 import SearchIcon from "../../Assets/magnifying_glass.svg";
 import CloseXIcon from "../../Assets/x.svg";
 import PadlockIcon from "../../Assets/padlock.svg";
 import ArrowIcon from "../../Assets/arrow.svg";
 import NotificationBell from "../../Assets/notification-bell.svg";
+import * as Network from "../../Utils/Network";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
 import useClickOutsideClose from "../../Hooks/useOutsideClickClose";
 
-export function StudiesTopNav() {
+export type StudiesTopNavProps = {
+  currentUser: PublicUser
+};
+
+export function StudiesTopNav(props : StudiesTopNavProps) {
   const [showDropdown, setShowDropdown] = createSignal(false);
   const [showModal, setShowModal] = createSignal(false);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = createSignal(false);
@@ -134,63 +139,44 @@ export function StudiesTopNav() {
           </ul>
         </nav>
         <div class={classes.buttons}>
-          {
-            // @ts-ignore
-            match(loginState() as LoginUser)
-              .with({ state: "notLoggedIn" }, () => (
-                <>
-                  <Button type="lightBlue" onClick={() => nav("/app/login")}>
-                    Log In
+            <div
+              class={classes.profileButton}
+              onClick={() => setShowDropdown(!showDropdown())}
+            >
+              {props.currentUser.name.slice(0, 2).toUpperCase()}
+            </div>
+            <div
+              class={`${classes.profileDropdown} ${
+                showDropdown() ? classes.showDropdown : ""
+              }`}
+            >
+              <ul>
+                <li class={classes.mobileOnlyItem}>
+                  <Button type="Blue" onClick={() => setShowModal(true)}>
+                    + New Study
                   </Button>
-                  <Button type="Blue" onClick={() => nav("/app/signup")}>
-                    Sign Up
-                  </Button>
-                </>
-              ))
-              .with({ state: "loggedIn" }, ({ user }) => (
-                <>
-                  <div
-                    class={classes.profileButton}
-                    onClick={() => setShowDropdown(!showDropdown())}
-                  >
-                    {user.name.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div
-                    class={`${classes.profileDropdown} ${
-                      showDropdown() ? classes.showDropdown : ""
-                    }`}
-                  >
-                    <ul>
-                      <li class={classes.mobileOnlyItem}>
-                        <Button type="Blue" onClick={() => setShowModal(true)}>
-                          + New Study
-                        </Button>
-                      </li>
-                      <li>
-                        <a href="/app/account" class={classes.fullWidthLink}>
-                          My Account
-                        </a>
-                      </li>
-                      <li>
-                        <a href="/app/admin" class={classes.fullWidthLink}>
-                          Admin Area
-                        </a>
-                      </li>
-                      <li>
-                        <a href="/logout" class={classes.fullWidthLink}>
-                          Sign Out
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                </>
-              ))
-              .exhaustive()
-          }
+                </li>
+                <li>
+                  <a href="/app/account" class={classes.fullWidthLink}>
+                    My Account
+                  </a>
+                </li>
+                <li>
+                  <a href="/app/admin" class={classes.fullWidthLink}>
+                    Admin Area
+                  </a>
+                </li>
+                <li>
+                  <a href="/logout" class={classes.fullWidthLink}>
+                    Sign Out
+                  </a>
+                </li>
+              </ul>
+            </div>
         </div>
       </header>
       <Show when={showModal()}>
-        <AddStudy setShowModal= { setShowModal } />
+        <AddStudy setShowModal= { setShowModal } currentUser={props.currentUser} />
       </Show>
       <div class={classes.headerThingy}></div>
     </>
@@ -198,7 +184,8 @@ export function StudiesTopNav() {
 }
 
 type AddStudyProp = {
-  setShowModal: (v : Boolean) => void
+  setShowModal: (v : Boolean) => void,
+  currentUser : PublicUser,
 };
 
 function AddStudy (prop : AddStudyProp) {
@@ -325,6 +312,57 @@ function AddStudy (prop : AddStudyProp) {
     );
   });
 
+  const bookSelectOnKey = (e : KeyboardEvent) => {
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault(); // Prevent cursor movement
+        if (focusedBookIndex() < filteredBooks().length - 1) {
+          setFocusedBookIndex(focusedBookIndex() + 1);
+        }
+        break;
+      case "ArrowUp":
+        e.preventDefault(); // Prevent cursor movement
+        if (focusedBookIndex() > 0) {
+          setFocusedBookIndex(focusedBookIndex() - 1);
+        }
+        break;
+      case "Enter":
+        e.preventDefault(); // Prevent form submission
+        if (focusedBookIndex() !== -1) {
+          selectBook(filteredBooks()[focusedBookIndex()]);
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  const bookSelectOnInput = (e : InputEvent & { target: HTMLInputElement} ) => {
+      setStudyBookValue(e.target.value);
+      if (filteredBooks().length > 0) {
+        setFocusedBookIndex(0);
+      } else {
+        setFocusedBookIndex(-1); // Reset index when there are no matches
+      }
+  };
+
+  const nav = useNavigate();
+
+  function createStudySubmitted (e : Event) {
+    e.preventDefault();
+    apiCreateStudy({
+      name: studyTitleValue(),
+    }).then( (r) => {
+      match(r)
+      .with({state: "error"}, (err) => console.log(r))
+      .with({state: "success"}, ({body}) => {
+        const docId = body.docs[0].docId;
+        nav("/app/study/" + docId);
+      })
+      .exhaustive();
+    });
+  }
+
   return (
     <div class={classes.modalBackground} onClick={() => setShowModal(false)}>
       <div class={classes.modal} onClick={(e) => e.stopPropagation()}>
@@ -335,7 +373,7 @@ function AddStudy (prop : AddStudyProp) {
           class={classes.closeModalIcon}
           onClick={() => setShowModal(false)}
         />
-        <form>
+        <form onSubmit={(e) => createStudySubmitted(e)} >
           <label for="studyTitle">Title</label>
           <input
             type="text"
@@ -345,63 +383,30 @@ function AddStudy (prop : AddStudyProp) {
             onInput={(e) => setStudyTitleValue(e.target.value)}
           />
           <p class={classes.fieldDescription}>
-            Ex: "
-            <em>
-              {selectedBook() ? selectedBook() : "Romans"} {formattedDate} Study
-            </em>
-            " or "
-            <em>Wednesday Night {selectedBook() ? selectedBook() : "Colossians"} Study</em>"
+            Ex: "<em>Romans {formattedDate} Study</em>" or "<em>Wednesday Night Colossians Study</em>"
           </p>
-          <label for="studyBook">Book</label>
+          <label for="studyBook">Study Template</label>
           <div class={classes.autocomplete}>
-            {selectedBook() ? (
-              <span class={classes.tag} onClick={() => setSelectedBook(null)}>
-                {selectedBook()}
-                <img src={CloseXIcon} alt="Close" class={classes.removeTagIcon} />
-              </span>
-            ) : (
-              <>
-                <img src={SearchIcon} class={classes.searchIcon} alt="Search" />
-                <input
-                  type="text"
-                  id="studyBook"
-                  placeholder="Bible Book Name..."
-                  value={studyBookValue()}
-                  onInput={(e) => {
-                    setStudyBookValue(e.target.value);
-                    if (filteredBooks().length > 0) {
-                      setFocusedBookIndex(0);
-                    } else {
-                      setFocusedBookIndex(-1); // Reset index when there are no matches
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    switch (e.key) {
-                      case "ArrowDown":
-                        e.preventDefault(); // Prevent cursor movement
-                        if (focusedBookIndex() < filteredBooks().length - 1) {
-                          setFocusedBookIndex(focusedBookIndex() + 1);
-                        }
-                        break;
-                      case "ArrowUp":
-                        e.preventDefault(); // Prevent cursor movement
-                        if (focusedBookIndex() > 0) {
-                          setFocusedBookIndex(focusedBookIndex() - 1);
-                        }
-                        break;
-                      case "Enter":
-                        e.preventDefault(); // Prevent form submission
-                        if (focusedBookIndex() !== -1) {
-                          selectBook(filteredBooks()[focusedBookIndex()]);
-                        }
-                        break;
-                      default:
-                        break;
-                    }
-                  }}
-                />
-              </>
-            )}
+            {
+              selectedBook() ? (
+                <span class={classes.tag} onClick={() => setSelectedBook(null)}>
+                  {selectedBook()}
+                  <img src={CloseXIcon} alt="Close" class={classes.removeTagIcon} />
+                </span>
+              ) : (
+                <>
+                  <img src={SearchIcon} class={classes.searchIcon} alt="Search" />
+                  <input
+                    type="text"
+                    id="studyBook"
+                    placeholder="Bible Book Name..."
+                    value={studyBookValue()}
+                    onInput={bookSelectOnInput}
+                    onKeyDown={bookSelectOnKey}
+                  />
+                </>
+              )
+            }
             <Show when={studyBookValue() && !selectedBook()}>
               <ul class={classes.dropdownList}>
                 {filteredBooks().length > 0 ? (
@@ -568,7 +573,7 @@ function AddStudy (prop : AddStudyProp) {
               type="submit"
               disabled={!selectedBook() || studyTitleValue().trim() === ""}
               class={
-                !selectedBook() || studyTitleValue().trim() === "" ? classes.disabledButton : ""
+                studyTitleValue().trim() === "" ? classes.disabledButton : ""
               }
             >
               Create
@@ -584,6 +589,33 @@ function AddStudy (prop : AddStudyProp) {
     </div>
   );
 };
+
+type CreateStudy = {
+  name : string;
+};
+
+type ApiCreateStudy = {
+  name : string;
+  document : any
+};
+
+async function apiCreateStudy (crStudy : CreateStudy) : Promise<Network.SimpleNetworkState<StudyRaw>> {
+  const body : ApiCreateStudy = {
+    name : crStudy.name,
+    document: {
+      type: "doc",
+      content: [],
+    },
+  };
+  return Network.request("/study", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 
 const studyBlockItems = [
   {
