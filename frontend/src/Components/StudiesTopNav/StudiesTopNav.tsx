@@ -572,6 +572,7 @@ function AddStudy (prop : AddStudyProp) {
             <button
               type="submit"
               disabled={!selectedBook() || studyTitleValue().trim() === ""}
+              onClick={createStudySubmitted}
               class={
                 studyTitleValue().trim() === "" ? classes.disabledButton : ""
               }

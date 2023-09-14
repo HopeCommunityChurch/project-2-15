@@ -11,11 +11,13 @@ import HamburgerMenuIcon from "../../Assets/hamburger-menu-icon.svg";
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
 import useClickOutsideClose from "../../Hooks/useOutsideClickClose";
+import { DocRaw } from "../../Types";
 
 type StudyTopNavProps = {
   isSidebarOpen: () => boolean;
   isTopbarOpen: () => boolean;
   setSidebarOpen: (value: boolean) => void;
+  doc : DocRaw
 };
 
 export function StudyTopNav(props: StudyTopNavProps) {
@@ -153,7 +155,7 @@ export function StudyTopNav(props: StudyTopNavProps) {
 
         <img class={classes.logo} src={Logo} onClick={() => nav("/app/studies")} />
         <div class={classes.studyHeaderText}>
-          <p>Study Title</p>
+          <p>{props.doc.study.name}</p>
           <div>
             <p>Study Template</p>
             <p class={classes.hideBelow750px}>|</p>
@@ -172,7 +174,6 @@ export function StudyTopNav(props: StudyTopNavProps) {
           </Button>
         </div>
         <div>
-          {loginState()}
           {
             // @ts-ignore
             match(loginState() as LoginUser)

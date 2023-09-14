@@ -6,34 +6,28 @@ import Database.Beam (
   Beamable,
   C,
   all_,
-  default_,
   exists_,
   guard_,
   in_,
-  insert,
-  insertExpressions,
-  insertValues,
-  runInsert,
   runUpdate,
   update,
   val_,
   (<-.),
   (==.),
  )
-import Database.Beam.Backend.SQL.BeamExtensions (
-  MonadBeamInsertReturning (runInsertReturningList),
- )
 import Database.Beam.Postgres (PgJSONB (..))
 import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam)
 import Entity qualified as E
 import Entity.AuthUser
 import Entity.User qualified as User
+import Entity.Study qualified as Study
 import Types qualified as T
 
 
 data GetDoc = MkGetDoc
   { docId :: T.DocId
-  , study :: T.StudyId
+  , studyId :: T.StudyId
+  , study :: Study.GetStudy
   , name :: Text
   , document :: Object
   , editors :: List User.GetUser
@@ -52,6 +46,7 @@ instance E.Entity GetDoc where
     , name :: C f Text
     , document :: C f (PgJSONB Object)
     , editors :: C f (PgJSONB (Vector User.GetUser'))
+    , study :: C f (PgJSONB Study.GetStudy')
     , update :: C f UTCTime
     , created :: C f UTCTime
     }
@@ -64,6 +59,7 @@ instance E.Entity GetDoc where
     MkGetDoc
       docId
       studyId
+      (E.toEntity (Db.unPgJSONB study))
       name
       (Db.unPgJSONB document)
       (fmap E.toEntity (toList (Db.unPgJSONB editors)))
@@ -86,6 +82,7 @@ instance E.Entity GetDoc where
                     guard_ $ de.docId ==. doc.docId
                     user <- E.queryEntityBy @User.GetUser Nothing de.userId
                     pure $ jsonBuildObject user
+    study <- E.queryEntityBy @Study.GetStudy Nothing doc.studyId
 
 
     pure $
@@ -95,6 +92,7 @@ instance E.Entity GetDoc where
         doc.name
         doc.document
         editors
+        (jsonBuildObject study)
         doc.updated
         doc.created
 
@@ -107,44 +105,6 @@ instance E.EntityWithId GetDoc where
   entityId = (.docId)
 
 
-data CrDoc = CrDoc
-  { studyId :: T.StudyId
-  , name :: Text
-  , document :: Object
-  , editor :: T.UserId
-  }
-  deriving (Generic, Show)
-  deriving anyclass (FromJSON, ToJSON, ToSchema)
-
-
-crDocument
-  :: MonadDb env m
-  => CrDoc
-  -> m T.DocId
-crDocument crDoc = do
-  now <- getCurrentTime
-  [doc] <-
-    runBeam
-      $ runInsertReturningList
-      $ insert Db.db.document
-      $ insertExpressions
-        [ Db.MkDocumentT
-          default_
-          (val_ crDoc.studyId)
-          (val_ crDoc.name)
-          (val_ (PgJSONB crDoc.document))
-          (val_ now)
-          (val_ now)
-        ]
-  runBeam
-    $ runInsert
-    $ insert Db.db.documentEditor
-    $ insertValues
-      [ Db.MkDocumentEditorT
-        doc.docId
-        crDoc.editor
-      ]
-  pure doc.docId
 
 
 updateDocument

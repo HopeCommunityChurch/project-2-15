@@ -12,16 +12,17 @@ import Database.Beam (
   in_,
   insert,
   insertExpressions,
+  runInsert,
+  insertValues,
   val_,
   (==.),
  )
 import Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturning (runInsertReturningList))
-import Database.Beam.Postgres (PgJSONB)
+import Database.Beam.Postgres (PgJSONB(..))
 import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam)
 import Entity qualified as E
 import Entity.AuthUser
 import Entity.User
-import Entity.Document
 import Types qualified as T
 
 
@@ -141,6 +142,10 @@ instance E.Entity GetStudy where
         docs
 
 
+type GetStudy' = DbEntity GetStudy Identity
+
+instance FromJSON GetStudy'
+
 instance E.GuardValue GetStudy T.StudyId where
   guardValues ids study =
     guard_ $ study.studyId `in_` ids
@@ -182,4 +187,43 @@ addStudy userId crStudy = do
   pure study.studyId
 
 
+
+data CrDoc = CrDoc
+  { studyId :: T.StudyId
+  , name :: Text
+  , document :: Object
+  , editor :: T.UserId
+  }
+  deriving (Generic, Show)
+  deriving anyclass (FromJSON, ToJSON, ToSchema)
+
+
+crDocument
+  :: MonadDb env m
+  => CrDoc
+  -> m T.DocId
+crDocument crDoc = do
+  now <- getCurrentTime
+  [doc] <-
+    runBeam
+      $ runInsertReturningList
+      $ insert Db.db.document
+      $ insertExpressions
+        [ Db.MkDocumentT
+          default_
+          (val_ crDoc.studyId)
+          (val_ crDoc.name)
+          (val_ (PgJSONB crDoc.document))
+          (val_ now)
+          (val_ now)
+        ]
+  runBeam
+    $ runInsert
+    $ insert Db.db.documentEditor
+    $ insertValues
+      [ Db.MkDocumentEditorT
+        doc.docId
+        crDoc.editor
+      ]
+  pure doc.docId
 

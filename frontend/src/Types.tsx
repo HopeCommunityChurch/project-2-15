@@ -67,10 +67,11 @@ export function toStudyFromRaw(study: StudyRaw): Study {
   };
 }
 
-export type Doc = {
+export type DocRaw = {
   docId : DocId;
   document: any;
   editor: Array<PublicUser>;
   name: string;
-  study: StudyId;
+  studyId: StudyId;
+  study: StudyRaw;
 };

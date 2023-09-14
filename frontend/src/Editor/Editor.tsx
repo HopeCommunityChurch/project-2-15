@@ -43,6 +43,7 @@ const textSchema = new Schema({
       group: "studyElement",
       isolating: true,
       defining: true,
+      attrs: { book: { default: "Genesis" }, verses: { default : "1:1" } },
       toDOM: () => {
         return [
           "div",
@@ -710,6 +711,44 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
   }
 };
 
+type AddSectionBibleSections = {
+  book: string;
+  verses: string;
+  text: string;
+};
+
+function newBibleText (btxt : AddSectionBibleSections) {
+  const txt = textSchema.text(btxt.text);
+  const chunk = textSchema.nodes.chunk.createChecked(null, txt);
+  return textSchema.nodes.bibleText.createChecked({book: btxt.book, verses: btxt.verses}, chunk);
+}
+
+type AddSection = {
+  header: string;
+  bibleSections: Array<AddSectionBibleSections>
+};
+
+function newSectionNode (crSection : AddSection) : Node {
+  const children = crSection.bibleSections.map(newBibleText);
+  const questions = textSchema.nodes.questions.createChecked();
+  children.push(questions);
+  const section = textSchema.nodes.section.createChecked({header: crSection.header }, children);
+  return section;
+};
+
+const addSection = (section: AddSection, state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  const from = state.selection.from;
+  const to = state.selection.to;
+  if (dispatch) {
+    const node = newSectionNode(section);
+    // should be the end of the document.
+    const pos = state.doc.nodeSize - 2;
+    const tr = state.tr.insert(pos, node);
+    dispatch(tr);
+    return true;
+  }
+};
+
 interface QuestionMapItem {
   node: Node;
   getPos: () => number;
@@ -799,6 +838,18 @@ export class P215Editor {
 
   addQuestion() {
     addQuestion(this.view.state, this.view.dispatch);
+  }
+
+  decreaseLevel() {
+    decreaseLevel(this.view.state, this.view.dispatch);
+  }
+
+  increaseLevel() {
+    increaseLevel(this.view.state, this.view.dispatch);
+  }
+
+  addSection ( crSection : AddSection) {
+    addSection(crSection, this.view.state, this.view.dispatch);
   }
 
   onUpdate(f : (change : any) => void) {

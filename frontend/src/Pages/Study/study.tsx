@@ -18,13 +18,13 @@ import GrayCircleIcon from "../../Assets/gray-circle-icon.svg";
 import Arrow2Icon from "../../Assets/arrow2.svg";
 import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
-import { PublicUser, Study, Doc } from "../../Types";
+import { PublicUser, Study, DocRaw } from "../../Types";
 import * as Editor from "../../Editor/Editor";
 import { LoginUser, loginState } from "../LoginPage/login";
 import { useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
 
-async function getStudy(documentId): Promise<Network.NetworkState<Doc>> {
+async function getStudy(documentId): Promise<Network.NetworkState<DocRaw>> {
   return Network.request("/document/" + documentId);
 }
 
@@ -57,39 +57,13 @@ export function StudyPage() {
   </>;
 }
 
-function StudyLoggedIn(doc : Doc, currentUser : PublicUser) {
+function StudyLoggedIn(doc : DocRaw, currentUser : PublicUser) {
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const [isTopbarOpen, setTopbarOpen] = createSignal(true);
-  const sectionTitles = [
-    { Title: "1:1–17", Status: "Completed" },
-    { Title: "1:18–2:23", Status: "Completed" },
-    { Title: "3:1–12", Status: "Completed" },
-    { Title: "3:13–4:11", Status: "Completed" },
-    { Title: "4:12–25", Status: "Completed" },
-    { Title: "5–7", Status: "Not Completed" },
-    { Title: "8:1–15", Status: "Not Completed" },
-    { Title: "8:16––11:1", Status: "Not Completed" },
-    { Title: "11:2–19", Status: "Not Completed" },
-    { Title: "11:20–30", Status: "Not Completed" },
-    { Title: "12", Status: "Not Completed" },
-    { Title: "13:1–52", Status: "Not Completed" },
-    { Title: "13:53–16:12", Status: "Not Completed" },
-    { Title: "16:13–17:13", Status: "Not Completed" },
-    { Title: "17:14–20:34", Status: "Not Completed" },
-    { Title: "21:1–22", Status: "Not Completed" },
-    { Title: "21:23–22:46", Status: "Not Completed" },
-    { Title: "Long name just in case it happens need to test haha", Status: "Not Completed" },
-    { Title: "24–25", Status: "Not Completed" },
-    { Title: "26–27", Status: "Not Completed" },
-    { Title: "28:1–8", Status: "Not Completed" },
-    { Title: "28:9–10", Status: "Not Completed" },
-    { Title: "28:11–15", Status: "Not Completed" },
-    { Title: "28:16–20", Status: "Not Completed" },
-  ];
+  const [sections, setSections] = createSignal([]);
 
   createEffect(() => {
     const isStudyPage = document.querySelector(`.${classes.documentBody}`);
-
     if (isStudyPage) {
       document.body.style.overflow = "hidden";
     }
@@ -171,6 +145,7 @@ function StudyLoggedIn(doc : Doc, currentUser : PublicUser) {
       window.removeEventListener("resize", handleSidebarState);
     };
   });
+  const sectionTitles = [];
 
   return (
     <>
@@ -178,6 +153,7 @@ function StudyLoggedIn(doc : Doc, currentUser : PublicUser) {
         isSidebarOpen={isSidebarOpen}
         setSidebarOpen={setSidebarOpen}
         isTopbarOpen={isTopbarOpen}
+        doc={doc}
       />
       <TextEditorToolbar
         editor={editor}

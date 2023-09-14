@@ -49,9 +49,9 @@ export function TextEditorToolbar(props: TextEditorToolbarProps) {
         <ToolbarGroup1 />
         <ToolbarGroup2 />
         <ToolbarGroup3 />
-        <ToolbarGroup4 />
+        <ToolbarGroup4 editor={props.editor} />
         <ToolbarGroup5 editor={props.editor} />
-        <ToolbarGroup6 />
+        <ToolbarGroup6 editor={props.editor} />
         <ClearFormattingSection />
         <div class={classes.extendedMenuContainer}>
           <img
@@ -67,9 +67,9 @@ export function TextEditorToolbar(props: TextEditorToolbarProps) {
               <ToolbarGroup1 />
               <ToolbarGroup2 />
               <ToolbarGroup3 />
-              <ToolbarGroup4 />
+              <ToolbarGroup4 editor={props.editor} />
               <ToolbarGroup5 editor={props.editor} />
-              <ToolbarGroup6 />
+              <ToolbarGroup6 editor={props.editor} />
               <ClearFormattingSection />
             </div>
           </Show>
@@ -123,11 +123,19 @@ function ToolbarGroup3() {
     </div>
   );
 }
-function ToolbarGroup4() {
+function ToolbarGroup4(props: GroupProp) {
+  let increaseLevel = (e : MouseEvent) => {
+    e.preventDefault();
+    props.editor.increaseLevel();
+  }
+  let decreaseLevel = (e : MouseEvent) => {
+    e.preventDefault();
+    props.editor.decreaseLevel();
+  }
   return (
     <div class={classes.toolbarGroup4}>
-      <img src={OutdentIcon} class={classes.toolbarIcon} />
-      <img src={IndentIcon} class={classes.toolbarIcon} />
+      <img src={OutdentIcon} class={classes.toolbarIcon} onClick={decreaseLevel}/>
+      <img src={IndentIcon} class={classes.toolbarIcon} onClick={increaseLevel} />
       <div class={classes.seperator} />
     </div>
   );
@@ -151,12 +159,28 @@ function ToolbarGroup5(props: GroupProp) {
     </div>
   );
 }
-function ToolbarGroup6() {
+
+function ToolbarGroup6(props : GroupProp) {
+  function addSection(e : MouseEvent) {
+    e.preventDefault();
+    const book = prompt("Book");
+    const verses = prompt("Verses");
+    const text = prompt("text");
+    props.editor.addSection({
+      header: book + " " + verses,
+      bibleSections: [ {
+        book: book,
+        verses: verses,
+        text: text,
+      }],
+    });
+  }
   return (
     <div class={classes.toolbarGroup6}>
       <img src={LinkIcon} class={classes.toolbarIcon} />
       <img src={CommentIcon} class={classes.toolbarIcon} />
       <img src={ParallelViewIcon} class={classes.toolbarIcon} />
+      <button onClick={addSection}>add section </button>
       <div class={classes.seperator} />
     </div>
   );
