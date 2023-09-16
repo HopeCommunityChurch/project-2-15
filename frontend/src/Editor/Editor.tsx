@@ -484,16 +484,20 @@ const questionPopup = (x, y, qId, questionMap, view: EditorView) => {
     pop.style.top = "calc(" + y + "px + 1em)";
     let mover = pop.appendChild(document.createElement("mover"));
     mover.onmousedown = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
       const rec = pop.getBoundingClientRect();
       const diffX = e.pageX - rec.x;
       const diffY = e.pageY - rec.y;
-      document.addEventListener("mouseup", (e) => {
-        document.removeEventListener("mousemove", mousemove);
-      });
-      var mousemove = (e) => {
+      const mousemove = (e : MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
         pop.style.left = "calc(" + (e.pageX - diffX) + "px)";
         pop.style.top = "calc(" + (e.pageY - diffY) + "px)";
       };
+      document.addEventListener("mouseup", (e) => {
+        document.removeEventListener("mousemove", mousemove);
+      });
       document.addEventListener("mousemove", mousemove);
     };
     // Add drag handle
