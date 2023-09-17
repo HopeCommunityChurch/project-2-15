@@ -14,9 +14,10 @@ import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
 import BlueCheckIcon from "Assets/blue-check-icon.svg";
 import GrayCircleIcon from "Assets/gray-circle-icon.svg";
 import Arrow2Icon from "Assets/arrow2.svg";
+import BluePencil from "Assets/blue-pencil.png";
 import * as Network from "Utils/Network";
 import * as classes from "./styles.module.scss";
-import { PublicUser, Study, DocRaw } from "../../Types";
+import { PublicUser, DocRaw } from "../../Types";
 import * as Editor from "Editor/Editor";
 import { LoginUser, loginState } from "Pages/LoginPage/login";
 import { useNavigate } from "@solidjs/router";
@@ -29,33 +30,39 @@ async function getStudy(documentId): Promise<Network.NetworkState<DocRaw>> {
 export function StudyPage() {
   const nav = useNavigate();
   const documentID = useParams().documentID;
-  const [result] = createResource([], () => getStudy(documentID), { initialValue: { state: "loading" } });
+  const [result] = createResource([], () => getStudy(documentID), {
+    initialValue: { state: "loading" },
+  });
 
-  createEffect( () => {
+  createEffect(() => {
     console.log(result());
   });
 
-  return <>
-    {
-      match(loginState() as LoginUser)
-      .with({ state: "notLoggedIn" }, () => {
-        nav("/app/login?redirect=/app/study/"+documentID);
-        return <> </>;
-      })
-      .with({ state: "loggedIn" }, ({ user }) =>
-        match(result())
-          .with({ state: "loading" }, () => <></>)
-          .with({ state: "error" }, ({body}) => <>{JSON.stringify(body)}</>)
-          .with({ state: "success" }, ({ body }) => (StudyLoggedIn(body, user)))
-          .with({ state: "notloaded" }, () => <>not loaded</>)
+  return (
+    <>
+      {
+        //@ts-ignore
+        match(loginState() as LoginUser)
+          .with({ state: "notLoggedIn" }, () => {
+            nav("/app/login?redirect=/app/study/" + documentID);
+            return <> </>;
+          })
+          .with({ state: "loggedIn" }, ({ user }) =>
+            //@ts-ignore
+            match(result())
+              .with({ state: "loading" }, () => <></>)
+              .with({ state: "error" }, ({ body }) => <>{JSON.stringify(body)}</>)
+              .with({ state: "success" }, ({ body }) => StudyLoggedIn(body, user))
+              .with({ state: "notloaded" }, () => <>not loaded</>)
+              .exhaustive()
+          )
           .exhaustive()
-      )
-      .exhaustive()
-    }
-  </>;
+      }
+    </>
+  );
 }
 
-function StudyLoggedIn(doc : DocRaw, currentUser : PublicUser) {
+function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const [isTopbarOpen, setTopbarOpen] = createSignal(true);
   const [sections, setSections] = createSignal([]);
@@ -78,20 +85,24 @@ function StudyLoggedIn(doc : DocRaw, currentUser : PublicUser) {
 
   let editorRoot: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
-  const updateSignal = throttle( (change) =>
-    Network.request("/document/"+ doc.docId , {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(change),
-    }).then( (res) => {
-      console.log(res);
-    }).catch( (err) => {
-      console.log(err);
-    })
-  , 500);
-  editor.onUpdate( (value) => {
+  const updateSignal = throttle(
+    (change) =>
+      Network.request("/document/" + doc.docId, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(change),
+      })
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          console.log(err);
+        }),
+    500
+  );
+  editor.onUpdate((value) => {
     updateSignal(value);
   });
 
@@ -171,6 +182,16 @@ function StudyLoggedIn(doc : DocRaw, currentUser : PublicUser) {
                 <img src={Arrow2Icon} class={classes.reverse} />
               )}
             </div>
+            <div class={classes.editSections}>
+              {isSidebarOpen() ? (
+                <>
+                  <img src={BluePencil} />
+                  <p>EDIT SECTIONS</p>
+                </>
+              ) : (
+                <img src={BluePencil} />
+              )}
+            </div>
             <div class={classes.allSectionSidebarContainer}>
               {sectionTitles.map((section) => (
                 <div class={classes.sectionSidebarContainer}>
@@ -207,7 +228,3 @@ function StudyLoggedIn(doc : DocRaw, currentUser : PublicUser) {
     </>
   );
 }
-
-type ViewStudyProps = {
-  study: Study;
-};

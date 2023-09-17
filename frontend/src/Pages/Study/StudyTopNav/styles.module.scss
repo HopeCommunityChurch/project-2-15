@@ -128,7 +128,7 @@
   border: 1px solid #ccc;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 1000; /* To ensure it stays on top */
+  z-index: 999; /* To ensure it stays on top */
   padding: 14px 0px;
   border-radius: 7px;
 }
