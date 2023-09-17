@@ -11,6 +11,7 @@ import { TextEditorToolbar } from "./TextEditorToolbar/TextEditorToolbar";
 import { match } from "ts-pattern";
 import { useParams } from "@solidjs/router";
 import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
+import { SectionEditor } from "./SectionEditor/SectionEditor";
 import BlueCheckIcon from "Assets/blue-check-icon.svg";
 import GrayCircleIcon from "Assets/gray-circle-icon.svg";
 import Arrow2Icon from "Assets/arrow2.svg";
@@ -22,7 +23,6 @@ import * as Editor from "Editor/Editor";
 import { LoginUser, loginState } from "Pages/LoginPage/login";
 import { useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
-
 async function getStudy(documentId): Promise<Network.NetworkState<DocRaw>> {
   return Network.request("/document/" + documentId);
 }
@@ -65,6 +65,7 @@ export function StudyPage() {
 function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const [isTopbarOpen, setTopbarOpen] = createSignal(true);
+  const [showSectionEditor, setShowSectionEditor] = createSignal(false);
   const [sections, setSections] = createSignal([]);
 
   createEffect(() => {
@@ -154,7 +155,13 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       window.removeEventListener("resize", handleSidebarState);
     };
   });
-  const sectionTitles = [];
+  const sectionTitles = [
+    { Title: "1 Cor 3:5", Status: "Completed" },
+    { Title: "1 Cor 3:5", Status: "Completed" },
+    { Title: "1 Cor 3:5", Status: "Not Completed" },
+    { Title: "1 Cor 3:5", Status: "Completed" },
+    { Title: "1 Cor 3:5", Status: "Completed" },
+  ];
 
   return (
     <>
@@ -182,7 +189,10 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                 <img src={Arrow2Icon} class={classes.reverse} />
               )}
             </div>
-            <div class={classes.editSections}>
+            <div
+              onClick={() => setShowSectionEditor(!showSectionEditor())}
+              class={classes.editSections}
+            >
               {isSidebarOpen() ? (
                 <>
                   <img src={BluePencil} />
@@ -194,7 +204,11 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
             </div>
             <div class={classes.allSectionSidebarContainer}>
               {sectionTitles.map((section) => (
-                <div class={classes.sectionSidebarContainer}>
+                <div
+                  class={`${classes.sectionSidebarContainer} ${
+                    isSidebarOpen() ? "" : classes.closed
+                  }`}
+                >
                   <span class={classes.sectionSidebarStatus}>
                     {section.Status === "Completed" ? (
                       <img src={BlueCheckIcon} />
@@ -225,6 +239,10 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
           class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
         ></div>
       </div>
+      <SectionEditor
+        showSectionEditor={showSectionEditor}
+        setShowSectionEditor={setShowSectionEditor}
+      />
     </>
   );
 }

@@ -17,7 +17,7 @@ type StudyTopNavProps = {
   isSidebarOpen: () => boolean;
   isTopbarOpen: () => boolean;
   setSidebarOpen: (value: boolean) => void;
-  doc : DocRaw
+  doc: DocRaw;
 };
 
 export function StudyTopNav(props: StudyTopNavProps) {
@@ -144,9 +144,9 @@ export function StudyTopNav(props: StudyTopNavProps) {
 
   const nav = useNavigate();
 
-  function logoutClick (e : MouseEvent) {
+  function logoutClick(e: MouseEvent) {
     e.preventDefault();
-    handleLogout().then( () => {
+    handleLogout().then(() => {
       nav("/app/login");
     });
   }
