@@ -26,6 +26,25 @@ updateDocument user docId obj = do
   getByIdForUser user docId
 
 
+data CrDoc = MkCrDoc
+  { studyTemplateId :: Maybe T.StudyTemplateId
+  , name :: Text
+  , document :: Object
+  }
+  deriving (Generic, Show)
+  deriving anyclass (FromJSON, ToJSON, ToSchema)
+
+
+createDocument
+  :: MonadDb env m
+  => AuthUser
+  -> CrDoc
+  -> m Doc.GetDoc
+createDocument user cr = do
+  let cr2 = Doc.CrDoc cr.studyTemplateId cr.name cr.document user.userId
+  docId <- Doc.crDocument cr2
+  getByIdForUser user docId
+
 
 type Api =
   AuthProtect "cookie"
@@ -39,6 +58,11 @@ type Api =
     :> Capture "documentId" T.DocId
     :> ReqBody '[JSON] Object
     :> Put '[JSON] Doc.GetDoc
+  :<|> AuthProtect "cookie"
+    :> Summary "Create a document, it's not in a study"
+    :> Description "Create a document, it's not in a study"
+    :> ReqBody '[JSON] CrDoc
+    :> Post '[JSON] Doc.GetDoc
 
 
 
@@ -48,4 +72,5 @@ server
 server =
   getByIdForUser
   :<|> updateDocument
+  :<|> createDocument
 
