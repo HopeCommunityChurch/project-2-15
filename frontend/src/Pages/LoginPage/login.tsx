@@ -61,6 +61,14 @@ export async function updateLoginState(): Promise<LoginUser> {
   });
 }
 
+export async function handleLogout () : Promise<LoginUser> {
+  return Network.request("/auth/logout", {
+    method: "POST",
+  }).then( () => {
+    return updateLoginState();
+  });
+}
+
 export function LoginPage() {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
@@ -90,7 +98,14 @@ export function LoginPage() {
           })
           .with({ state: "success" }, () => {
             console.log(result);
-            updateLoginState().then(() => nav("/app/studies"));
+            const params = new URLSearchParams(location.search);
+            let redirect = params.get("redirect");
+            if (!redirect) {
+              redirect = "/app/studies";
+            }
+
+
+            updateLoginState().then(() => nav(redirect));
           })
           .exhaustive();
       })

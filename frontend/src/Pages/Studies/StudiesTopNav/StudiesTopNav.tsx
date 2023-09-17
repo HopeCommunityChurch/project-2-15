@@ -10,6 +10,7 @@ import PadlockIcon from "Assets/padlock.svg";
 import ArrowIcon from "Assets/arrow.svg";
 import NotificationBell from "Assets/notification-bell.svg";
 import * as Network from "Utils/Network";
+import { handleLogout } from "Pages/LoginPage/login";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
@@ -67,6 +68,14 @@ export function StudiesTopNav(props : StudiesTopNavProps) {
   });
 
   const nav = useNavigate();
+
+  function logoutClick (e : MouseEvent) {
+    e.preventDefault();
+    handleLogout().then( () => {
+      nav("/app/login");
+    });
+  }
+
 
   return (
     <>
@@ -163,14 +172,14 @@ export function StudiesTopNav(props : StudiesTopNavProps) {
                   </a>
                 </li>
                 <li>
-                  <a href="/app/admin" class={classes.fullWidthLink}>
+                  <A href="/app/admin" class={classes.fullWidthLink}>
                     Admin Area
-                  </a>
+                  </A>
                 </li>
                 <li>
-                  <a href="/logout" class={classes.fullWidthLink}>
+                  <span onClick={logoutClick} class={classes.fullWidthLink}>
                     Sign Out
-                  </a>
+                  </span>
                 </li>
               </ul>
             </div>

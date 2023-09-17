@@ -3,7 +3,7 @@ import ShareIcon from "Assets/share-icon-white.svg";
 import { Button } from "Components/Button/Button";
 import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import { loginState, LoginUser } from "Pages/LoginPage/login";
+import { loginState, LoginUser, handleLogout } from "Pages/LoginPage/login";
 import CloseXIcon from "Assets/x.svg";
 import SearchIcon from "Assets/magnifying_glass.svg";
 import HamburgerMenuIcon from "Assets/hamburger-menu-icon.svg";
@@ -144,6 +144,13 @@ export function StudyTopNav(props: StudyTopNavProps) {
 
   const nav = useNavigate();
 
+  function logoutClick (e : MouseEvent) {
+    e.preventDefault();
+    handleLogout().then( () => {
+      nav("/app/login");
+    });
+  }
+
   return (
     <>
       <header class={`${classes.header} ${props.isTopbarOpen() ? "" : classes.collapsed}`}>
@@ -217,9 +224,9 @@ export function StudyTopNav(props: StudyTopNavProps) {
                         </a>
                       </li>
                       <li>
-                        <a href="/logout" class={classes.fullWidthLink}>
+                        <span onClick={logoutClick} class={classes.fullWidthLink}>
                           Sign Out
-                        </a>
+                        </span>
                       </li>
                     </ul>
                   </div>
