@@ -155,7 +155,7 @@ export function StudyTopNav(props: StudyTopNavProps) {
 
         <img class={classes.logo} src={Logo} onClick={() => nav("/app/studies")} />
         <div class={classes.studyHeaderText}>
-          <p>{props.doc.study.name}</p>
+          <p>{props.doc.name}</p>
           <div>
             <p>Study Template</p>
             <p class={classes.hideBelow750px}>|</p>

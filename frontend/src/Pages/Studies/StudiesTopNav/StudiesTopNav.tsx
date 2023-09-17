@@ -2,7 +2,8 @@ import Logo from "Assets/p215-full-logo.svg";
 import { Button } from "Components/Button/Button";
 import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import { PublicUser, StudyRaw } from "Types";
+import { PublicUser, GroupStudyRaw } from "Types";
+import * as T from "Types";
 import SearchIcon from "Assets/magnifying_glass.svg";
 import CloseXIcon from "Assets/x.svg";
 import PadlockIcon from "Assets/padlock.svg";
@@ -350,13 +351,13 @@ function AddStudy (prop : AddStudyProp) {
 
   function createStudySubmitted (e : Event) {
     e.preventDefault();
-    apiCreateStudy({
+    apiCreateDocument({
       name: studyTitleValue(),
     }).then( (r) => {
       match(r)
       .with({state: "error"}, (err) => console.log(r))
       .with({state: "success"}, ({body}) => {
-        const docId = body.docs[0].docId;
+        const docId = body.docId;
         nav("/app/study/" + docId);
       })
       .exhaustive();
@@ -595,20 +596,21 @@ type CreateStudy = {
   name : string;
 };
 
-type ApiCreateStudy = {
+type ApiCreateDocument = {
   name : string;
-  document : any
+  document : any;
+  studyTemplateId?: T.StudyTemplateId;
 };
 
-async function apiCreateStudy (crStudy : CreateStudy) : Promise<Network.SimpleNetworkState<StudyRaw>> {
-  const body : ApiCreateStudy = {
+async function apiCreateDocument (crStudy : CreateStudy) : Promise<Network.SimpleNetworkState<T.DocRaw>> {
+  const body : ApiCreateDocument = {
     name : crStudy.name,
     document: {
       type: "doc",
       content: [],
     },
   };
-  return Network.request("/study", {
+  return Network.request("/document", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
