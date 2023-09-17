@@ -48,8 +48,12 @@ createDocument user cr = do
 
 type Api =
   AuthProtect "cookie"
-    :> Summary "Gets all the studies for a user"
-    :> Description "Gets all the studies for a user"
+    :> Summary "Gets all documents for a user"
+    :> Description "Gets all documents for a user"
+    :> Get '[JSON] [Doc.GetDoc]
+  :<|> AuthProtect "cookie"
+    :> Summary "Get document"
+    :> Description "Get document"
     :> Capture "documentId" T.DocId
     :> Get '[JSON] Doc.GetDoc
   :<|> AuthProtect "cookie"
@@ -70,7 +74,8 @@ server
   :: MonadDb env m
   => ServerT Api m
 server =
-  getByIdForUser
+  Doc.getAllDocs
+  :<|> getByIdForUser
   :<|> updateDocument
   :<|> createDocument
 

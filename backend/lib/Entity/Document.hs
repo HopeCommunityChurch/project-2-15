@@ -9,6 +9,8 @@ import Database.Beam (
   exists_,
   guard_,
   in_,
+  runSelectReturningList,
+  select,
   runUpdate,
   update,
   insertExpressions,
@@ -18,7 +20,7 @@ import Database.Beam (
   insertValues,
   val_,
   (<-.),
-  (==.),
+  (==.), orderBy_, desc_,
  )
 import Database.Beam.Postgres (PgJSONB (..))
 import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam)
@@ -52,7 +54,7 @@ instance E.Entity GetDoc where
     , name :: C f Text
     , document :: C f (PgJSONB Object)
     , editors :: C f (PgJSONB (Vector User.GetUser'))
-    , update :: C f UTCTime
+    , updated :: C f UTCTime
     , created :: C f UTCTime
     }
     deriving anyclass (Beamable)
@@ -68,7 +70,7 @@ instance E.Entity GetDoc where
       name
       (Db.unPgJSONB document)
       (fmap E.toEntity (toList (Db.unPgJSONB editors)))
-      update
+      updated
       created
 
   queryEntity mAuthUser = do
@@ -169,3 +171,16 @@ crDocument crDoc = do
       ]
   pure doc.docId
 
+
+getAllDocs
+  :: MonadDb env m
+  => AuthUser
+  -> m [GetDoc]
+getAllDocs user =
+  fmap (fmap E.toEntity)
+  $ runBeam
+  $ runSelectReturningList
+  $ select
+  $ orderBy_ (desc_ . (.updated))
+  $ do
+    E.queryEntity @GetDoc (Just user)
