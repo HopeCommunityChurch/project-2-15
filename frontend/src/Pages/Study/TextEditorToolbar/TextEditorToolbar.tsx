@@ -21,7 +21,7 @@ import IndentIcon from "./indent-icon.svg";
 import OutdentIcon from "./outdent-icon.svg";
 import ClearFormattingIcon from "./clear-formatting-icon.svg";
 import QuestionIcon from "./question-icon.svg";
-import * as Editor from "../../Editor/Editor";
+import * as Editor from "Editor/Editor";
 import EnterIcon from "./enter-icon.svg";
 
 type TextEditorToolbarProps = {

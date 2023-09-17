@@ -1,6 +1,4 @@
-import { Show, createEffect, createSignal } from "solid-js";
-import { Button } from "../../Components/Button/Button";
-import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
+import { createEffect, createSignal } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { A } from "@solidjs/router";
 
@@ -9,7 +7,6 @@ import * as classes from "./styles.module.scss";
 
 import laptopMockup from "./laptop-mockup.png";
 import p215Logo from "./P215.png";
-import { PublicUser } from "../../Types";
 import { match } from "ts-pattern";
 import { updateLoginState } from "../LoginPage/login";
 

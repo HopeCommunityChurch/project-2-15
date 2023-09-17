@@ -1,17 +1,17 @@
-import Logo from "../../Assets/p215-circle.svg";
-import ShareIcon from "../../Assets/share-icon-white.svg";
-import { Button } from "../Button/Button";
+import Logo from "Assets/p215-circle.svg";
+import ShareIcon from "Assets/share-icon-white.svg";
+import { Button } from "Components/Button/Button";
 import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import { loginState, LoginUser } from "../../Pages/LoginPage/login";
-import CloseXIcon from "../../Assets/x.svg";
-import SearchIcon from "../../Assets/magnifying_glass.svg";
-import HamburgerMenuIcon from "../../Assets/hamburger-menu-icon.svg";
+import { loginState, LoginUser } from "Pages/LoginPage/login";
+import CloseXIcon from "Assets/x.svg";
+import SearchIcon from "Assets/magnifying_glass.svg";
+import HamburgerMenuIcon from "Assets/hamburger-menu-icon.svg";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
-import useClickOutsideClose from "../../Hooks/useOutsideClickClose";
-import { DocRaw } from "../../Types";
+import useClickOutsideClose from "Hooks/useOutsideClickClose";
+import { DocRaw } from "Types";
 
 type StudyTopNavProps = {
   isSidebarOpen: () => boolean;

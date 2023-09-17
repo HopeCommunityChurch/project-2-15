@@ -1,6 +1,4 @@
-import { Show, createEffect, createSignal } from "solid-js";
-import { Button } from "../../Components/Button/Button";
-import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
+import { createEffect, createSignal } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { A } from "@solidjs/router";
 

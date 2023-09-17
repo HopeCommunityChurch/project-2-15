@@ -1,18 +1,18 @@
-import Logo from "../../Assets/p215-full-logo.svg";
-import { Button } from "../Button/Button";
+import Logo from "Assets/p215-full-logo.svg";
+import { Button } from "Components/Button/Button";
 import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import { PublicUser, StudyRaw } from "../../Types";
-import SearchIcon from "../../Assets/magnifying_glass.svg";
-import CloseXIcon from "../../Assets/x.svg";
-import PadlockIcon from "../../Assets/padlock.svg";
-import ArrowIcon from "../../Assets/arrow.svg";
-import NotificationBell from "../../Assets/notification-bell.svg";
-import * as Network from "../../Utils/Network";
+import { PublicUser, StudyRaw } from "Types";
+import SearchIcon from "Assets/magnifying_glass.svg";
+import CloseXIcon from "Assets/x.svg";
+import PadlockIcon from "Assets/padlock.svg";
+import ArrowIcon from "Assets/arrow.svg";
+import NotificationBell from "Assets/notification-bell.svg";
+import * as Network from "Utils/Network";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
-import useClickOutsideClose from "../../Hooks/useOutsideClickClose";
+import useClickOutsideClose from "Hooks/useOutsideClickClose";
 
 export type StudiesTopNavProps = {
   currentUser: PublicUser

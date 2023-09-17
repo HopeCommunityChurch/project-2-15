@@ -7,20 +7,18 @@ import {
   Show,
   onCleanup,
 } from "solid-js";
-import { Button } from "../../Components/Button/Button";
-import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
-import { TextEditorToolbar } from "../../Components/TextEditorToolbar/TextEditorToolbar";
-import { match, P } from "ts-pattern";
+import { TextEditorToolbar } from "./TextEditorToolbar/TextEditorToolbar";
+import { match } from "ts-pattern";
 import { useParams } from "@solidjs/router";
-import { StudyTopNav } from "../../Components/StudyTopNav/StudyTopNav";
-import BlueCheckIcon from "../../Assets/blue-check-icon.svg";
-import GrayCircleIcon from "../../Assets/gray-circle-icon.svg";
-import Arrow2Icon from "../../Assets/arrow2.svg";
-import * as Network from "../../Utils/Network";
+import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
+import BlueCheckIcon from "Assets/blue-check-icon.svg";
+import GrayCircleIcon from "Assets/gray-circle-icon.svg";
+import Arrow2Icon from "Assets/arrow2.svg";
+import * as Network from "Utils/Network";
 import * as classes from "./styles.module.scss";
 import { PublicUser, Study, DocRaw } from "../../Types";
-import * as Editor from "../../Editor/Editor";
-import { LoginUser, loginState } from "../LoginPage/login";
+import * as Editor from "Editor/Editor";
+import { LoginUser, loginState } from "Pages/LoginPage/login";
 import { useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
 

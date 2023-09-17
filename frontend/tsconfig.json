@@ -1,6 +1,7 @@
 {
   "include": [ "typings", "src" ],
   "compilerOptions": {
+    "baseUrl": "./src",
     "target": "ESNext",
     "module": "CommonJS",
     "jsx": "preserve",

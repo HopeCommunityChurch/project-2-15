@@ -1,8 +1,8 @@
 import Logo from "./P215.png";
-import { Button } from "../../Components/Button/Button";
+import { Button } from "Components/Button/Button";
 import { createSignal, createEffect, Show } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import { loginState, LoginUser } from "../../Pages/LoginPage/login";
+import { loginState, LoginUser } from "Pages/LoginPage/login";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";

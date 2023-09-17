@@ -1,13 +1,13 @@
 import { createEffect, createSignal, onMount, For, createResource } from "solid-js";
-import { Button } from "../../Components/Button/Button";
+import { Button } from "Components/Button/Button";
 
 import { DateTimeFormatter } from "@js-joda/core";
 import { Locale } from "@js-joda/locale_en-us";
-import { StudiesTopNav } from "../../Components/StudiesTopNav/StudiesTopNav";
+import { StudiesTopNav } from "./StudiesTopNav/StudiesTopNav";
 import { match, P } from "ts-pattern";
 import { useNavigate } from "@solidjs/router";
 
-import * as Network from "../../Utils/Network";
+import * as Network from "Utils/Network";
 import * as classes from "./styles.module.scss";
 import { PublicUser, Study, StudyRaw, toStudyFromRaw } from "../../Types";
 

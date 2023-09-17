@@ -1,17 +1,17 @@
-import Logo from "../../../Assets/p215-full-logo.svg";
-import { Button } from "../../../Components/Button/Button";
+import Logo from "Assets/p215-full-logo.svg";
+import { Button } from "Components/Button/Button";
 import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import { loginState, LoginUser } from "../../../Pages/LoginPage/login";
-import SearchIcon from "../../../Assets/magnifying_glass.svg";
-import CloseXIcon from "../../../Assets/x.svg";
-import PadlockIcon from "../../../Assets/padlock.svg";
-import ArrowIcon from "../../../Assets/arrow.svg";
-import NotificationBell from "../../../Assets/notification-bell.svg";
+import { loginState, LoginUser } from "Pages/LoginPage/login";
+import SearchIcon from "Assets/magnifying_glass.svg";
+import CloseXIcon from "Assets/x.svg";
+import PadlockIcon from "Assets/padlock.svg";
+import ArrowIcon from "Assets/arrow.svg";
+import NotificationBell from "Assets/notification-bell.svg";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
-import useClickOutsideClose from "../../../Hooks/useOutsideClickClose";
+import useClickOutsideClose from "Hooks/useOutsideClickClose";
 
 export function MyAccountTopNav() {
   const [showDropdown, setShowDropdown] = createSignal(false);
