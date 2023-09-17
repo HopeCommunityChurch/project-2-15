@@ -16,6 +16,9 @@ module DbHelper
   , jsonBuildObject
   , jsonArraryOf
   , jsonArrayAgg
+
+  , asJustUnsafe_
+  , asJust_
   ) where
 
 
@@ -35,10 +38,11 @@ import Database.PostgreSQL.Simple qualified as PgS
 import EnvFields (EnvType (..), HasEnvType)
 import GHC.Generics ((:*:) (..))
 import GHC.Generics qualified as G
+import GHC.Stack qualified as Stack
 import GHC.TypeLits (KnownSymbol, symbolVal)
 import UnliftIO.Pool qualified as Pool
-import qualified GHC.Stack                       as Stack
-
+import Unsafe.Coerce (unsafeCoerce)
+import Database.Beam (guard_, isJust_)
 
 
 class HasDbConn env where
@@ -281,3 +285,17 @@ jsonArraryOf
   -> BQ.QExpr Pg.Postgres s (Pg.PgJSONB (Vector a))
 jsonArraryOf q =
   toJsonArray (Pg.arrayOf_ q)
+
+
+asJustUnsafe_
+  :: BQ.QExpr Pg.Postgres s (Maybe a)
+  -> BQ.QExpr Pg.Postgres s a
+asJustUnsafe_ = unsafeCoerce
+
+
+asJust_
+  :: BQ.QExpr Pg.Postgres s (Maybe a)
+  -> BQ.Q Pg.Postgres db s (BQ.QExpr Pg.Postgres s a)
+asJust_ a = do
+  guard_ $ isJust_ a
+  pure $ asJustUnsafe_ a

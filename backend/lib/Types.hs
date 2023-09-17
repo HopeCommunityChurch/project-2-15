@@ -3,7 +3,7 @@ module Types (
   UserId,
   Email,
   ChurchId,
-  StudyId,
+  GroupStudyId,
   StudyTemplateId,
   DocId,
   CookieToken,
@@ -77,8 +77,8 @@ data StudyTemplateId'
 type StudyTemplateId = NewType StudyTemplateId' UUID
 
 
-data StudyId'
-type StudyId = NewType StudyId' UUID
+data GroupStudyId'
+type GroupStudyId = NewType GroupStudyId' UUID
 
 
 data DocId'

@@ -202,8 +202,8 @@ studyTemplateTable =
 
 
 
-data StudyT f = MkStudyT
-  { studyId :: C f T.StudyId
+data GroupStudyT f = MkGroupStudyT
+  { groupStudyId :: C f T.GroupStudyId
   , studyTemplateId :: C f (Maybe T.StudyTemplateId)
   , name :: C f Text
   , created :: C f UTCTime
@@ -211,27 +211,54 @@ data StudyT f = MkStudyT
   deriving (Generic)
   deriving anyclass (Beamable)
 
-instance Table StudyT where
-  data PrimaryKey StudyT f = StudyKey (C f T.StudyId)
+instance Table GroupStudyT where
+  data PrimaryKey GroupStudyT f = GroupStudyKey (C f T.GroupStudyId)
     deriving Generic
     deriving anyclass (Beamable)
-  primaryKey = StudyKey <$> (.studyId)
+  primaryKey = GroupStudyKey <$> (.groupStudyId)
 
-studyTable :: TableMod StudyT
-studyTable =
+groupStudyTable :: TableMod GroupStudyT
+groupStudyTable =
   modifyTable
-    "study"
-    MkStudyT
-      { studyId = fieldNamed "studyId"
+    "group_study"
+    MkGroupStudyT
+      { groupStudyId = fieldNamed "groupStudyId"
       , studyTemplateId = fieldNamed "studyTemplateId"
       , name = fieldNamed "name"
       , created = fieldNamed "created"
       }
 
 
+data GroupStudyOwnerT f = MkGroupStudyOwnerT
+  { groupStudyId :: C f T.GroupStudyId
+  , userId :: C f T.UserId
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table GroupStudyOwnerT where
+  data PrimaryKey GroupStudyOwnerT f =
+    GroupStudyOwnerKey
+      (C f T.GroupStudyId)
+      (C f T.UserId)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = GroupStudyOwnerKey <$> (.groupStudyId) <*> (.userId)
+
+groupStudyOwnerTable :: TableMod GroupStudyOwnerT
+groupStudyOwnerTable =
+  modifyTable
+    "group_study_owner"
+    MkGroupStudyOwnerT
+      { groupStudyId = fieldNamed "groupStudyId"
+      , userId = fieldNamed "userId"
+      }
+
+
 data DocumentT f = MkDocumentT
   { docId :: C f T.DocId
-  , studyId :: C f T.StudyId
+  , groupStudyId :: C f (Maybe T.GroupStudyId)
+  , studyTemplateId :: C f (Maybe T.StudyTemplateId)
   , name :: C f Text
   , document :: C f (PgJSONB Object)
   , created :: C f UTCTime
@@ -252,7 +279,8 @@ documentTable =
     "document"
     MkDocumentT
       { docId = fieldNamed "docId"
-      , studyId = fieldNamed "studyId"
+      , groupStudyId = fieldNamed "groupStudyId"
+      , studyTemplateId = fieldNamed "studyTemplateId"
       , name = fieldNamed "name"
       , document = fieldNamed "document"
       , updated = fieldNamed "updated"
@@ -291,7 +319,8 @@ data Db f = MkDb
   , church :: f (TableEntity ChurchT)
   , churchElder :: f (TableEntity ChurchElderT)
   , studyTemplate :: f (TableEntity StudyTemplateT)
-  , study :: f (TableEntity StudyT)
+  , groupStudy :: f (TableEntity GroupStudyT)
+  , groupStudyOwner :: f (TableEntity GroupStudyOwnerT)
   , document :: f (TableEntity DocumentT)
   , documentEditor :: f (TableEntity DocumentEditorT)
   }
@@ -308,7 +337,8 @@ db = defaultDbSettings `withDbModification`
           , church = churchTable
           , churchElder = churchElderTable
           , studyTemplate = studyTemplateTable
-          , study = studyTable
+          , groupStudy = groupStudyTable
+          , groupStudyOwner = groupStudyOwnerTable
           , document = documentTable
           , documentEditor = documentEditorTable
           }

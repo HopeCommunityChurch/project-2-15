@@ -1,4 +1,4 @@
-module Api.Study where
+module Api.GroupStudy where
 
 
 import Api.Auth (AuthUser)
@@ -7,11 +7,11 @@ import Api.Helpers (getByIdForUser)
 import DbHelper (MonadDb)
 import Entity qualified as E
 import Entity.AuthUser qualified as AuthUser
-import Entity.Study qualified as Study
+import Entity.GroupStudy qualified as GroupStudy
 import Servant
 import Types qualified as T
 
-newtype GetStudies = GetStudies (List Study.GetStudy)
+newtype GetStudies = GetStudies (List GroupStudy.GetGroupStudy)
   deriving (Generic, Show)
   deriving anyclass (FromJSON, ToJSON, ToSchema)
 
@@ -27,19 +27,20 @@ getStudies user =
 createStudy
   :: MonadDb env m
   => AuthUser
-  -> Study.CrStudy
-  -> m Study.GetStudy
+  -> GroupStudy.CrStudy
+  -> m GroupStudy.GetGroupStudy
 createStudy authUser crStudy = do
-  studyId <- Study.addStudy authUser.userId crStudy
-  Errs.handleNotFound (E.getById @Study.GetStudy) studyId
+  studyId <- GroupStudy.addStudy authUser.userId crStudy
+  Errs.handleNotFound (E.getById @GroupStudy.GetGroupStudy) studyId
 
 
-getStudyMeta
+getGroupStudyMeta
   :: MonadDb env m
   => AuthUser
-  -> T.StudyId
-  -> m Study.GetStudy
-getStudyMeta = getByIdForUser
+  -> T.GroupStudyId
+  -> m GroupStudy.GetGroupStudy
+getGroupStudyMeta = getByIdForUser
+
 
 type Api =
   AuthProtect "cookie"
@@ -47,16 +48,15 @@ type Api =
     :> Description "Gets all the studies for a user"
     :> Get '[JSON] GetStudies
   :<|> AuthProtect "cookie"
-    :> ReqBody '[JSON] Study.CrStudy
-    :> Summary "Adds a study into the database"
-    :> Description "Adds a study into the database"
-    :> Post '[JSON] Study.GetStudy
+    :> ReqBody '[JSON] GroupStudy.CrStudy
+    :> Summary "Adds a group study into the database"
+    :> Description "Adds a group study into the database"
+    :> Post '[JSON] GroupStudy.GetGroupStudy
   :<|> AuthProtect "cookie"
     :> Summary "Gets all the studies for a user"
     :> Description "Gets all the studies for a user"
-    :> Capture "studyId" T.StudyId
-    :> Get '[JSON] Study.GetStudy
-
+    :> Capture "studyId" T.GroupStudyId
+    :> Get '[JSON] GroupStudy.GetGroupStudy
 
 
 server
@@ -65,4 +65,4 @@ server
 server =
   getStudies
   :<|> createStudy
-  :<|> getStudyMeta
+  :<|> getGroupStudyMeta

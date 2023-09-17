@@ -3,7 +3,7 @@ module Api where
 import Api.Auth qualified
 import Api.Errors qualified as Errs
 import Api.User qualified
-import Api.Study qualified
+import Api.GroupStudy qualified
 import Types qualified as T
 import Api.Document qualified
 import Data.Aeson ((.=))
@@ -30,7 +30,7 @@ type Api'
   :<|> OpenApiTag "user" "user stuff"
     :> "user" :> Api.User.Api
   :<|> OpenApiTag "study" "study stuff"
-    :> "study" :> Api.Study.Api
+    :> "study" :> Api.GroupStudy.Api
   :<|> OpenApiTag "document" "document stuff"
     :> "document" :> Api.Document.Api
 
@@ -39,7 +39,7 @@ server' :: MonadDb env m => ServerT Api' m
 server'
   = Api.Auth.server
   :<|> Api.User.server
-  :<|> Api.Study.server
+  :<|> Api.GroupStudy.server
   :<|> Api.Document.server
 
 
