@@ -29,8 +29,8 @@ type Api'
     :> "auth" :> Api.Auth.Api
   :<|> OpenApiTag "user" "user stuff"
     :> "user" :> Api.User.Api
-  :<|> OpenApiTag "study" "study stuff"
-    :> "study" :> Api.GroupStudy.Api
+  :<|> OpenApiTag "group-study" "group-study stuff"
+    :> "group-study" :> Api.GroupStudy.Api
   :<|> OpenApiTag "document" "document stuff"
     :> "document" :> Api.Document.Api
 
