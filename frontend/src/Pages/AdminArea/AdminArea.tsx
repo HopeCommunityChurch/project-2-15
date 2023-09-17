@@ -3,7 +3,7 @@ import { Button } from "../../Components/Button/Button";
 
 import { DateTimeFormatter } from "@js-joda/core";
 import { Locale } from "@js-joda/locale_en-us";
-import { AdminTopNav } from "../../Components/AdminTopNav/AdminTopNav";
+import { AdminTopNav } from "./AdminTopNav/AdminTopNav";
 import { match, P } from "ts-pattern";
 import { useNavigate } from "@solidjs/router";
 

@@ -1,6 +1,5 @@
 import { createEffect, createSignal, onMount, For, createResource, Show } from "solid-js";
-import { Button } from "../../Components/Button/Button";
-import { MyAccountTopNav } from "../../Components/MyAccountTopNav/MyAccountTopNav";
+import { MyAccountTopNav } from "./MyAccountTopNav/MyAccountTopNav";
 import BlueCheckIcon from "../../Assets/blue-check-icon.svg";
 import GrayCircleIcon from "../../Assets/gray-circle-icon.svg";
 import Arrow2Icon from "../../Assets/arrow2.svg";

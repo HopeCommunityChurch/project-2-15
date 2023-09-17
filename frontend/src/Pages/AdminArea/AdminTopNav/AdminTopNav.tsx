@@ -1,20 +1,22 @@
-import Logo from "../../Assets/p215-full-logo.svg";
-import { Button } from "../Button/Button";
+import Logo from "../../../Assets/p215-full-logo.svg";
+import { Button } from "../../../Components/Button/Button";
 import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import { loginState, LoginUser } from "../../Pages/LoginPage/login";
-import SearchIcon from "../../Assets/magnifying_glass.svg";
-import CloseXIcon from "../../Assets/x.svg";
-import PadlockIcon from "../../Assets/padlock.svg";
-import ArrowIcon from "../../Assets/arrow.svg";
-import NotificationBell from "../../Assets/notification-bell.svg";
+import { loginState, LoginUser } from "../../../Pages/LoginPage/login";
+import SearchIcon from "../../../Assets/magnifying_glass.svg";
+import CloseXIcon from "../../../Assets/x.svg";
+import PadlockIcon from "../../../Assets/padlock.svg";
+import ArrowIcon from "../../../Assets/arrow.svg";
+import NotificationBell from "../../../Assets/notification-bell.svg";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
-import useClickOutsideClose from "../../Hooks/useOutsideClickClose";
+import useClickOutsideClose from "../../../Hooks/useOutsideClickClose";
 
-export function MyAccountTopNav() {
+export function AdminTopNav() {
   const [showDropdown, setShowDropdown] = createSignal(false);
+  const [showModal, setShowModal] = createSignal(false);
+  const [studyTitleValue, setStudyTitleValue] = createSignal("");
   const [showNotificationsDropdown, setShowNotificationsDropdown] = createSignal(false);
 
   const notificationList = [
@@ -74,6 +76,11 @@ export function MyAccountTopNav() {
               <a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">
                 Messaging
               </a>
+            </li>
+            <li class={classes.desktopOnlyItem2}>
+              <Button type="Blue" onClick={() => setShowModal(true)}>
+                + New Template
+              </Button>
             </li>
             <li class={classes.notificationBellContainer}>
               <div
@@ -148,14 +155,19 @@ export function MyAccountTopNav() {
                     }`}
                   >
                     <ul>
+                      <li class={classes.mobileOnlyItem}>
+                        <Button type="Blue" onClick={() => setShowModal(true)}>
+                          + New Study
+                        </Button>
+                      </li>
                       <li>
                         <a href="/app/studies" class={classes.fullWidthLink}>
                           Home
                         </a>
                       </li>
                       <li>
-                        <a href="/app/admin" class={classes.fullWidthLink}>
-                          Admin Area
+                        <a href="/app/account" class={classes.fullWidthLink}>
+                          My Account
                         </a>
                       </li>
                       <li>
@@ -171,7 +183,72 @@ export function MyAccountTopNav() {
           }
         </div>
       </header>
+      <Show when={showModal()}>
+        <div class={classes.modalBackground} onClick={() => setShowModal(false)}>
+          <div class={classes.modal} onClick={(e) => e.stopPropagation()}>
+            <h3>Create New Study Template</h3>
+            <img
+              src={CloseXIcon}
+              alt="Close Modal"
+              class={classes.closeModalIcon}
+              onClick={() => setShowModal(false)}
+            />
+            <form>
+              <label for="studyTitle">Title</label>
+              <input
+                type="text"
+                id="studyTitle"
+                placeholder="New Template Title..."
+                value={studyTitleValue()}
+                onInput={(e) => setStudyTitleValue(e.target.value)}
+              />
+
+              <button
+                type="submit"
+                disabled={studyTitleValue().trim() === ""}
+                class={studyTitleValue().trim() === "" ? classes.disabledButton : ""}
+              >
+                Create
+              </button>
+            </form>
+          </div>
+        </div>
+      </Show>
       <div class={classes.headerThingy}></div>
     </>
   );
 }
+
+const Hamburger = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="52" height="24" viewBox="0 0 52 24">
+    <g id="Group_9" data-name="Group 9" transform="translate(-294 -47)">
+      <rect
+        id="Rectangle_3"
+        data-name="Rectangle 3"
+        width="42"
+        height="4"
+        rx="2"
+        transform="translate(304 47)"
+        fill="#574c4c"
+      />
+      <rect
+        id="Rectangle_5"
+        data-name="Rectangle 5"
+        width="42"
+        height="4"
+        rx="2"
+        transform="translate(304 67)"
+        fill="#574c4c"
+      />
+      <rect
+        id="Rectangle_4"
+        data-name="Rectangle 4"
+        width="52"
+        height="4"
+        rx="2"
+        transform="translate(294 57)"
+        fill="#574c4c"
+      />
+    </g>
+  </svg>
+);
