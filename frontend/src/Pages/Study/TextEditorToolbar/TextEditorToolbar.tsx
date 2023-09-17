@@ -1,28 +1,27 @@
 import { createEffect, createSignal, onMount, For, createResource, Show } from "solid-js";
-import ArrowIcon from "../../Assets/arrow.svg";
-import VerticalElipsesIcon from "../../Assets/vertical-elipses-icon.svg";
+import ArrowIcon from "Assets/arrow.svg";
+import VerticalElipsesIcon from "Assets/vertical-elipses-icon.svg";
 import * as classes from "./styles.module.scss";
 
-import UndoIcon from "./undo-icon.svg";
-import RedoIcon from "./redo-icon.svg";
-import BoldIcon from "./bold-icon.svg";
-import ItalicIcon from "./italic-icon.svg";
-import UnderlineIcon from "./underline-icon.svg";
-import TextColorIcon from "./text-color-icon.svg";
-import HilightIcon from "./hilight-icon.svg";
-import LinkIcon from "./link-icon.svg";
-import ReferenceIcon from "./reference-icon.svg";
-import RephraseIcon from "./rephrase-icon.svg";
-import CommentIcon from "./comment-icon.svg";
-import ParallelViewIcon from "./parallel-view-icon.svg";
-import NumberedListIcon from "./numbered-list-icon.svg";
-import BulletListIcon from "./bullet-list-icon.svg";
-import IndentIcon from "./indent-icon.svg";
-import OutdentIcon from "./outdent-icon.svg";
-import ClearFormattingIcon from "./clear-formatting-icon.svg";
-import QuestionIcon from "./question-icon.svg";
+import UndoIcon from "./Assets/undo-icon.svg";
+import RedoIcon from "./Assets/redo-icon.svg";
+import BoldIcon from "./Assets/bold-icon.svg";
+import ItalicIcon from "./Assets/italic-icon.svg";
+import UnderlineIcon from "./Assets/underline-icon.svg";
+import TextColorIcon from "./Assets/text-color-icon.svg";
+import HilightIcon from "./Assets/hilight-icon.svg";
+import LinkIcon from "./Assets/link-icon.svg";
+import ReferenceIcon from "./Assets/reference-icon.svg";
+import RephraseIcon from "./Assets/rephrase-icon.svg";
+import CommentIcon from "./Assets/comment-icon.svg";
+import ParallelViewIcon from "./Assets/parallel-view-icon.svg";
+import NumberedListIcon from "./Assets/numbered-list-icon.svg";
+import BulletListIcon from "./Assets/bullet-list-icon.svg";
+import IndentIcon from "./Assets/indent-icon.svg";
+import OutdentIcon from "./Assets/outdent-icon.svg";
+import ClearFormattingIcon from "./Assets/clear-formatting-icon.svg";
+import QuestionIcon from "./Assets/question-icon.svg";
 import * as Editor from "Editor/Editor";
-import EnterIcon from "./enter-icon.svg";
 
 type TextEditorToolbarProps = {
   editor: Editor.P215Editor;

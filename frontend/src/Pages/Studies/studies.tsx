@@ -9,14 +9,14 @@ import { useNavigate } from "@solidjs/router";
 
 import * as Network from "Utils/Network";
 import * as classes from "./styles.module.scss";
-import { PublicUser, Study, StudyRaw, toStudyFromRaw } from "../../Types";
+import { PublicUser, GroupStudy, GroupStudyRaw, toStudyFromRaw } from "../../Types";
 
 import { LoginUser, loginState } from "../LoginPage/login";
 
-async function getStudies(): Promise<Network.NetworkState<Array<Study>>> {
+async function getStudies(): Promise<Network.NetworkState<Array<GroupStudy>>> {
   return Network.request("/study").then((study) =>
     // This is ugly, need a better way to do this.
-    Network.mapNetworkState(study, (s: Array<StudyRaw>) => s.map(toStudyFromRaw))
+    Network.mapNetworkState(study, (s: Array<GroupStudyRaw>) => s.map(toStudyFromRaw))
   );
 }
 
@@ -72,7 +72,7 @@ function Studies(currentUser: PublicUser) {
 }
 
 type ViewStudyProps = {
-  study: Study;
+  study: GroupStudy;
   currentUser: PublicUser;
 };
 

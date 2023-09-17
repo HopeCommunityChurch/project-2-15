@@ -1,5 +1,5 @@
-import { Button3D } from "../../Components/Button3D/Button3D";
-import { PreLoginTopNav } from "../../Components/PreLoginTopNav/PreLoginTopNav";
+import { Button3D } from "Components/Button3D/Button3D";
+import { PreLoginTopNav } from "./PreLoginTopNav/PreLoginTopNav";
 import { A } from "@solidjs/router";
 
 import bookFaceGirl from "./book-face-girl.jpg";

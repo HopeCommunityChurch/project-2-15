@@ -11,24 +11,25 @@ export type PublicUser = {
 };
 
 export type DocId = UUID & { readonly __tag: unique symbol };
-export type StudyId = UUID & { readonly __tag: unique symbol };
+export type GroupStudyId = UUID & { readonly __tag: unique symbol };
 
 export type DocMetaRaw = {
   created: string;
   updated: string;
   docId: DocId;
   name: string;
-  studyId: StudyId;
+  studyId?: GroupStudyId;
   editors: Array<PublicUser>;
 };
 
 export type StudyTemplateId = UUID & { readonly __tag: unique symbol };
 
-export type StudyRaw = {
+export type GroupStudyRaw = {
   name: string;
-  studyId: StudyId;
+  studyId: GroupStudyId;
   studyTemplateId: StudyTemplateId;
   docs: Array<DocMetaRaw>;
+  owners: Array<PublicUser>;
 };
 
 export type DocMeta = {
@@ -36,15 +37,16 @@ export type DocMeta = {
   updated: LocalDateTime;
   docId: DocId;
   name: string;
-  studyId: StudyId;
+  studyId: GroupStudyId;
   editors: Array<PublicUser>;
 };
 
-export type Study = {
+export type GroupStudy = {
   name: string;
-  studyId: StudyId;
+  studyId: GroupStudyId;
   studyTemplateId: StudyTemplateId;
   docs: Array<DocMeta>;
+  owners: Array<PublicUser>;
 };
 
 export function toDocFromRaw(doc: DocMetaRaw): DocMeta {
@@ -58,12 +60,13 @@ export function toDocFromRaw(doc: DocMetaRaw): DocMeta {
   };
 }
 
-export function toStudyFromRaw(study: StudyRaw): Study {
+export function toStudyFromRaw(study: GroupStudyRaw): GroupStudy {
   return {
     name: study.name,
     studyId: study.studyId,
     studyTemplateId: study.studyTemplateId,
     docs: study.docs.map(toDocFromRaw),
+    owners: study.owners
   };
 }
 
@@ -72,6 +75,6 @@ export type DocRaw = {
   document: any;
   editor: Array<PublicUser>;
   name: string;
-  studyId: StudyId;
-  study: StudyRaw;
+  groupStudyId?: GroupStudyId;
+  studyTemplateId?: StudyTemplateId;
 };
