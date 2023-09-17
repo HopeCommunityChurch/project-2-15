@@ -76,6 +76,7 @@ export type DocRaw = {
   editors: Array<PublicUser>;
   name: string;
   groupStudyId?: GroupStudyId;
+  groupStudyName?: string;
   studyTemplateId?: StudyTemplateId;
   created: string;
   updated: string;
@@ -87,6 +88,7 @@ export type Doc = {
   editors: Array<PublicUser>;
   name: string;
   groupStudyId?: GroupStudyId;
+  groupStudyName?: string;
   studyTemplateId?: StudyTemplateId;
   created: LocalDateTime;
   updated: LocalDateTime;
@@ -97,6 +99,7 @@ export function toDocFromRaw(doc: DocRaw): Doc {
     editors: doc.editors,
     docId: doc.docId,
     groupStudyId: doc.groupStudyId,
+    groupStudyName: doc.groupStudyName,
     document: doc.document,
     name: doc.name,
     created: LocalDateTime.ofInstant(Instant.parse(doc.created)),

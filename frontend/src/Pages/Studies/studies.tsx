@@ -1,5 +1,4 @@
 import { createEffect, createSignal, onMount, For, createResource } from "solid-js";
-import { Button } from "Components/Button/Button";
 
 import { DateTimeFormatter } from "@js-joda/core";
 import { Locale } from "@js-joda/locale_en-us";
@@ -46,7 +45,7 @@ function Studies(currentUser: T.PublicUser) {
           <thead>
             <tr>
               <th>Study Title</th>
-              <th>Shared with</th>
+              <th>Group Study</th>
               <th>Last Opened by Me</th>
             </tr>
           </thead>
@@ -80,15 +79,10 @@ const dtFormat = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.U
 
 function ViewStudy(props: ViewStudyProps) {
   const nav = useNavigate();
-  let shared = "no one";
-  // if (peoples.length > 0) {
-  //   // I think this should intersperse, I haven't tried it. Should probably put
-  //   // this in a utilities file somewhere.
-  //   shared = peoples.slice(1).reduce((prev, cur) => cur + ", " + prev, peoples[0]);
-  // }
-  // const myDoc = props.doc.find((doc) =>
-  //   doc.editors.some((e) => e.userId == props.currentUser.userId)
-  // );
+  let shared = "Independent";
+  if (props.doc.groupStudyName) {
+    shared = props.doc.groupStudyName;
+  }
   const updated = props.doc.updated.format(dtFormat);
   const url = "/app/study/" + props.doc.docId;
   return (
