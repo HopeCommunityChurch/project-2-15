@@ -9,14 +9,14 @@ import { useNavigate } from "@solidjs/router";
 
 import * as Network from "Utils/Network";
 import * as classes from "./styles.module.scss";
-import { PublicUser, GroupStudy, GroupStudyRaw, toStudyFromRaw } from "../../Types";
+import * as T from "../../Types";
 
 import { LoginUser, loginState } from "../LoginPage/login";
 
-async function getStudies(): Promise<Network.NetworkState<Array<GroupStudy>>> {
-  return Network.request("/group-study").then((study) =>
+async function getStudies(): Promise<Network.NetworkState<Array<T.Doc>>> {
+  return Network.request("/document").then((study) =>
     // This is ugly, need a better way to do this.
-    Network.mapNetworkState(study, (s: Array<GroupStudyRaw>) => s.map(toStudyFromRaw))
+    Network.mapNetworkState(study, (s: Array<T.DocRaw>) => s.map(T.toDocFromRaw))
   );
 }
 
@@ -32,7 +32,7 @@ export function StudiesPage() {
     .exhaustive();
 }
 
-function Studies(currentUser: PublicUser) {
+function Studies(currentUser: T.PublicUser) {
   const [result] = createResource([], () => getStudies(), { initialValue: { state: "loading" } });
   return (
     <>
@@ -58,7 +58,7 @@ function Studies(currentUser: PublicUser) {
                 .with({ state: "error" }, ({ body }) => <>error</>)
                 .with({ state: "success" }, ({ body }) => (
                   <For each={body}>
-                    {(study) => <ViewStudy study={study} currentUser={currentUser} />}
+                    {(doc) => <ViewStudy doc={doc} currentUser={currentUser} />}
                   </For>
                 ))
                 .with({ state: "notloaded" }, () => <>not loaded</>)
@@ -72,31 +72,28 @@ function Studies(currentUser: PublicUser) {
 }
 
 type ViewStudyProps = {
-  study: GroupStudy;
-  currentUser: PublicUser;
+  doc: T.Doc;
+  currentUser: T.PublicUser;
 };
 
 const dtFormat = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.US);
 
 function ViewStudy(props: ViewStudyProps) {
   const nav = useNavigate();
-  const peoples = props.study.docs.flatMap((doc) =>
-    doc.editors.filter((e) => e.userId != props.currentUser.userId).map((e) => e.name)
-  );
   let shared = "no one";
-  if (peoples.length > 0) {
-    // I think this should intersperse, I haven't tried it. Should probably put
-    // this in a utilities file somewhere.
-    shared = peoples.slice(1).reduce((prev, cur) => cur + ", " + prev, peoples[0]);
-  }
-  const myDoc = props.study.docs.find((doc) =>
-    doc.editors.some((e) => e.userId == props.currentUser.userId)
-  );
-  const updated = myDoc.updated.format(dtFormat);
-  const url = "/app/study/" + myDoc.docId;
+  // if (peoples.length > 0) {
+  //   // I think this should intersperse, I haven't tried it. Should probably put
+  //   // this in a utilities file somewhere.
+  //   shared = peoples.slice(1).reduce((prev, cur) => cur + ", " + prev, peoples[0]);
+  // }
+  // const myDoc = props.doc.find((doc) =>
+  //   doc.editors.some((e) => e.userId == props.currentUser.userId)
+  // );
+  const updated = props.doc.updated.format(dtFormat);
+  const url = "/app/study/" + props.doc.docId;
   return (
     <tr class={classes.tableRow} onClick={() => nav(url)}>
-      <td>{props.study.name}</td>
+      <td>{props.doc.name}</td>
       <td class={classes.sharedWith}>{shared}</td>
       <td>{updated}</td>
     </tr>
