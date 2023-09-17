@@ -6,35 +6,42 @@ import Database.Beam (
   Beamable,
   C,
   all_,
+  default_,
+  desc_,
+  leftJoin_',
+  just_,
   exists_,
   guard_,
   in_,
-  runSelectReturningList,
-  select,
-  runUpdate,
-  update,
-  insertExpressions,
-  runInsert,
-  default_,
   insert,
+  insertExpressions,
   insertValues,
+  orderBy_,
+  runInsert,
+  runSelectReturningList,
+  runUpdate,
+  select,
+  update,
   val_,
   (<-.),
-  (==.), orderBy_, desc_,
+  (==.),
+  (==?.),
  )
+import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
 import Database.Beam.Postgres (PgJSONB (..))
 import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam)
 import Entity qualified as E
 import Entity.AuthUser
+import Entity.GroupStudy qualified as GroupStudy
 import Entity.User qualified as User
 import Types qualified as T
-import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
 
 
 data GetDoc = MkGetDoc
   { docId :: T.DocId
   , groupStudyId :: Maybe T.GroupStudyId
   , studyTemplateId :: Maybe T.StudyTemplateId
+  , groupStudyName :: Maybe Text
   , name :: Text
   , document :: Object
   , editors :: List User.GetUser
@@ -51,6 +58,7 @@ instance E.Entity GetDoc where
     { docId :: C f T.DocId
     , groupStudyId :: C f (Maybe T.GroupStudyId)
     , studyTemplateId :: C f (Maybe T.StudyTemplateId)
+    , studyTemplateName :: C f (Maybe Text)
     , name :: C f Text
     , document :: C f (PgJSONB Object)
     , editors :: C f (PgJSONB (Vector User.GetUser'))
@@ -67,6 +75,7 @@ instance E.Entity GetDoc where
       docId
       groupStudyId
       studyTemplateId
+      studyTemplateName
       name
       (Db.unPgJSONB document)
       (fmap E.toEntity (toList (Db.unPgJSONB editors)))
@@ -90,12 +99,17 @@ instance E.Entity GetDoc where
                     user <- E.queryEntityBy @User.GetUser Nothing de.userId
                     pure $ jsonBuildObject user
 
+    sg <- leftJoin_'
+            (all_ Db.db.groupStudy)
+            (\ r -> just_ r.groupStudyId ==?. doc.groupStudyId)
+
 
     pure $
       MkDbGetDoc
         doc.docId
         doc.groupStudyId
         doc.studyTemplateId
+        sg.name
         doc.name
         doc.document
         editors
