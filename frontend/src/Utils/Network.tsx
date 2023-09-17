@@ -39,6 +39,15 @@ export type NetworkError400 = {
   body : string;
 };
 
+export type NetworkError404 = {
+  status: 404;
+};
+
+export type NetworkErrorOther = {
+  status: number;
+  body: string;
+};
+
 export type NetworkErrorCookie = {
   status: 401;
 };
@@ -49,8 +58,10 @@ export type NetworkError = {
         | NetworkError420NotFound
         | NetworkError420AuthError
         | NetworkError400
+        | NetworkError404
         | NetworkErrorInternal
         | NetworkErrorCookie
+        | NetworkErrorOther
 };
 
 export type NetworkSuccess<t> = {
@@ -135,5 +146,26 @@ export async function request<t>(url : string, opts = {})
       },
     };
   }
+
+  if (status == 404) {
+    return {
+      state: "error",
+      body: {
+        status: 404,
+      },
+    };
+  }
+
+  if (status >= 400 && status < 600) {
+    const body = await response.text();
+    return {
+      state: "error",
+      body: {
+        status: status,
+        body: body
+      },
+    };
+  }
+
 }
 

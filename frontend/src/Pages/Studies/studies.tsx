@@ -14,7 +14,7 @@ import { PublicUser, GroupStudy, GroupStudyRaw, toStudyFromRaw } from "../../Typ
 import { LoginUser, loginState } from "../LoginPage/login";
 
 async function getStudies(): Promise<Network.NetworkState<Array<GroupStudy>>> {
-  return Network.request("/study").then((study) =>
+  return Network.request("/group-study").then((study) =>
     // This is ugly, need a better way to do this.
     Network.mapNetworkState(study, (s: Array<GroupStudyRaw>) => s.map(toStudyFromRaw))
   );
