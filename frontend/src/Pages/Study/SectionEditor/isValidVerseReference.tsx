@@ -2479,10 +2479,10 @@ export function isValidVerseReference(reference) {
 
   // Function to do first check if bible format is valid
   function isReferenceFormatValid(reference) {
-    // Fail if there is any special character other than a period between the 2nd character and the first number after the 2nd character
-    if (/^(?:[a-zA-Z]{2}|[0-9]\s)\d.*/.test(reference)) {
+    // doesn't start with either two letters or a digit followed by a space, lack at least one letter, space, or period after the initial characters, or if it doesn't end with a digit followed by any combination of spaces, numbers, hyphens, and colons.
+    if (!/^(?:[a-zA-Z]{2}|[0-9]\s)[a-zA-Z\s.]+[\d\s:-]+$/.test(reference)) {
       console.log(
-        "Fail: Special character detected between the 2nd character and the first number after the 2nd character."
+        "doesn't start with either two letters or a digit followed by a space, lack at least one letter, space, or period after the initial characters, or if it doesn't end with a digit followed by any combination of spaces, numbers, hyphens, and colons."
       );
       return false;
     }
@@ -2538,12 +2538,18 @@ export function isValidVerseReference(reference) {
   }
 
   // Function to parse the book from a Bible reference
-  function parseBookFromReference(reference): { book: string; numericRef: string } | false {
+  function parseBookFromNumericRange(reference): { book: string; numericRef: string } | false {
+    // Replace 2 or more white spaces with a single white space
+    // Remove special characters other than spaces, colons, and hyphens
+    let cleanedReference = reference
+      .replace(/\s{2,}/g, " ")
+      .replace(/[^a-zA-Z0-9\s:-]/g, "")
+      .trim()
+      .toLowerCase();
+
     let book = null;
     let numericRef = null;
     let longestMatchLength = 0;
-
-    const trimmedReference = reference.trim().toLowerCase(); // Trim whitespace and convert to lowercase
 
     // Iterate through each book and its aliases to find the longest match
     for (const [bookName, aliases] of Object.entries(bookAliases)) {
@@ -2553,13 +2559,13 @@ export function isValidVerseReference(reference) {
         const lowerAlias = alias.toLowerCase(); // Convert alias to lowercase
         const aliasLength = lowerAlias.length;
         if (
-          trimmedReference.startsWith(lowerAlias) &&
-          (trimmedReference[aliasLength] === " " || trimmedReference[aliasLength] === ":") &&
+          cleanedReference.startsWith(lowerAlias) &&
+          (cleanedReference[aliasLength] === " " || cleanedReference[aliasLength] === ":") &&
           aliasLength > longestMatchLength
         ) {
           longestMatchLength = aliasLength;
           book = bookName;
-          numericRef = reference.substring(aliasLength).trim().replace(/\s/g, ""); // Use the original reference for the numericRef part, but trim it
+          numericRef = cleanedReference.substring(aliasLength).trim().replace(/\s/g, ""); // Use the original reference for the numericRef part, but trim it
         }
       }
     }
@@ -2572,7 +2578,7 @@ export function isValidVerseReference(reference) {
     }
   }
 
-  function isNumericRangeValid(reference) {
+  function parseNumericRange(reference) {
     // Initialize the object to store structured data
     const structuredData = {
       full_reference: reference,
@@ -2628,24 +2634,181 @@ export function isValidVerseReference(reference) {
       return structuredData;
     }
 
+    // Case: Single chapter with a single verse (e.g., "1:1")
+    if (
+      !reference.includes("-") &&
+      reference.includes(":") &&
+      (reference.match(/:/g) || []).length === 1
+    ) {
+      const [startChapter, startVerse] = reference.split(":");
+      structuredData.StartChapter = startChapter;
+      structuredData.StartVerse = startVerse;
+      return structuredData;
+    }
+
     // If none of the above cases apply, return an error message
     return false;
   }
 
-  if (!isReferenceFormatValid(reference)) return false;
-  if (!parseBookFromReference(reference)) return false;
+  function isNumericRangeValid(structuredData, book) {
+    const { full_reference, StartChapter, StartVerse, EndChapter, EndVerse } = structuredData;
 
-  const bookAndRef = parseBookFromReference(reference);
+    // Check if the start chapter or verse is zero
+    if (parseInt(StartChapter, 10) === 0 || (StartVerse && parseInt(StartVerse, 10) === 0)) {
+      console.log("Start chapter or verse should not be zero.");
+      return false;
+    }
 
-  // if (bookAndRef !== false) {
-  //   const { book, numericRef } = bookAndRef as { book: string; numericRef: string };
-  //   if (!isNumericRangeValid(numericRef)) return false;
-  //   console.log(isNumericRangeValid(numericRef));
-  // }
+    // Check if the end chapter or verse is zero, if applicable
+    if (
+      (EndChapter && parseInt(EndChapter, 10) === 0) ||
+      (EndVerse && parseInt(EndVerse, 10) === 0)
+    ) {
+      console.log("End chapter or verse should not be zero.");
+      return false;
+    }
 
-  // if (!isNumericRangeValid(bookAndRef)) return false;
+    // Check if the start chapter is a valid integer
+    if (!Number.isInteger(parseInt(StartChapter, 10))) {
+      console.log("Start chapter is not a valid integer.");
+      return false;
+    }
 
-  console.log(parseBookFromReference(reference));
+    // Check if the end chapter is a valid integer, if applicable
+    if (EndChapter && !Number.isInteger(parseInt(EndChapter, 10))) {
+      console.log("End chapter is not a valid integer.");
+      return false;
+    }
 
-  // check chapters with bible structure
+    // Check if the start chapter exists in the given book
+    if (
+      !bibleStructure.hasOwnProperty(book) ||
+      !bibleStructure[book].hasOwnProperty(StartChapter)
+    ) {
+      console.log(`Start chapter does not exist in the book ${book}.`);
+      return false;
+    }
+
+    // Check if the end chapter exists in the given book, if applicable
+    if (
+      EndChapter &&
+      (!bibleStructure.hasOwnProperty(book) || !bibleStructure[book].hasOwnProperty(EndChapter))
+    ) {
+      console.log(`End chapter does not exist in the book ${book}.`);
+      return false;
+    }
+
+    // Check if the start chapter is less than or equal to the end chapter, if both are defined
+    if (EndChapter && parseInt(StartChapter, 10) > parseInt(EndChapter, 10)) {
+      console.log("Start chapter is greater than the end chapter.");
+      return false;
+    }
+
+    // Verse validations
+
+    // Check if the start verse is a valid integer
+    if (StartVerse && !Number.isInteger(parseInt(StartVerse, 10))) {
+      console.log("Start verse is not a valid integer.");
+      return false;
+    }
+
+    // Check if the end verse is a valid integer, if applicable
+    if (EndVerse && !Number.isInteger(parseInt(EndVerse, 10))) {
+      console.log("End verse is not a valid integer.");
+      return false;
+    }
+
+    // Check if the start verse exists in the given chapter, if applicable
+    if (parseInt(StartVerse, 10) > parseInt(bibleStructure[book][StartChapter], 10)) {
+      console.log(`Start verse does not exist in chapter ${StartChapter} of the book ${book}.`);
+      return false;
+    }
+
+    // Check if the end verse exists in the given chapter, if applicable
+    if (
+      EndVerse &&
+      parseInt(EndVerse, 10) > parseInt(bibleStructure[book][EndChapter || StartChapter], 10)
+    ) {
+      console.log(
+        `End verse does not exist in chapter ${EndChapter || StartChapter} of the book ${book}.`
+      );
+      return false;
+    }
+
+    // Check if the start verse is less than or equal to the end verse when the start and end chapters are the same
+    if (
+      (StartChapter === EndChapter || !EndChapter) &&
+      parseInt(StartVerse, 10) >= parseInt(EndVerse, 10)
+    ) {
+      console.log("Start verse is greater than or equal to the end verse in the same chapter.");
+      return false;
+    }
+
+    return true;
+  }
+
+  // Define the function to fetch the Bible passage
+  async function fetchBiblePassage(query) {
+    // Define API endpoint and headers
+    const url = `https://api.esv.org/v3/passage/text/?q=${encodeURIComponent(
+      query
+    )}&include-passage-references=false&include-verse-numbers=true&include-footnotes=false&include-footnote-body=false&include-headings=false&include-short-copyright=false&include-copyright=false&indent-paragraphs=0&indent-poetry=false&line-length=0`;
+    const headers = new Headers({
+      Authorization: "Token b97f811347c70fe6b73218d4d51ac3d25592a2c7",
+    });
+
+    try {
+      // Make the API request
+      const response = await fetch(url, { method: "GET", headers: headers });
+
+      // Check if the request was successful
+      if (response.ok) {
+        const data = await response.json();
+        // console.log("Received data:", data);
+        return data;
+      } else {
+        console.log("Failed to fetch Bible passage:", response.statusText);
+        return null;
+      }
+    } catch (error) {
+      console.log("An error occurred:", error);
+      return null;
+    }
+  }
+  //return fail if something isn't accecptable
+  if (!isReferenceFormatValid(reference)) {
+    console.log("isReferenceFormatValid failed");
+    return false;
+  }
+  if (!parseBookFromNumericRange(reference)) {
+    console.log("parseBookFromNumericRange failed");
+    return false;
+  }
+  return new Promise((resolve, reject) => {
+    if (parseBookFromNumericRange(reference) !== false) {
+      const { book, numericRef } = parseBookFromNumericRange(reference) as {
+        book: string;
+        numericRef: string;
+      };
+      if (!parseNumericRange(numericRef)) {
+        console.log("parseNumericRange failed");
+        return false;
+      }
+      if (!isNumericRangeValid(parseNumericRange(numericRef), book)) {
+        console.log("parseNumericRange failed");
+        return false;
+      }
+
+      fetchBiblePassage(book + " " + numericRef).then((data) => {
+        if (data) {
+          console.log("Passage:", data.passages[0]);
+          resolve(data.passages[0].replace(/\s+/g, " ").replace(/\n+/g, ""));
+        } else {
+          reject(false);
+        }
+      });
+    } else {
+      reject(false);
+    }
+  });
 }

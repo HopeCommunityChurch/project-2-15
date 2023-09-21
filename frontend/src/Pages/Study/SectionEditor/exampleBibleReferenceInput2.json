@@ -4,419 +4,479 @@
     "StartChapter": "1",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Deuteronomy"
   },
   {
     "full_reference": "1-3",
     "StartChapter": "1",
     "StartVerse": null,
     "EndChapter": "3",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Genesis"
   },
   {
     "full_reference": "1:2-4",
     "StartChapter": "1",
     "StartVerse": "2",
     "EndChapter": null,
-    "EndVerse": "4"
+    "EndVerse": "4",
+    "Book": "2 Thessalonians"
   },
   {
     "full_reference": "1-5",
     "StartChapter": "1",
     "StartVerse": null,
     "EndChapter": "5",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Luke"
   },
   {
     "full_reference": "1:3-12:45",
     "StartChapter": "1",
     "StartVerse": "3",
     "EndChapter": "12",
-    "EndVerse": "45"
+    "EndVerse": "45",
+    "Book": "2 Thessalonians"
   },
   {
     "full_reference": "2",
     "StartChapter": "2",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Jonah"
   },
   {
     "full_reference": "2-4",
     "StartChapter": "2",
     "StartVerse": null,
     "EndChapter": "4",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Judges"
   },
   {
     "full_reference": "2:3-5",
     "StartChapter": "2",
     "StartVerse": "3",
     "EndChapter": null,
-    "EndVerse": "5"
+    "EndVerse": "5",
+    "Book": "1 Samuel"
   },
   {
     "full_reference": "2-6",
     "StartChapter": "2",
     "StartVerse": null,
     "EndChapter": "6",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Mark"
   },
   {
     "full_reference": "2:4-14:30",
     "StartChapter": "2",
     "StartVerse": "4",
     "EndChapter": "14",
-    "EndVerse": "30"
+    "EndVerse": "30",
+    "Book": "Leviticus"
   },
   {
     "full_reference": "3",
     "StartChapter": "3",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "1 Peter"
   },
   {
     "full_reference": "3-7",
     "StartChapter": "3",
     "StartVerse": null,
     "EndChapter": "7",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Numbers"
   },
   {
     "full_reference": "3:2-8",
     "StartChapter": "3",
     "StartVerse": "2",
     "EndChapter": null,
-    "EndVerse": "8"
+    "EndVerse": "8",
+    "Book": "Amos"
   },
   {
     "full_reference": "3-9",
     "StartChapter": "3",
     "StartVerse": null,
     "EndChapter": "9",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Romans"
   },
   {
     "full_reference": "3:5-10:20",
     "StartChapter": "3",
     "StartVerse": "5",
     "EndChapter": "10",
-    "EndVerse": "20"
+    "EndVerse": "20",
+    "Book": "1 John"
   },
   {
     "full_reference": "4",
     "StartChapter": "4",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Zephaniah"
   },
   {
     "full_reference": "4-8",
     "StartChapter": "4",
     "StartVerse": null,
     "EndChapter": "8",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Philippians"
   },
   {
     "full_reference": "4:3-9",
     "StartChapter": "4",
     "StartVerse": "3",
     "EndChapter": null,
-    "EndVerse": "9"
+    "EndVerse": "9",
+    "Book": "Galatians"
   },
   {
     "full_reference": "4-10",
     "StartChapter": "4",
     "StartVerse": null,
     "EndChapter": "10",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Judges"
   },
   {
     "full_reference": "4:6-11:15",
     "StartChapter": "4",
     "StartVerse": "6",
     "EndChapter": "11",
-    "EndVerse": "15"
+    "EndVerse": "15",
+    "Book": "Acts"
   },
   {
     "full_reference": "5",
     "StartChapter": "5",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "2 Kings"
   },
   {
     "full_reference": "5-9",
     "StartChapter": "5",
     "StartVerse": null,
     "EndChapter": "9",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Joshua"
   },
   {
     "full_reference": "5:4-10",
     "StartChapter": "5",
     "StartVerse": "4",
     "EndChapter": null,
-    "EndVerse": "10"
+    "EndVerse": "10",
+    "Book": "2 Peter"
   },
   {
     "full_reference": "5-11",
     "StartChapter": "5",
     "StartVerse": null,
     "EndChapter": "11",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Song of Solomon"
   },
   {
     "full_reference": "5:7-12:25",
     "StartChapter": "5",
     "StartVerse": "7",
     "EndChapter": "12",
-    "EndVerse": "25"
+    "EndVerse": "25",
+    "Book": "Exodus"
   },
   {
     "full_reference": "6",
     "StartChapter": "6",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "1 John"
   },
   {
     "full_reference": "6-10",
     "StartChapter": "6",
     "StartVerse": null,
     "EndChapter": "10",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "2 Samuel"
   },
   {
     "full_reference": "6:5-11",
     "StartChapter": "6",
     "StartVerse": "5",
     "EndChapter": null,
-    "EndVerse": "11"
+    "EndVerse": "11",
+    "Book": "Daniel"
   },
   {
     "full_reference": "6-12",
     "StartChapter": "6",
     "StartVerse": null,
     "EndChapter": "12",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Leviticus"
   },
   {
     "full_reference": "6:8-13:35",
     "StartChapter": "6",
     "StartVerse": "8",
     "EndChapter": "13",
-    "EndVerse": "35"
+    "EndVerse": "35",
+    "Book": "2 Kings"
   },
   {
     "full_reference": "7",
     "StartChapter": "7",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Genesis"
   },
   {
     "full_reference": "7-11",
     "StartChapter": "7",
     "StartVerse": null,
     "EndChapter": "11",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "1 John"
   },
   {
     "full_reference": "7:6-12",
     "StartChapter": "7",
     "StartVerse": "6",
     "EndChapter": null,
-    "EndVerse": "12"
+    "EndVerse": "12",
+    "Book": "Amos"
   },
   {
     "full_reference": "7-13",
     "StartChapter": "7",
     "StartVerse": null,
     "EndChapter": "13",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "1 Corinthians"
   },
   {
     "full_reference": "7:8-14:40",
     "StartChapter": "7",
     "StartVerse": "8",
     "EndChapter": "14",
-    "EndVerse": "40"
+    "EndVerse": "40",
+    "Book": "Matthew"
   },
   {
     "full_reference": "8",
     "StartChapter": "8",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "1 Kings"
   },
   {
     "full_reference": "8-12",
     "StartChapter": "8",
     "StartVerse": null,
     "EndChapter": "12",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Ezra"
   },
   {
     "full_reference": "8:7-13",
     "StartChapter": "8",
     "StartVerse": "7",
     "EndChapter": null,
-    "EndVerse": "13"
+    "EndVerse": "13",
+    "Book": "Ruth"
   },
   {
     "full_reference": "8-14",
     "StartChapter": "8",
     "StartVerse": null,
     "EndChapter": "14",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "2 John"
   },
   {
     "full_reference": "8:9-15:45",
     "StartChapter": "8",
     "StartVerse": "9",
     "EndChapter": "15",
-    "EndVerse": "45"
+    "EndVerse": "45",
+    "Book": "James"
   },
   {
     "full_reference": "9",
     "StartChapter": "9",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Luke"
   },
   {
     "full_reference": "9-13",
     "StartChapter": "9",
     "StartVerse": null,
     "EndChapter": "13",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Ecclesiastes"
   },
   {
     "full_reference": "9:8-14",
     "StartChapter": "9",
     "StartVerse": "8",
     "EndChapter": null,
-    "EndVerse": "14"
+    "EndVerse": "14",
+    "Book": "Proverbs"
   },
   {
     "full_reference": "9-15",
     "StartChapter": "9",
     "StartVerse": null,
     "EndChapter": "15",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Ezekiel"
   },
   {
     "full_reference": "9:10-16:50",
     "StartChapter": "9",
     "StartVerse": "10",
     "EndChapter": "16",
-    "EndVerse": "50"
+    "EndVerse": "50",
+    "Book": "Genesis"
   },
   {
     "full_reference": "10",
     "StartChapter": "10",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Hosea"
   },
   {
     "full_reference": "10-14",
     "StartChapter": "10",
     "StartVerse": null,
     "EndChapter": "14",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Song of Solomon"
   },
   {
     "full_reference": "10:9-15",
     "StartChapter": "10",
     "StartVerse": "9",
     "EndChapter": null,
-    "EndVerse": "15"
+    "EndVerse": "15",
+    "Book": "Colossians"
   },
   {
     "full_reference": "10-16",
     "StartChapter": "10",
     "StartVerse": null,
     "EndChapter": "16",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Titus"
   },
   {
     "full_reference": "10:11-17:55",
     "StartChapter": "10",
     "StartVerse": "11",
     "EndChapter": "17",
-    "EndVerse": "55"
+    "EndVerse": "55",
+    "Book": "James"
   },
   {
     "full_reference": "11",
     "StartChapter": "11",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Esther"
   },
   {
     "full_reference": "11-15",
     "StartChapter": "11",
     "StartVerse": null,
     "EndChapter": "15",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "2 Thessalonians"
   },
   {
     "full_reference": "11:10-16",
     "StartChapter": "11",
     "StartVerse": "10",
     "EndChapter": null,
-    "EndVerse": "16"
+    "EndVerse": "16",
+    "Book": "Genesis"
   },
   {
     "full_reference": "11-17",
     "StartChapter": "11",
     "StartVerse": null,
     "EndChapter": "17",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Acts"
   },
   {
     "full_reference": "11:12-18:60",
     "StartChapter": "11",
     "StartVerse": "12",
     "EndChapter": "18",
-    "EndVerse": "60"
+    "EndVerse": "60",
+    "Book": "Joel"
   },
   {
     "full_reference": "12",
     "StartChapter": "12",
     "StartVerse": null,
     "EndChapter": null,
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "James"
   },
   {
     "full_reference": "12-16",
     "StartChapter": "12",
     "StartVerse": null,
     "EndChapter": "16",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Colossians"
   },
   {
     "full_reference": "12:11-17",
     "StartChapter": "12",
     "StartVerse": "11",
     "EndChapter": null,
-    "EndVerse": "17"
+    "EndVerse": "17",
+    "Book": "Jude"
   },
   {
     "full_reference": "12-18",
     "StartChapter": "12",
     "StartVerse": null,
     "EndChapter": "18",
-    "EndVerse": null
+    "EndVerse": null,
+    "Book": "Revelation"
   },
   {
     "full_reference": "12:13-19:70",
     "StartChapter": "12",
     "StartVerse": "13",
     "EndChapter": "19",
-    "EndVerse": "70"
+    "EndVerse": "70",
+    "Book": "Proverbs"
   }
 ]
