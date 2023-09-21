@@ -16,26 +16,217 @@
   position: relative;
   max-width: 1920px;
   background-color: #fff;
-  padding: 20px;
+  padding: 10px 20px 20px 20px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   max-height: 93vh;
   min-height: 50vh;
 
-  h3 {
-    margin-top: 0px;
-    margin-bottom: 18px;
-    font-size: 1.6em;
-    padding-right: 39px;
+  .ModalHeader {
+    display: flex;
+    align-items: center;
+    padding-bottom: 9px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #b1b1b1;
+
+    h3 {
+      margin-top: 0px;
+      margin-bottom: 0px;
+      margin-right: auto;
+      font-size: 1.6em;
+      padding-right: 39px;
+    }
+
+    .addSectionButton {
+      color: var(--blue-100);
+      cursor: pointer;
+      background-color: var(--blue-25);
+      border: 2px solid var(--blue-50);
+      border-radius: 5px;
+      padding: 5px 13px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: 10px;
+      &:hover {
+        opacity: 0.7;
+      }
+    }
+
+    .saveButton {
+      color: #fff;
+      cursor: pointer;
+      background-color: var(--blue-100);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      border: none;
+      border-radius: 5px;
+      padding: 7px 15px;
+      font-size: 14px;
+      font-weight: 600;
+      overflow: hidden;
+      margin-right: 10px;
+      &:hover {
+        background-color: var(--blue-75);
+      }
+    }
+
+    .closeModalIcon {
+      cursor: pointer;
+      max-width: 20px;
+      padding: 10px;
+    }
   }
 
-  .closeModalIcon {
+  .sectionHeader {
+    background-color: #eaf3ff;
+    display: flex;
+    border-radius: 8px;
+    padding: 5px;
+
+    input {
+      background-color: transparent;
+      border: none;
+      font-size: 21px;
+      padding: 0px 8px 0px 8px;
+      flex-grow: 1;
+      border-radius: 5px;
+      &:focus {
+        outline: none;
+        background-color: #01255814;
+      }
+    }
+
+    .sectionExpandIcon {
+      max-width: 13px;
+      padding: 8px 6px 8px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      &:hover {
+        background-color: #01255814;
+      }
+    }
+    .reorderSectionContainer {
+      display: flex;
+      flex-direction: column;
+      .upIcon {
+        max-width: 13px;
+        transform: rotate(180deg);
+        padding: 8px;
+        border-radius: 5px;
+        cursor: pointer;
+        opacity: 0.5;
+        &:hover {
+          background-color: #01255814;
+        }
+      }
+
+      .downIcon {
+        max-width: 13px;
+        padding: 8px;
+        border-radius: 5px;
+        cursor: pointer;
+        opacity: 0.5;
+        &:hover {
+          background-color: #01255814;
+        }
+      }
+    }
+    .closeSectionIcon {
+      cursor: pointer;
+      max-width: 14px;
+      padding: 10px;
+    }
+  }
+  .sectionScriptureBody {
+    padding-left: 16px;
+    margin: 10px 0px;
+    border-left: #d8d8d8 3px solid;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    .scriptureContainer {
+      display: flex;
+      border-radius: 8px;
+      padding: 12px 7px;
+      background-color: white;
+      box-shadow: 0px 0px 6px #00000029;
+      align-items: center;
+      .reorderScriptureContainer {
+        display: flex;
+        flex-direction: column;
+        .upIcon {
+          max-width: 13px;
+          transform: rotate(180deg);
+          padding: 8px;
+          border-radius: 5px;
+          cursor: pointer;
+          opacity: 0.5;
+          &:hover {
+            background-color: #01255814;
+          }
+        }
+
+        .downIcon {
+          max-width: 13px;
+          padding: 8px;
+          border-radius: 5px;
+          cursor: pointer;
+          opacity: 0.5;
+          &:hover {
+            background-color: #01255814;
+          }
+        }
+      }
+      .scriptureSelectAndPassage {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        .verseRangeSelectorAndCloseIcon {
+          display: flex;
+
+          .closeScriptureIcon {
+            cursor: pointer;
+            max-width: 14px;
+            padding: 10px;
+            margin-left: auto;
+          }
+        }
+      }
+    }
+  }
+  .addScriptureButton {
+    color: var(--blue-100);
     cursor: pointer;
-    position: absolute;
-    top: 20px;
-    right: 10px;
-    max-width: 20px;
-    padding: 10px;
+    background-color: var(--blue-25);
+    border: 2px solid var(--blue-50);
+    border-radius: 5px;
+    padding: 5px 13px;
+    font-size: 14px;
+    font-weight: 500;
+    width: fit-content;
+    margin-bottom: 13px;
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+}
+
+.updateScriptureButton {
+  cursor: pointer;
+  background-color: var(--blue-100);
+  border: none;
+  border-radius: 5px;
+  margin-left: 10px;
+  padding: 7px 15px;
+  display: flex;
+  align-items: center;
+
+  img {
+    max-height: 17px;
+  }
+  &:hover {
+    opacity: 0.7;
   }
 }
