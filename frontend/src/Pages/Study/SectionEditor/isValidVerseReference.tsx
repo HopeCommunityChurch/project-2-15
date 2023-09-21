@@ -1496,5 +1496,5 @@ export function isValidVerseReference(reference) {
   // if (verse > bibleStructure[canonicalBook].verses[chapter]) return false;
 
   console.log(parseBibleReference(reference));
-  return true;
+  return [true, "error"];
 }
