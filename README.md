@@ -17,8 +17,4 @@ When I update the backend and need to update the version devenv uses do:
 
 ## Update front end (/frontend)
 
-`rm -rf node_modules`
-`rm -rf .parcel-cache`
-`rm -rf .direnv/`
-`cd ..`
-`cd frontend/`
+`rm -rf node_modules && rm -rf .parcel-cache && rm -rf .direnv/ && cd .. && cd frontend/`
