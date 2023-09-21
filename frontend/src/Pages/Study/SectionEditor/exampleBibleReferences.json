@@ -297,8 +297,8 @@
     "isCorrectFormat": true
   },
   {
-    "full_reference": "Obadiah 1",
-    "Book": "Obadiah",
+    "full_reference": "Sng of solomon 1",
+    "Book": "Sng of solomon",
     "StartChapter": "1",
     "StartVerse": null,
     "EndChapter": null,
@@ -405,8 +405,8 @@
     "isCorrectFormat": true
   },
   {
-    "full_reference": "John 6:6-9:7",
-    "Book": "John",
+    "full_reference": "Song of solomon 6:6-9:7",
+    "Book": "Song of solomon",
     "StartChapter": "6",
     "StartVerse": "6",
     "EndChapter": "9",
@@ -473,6 +473,7 @@
     "StartChapter": "22",
     "StartVerse": "21",
     "EndChapter": null,
-    "EndVerse": "22"
+    "EndVerse": "22",
+    "isCorrectFormat": true
   }
 ]

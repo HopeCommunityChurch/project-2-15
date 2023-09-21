@@ -96,9 +96,11 @@ export function SectionEditor({ showSectionEditor, setShowSectionEditor }) {
   };
 
   const validateScriptureReference = (sectionIndex, verseIndex) => {
-    const verseReference =
-      sectionPassages().Sections[sectionIndex].ListOfVerses[verseIndex].VerseReference;
-    console.log(isValidVerseReference(verseReference));
+    console.log(
+      isValidVerseReference(
+        sectionPassages().Sections[sectionIndex].ListOfVerses[verseIndex].VerseReference
+      )
+    );
     // Add your validation logic here
   };
 
