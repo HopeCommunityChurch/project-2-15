@@ -33,14 +33,14 @@ const textSchema = new Schema({
       },
     },
     section: {
-      content: "studyElement*",
+      content: "sectionChild*",
       isolating: true,
       defining: true,
       attrs: { header: { default: "Genesis 1:1" } },
     },
     bibleText: {
       content: "chunk*",
-      group: "studyElement",
+      group: "sectionChild",
       isolating: true,
       defining: true,
       attrs: { book: { default: "Genesis" }, verses: { default : "1:1" } },
@@ -53,6 +53,12 @@ const textSchema = new Schema({
           0,
         ];
       },
+    },
+    studyBlocks: {
+      content: "studyElement*",
+      group: "sectionChild",
+      isolating: true,
+      defining: true,
     },
     questionDoc: {
       content: "question",
@@ -165,6 +171,17 @@ class SectionView implements NodeView {
   }
 }
 
+class StudyBlocksView implements NodeView {
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+  constructor(node: Node) {
+    this.dom = document.createElement("table");
+    this.dom.className = classes.studyBlocks;
+    this.contentDOM = this.dom;
+  }
+}
+
+
 function getRandomStr(): string {
   const arrayb = new Uint8Array(10);
   let b = self.crypto.getRandomValues(arrayb);
@@ -190,11 +207,13 @@ class QuestionsView implements NodeView {
   contentDOM: HTMLElement;
   node: Node;
   constructor(node: Node, view: EditorView, getPos: () => number) {
+    console.log("test");
     this.node = node;
-    this.dom = document.createElement("div");
+    this.dom = document.createElement("tr");
     this.dom.className = classes.questions;
-    const header = document.createElement("h3");
+    const header = document.createElement("td");
     header.setAttribute("contenteditable", "false");
+    header.className = classes.questionsLabel;
     header.innerText = "Questions";
     const addButton = document.createElement("button");
     addButton.innerHTML = "+ Question";
@@ -210,7 +229,7 @@ class QuestionsView implements NodeView {
     };
     header.appendChild(addButton);
     this.dom.appendChild(header);
-    this.contentDOM = document.createElement("questions");
+    this.contentDOM = document.createElement("td");
     this.dom.appendChild(this.contentDOM);
   }
   update(node: Node) {
@@ -679,6 +698,7 @@ const decreaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void)
 const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   const from = state.selection.from;
   const to = state.selection.to;
+  console.log("adding question");
   if (from === to) {
     return false;
   }
@@ -693,10 +713,14 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
 
     // Find the position of the questions
     const sectionNode: Node = state.selection.$anchor.node(1);
+    console.log(sectionNode);
     let posOfQuestions = null;
     let nodeQuestions = null;
     state.doc.descendants((node: Node, pos: number) => {
       if (node.eq(sectionNode)) {
+        return true;
+      }
+      if (node.type.name === "studyBlocks") {
         return true;
       }
       if (node.type.name === "questions") {
@@ -735,7 +759,8 @@ type AddSection = {
 function newSectionNode (crSection : AddSection) : Node {
   const children = crSection.bibleSections.map(newBibleText);
   const questions = textSchema.nodes.questions.createChecked();
-  children.push(questions);
+  const studyBlock = textSchema.nodes.studyBlocks.createChecked(null, questions)
+  children.push(studyBlock);
   const section = textSchema.nodes.section.createChecked({header: crSection.header }, children);
   return section;
 };
@@ -787,6 +812,7 @@ export class P215Editor {
           "Mod-]": increaseLevel,
           "Shift-Tab": decreaseLevel,
           "Mod-[": decreaseLevel,
+          "Mod-u": addQuestion,
         }),
         keymap(baseKeymap),
         currentChunkPlug,
@@ -804,6 +830,9 @@ export class P215Editor {
       nodeViews: {
         section(node) {
           return new SectionView(node);
+        },
+        studyBlocks(node) {
+          return new StudyBlocksView(node);
         },
         questions(node, view, getPos) {
           return new QuestionsView(node, view, getPos);

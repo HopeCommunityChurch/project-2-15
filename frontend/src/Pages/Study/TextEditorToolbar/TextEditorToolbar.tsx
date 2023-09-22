@@ -125,10 +125,12 @@ function ToolbarGroup3() {
 function ToolbarGroup4(props: GroupProp) {
   let increaseLevel = (e : MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     props.editor.increaseLevel();
   }
   let decreaseLevel = (e : MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     props.editor.decreaseLevel();
   }
   return (

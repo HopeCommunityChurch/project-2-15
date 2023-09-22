@@ -34,6 +34,19 @@ body {
   cursor: pointer;
 }
 
+.studyBlocks {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.studyBlocks td {
+  border: 1px solid black;
+}
+
+.questionsLabel {
+  width: 25%;
+}
+
 .chunk {
   margin: 0px;
   white-space: pre-wrap;

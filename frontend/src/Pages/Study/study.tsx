@@ -11,7 +11,7 @@ import { TextEditorToolbar } from "./TextEditorToolbar/TextEditorToolbar";
 import { match } from "ts-pattern";
 import { useParams } from "@solidjs/router";
 import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
-import { SectionEditor } from "./SectionEditor/SectionEditor";
+// import { SectionEditor } from "./SectionEditor/SectionEditor";
 import BlueCheckIcon from "Assets/blue-check-icon.svg";
 import GrayCircleIcon from "Assets/gray-circle-icon.svg";
 import Arrow2Icon from "Assets/arrow2.svg";
@@ -239,10 +239,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
           class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
         ></div>
       </div>
-      <SectionEditor
-        showSectionEditor={showSectionEditor}
-        setShowSectionEditor={setShowSectionEditor}
-      />
     </>
   );
 }
