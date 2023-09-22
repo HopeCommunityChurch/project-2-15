@@ -123,19 +123,19 @@ function ToolbarGroup3() {
   );
 }
 function ToolbarGroup4(props: GroupProp) {
-  let increaseLevel = (e : MouseEvent) => {
+  let increaseLevel = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     props.editor.increaseLevel();
-  }
-  let decreaseLevel = (e : MouseEvent) => {
+  };
+  let decreaseLevel = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     props.editor.decreaseLevel();
-  }
+  };
   return (
     <div class={classes.toolbarGroup4}>
-      <img src={OutdentIcon} class={classes.toolbarIcon} onClick={decreaseLevel}/>
+      <img src={OutdentIcon} class={classes.toolbarIcon} onClick={decreaseLevel} />
       <img src={IndentIcon} class={classes.toolbarIcon} onClick={increaseLevel} />
       <div class={classes.seperator} />
     </div>
@@ -161,19 +161,21 @@ function ToolbarGroup5(props: GroupProp) {
   );
 }
 
-function ToolbarGroup6(props : GroupProp) {
-  function addSection(e : MouseEvent) {
+function ToolbarGroup6(props: GroupProp) {
+  function addSection(e: MouseEvent) {
     e.preventDefault();
     const book = prompt("Book");
     const verses = prompt("Verses");
     const text = prompt("text");
     props.editor.addSection({
       header: book + " " + verses,
-      bibleSections: [ {
-        book: book,
-        verses: verses,
-        text: text,
-      }],
+      bibleSections: [
+        {
+          book: book,
+          verses: verses,
+          text: text,
+        },
+      ],
     });
   }
   return (
@@ -181,7 +183,7 @@ function ToolbarGroup6(props : GroupProp) {
       <img src={LinkIcon} class={classes.toolbarIcon} />
       <img src={CommentIcon} class={classes.toolbarIcon} />
       <img src={ParallelViewIcon} class={classes.toolbarIcon} />
-      <button onClick={addSection}>add section </button>
+      {/* <button onClick={addSection}>add section </button> */}
       <div class={classes.seperator} />
     </div>
   );

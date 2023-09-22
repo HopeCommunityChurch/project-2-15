@@ -13,8 +13,10 @@ import { useParams } from "@solidjs/router";
 import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
 // import { SectionEditor } from "./SectionEditor/SectionEditor";
 import BlueCheckIcon from "Assets/blue-check-icon.svg";
+import DragHandleIcon from "Assets/drag-handle.svg";
 import GrayCircleIcon from "Assets/gray-circle-icon.svg";
 import Arrow2Icon from "Assets/arrow2.svg";
+import GrayTrashIcon from "Assets/gray-trash-icon.svg";
 import BluePencil from "Assets/blue-pencil.png";
 import * as Network from "Utils/Network";
 import * as classes from "./styles.module.scss";
@@ -65,8 +67,7 @@ export function StudyPage() {
 function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const [isTopbarOpen, setTopbarOpen] = createSignal(true);
-  const [showSectionEditor, setShowSectionEditor] = createSignal(false);
-  const [sections, setSections] = createSignal([]);
+  const [sectionEditorMode, setSectionEditorMode] = createSignal(false);
 
   createEffect(() => {
     const isStudyPage = document.querySelector(`.${classes.documentBody}`);
@@ -145,23 +146,18 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       const width = startWidth + (e.clientX - startX);
 
       // Apply the width, but within the defined min and max boundaries
-      sidebar.style.width = Math.max(Math.min(width, 500), 150) + "px";
+      sidebar.style.width = Math.max(Math.min(width, 500), 170) + "px";
     }
-
-    editor.addEditor(editorRoot);
 
     // Cleanup listener when component is destroyed
     return () => {
       window.removeEventListener("resize", handleSidebarState);
     };
   });
-  const sectionTitles = [
-    { Title: "1 Cor 3:5", Status: "Completed" },
-    { Title: "1 Cor 3:5", Status: "Completed" },
-    { Title: "1 Cor 3:5", Status: "Not Completed" },
-    { Title: "1 Cor 3:5", Status: "Completed" },
-    { Title: "1 Cor 3:5", Status: "Completed" },
-  ];
+
+  onMount(() => {
+    editor.addEditor(editorRoot);
+  });
 
   return (
     <>
@@ -190,7 +186,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
               )}
             </div>
             <div
-              onClick={() => setShowSectionEditor(!showSectionEditor())}
+              onClick={() => setSectionEditorMode(!sectionEditorMode())}
               class={classes.editSections}
             >
               {isSidebarOpen() ? (
@@ -203,24 +199,42 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
               )}
             </div>
             <div class={classes.allSectionSidebarContainer}>
-              {sectionTitles.map((section) => (
+              {doc.document.content.map((section) => (
                 <div
                   class={`${classes.sectionSidebarContainer} ${
                     isSidebarOpen() ? "" : classes.closed
                   }`}
                 >
+                  {isSidebarOpen() && sectionEditorMode() ? <img src={DragHandleIcon} /> : null}
                   <span class={classes.sectionSidebarStatus}>
-                    {section.Status === "Completed" ? (
-                      <img src={BlueCheckIcon} />
-                    ) : section.Status === "Not Completed" ? (
+                    {/* {section.Status === "Completed" ? ( */}
+                    <img src={BlueCheckIcon} />
+                    {/* ) : section.Status === "Not Completed" ? (
                       <img src={GrayCircleIcon} />
-                    ) : null}
+                    ) : null} */}
                   </span>
                   {isSidebarOpen() ? (
-                    <span class={classes.sectionSidebarTitle}>{section.Title}</span>
+                    <span class={classes.sectionSidebarTitle}>{section.attrs.header}</span>
                   ) : null}
+                  {isSidebarOpen() && sectionEditorMode() ? <img src={GrayTrashIcon} /> : null}
                 </div>
               ))}
+            </div>
+            <div
+              onClick={() => {
+                editor.addSection({
+                  header: "Untitled",
+                  bibleSections: [
+                    {
+                      book: "book",
+                      verses: "verses",
+                      text: "Add Verses \n",
+                    },
+                  ],
+                });
+              }}
+            >
+              + Add section
             </div>
           </div>
           <div
