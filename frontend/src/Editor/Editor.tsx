@@ -728,6 +728,42 @@ let questionMarkPlugin = (questionMap : Dictionary<QuestionMapItem>) => new Plug
   }
 });
 
+let addVerseWidget = (studyBlockNode: Node) => () => {
+  const elem = document.createElement("button");
+  elem.innerHTML = "add verse";
+  elem.onmousedown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    alert("not implemented yet");
+  };
+  return elem;
+};
+
+let addVersePlugin = () => new Plugin({
+  props: {
+    decorations(state : EditorState) {
+      const stuff = [];
+      state.doc.descendants((node, position) => {
+        if (node.type.name === "section") return true;
+        if (node.type.name !== "studyBlocks") return false;
+        stuff.push({node, position})
+      });
+      const decorations = [];
+      stuff.forEach( ({node, position}) => {
+        decorations.push(
+          Decoration.widget(position, addVerseWidget(node), {
+            stopEvent: (e: Event) => {
+              return e.type === "click";
+            },
+          })
+        );
+      });
+      return DecorationSet.create(state.doc, decorations);
+    }
+  }
+});
+
+
 const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   let from = state.selection.from;
   let to = state.selection.to;
@@ -883,6 +919,7 @@ export class P215Editor {
         keymap(baseKeymap),
         currentChunkPlug,
         questionMarkPlugin(this.questionMap),
+        addVersePlugin(),
         // referencePlugin
       ],
     });
