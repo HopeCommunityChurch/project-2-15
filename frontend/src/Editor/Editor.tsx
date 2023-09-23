@@ -590,10 +590,10 @@ export const questionReferenceMarkView =
     const qId = mark.attrs.questionId;
     mview.setAttribute("questionId", qId);
     let pop = null;
-    mview.onclick = (e) => {
-      e.preventDefault();
-      questionPopup(e.pageX, e.pageY, qId, questionMap, view);
-    };
+    // mview.onclick = (e) => {
+    //   e.preventDefault();
+    //   questionPopup(e.pageX, e.pageY, qId, questionMap, view);
+    // };
     return { dom: mview };
   };
 
@@ -648,17 +648,24 @@ let currentChunkPlug = new Plugin({
   },
 });
 
-const questionMarkWidget = () => {
+const questionMarkWidget = (qId : string, questionMap : Dictionary<QuestionMapItem>) => (view : EditorView) => {
   const elem = document.createElement("span");
   elem.className = classes.questionMark;
   elem.innerHTML = "?";
+  elem.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log(qId);
+    questionPopup(e.pageX, e.pageY, qId, questionMap, view);
+  };
   return elem;
 };
 
-let questionMarkPlugin = () => new Plugin({
+let questionMarkPlugin = (questionMap : Dictionary<QuestionMapItem>) => new Plugin({
   props: {
     decorations(state : EditorState) {
       const decorations = [];
+      console.log(questionMap);
       state.doc.descendants((node, position) => {
         if (node.type.name === "section") return true;
         if (node.type.name === "bibleText") return true;
@@ -667,8 +674,13 @@ let questionMarkPlugin = () => new Plugin({
         const hasQuestionRef = node.marks.find( (m) => m.type.name === "questionReference");
         if(hasQuestionRef) {
           const loc = position+node.nodeSize;
+          const qId = hasQuestionRef.attrs.questionId;
           decorations.push(
-            Decoration.widget(loc, questionMarkWidget)
+            Decoration.widget(loc, questionMarkWidget(qId, questionMap), {
+              stopEvent: (e: Event) => {
+                return e.type === "click";
+              }
+            })
           );
         }
       });
@@ -828,6 +840,7 @@ export class P215Editor {
   constructor(initialState) {
     let node = Node.fromJSON(textSchema, initialState);
     this.updateHanlders = [];
+    this.questionMap = {};
     this.state = EditorState.create({
       schema: textSchema,
       doc: node,
@@ -844,12 +857,11 @@ export class P215Editor {
         }),
         keymap(baseKeymap),
         currentChunkPlug,
-        questionMarkPlugin(),
+        questionMarkPlugin(this.questionMap),
         // referencePlugin
       ],
     });
 
-    this.questionMap = {};
   }
 
   addEditor(editorRoot: HTMLElement) {
