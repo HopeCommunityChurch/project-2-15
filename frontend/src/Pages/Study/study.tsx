@@ -181,23 +181,13 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   };
 
   const addNewSection = () => {
-    const newSection = {
-      header: "Untitled",
-      bibleSections: [
-        {
-          book: "book",
-          verses: "verses",
-          text: "Add Verses \n",
-        },
-      ],
-    };
 
-    editor.addSection(newSection);
+    editor.addSection();
 
     setSectionTitles((prevTitles) => [
       ...prevTitles,
       {
-        title: newSection.header,
+        title: "Untitled",
         order: prevTitles.length,
       },
     ]);

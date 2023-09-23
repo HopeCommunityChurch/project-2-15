@@ -91,6 +91,33 @@ const textSchema = new Schema({
         return ["question", { class: classes.question }, 0];
       },
     },
+    generalStudyBlock: {
+      content: "generalStudyBlockChildren*",
+      group: "studyElement",
+      isolating: true,
+      defining: true,
+      toDOM: () => {
+        return ["tr", 0];
+      },
+    },
+    generalStudyBlockHeader: {
+      content: "text*",
+      group: "generalStudyBlockChildren",
+      isolating: true,
+      defining: true,
+      toDOM: () => {
+        return ["td", 0];
+      },
+    },
+    generalStudyBlockBody: {
+      content: "richText*",
+      group: "generalStudyBlockChildren",
+      isolating: true,
+      defining: true,
+      toDOM: () => {
+        return ["td", 0];
+      },
+    },
     questionText: {
       isolating: true,
       defining: true,
@@ -789,27 +816,11 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
   }
 };
 
-type AddSectionBibleSections = {
-  book: string;
-  verses: string;
-  text: string;
-};
 
-function newBibleText(btxt: AddSectionBibleSections) {
-  const txt = textSchema.text(btxt.text);
-  const chunk = textSchema.nodes.chunk.createChecked(null, txt);
-  return textSchema.nodes.bibleText.createChecked({ book: btxt.book, verses: btxt.verses }, chunk);
-}
-
-type AddSection = {
-  header: string;
-  bibleSections: Array<AddSectionBibleSections>;
-};
-
-function newSectionNode(crSection: AddSection): Node {
-  const header = textSchema.text(crSection.header);
+function newSectionNode(): Node {
+  const header = textSchema.text("Untitled");
   const children = [textSchema.nodes.sectionHeader.create(null, header)];
-  crSection.bibleSections.map(newBibleText).forEach( (bs) => children.push(bs));
+  // crSection.bibleSections.map(newBibleText).forEach( (bs) => children.push(bs));
   const questions = textSchema.nodes.questions.createChecked();
   const studyBlock = textSchema.nodes.studyBlocks.createChecked(null, questions);
   children.push(studyBlock);
@@ -818,14 +829,13 @@ function newSectionNode(crSection: AddSection): Node {
 }
 
 const addSection = (
-  section: AddSection,
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) => {
   const from = state.selection.from;
   const to = state.selection.to;
   if (dispatch) {
-    const node = newSectionNode(section);
+    const node = newSectionNode();
     // should be the end of the document.
     const pos = state.doc.nodeSize - 2;
     const tr = state.tr.insert(pos, node);
@@ -936,8 +946,8 @@ export class P215Editor {
     increaseLevel(this.view.state, this.view.dispatch);
   }
 
-  addSection(crSection: AddSection) {
-    addSection(crSection, this.view.state, this.view.dispatch);
+  addSection() {
+    addSection(this.view.state, this.view.dispatch);
   }
 
   onUpdate(f: (change: any) => void) {
