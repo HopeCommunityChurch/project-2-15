@@ -207,7 +207,6 @@ class QuestionsView implements NodeView {
   contentDOM: HTMLElement;
   node: Node;
   constructor(node: Node, view: EditorView, getPos: () => number) {
-    console.log("test");
     this.node = node;
     this.dom = document.createElement("tr");
     this.dom.className = classes.questions;
@@ -649,6 +648,35 @@ let currentChunkPlug = new Plugin({
   },
 });
 
+const questionMarkWidget = () => {
+  const elem = document.createElement("span");
+  elem.className = classes.questionMark;
+  elem.innerHTML = "?";
+  return elem;
+};
+
+let questionMarkPlugin = () => new Plugin({
+  props: {
+    decorations(state : EditorState) {
+      const decorations = [];
+      state.doc.descendants((node, position) => {
+        if (node.type.name === "section") return true;
+        if (node.type.name === "bibleText") return true;
+        if (node.type.name === "chunk") return true;
+        if (node.type.name !== "text") return false;
+        const hasQuestionRef = node.marks.find( (m) => m.type.name === "questionReference");
+        if(hasQuestionRef) {
+          const loc = position+node.nodeSize;
+          decorations.push(
+            Decoration.widget(loc, questionMarkWidget)
+          );
+        }
+      });
+      return DecorationSet.create(state.doc, decorations);
+    }
+  }
+});
+
 const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   let from = state.selection.from;
   let to = state.selection.to;
@@ -816,6 +844,7 @@ export class P215Editor {
         }),
         keymap(baseKeymap),
         currentChunkPlug,
+        questionMarkPlugin(),
         // referencePlugin
       ],
     });

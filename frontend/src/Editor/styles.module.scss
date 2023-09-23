@@ -13,6 +13,16 @@ body {
   margin: 0px;
 }
 
+.questionMark {
+  background-color: grey;
+  color: white;
+  border-radius: .625em;
+  width: 1.25em;
+  height: 1.25em;
+  display: inline-block;
+  text-align: center;
+}
+
 .outerChunk {
   margin: 0px;
   white-space: pre-wrap;
@@ -78,7 +88,7 @@ body {
 }
 
 .selected {
-  /* border: 1px solid #00f4; */
+  // border: 1px solid #00f4;
   border-radius: 3px;
 }
 
