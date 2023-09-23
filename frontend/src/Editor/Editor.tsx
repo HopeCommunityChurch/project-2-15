@@ -38,7 +38,17 @@ const textSchema = new Schema({
       content: "sectionChild*",
       isolating: true,
       defining: true,
-      attrs: { header: { default: "Genesis 1:1" } },
+    },
+    sectionHeader: {
+      content: "text*",
+      group: "sectionChild",
+      isolating: true,
+      defining: true,
+      toDOM: () => {
+        return [
+          "h2", 0
+        ];
+      }
     },
     bibleText: {
       content: "chunk*",
@@ -164,10 +174,6 @@ class SectionView implements NodeView {
     this.dom = document.createElement("div");
     this.dom.className = classes.section;
     this.dom.id = `section-${sectionIndex}`;
-    const header = document.createElement("h2");
-    // header.setAttribute("contenteditable", "false");
-    header.innerText = node.attrs.header;
-    this.dom.appendChild(header);
     this.contentDOM = document.createElement("div");
     this.contentDOM.className = classes.content;
     this.dom.appendChild(this.contentDOM);
@@ -801,11 +807,13 @@ type AddSection = {
 };
 
 function newSectionNode(crSection: AddSection): Node {
-  const children = crSection.bibleSections.map(newBibleText);
+  const header = textSchema.text(crSection.header);
+  const children = [textSchema.nodes.sectionHeader.create(null, header)];
+  crSection.bibleSections.map(newBibleText).forEach( (bs) => children.push(bs));
   const questions = textSchema.nodes.questions.createChecked();
   const studyBlock = textSchema.nodes.studyBlocks.createChecked(null, questions);
   children.push(studyBlock);
-  const section = textSchema.nodes.section.createChecked({ header: crSection.header }, children);
+  const section = textSchema.nodes.section.createChecked(null, children);
   return section;
 }
 

@@ -135,7 +135,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   onMount(() => {
     // Only store title strings and their order
     const titlesWithOrder = doc.document.content.map((section, index) => ({
-      title: section.attrs.header,
+      title: section.header,
       order: index,
     }));
     setSectionTitles(titlesWithOrder);
