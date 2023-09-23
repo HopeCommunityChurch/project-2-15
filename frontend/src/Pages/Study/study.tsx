@@ -3,7 +3,7 @@ import { createEffect, createSignal, onMount, createResource, Show } from "solid
 import { useParams, useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
 import { match } from "ts-pattern";
-import { dndzone } from "solid-dnd-directive";
+// import { dndzone } from "solid-dnd-directive";
 
 // Local imports
 import * as Network from "Utils/Network";
@@ -241,7 +241,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                 class={classes.editSections}
               >
                 <img src={BluePencil} />
-                <p>EDIT SECTIONS</p>
+                <p>{sectionEditorMode() ? "STOP EDITING" : "EDIT SECTIONS"}</p>
               </div>
             ) : null}
             <div class={classes.allSectionSidebarContainer}>
@@ -263,7 +263,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                 </div>
               ))}
             </div>
-            {isSidebarOpen() ? (
+            {isSidebarOpen() && sectionEditorMode() ? (
               <div class={classes.addSectionButton} onClick={addNewSection}>
                 + Add section
               </div>
