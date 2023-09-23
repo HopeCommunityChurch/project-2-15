@@ -287,6 +287,7 @@ export class QuestionView implements NodeView {
   update(node: Node) {
     this.node = node;
     if (this.questionMap) {
+    this.questionMap[this.questionId].node = node;
       let innerView = this.questionMap[this.questionId].editor;
       if (innerView) {
         let state = innerView.state;
@@ -492,7 +493,7 @@ export class ChunkCommentView implements NodeView {
   }
 }
 
-const questionPopup = (x, y, qId, questionMap, view: EditorView) => {
+const questionPopup = (x, y, qId, questionMap : Dictionary<QuestionMapItem>, view: EditorView) => {
   let qNode = questionMap[qId];
   if (!qNode.editor) {
     const pop = document.createElement("questionRefPopup");
