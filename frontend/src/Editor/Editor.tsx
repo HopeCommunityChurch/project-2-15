@@ -665,23 +665,28 @@ let questionMarkPlugin = (questionMap : Dictionary<QuestionMapItem>) => new Plug
   props: {
     decorations(state : EditorState) {
       const decorations = [];
+      const questions = {};
       state.doc.descendants((node, position) => {
         if (node.type.name === "section") return true;
         if (node.type.name === "bibleText") return true;
         if (node.type.name === "chunk") return true;
         if (node.type.name !== "text") return false;
-        const hasQuestionRef = node.marks.find( (m) => m.type.name === "questionReference");
-        if(hasQuestionRef) {
+        const questionRefs = node.marks.filter( (m) => m.type.name === "questionReference");
+        questionRefs.forEach( (ref) => {
           const loc = position+node.nodeSize;
-          const qId = hasQuestionRef.attrs.questionId;
-          decorations.push(
-            Decoration.widget(loc, questionMarkWidget(qId, questionMap), {
-              stopEvent: (e: Event) => {
-                return e.type === "click";
-              },
-            })
-          );
-        }
+          const qId = ref.attrs.questionId;
+          questions[qId] = loc;
+        });
+      });
+      Object.keys(questions).forEach( (qId) => {
+        const loc = questions[qId];
+        decorations.push(
+          Decoration.widget(loc, questionMarkWidget(qId, questionMap), {
+            stopEvent: (e: Event) => {
+              return e.type === "click";
+            },
+          })
+        );
       });
       return DecorationSet.create(state.doc, decorations);
     }
