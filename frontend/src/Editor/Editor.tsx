@@ -679,7 +679,7 @@ let questionMarkPlugin = (questionMap : Dictionary<QuestionMapItem>) => new Plug
             Decoration.widget(loc, questionMarkWidget(qId, questionMap), {
               stopEvent: (e: Event) => {
                 return e.type === "click";
-              }
+              },
             })
           );
         }
