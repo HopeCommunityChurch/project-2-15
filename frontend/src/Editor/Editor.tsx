@@ -20,6 +20,8 @@ import * as classes from "./styles.module.scss";
 import DragHandleIcon from "../Assets/drag-handle.svg";
 import CloseXIcon from "../Assets/x.svg";
 
+let sectionCounter = 0;
+
 const textSchema = new Schema({
   nodes: {
     doc: {
@@ -43,7 +45,7 @@ const textSchema = new Schema({
       group: "sectionChild",
       isolating: true,
       defining: true,
-      attrs: { book: { default: "Genesis" }, verses: { default : "1:1" } },
+      attrs: { book: { default: "Genesis" }, verses: { default: "1:1" } },
       toDOM: () => {
         return [
           "div",
@@ -158,11 +160,12 @@ const textSchema = new Schema({
 class SectionView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
-  constructor(node: Node) {
+  constructor(node: Node, sectionIndex: number) {
     this.dom = document.createElement("div");
     this.dom.className = classes.section;
+    this.dom.id = `section-${sectionIndex}`;
     const header = document.createElement("h2");
-    header.setAttribute("contenteditable", "false");
+    // header.setAttribute("contenteditable", "false");
     header.innerText = node.attrs.header;
     this.dom.appendChild(header);
     this.contentDOM = document.createElement("div");
@@ -180,7 +183,6 @@ class StudyBlocksView implements NodeView {
     this.contentDOM = this.dom;
   }
 }
-
 
 function getRandomStr(): string {
   const arrayb = new Uint8Array(10);
@@ -508,7 +510,7 @@ const questionPopup = (x, y, qId, questionMap : Dictionary<QuestionMapItem>, vie
       const rec = pop.getBoundingClientRect();
       const diffX = e.pageX - rec.x;
       const diffY = e.pageY - rec.y;
-      const mousemove = (e : MouseEvent) => {
+      const mousemove = (e: MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
         pop.style.left = "calc(" + (e.pageX - diffX) + "px)";
@@ -787,27 +789,31 @@ type AddSectionBibleSections = {
   text: string;
 };
 
-function newBibleText (btxt : AddSectionBibleSections) {
+function newBibleText(btxt: AddSectionBibleSections) {
   const txt = textSchema.text(btxt.text);
   const chunk = textSchema.nodes.chunk.createChecked(null, txt);
-  return textSchema.nodes.bibleText.createChecked({book: btxt.book, verses: btxt.verses}, chunk);
+  return textSchema.nodes.bibleText.createChecked({ book: btxt.book, verses: btxt.verses }, chunk);
 }
 
 type AddSection = {
   header: string;
-  bibleSections: Array<AddSectionBibleSections>
+  bibleSections: Array<AddSectionBibleSections>;
 };
 
-function newSectionNode (crSection : AddSection) : Node {
+function newSectionNode(crSection: AddSection): Node {
   const children = crSection.bibleSections.map(newBibleText);
   const questions = textSchema.nodes.questions.createChecked();
-  const studyBlock = textSchema.nodes.studyBlocks.createChecked(null, questions)
+  const studyBlock = textSchema.nodes.studyBlocks.createChecked(null, questions);
   children.push(studyBlock);
-  const section = textSchema.nodes.section.createChecked({header: crSection.header }, children);
+  const section = textSchema.nodes.section.createChecked({ header: crSection.header }, children);
   return section;
-};
+}
 
-const addSection = (section: AddSection, state: EditorState, dispatch?: (tr: Transaction) => void) => {
+const addSection = (
+  section: AddSection,
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+) => {
   const from = state.selection.from;
   const to = state.selection.to;
   if (dispatch) {
@@ -833,11 +839,10 @@ interface Dictionary<T extends notUndefined = notUndefined> {
 }
 
 export class P215Editor {
-
   state: EditorState;
   view: EditorView;
   questionMap: Dictionary<QuestionMapItem>;
-  updateHanlders : Array<(change : any) => void>;
+  updateHanlders: Array<(change: any) => void>;
 
   constructor(initialState) {
     let node = Node.fromJSON(textSchema, initialState);
@@ -872,7 +877,7 @@ export class P215Editor {
       state: that.state,
       nodeViews: {
         section(node) {
-          return new SectionView(node);
+          return new SectionView(node, sectionCounter++);
         },
         studyBlocks(node) {
           return new StudyBlocksView(node);
@@ -900,7 +905,7 @@ export class P215Editor {
       dispatchTransaction: (transaction) => {
         let newState = that.view.state.apply(transaction);
         that.view.updateState(newState);
-        this.updateHanlders.forEach( (handler) => {
+        this.updateHanlders.forEach((handler) => {
           handler(transaction.doc.toJSON());
         });
       },
@@ -923,11 +928,11 @@ export class P215Editor {
     increaseLevel(this.view.state, this.view.dispatch);
   }
 
-  addSection ( crSection : AddSection) {
+  addSection(crSection: AddSection) {
     addSection(crSection, this.view.state, this.view.dispatch);
   }
 
-  onUpdate(f : (change : any) => void) {
+  onUpdate(f: (change: any) => void) {
     this.updateHanlders.push(f);
   }
 }

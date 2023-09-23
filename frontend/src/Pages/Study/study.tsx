@@ -1,30 +1,28 @@
-import {
-  createEffect,
-  createSignal,
-  onMount,
-  For,
-  createResource,
-  Show,
-  onCleanup,
-} from "solid-js";
-import { TextEditorToolbar } from "./TextEditorToolbar/TextEditorToolbar";
+// Libraries and external modules
+import { createEffect, createSignal, onMount, createResource, Show } from "solid-js";
+import { useParams, useNavigate } from "@solidjs/router";
+import { throttle } from "@solid-primitives/scheduled";
 import { match } from "ts-pattern";
-import { useParams } from "@solidjs/router";
+import { dndzone } from "solid-dnd-directive";
+
+// Local imports
+import * as Network from "Utils/Network";
+import * as classes from "./styles.module.scss";
+import * as Editor from "Editor/Editor";
+import { PublicUser, DocRaw } from "../../Types";
+import { LoginUser, loginState } from "Pages/LoginPage/login";
 import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
-// import { SectionEditor } from "./SectionEditor/SectionEditor";
+import { TextEditorToolbar } from "./TextEditorToolbar/TextEditorToolbar";
+
+// Icons
 import BlueCheckIcon from "Assets/blue-check-icon.svg";
 import DragHandleIcon from "Assets/drag-handle.svg";
 import GrayCircleIcon from "Assets/gray-circle-icon.svg";
 import Arrow2Icon from "Assets/arrow2.svg";
 import GrayTrashIcon from "Assets/gray-trash-icon.svg";
 import BluePencil from "Assets/blue-pencil.png";
-import * as Network from "Utils/Network";
-import * as classes from "./styles.module.scss";
-import { PublicUser, DocRaw } from "../../Types";
-import * as Editor from "Editor/Editor";
-import { LoginUser, loginState } from "Pages/LoginPage/login";
-import { useNavigate } from "@solidjs/router";
-import { throttle } from "@solid-primitives/scheduled";
+
+// Network functions
 async function getStudy(documentId): Promise<Network.NetworkState<DocRaw>> {
   return Network.request("/document/" + documentId);
 }
@@ -65,47 +63,22 @@ export function StudyPage() {
 }
 
 function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
+  // State and Variables
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const [isTopbarOpen, setTopbarOpen] = createSignal(true);
   const [sectionEditorMode, setSectionEditorMode] = createSignal(false);
+  const [sectionTitles, setSectionTitles] = createSignal([]);
+
+  let editorRoot: HTMLDivElement;
+  let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
+
+  // Effects and Mounts
 
   createEffect(() => {
     const isStudyPage = document.querySelector(`.${classes.documentBody}`);
     if (isStudyPage) {
       document.body.style.overflow = "hidden";
     }
-  });
-
-  // Function to handle the sidebar state based on viewport width
-  const handleSidebarState = () => {
-    if (window.innerWidth <= 750) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
-    }
-  };
-
-  let editorRoot: HTMLDivElement;
-  let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
-  const updateSignal = throttle(
-    (change) =>
-      Network.request("/document/" + doc.docId, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(change),
-      })
-        .then((res) => {
-          console.log(res);
-        })
-        .catch((err) => {
-          console.log(err);
-        }),
-    500
-  );
-  editor.onUpdate((value) => {
-    updateSignal(value);
   });
 
   onMount(() => {
@@ -159,6 +132,77 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     editor.addEditor(editorRoot);
   });
 
+  onMount(() => {
+    // Only store title strings and their order
+    const titlesWithOrder = doc.document.content.map((section, index) => ({
+      title: section.attrs.header,
+      order: index,
+    }));
+    setSectionTitles(titlesWithOrder);
+  });
+
+  editor.onUpdate((value) => {
+    updateSignal(value);
+  });
+
+  // Helper Functions
+  const handleSidebarState = () => {
+    if (window.innerWidth <= 750) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+  };
+
+  const updateSignal = throttle(
+    (change) =>
+      Network.request("/document/" + doc.docId, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(change),
+      })
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          console.log(err);
+        }),
+    500
+  );
+
+  const handleScrollToSection = (sectionIndex) => {
+    const element = document.getElementById(`section-${sectionIndex}`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+    console.log(sectionIndex);
+  };
+
+  const addNewSection = () => {
+    const newSection = {
+      header: "Untitled",
+      bibleSections: [
+        {
+          book: "book",
+          verses: "verses",
+          text: "Add Verses \n",
+        },
+      ],
+    };
+
+    editor.addSection(newSection);
+
+    setSectionTitles((prevTitles) => [
+      ...prevTitles,
+      {
+        title: newSection.header,
+        order: prevTitles.length,
+      },
+    ]);
+  };
+
   return (
     <>
       <StudyTopNav
@@ -175,7 +219,13 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       <div class={`${classes.pageBody} ${isTopbarOpen() ? "" : classes.collapsed}`}>
         <div class={classes.sidebarContainer}>
           <div class={`${classes.sidebar} ${isSidebarOpen() ? "" : classes.closed}`}>
-            <div onClick={() => setSidebarOpen(!isSidebarOpen())} class={classes.sidebarToggle}>
+            <div
+              onClick={() => {
+                setSidebarOpen(!isSidebarOpen());
+                !isSidebarOpen() ? setSectionEditorMode(false) : null;
+              }}
+              class={classes.sidebarToggle}
+            >
               {isSidebarOpen() ? (
                 <>
                   <img src={Arrow2Icon} />
@@ -185,57 +235,39 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                 <img src={Arrow2Icon} class={classes.reverse} />
               )}
             </div>
-            <div
-              onClick={() => setSectionEditorMode(!sectionEditorMode())}
-              class={classes.editSections}
-            >
-              {isSidebarOpen() ? (
-                <>
-                  <img src={BluePencil} />
-                  <p>EDIT SECTIONS</p>
-                </>
-              ) : (
+            {isSidebarOpen() ? (
+              <div
+                onClick={() => setSectionEditorMode(!sectionEditorMode())}
+                class={classes.editSections}
+              >
                 <img src={BluePencil} />
-              )}
-            </div>
+                <p>EDIT SECTIONS</p>
+              </div>
+            ) : null}
             <div class={classes.allSectionSidebarContainer}>
-              {doc.document.content.map((section) => (
+              {sectionTitles().map(({ title }, index) => (
                 <div
                   class={`${classes.sectionSidebarContainer} ${
                     isSidebarOpen() ? "" : classes.closed
                   }`}
+                  onClick={() => handleScrollToSection(index)}
                 >
                   {isSidebarOpen() && sectionEditorMode() ? <img src={DragHandleIcon} /> : null}
                   <span class={classes.sectionSidebarStatus}>
-                    {/* {section.Status === "Completed" ? ( */}
                     <img src={BlueCheckIcon} />
-                    {/* ) : section.Status === "Not Completed" ? (
-                      <img src={GrayCircleIcon} />
-                    ) : null} */}
                   </span>
                   {isSidebarOpen() ? (
-                    <span class={classes.sectionSidebarTitle}>{section.attrs.header}</span>
+                    <span class={classes.sectionSidebarTitle}>{title}</span>
                   ) : null}
                   {isSidebarOpen() && sectionEditorMode() ? <img src={GrayTrashIcon} /> : null}
                 </div>
               ))}
             </div>
-            <div
-              onClick={() => {
-                editor.addSection({
-                  header: "Untitled",
-                  bibleSections: [
-                    {
-                      book: "book",
-                      verses: "verses",
-                      text: "Add Verses \n",
-                    },
-                  ],
-                });
-              }}
-            >
-              + Add section
-            </div>
+            {isSidebarOpen() ? (
+              <div class={classes.addSectionButton} onClick={addNewSection}>
+                + Add section
+              </div>
+            ) : null}
           </div>
           <div
             class={`${classes.sidebarResizeHandle} ${isSidebarOpen() ? "" : classes.closed}`}
@@ -244,7 +276,10 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         <Show when={isSidebarOpen()}>
           <div
             class={classes.mobileSidebarDarkFullscreenBackground}
-            onClick={() => setSidebarOpen(false)}
+            onClick={() => {
+              setSectionEditorMode(false);
+              setSidebarOpen(false);
+            }}
           ></div>
         </Show>
 
