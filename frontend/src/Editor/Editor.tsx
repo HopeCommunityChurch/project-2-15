@@ -45,10 +45,8 @@ const textSchema = new Schema({
       isolating: true,
       defining: true,
       toDOM: () => {
-        return [
-          "h2", 0
-        ];
-      }
+        return ["h2", 0];
+      },
     },
     bibleText: {
       content: "chunk*",
@@ -322,7 +320,7 @@ export class QuestionView implements NodeView {
   update(node: Node) {
     this.node = node;
     if (this.questionMap) {
-    this.questionMap[this.questionId].node = node;
+      this.questionMap[this.questionId].node = node;
       let innerView = this.questionMap[this.questionId].editor;
       if (innerView) {
         let state = innerView.state;
@@ -528,7 +526,7 @@ export class ChunkCommentView implements NodeView {
   }
 }
 
-const questionPopup = (x, y, qId, questionMap : Dictionary<QuestionMapItem>, view: EditorView) => {
+const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view: EditorView) => {
   let qNode = questionMap[qId];
   if (!qNode.editor) {
     const pop = document.createElement("questionRefPopup");
@@ -684,49 +682,51 @@ let currentChunkPlug = new Plugin({
   },
 });
 
-const questionMarkWidget = (qId : string, questionMap : Dictionary<QuestionMapItem>) => (view : EditorView) => {
-  const elem = document.createElement("div");
-  elem.className = classes.questionMark;
-  elem.innerHTML = "?";
-  elem.onmousedown = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    questionPopup(e.pageX, e.pageY, qId, questionMap, view);
+const questionMarkWidget =
+  (qId: string, questionMap: Dictionary<QuestionMapItem>) => (view: EditorView) => {
+    const elem = document.createElement("div");
+    elem.className = classes.questionMark;
+    elem.innerHTML = "?";
+    elem.onmousedown = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      questionPopup(e.pageX, e.pageY, qId, questionMap, view);
+    };
+    return elem;
   };
-  return elem;
-};
 
-let questionMarkPlugin = (questionMap : Dictionary<QuestionMapItem>) => new Plugin({
-  props: {
-    decorations(state : EditorState) {
-      const decorations = [];
-      const questions = {};
-      state.doc.descendants((node, position) => {
-        if (node.type.name === "section") return true;
-        if (node.type.name === "bibleText") return true;
-        if (node.type.name === "chunk") return true;
-        if (node.type.name !== "text") return false;
-        const questionRefs = node.marks.filter( (m) => m.type.name === "questionReference");
-        questionRefs.forEach( (ref) => {
-          const loc = position+node.nodeSize;
-          const qId = ref.attrs.questionId;
-          questions[qId] = loc;
+let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
+  new Plugin({
+    props: {
+      decorations(state: EditorState) {
+        const decorations = [];
+        const questions = {};
+        state.doc.descendants((node, position) => {
+          if (node.type.name === "section") return true;
+          if (node.type.name === "bibleText") return true;
+          if (node.type.name === "chunk") return true;
+          if (node.type.name !== "text") return false;
+          const questionRefs = node.marks.filter((m) => m.type.name === "questionReference");
+          questionRefs.forEach((ref) => {
+            const loc = position + node.nodeSize;
+            const qId = ref.attrs.questionId;
+            questions[qId] = loc;
+          });
         });
-      });
-      Object.keys(questions).forEach( (qId) => {
-        const loc = questions[qId];
-        decorations.push(
-          Decoration.widget(loc, questionMarkWidget(qId, questionMap), {
-            stopEvent: (e: Event) => {
-              return e.type === "click";
-            },
-          })
-        );
-      });
-      return DecorationSet.create(state.doc, decorations);
-    }
-  }
-});
+        Object.keys(questions).forEach((qId) => {
+          const loc = questions[qId];
+          decorations.push(
+            Decoration.widget(loc, questionMarkWidget(qId, questionMap), {
+              stopEvent: (e: Event) => {
+                return e.type === "click";
+              },
+            })
+          );
+        });
+        return DecorationSet.create(state.doc, decorations);
+      },
+    },
+  });
 
 let addVerseWidget = (studyBlockNode: Node) => () => {
   const elem = document.createElement("button");
@@ -739,30 +739,30 @@ let addVerseWidget = (studyBlockNode: Node) => () => {
   return elem;
 };
 
-let addVersePlugin = () => new Plugin({
-  props: {
-    decorations(state : EditorState) {
-      const stuff = [];
-      state.doc.descendants((node, position) => {
-        if (node.type.name === "section") return true;
-        if (node.type.name !== "studyBlocks") return false;
-        stuff.push({node, position})
-      });
-      const decorations = [];
-      stuff.forEach( ({node, position}) => {
-        decorations.push(
-          Decoration.widget(position, addVerseWidget(node), {
-            stopEvent: (e: Event) => {
-              return e.type === "click";
-            },
-          })
-        );
-      });
-      return DecorationSet.create(state.doc, decorations);
-    }
-  }
-});
-
+let addVersePlugin = () =>
+  new Plugin({
+    props: {
+      decorations(state: EditorState) {
+        const stuff = [];
+        state.doc.descendants((node, position) => {
+          if (node.type.name === "section") return true;
+          if (node.type.name !== "studyBlocks") return false;
+          stuff.push({ node, position });
+        });
+        const decorations = [];
+        stuff.forEach(({ node, position }) => {
+          decorations.push(
+            Decoration.widget(position, addVerseWidget(node), {
+              stopEvent: (e: Event) => {
+                return e.type === "click";
+              },
+            })
+          );
+        });
+        return DecorationSet.create(state.doc, decorations);
+      },
+    },
+  });
 
 const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   let from = state.selection.from;
@@ -852,7 +852,6 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
   }
 };
 
-
 function newSectionNode(): Node {
   const header = textSchema.text("Untitled");
   const children = [textSchema.nodes.sectionHeader.create(null, header)];
@@ -864,10 +863,7 @@ function newSectionNode(): Node {
   return section;
 }
 
-const addSection = (
-  state: EditorState,
-  dispatch?: (tr: Transaction) => void
-) => {
+const addSection = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   const from = state.selection.from;
   const to = state.selection.to;
   if (dispatch) {
@@ -923,7 +919,6 @@ export class P215Editor {
         // referencePlugin
       ],
     });
-
   }
 
   addEditor(editorRoot: HTMLElement) {
@@ -959,6 +954,14 @@ export class P215Editor {
       },
       dispatchTransaction: (transaction) => {
         let newState = that.view.state.apply(transaction);
+
+        // Check if the last section is deleted
+        if (newState.doc.childCount === 0) {
+          const newSection = newSectionNode();
+          const tr = newState.tr.insert(0, newSection);
+          newState = newState.apply(tr);
+        }
+
         that.view.updateState(newState);
         this.updateHanlders.forEach((handler) => {
           handler(transaction.doc.toJSON());
@@ -985,6 +988,33 @@ export class P215Editor {
 
   addSection() {
     addSection(this.view.state, this.view.dispatch);
+  }
+
+  deleteSection(sectionIndex: number) {
+    sectionCounter = sectionIndex + 1;
+    let sectionPositions: number[] = [];
+    this.view.state.doc.descendants((node, pos) => {
+      if (node.type.name === "section") {
+        sectionPositions.push(pos);
+      }
+    });
+
+    if (sectionIndex >= sectionPositions.length) {
+      console.error("Invalid section index");
+      return;
+    }
+
+    const sectionPos = sectionPositions[sectionIndex];
+    const sectionNode = this.view.state.doc.nodeAt(sectionPos);
+
+    if (!sectionNode) {
+      console.error("Couldn't find section node");
+      return;
+    }
+
+    // Deleting the section
+    const tr = this.view.state.tr.delete(sectionPos, sectionPos + sectionNode.nodeSize);
+    this.view.dispatch(tr);
   }
 
   onUpdate(f: (change: any) => void) {

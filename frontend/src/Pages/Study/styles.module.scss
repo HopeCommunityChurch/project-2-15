@@ -90,7 +90,7 @@
 
       .sectionSidebarContainer {
         display: flex;
-        padding: 9px 10px;
+        padding: 2px 10px;
         width: calc(100% - 20px);
         align-items: center;
         cursor: pointer;
@@ -112,6 +112,10 @@
         .sectionSidebarStatus img {
           width: 23px;
           height: 23px;
+        }
+
+        .sectionSidebarStatus {
+          padding: 7px 0px;
         }
       }
     }
@@ -283,4 +287,12 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: #a8bbbf;
+}
+
+.deleteSectionIcon {
+  padding: 10px;
+  border-radius: 8px;
+  &:hover {
+    background-color: #ffebeb;
+  }
 }

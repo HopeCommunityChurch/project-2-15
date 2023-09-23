@@ -73,7 +73,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
   // Effects and Mounts
-
   createEffect(() => {
     const isStudyPage = document.querySelector(`.${classes.documentBody}`);
     if (isStudyPage) {
@@ -81,7 +80,16 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     }
   });
 
+  //Resizing sidebar
   onMount(() => {
+    const handleSidebarState = () => {
+      if (window.innerWidth <= 750) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
     // Set initial state based on viewport width
     handleSidebarState();
 
@@ -130,15 +138,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   onMount(() => {
     editor.addEditor(editorRoot);
-  });
-
-  onMount(() => {
-    // Only store title strings and their order
-    const titlesWithOrder = doc.document.content.map((section, index) => ({
-      title: section.header,
-      order: index,
-    }));
-    setSectionTitles(titlesWithOrder);
+    updateSectionTitles(doc);
   });
 
   editor.onUpdate((value) => {
@@ -146,14 +146,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   });
 
   // Helper Functions
-  const handleSidebarState = () => {
-    if (window.innerWidth <= 750) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
-    }
-  };
-
   const updateSignal = throttle(
     (change) =>
       Network.request("/document/" + doc.docId, {
@@ -165,6 +157,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       })
         .then((res) => {
           console.log(res);
+          updateSectionTitles(res.body);
         })
         .catch((err) => {
           console.log(err);
@@ -172,16 +165,42 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     500
   );
 
+  // const deleteSectionFromServer = (updatedDoc) => {
+  //   Network.request("/document/" + updatedDoc.docId, {
+  //     method: "PUT",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify(updatedDoc),
+  //   })
+  //     .then((res) => {
+  //       console.log("Section deleted:", res);
+  //     })
+  //     .catch((err) => {
+  //       console.log("Error deleting section:", err);
+  //     });
+  // };
+
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);
+
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      // Close the sidebar and then scroll if window width <= 750px
+      if (window.innerWidth <= 750) {
+        setSidebarOpen(false);
+
+        // Wait 300ms and then scroll smoothly to the section
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth" });
+        }, 300);
+      } else {
+        // Scroll immediately if window width is greater than 750px
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     }
-    console.log(sectionIndex);
   };
 
   const addNewSection = () => {
-
     editor.addSection();
 
     setSectionTitles((prevTitles) => [
@@ -191,6 +210,29 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         order: prevTitles.length,
       },
     ]);
+  };
+
+  const updateSectionTitles = (studyDoc) => {
+    console.log("Updating section titles with:", studyDoc);
+    const titlesWithOrder = studyDoc.document.content
+      .flatMap((section, index) => {
+        if (section.content && section.content.length > 0) {
+          return section.content
+            .map((innerSection) => {
+              if (innerSection.type === "sectionHeader") {
+                return {
+                  title: innerSection.content[0].text,
+                  order: index,
+                };
+              }
+            })
+            .filter(Boolean);
+        }
+        return [];
+      })
+      .filter(Boolean);
+
+    setSectionTitles(titlesWithOrder);
   };
 
   return (
@@ -237,6 +279,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
             <div class={classes.allSectionSidebarContainer}>
               {sectionTitles().map(({ title }, index) => (
                 <div
+                  id={`sidebar-entry-${index}`}
                   class={`${classes.sectionSidebarContainer} ${
                     isSidebarOpen() ? "" : classes.closed
                   }`}
@@ -249,7 +292,16 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                   {isSidebarOpen() ? (
                     <span class={classes.sectionSidebarTitle}>{title}</span>
                   ) : null}
-                  {isSidebarOpen() && sectionEditorMode() ? <img src={GrayTrashIcon} /> : null}
+                  {isSidebarOpen() && sectionEditorMode() ? (
+                    <img
+                      src={GrayTrashIcon}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        editor.deleteSection(index);
+                      }}
+                      class={classes.deleteSectionIcon}
+                    />
+                  ) : null}
                 </div>
               ))}
             </div>
