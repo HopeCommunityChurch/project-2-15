@@ -649,13 +649,12 @@ let currentChunkPlug = new Plugin({
 });
 
 const questionMarkWidget = (qId : string, questionMap : Dictionary<QuestionMapItem>) => (view : EditorView) => {
-  const elem = document.createElement("span");
+  const elem = document.createElement("div");
   elem.className = classes.questionMark;
   elem.innerHTML = "?";
-  elem.onclick = (e) => {
+  elem.onmousedown = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log(qId);
     questionPopup(e.pageX, e.pageY, qId, questionMap, view);
   };
   return elem;
@@ -665,7 +664,6 @@ let questionMarkPlugin = (questionMap : Dictionary<QuestionMapItem>) => new Plug
   props: {
     decorations(state : EditorState) {
       const decorations = [];
-      console.log(questionMap);
       state.doc.descendants((node, position) => {
         if (node.type.name === "section") return true;
         if (node.type.name === "bibleText") return true;
@@ -738,7 +736,6 @@ const decreaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void)
 const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   const from = state.selection.from;
   const to = state.selection.to;
-  console.log("adding question");
   if (from === to) {
     return false;
   }
@@ -753,7 +750,6 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
 
     // Find the position of the questions
     const sectionNode: Node = state.selection.$anchor.node(1);
-    console.log(sectionNode);
     let posOfQuestions = null;
     let nodeQuestions = null;
     state.doc.descendants((node: Node, pos: number) => {
@@ -896,7 +892,6 @@ export class P215Editor {
         questionReference: questionReferenceMarkView(that.questionMap),
       },
       dispatchTransaction: (transaction) => {
-        // console.log(JSON.stringify(transaction.doc.toJSON()));
         let newState = that.view.state.apply(transaction);
         that.view.updateState(newState);
         this.updateHanlders.forEach( (handler) => {
