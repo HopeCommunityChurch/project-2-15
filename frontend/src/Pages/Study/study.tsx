@@ -81,12 +81,12 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
   // Effects and Mounts
-  createEffect(() => {
-    const isStudyPage = document.querySelector(`.${classes.documentBody}`);
-    if (isStudyPage) {
-      document.body.style.overflow = "hidden";
-    }
-  });
+  // createEffect(() => {
+  //   const isStudyPage = document.querySelector(`.${classes.documentBody}`);
+  //   if (isStudyPage) {
+  //     document.body.style.overflow = "hidden";
+  //   }
+  // });
 
   //Resizing sidebar
   onMount(() => {
