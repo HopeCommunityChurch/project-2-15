@@ -53,7 +53,7 @@ const textSchema = new Schema({
       group: "sectionChild",
       isolating: true,
       defining: true,
-      attrs: { bibRef: { default: "Genesis 1:1" },  },
+      attrs: { verses: { default: "Genesis 1:1" },  },
       toDOM: () => {
         return [
           "div",
@@ -729,12 +729,12 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
   });
 
 
-let addVerse = (bibRef: string, verses: string, position: number, state: EditorState, dispatch?: (tr: Transaction) => void) => {
+let addVerse = (verses: string, text: string, position: number, state: EditorState, dispatch?: (tr: Transaction) => void) => {
   if (dispatch) {
     // Make the mark
-    const text = textSchema.text(verses);
-    const chunk = textSchema.nodes.chunk.create(null, text);
-    const bibleText = textSchema.nodes.bibleText.create(null, chunk);
+    const textNode = textSchema.text(text);
+    const chunk = textSchema.nodes.chunk.create(null, textNode);
+    const bibleText = textSchema.nodes.bibleText.create({verses: verses}, chunk);
 
     const tr = state.tr.insert(position, bibleText);
     dispatch(tr);
@@ -745,7 +745,7 @@ let addVerse = (bibRef: string, verses: string, position: number, state: EditorS
 
 let addVerseWidget = (position: number) => (view : EditorView) => {
   const elem = document.createElement("button");
-  elem.innerHTML = "add verse";
+  elem.innerHTML = "add verses";
   elem.onmousedown = (e) => {
     console.log(position);
     e.preventDefault();
