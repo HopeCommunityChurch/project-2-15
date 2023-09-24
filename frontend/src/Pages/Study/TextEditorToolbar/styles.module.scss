@@ -6,7 +6,7 @@
   align-items: center;
   gap: 5px;
   padding: 0px 7px;
-  z-index: 1;
+  z-index: 15;
   position: relative;
 
   &.collapsed {
@@ -78,6 +78,9 @@
       margin-left: auto;
       padding: 12px 9px;
     }
+    &.active {
+      background-color: #9fc5ff52;
+    }
   }
 
   .extendedMenuContainer {
@@ -135,16 +138,7 @@
   }
 }
 
-@media screen and (max-width: 1080px) {
-  .topTextEditingToolbar > .toolbarGroup6 {
-    display: none !important;
-  }
-  .extendedToolbar > .toolbarGroup6 {
-    display: flex !important;
-  }
-}
-
-@media screen and (max-width: 930px) {
+@media screen and (max-width: 660px) {
   .topTextEditingToolbar > .toolbarGroup5 {
     display: none !important;
   }
@@ -153,7 +147,7 @@
   }
 }
 
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 600px) {
   .topTextEditingToolbar > .toolbarGroup4 {
     display: none !important;
   }
@@ -162,7 +156,7 @@
   }
 }
 
-@media screen and (max-width: 710px) {
+@media screen and (max-width: 535px) {
   .topTextEditingToolbar > .toolbarGroup3 {
     display: none !important;
   }
@@ -171,7 +165,7 @@
   }
 }
 
-@media screen and (max-width: 620px) {
+@media screen and (max-width: 450px) {
   .topTextEditingToolbar > .toolbarGroup2 {
     display: none !important;
   }
@@ -190,11 +184,160 @@
   }
 }
 
-@media screen and (max-width: 430px) {
+@media screen and (max-width: 350px) {
   .topTextEditingToolbar > .toolbarGroup1 {
     display: none !important;
   }
   .extendedToolbar > .toolbarGroup1 {
     display: flex !important;
+  }
+}
+
+.colorPickerPopUp {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 6px #0000001a;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Two columns with equal width */
+  grid-gap: 8px;
+
+  > div {
+    width: 27px;
+    height: 27px;
+    cursor: pointer;
+    margin-top: 0px !important;
+  }
+  .black {
+    background-color: #292c33;
+  }
+  .gray {
+    background-color: #91a4b1;
+  }
+  .brown {
+    background-color: #8b4e35;
+  }
+  .red {
+    background-color: #f13a35;
+  }
+  .orange {
+    background-color: #eb732e;
+  }
+  .yellow {
+    background-color: #f8ac2b;
+  }
+  .green {
+    background-color: #00a55b;
+  }
+  .blue {
+    background-color: #2d78ed;
+  }
+}
+
+.highlightColorPickerPopUp {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 6px #0000001a;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Two columns with equal width */
+  grid-gap: 8px;
+
+  > div {
+    width: 27px;
+    height: 27px;
+    cursor: pointer;
+    margin-top: 0px !important;
+  }
+  .empty {
+    border: 2px solid black;
+  }
+  .brown {
+    background-color: #e3d1c9;
+  }
+  .red {
+    background-color: #fdcbc8;
+  }
+  .orange {
+    background-color: #fbdcc5;
+  }
+  .yellow {
+    background-color: #fcf0bf;
+  }
+  .green {
+    background-color: #c0e9d4;
+  }
+  .blue {
+    background-color: #aedcfd;
+  }
+  .purple {
+    background-color: #e8d0e5;
+  }
+}
+
+.hyperlinkPopUp {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 6px #0000001a;
+
+  form {
+    margin: 0px !important;
+  }
+
+  .labelInputContainer {
+    display: flex;
+    align-items: center;
+  }
+  input[type="text"] {
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 0px;
+    padding: 4px 10px;
+    font-size: 14px;
+    min-width: 250px;
+  }
+
+  input[type="text"]:focus {
+    border-color: #37aefd;
+    outline: none;
+  }
+  form {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    margin-top: 18px;
+    gap: 6px;
+    align-items: flex-end;
+  }
+  .allInputsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    margin-top: 18px;
+    gap: 6px;
+  }
+  label {
+    font-size: 16px;
+    margin-bottom: 0px;
+    color: #666;
+    width: 43px;
+  }
+  .applyHyperlinkButton {
+    color: #0057d1;
+    white-space: nowrap;
+    background-color: #eef5ff;
+    border: none;
+    border-radius: 5px;
+    margin-left: 10px;
+    padding: 5px 11px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    &:hover {
+      opacity: 0.7;
+    }
   }
 }

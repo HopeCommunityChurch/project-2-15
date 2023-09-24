@@ -9,6 +9,8 @@ import {
 } from "prosemirror-state";
 import { EditorView, NodeView, DecorationSet, Decoration } from "prosemirror-view";
 import { undoItem, redoItem, MenuItem, MenuItemSpec, menuBar } from "prosemirror-menu";
+import { toggleMark } from "prosemirror-commands";
+
 import { undo, redo, history } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
 import { Schema, Node, Mark, Fragment } from "prosemirror-model";
@@ -32,6 +34,28 @@ const textSchema = new Schema({
       group: "richText",
       toDOM: () => {
         return ["p", 0];
+      },
+    },
+    link: {
+      attrs: {
+        href: {},
+        title: { default: null },
+      },
+      inclusive: false,
+      parseDOM: [
+        {
+          tag: "a[href]",
+          getAttrs(dom: any) {
+            return {
+              href: dom.getAttribute("href"),
+              title: dom.getAttribute("title"),
+            };
+          },
+        },
+      ],
+      toDOM(node: any) {
+        const { href, title } = node.attrs;
+        return ["a", { href, title }, 0];
       },
     },
     section: {
@@ -160,6 +184,48 @@ const textSchema = new Schema({
     text: { inline: true },
   },
   marks: {
+    strong: {
+      parseDOM: [{ tag: "strong" }],
+      toDOM: () => ["strong"],
+    },
+    em: {
+      parseDOM: [{ tag: "em" }],
+      toDOM: () => ["em"],
+    },
+    underline: {
+      parseDOM: [{ tag: "u" }],
+      toDOM: () => ["u"],
+    },
+    textColor: {
+      attrs: { color: {} },
+      inline: true,
+      parseDOM: [
+        {
+          style: "color",
+          getAttrs: (value) => {
+            return { color: value };
+          },
+        },
+      ],
+      toDOM: (mark) => {
+        return ["span", { style: `color: ${mark.attrs.color};` }, 0];
+      },
+    },
+    highlightColor: {
+      attrs: { color: {} },
+      inline: true,
+      parseDOM: [
+        {
+          style: "background-color",
+          getAttrs: (value) => {
+            return { color: value };
+          },
+        },
+      ],
+      toDOM: (mark) => {
+        return ["span", { style: `background-color: ${mark.attrs.color};` }, 0];
+      },
+    },
     referenceTo: {
       attrs: { referenceId: {} },
       excludes: "",
@@ -1004,6 +1070,81 @@ export class P215Editor {
     decreaseLevel(this.view.state, this.view.dispatch);
   }
 
+  undo() {
+    const { state, dispatch } = this.view;
+    undo(state, dispatch);
+  }
+
+  redo() {
+    const { state, dispatch } = this.view;
+    redo(state, dispatch);
+  }
+
+  toggleBold() {
+    const { state, dispatch } = this.view;
+    const markType = state.schema.marks.strong;
+    toggleMark(markType)(state, dispatch);
+  }
+
+  toggleItalic() {
+    const { state, dispatch } = this.view;
+    const markType = state.schema.marks.em;
+    toggleMark(markType)(state, dispatch);
+  }
+
+  toggleUnderline() {
+    const { state, dispatch } = this.view;
+    const markType = state.schema.marks.underline;
+    toggleMark(markType)(state, dispatch);
+  }
+
+  setTextColor(color: string) {
+    const { state, dispatch } = this.view;
+    const { from, to } = state.selection;
+    const markType = state.schema.marks.textColor;
+    const attrs = { color };
+    let tr = state.tr.removeMark(from, to, markType);
+    tr.addMark(from, to, markType.create(attrs));
+    dispatch(tr);
+  }
+
+  setHighlightColor(color: string) {
+    const { state, dispatch } = this.view;
+    const { from, to } = state.selection;
+    const markType = state.schema.marks.highlightColor;
+    const attrs = { color };
+    let tr = state.tr.removeMark(from, to, markType);
+    tr.addMark(from, to, markType.create(attrs));
+    dispatch(tr);
+  }
+
+  removeHighlightColor() {
+    const { state, dispatch } = this.view;
+    const { from, to } = state.selection;
+    const markType = state.schema.marks.highlightColor;
+    const tr = state.tr.removeMark(from, to, markType);
+    dispatch(tr);
+  }
+
+  clearFormatting() {
+    const { state, dispatch } = this.view;
+    const { tr, schema, selection } = state;
+    const { from, to } = selection;
+    tr.removeMark(from, to);
+    state.doc.nodesBetween(from, to, (node, pos) => {
+      if (node.type === schema.nodes.section) {
+        return false;
+      }
+      if (node.isTextblock && node.type !== schema.nodes.paragraph) {
+        tr.setNodeMarkup(pos, schema.nodes.paragraph);
+      }
+      return true;
+    });
+    if (tr.docChanged) {
+      dispatch(tr);
+    }
+  }
+
   increaseLevel() {
     increaseLevel(this.view.state, this.view.dispatch);
   }
@@ -1012,6 +1153,13 @@ export class P215Editor {
     addSection(this.view.state, this.view.dispatch);
   }
 
+  insertLink(url: string, title: string = "") {
+    const { state, dispatch } = this.view;
+    const { tr, selection } = state;
+    const link = state.schema.marks.link.create({ href: url, title });
+    tr.addMark(selection.from, selection.to, link);
+    dispatch(tr);
+  }
   deleteSection(sectionIndex: number) {
     sectionCounter = sectionIndex + 1;
     let sectionPositions: number[] = [];
