@@ -73,6 +73,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   const [splitScreenOrientation, setSplitScreenOrientation] = createSignal(true);
   const [sectionEditorMode, setSectionEditorMode] = createSignal(false);
   const [sectionTitles, setSectionTitles] = createSignal([]);
+  const [dragDisabled, setDragDisabled] = createSignal(true);
 
   let editorRoot: HTMLDivElement;
   let editorRootSplitScreen: HTMLDivElement;
@@ -229,6 +230,12 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   function handleDndEvent(e) {
     const { items: newItems, activeItem } = e.detail;
     setSectionTitles(newItems);
+    setDragDisabled(true);
+  }
+
+  function startDrag(e) {
+    e.preventDefault(); // to prevent lag on touch devices
+    setDragDisabled(false);
   }
 
   return (
@@ -275,10 +282,10 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
               </div>
             ) : null}
             {/* code where the sections are always draggable */}
-            {/* <div
+            <div
               class={classes.allSectionSidebarContainer}
               //@ts-ignore
-              use:dndzone={{ items: sectionTitles }}
+              use:dndzone={{ items: sectionTitles, dragDisabled }}
               on:consider={handleDndEvent}
               on:finalize={handleDndEvent}
             >
@@ -290,7 +297,16 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                   }`}
                   onClick={() => handleScrollToSection(index)}
                 >
-                  {isSidebarOpen() && sectionEditorMode() ? <img src={DragHandleIcon} /> : null}
+                  <div
+                    tabindex={dragDisabled() ? 0 : -1}
+                    aria-label="drag-handle"
+                    style={dragDisabled() ? "cursor: grab" : "cursor: grabbing"}
+                    //@ts-ignore
+                    on:mousedown={startDrag}
+                    on:touchstart={startDrag}
+                  >
+                    {isSidebarOpen() && sectionEditorMode() ? <img src={DragHandleIcon} /> : null}
+                  </div>
                   <span class={classes.sectionSidebarStatus}>
                     <img src={BlueCheckIcon} />
                   </span>
@@ -309,35 +325,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                   ) : null}
                 </div>
               ))}
-            </div> */}
-
-            {sectionEditorMode() ? (
-              <div
-                class={classes.allSectionSidebarContainer}
-                //@ts-ignore
-                use:dndzone={{ items: sectionTitles }}
-                on:consider={handleDndEvent}
-                on:finalize={handleDndEvent}
-              >
-                <AllSectionSidebarContainer
-                  editor={editor}
-                  isSidebarOpen={isSidebarOpen}
-                  sectionEditorMode={sectionEditorMode}
-                  sectionTitles={sectionTitles}
-                  handleScrollToSection={handleScrollToSection}
-                />
-              </div>
-            ) : (
-              <div class={classes.allSectionSidebarContainer}>
-                <AllSectionSidebarContainer
-                  editor={editor}
-                  isSidebarOpen={isSidebarOpen}
-                  sectionEditorMode={sectionEditorMode}
-                  sectionTitles={sectionTitles}
-                  handleScrollToSection={handleScrollToSection}
-                />
-              </div>
-            )}
+            </div>
 
             {isSidebarOpen() && sectionEditorMode() ? (
               <div class={classes.addSectionButton} onClick={addNewSection}>
@@ -392,42 +380,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
           </Show>
         </div>
       </div>
-    </>
-  );
-}
-
-function AllSectionSidebarContainer({
-  editor,
-  isSidebarOpen,
-  sectionEditorMode,
-  sectionTitles,
-  handleScrollToSection,
-}) {
-  return (
-    <>
-      {sectionTitles().map(({ title }, index) => (
-        <div
-          id={`sidebar-entry-${index}`}
-          class={`${classes.sectionSidebarContainer} ${isSidebarOpen() ? "" : classes.closed}`}
-          onClick={() => handleScrollToSection(index)}
-        >
-          {isSidebarOpen() && sectionEditorMode() ? <img src={DragHandleIcon} /> : null}
-          <span class={classes.sectionSidebarStatus}>
-            <img src={BlueCheckIcon} />
-          </span>
-          {isSidebarOpen() ? <span class={classes.sectionSidebarTitle}>{title}</span> : null}
-          {isSidebarOpen() && sectionEditorMode() ? (
-            <img
-              src={GrayTrashIcon}
-              onClick={async (e) => {
-                e.stopPropagation();
-                editor.deleteSection(index);
-              }}
-              class={classes.deleteSectionIcon}
-            />
-          ) : null}
-        </div>
-      ))}
     </>
   );
 }
