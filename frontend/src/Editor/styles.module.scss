@@ -5,8 +5,28 @@ body {
 .section {
   margin: 0px;
   padding-bottom: 10px;
-  padding-top: 10px;
-  border-bottom: 1px solid #0007;
+  padding: 30px 20px;
+  border-bottom: 1px solid #c0c0c0;
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.section::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -31px;
+  border-bottom: 30px solid #f8fafd;
+}
+
+.section::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -32px;
+  border-bottom: 1px solid #c0c0c0;
 }
 
 .section h2 {
@@ -16,7 +36,7 @@ body {
 .questionMark {
   background-color: grey;
   color: white;
-  border-radius: .625em;
+  border-radius: 0.625em;
   width: 1.25em;
   height: 1.25em;
   display: inline-block;
