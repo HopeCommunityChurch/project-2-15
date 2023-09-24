@@ -3,7 +3,7 @@ import { createEffect, createSignal, onMount, createResource, Show } from "solid
 import { useParams, useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
 import { match } from "ts-pattern";
-// import { dndzone } from "solid-dnd-directive";
+import { dndzone } from "solid-dnd-directive";
 
 // Local imports
 import * as Network from "Utils/Network";
@@ -21,6 +21,9 @@ import GrayCircleIcon from "Assets/gray-circle-icon.svg";
 import Arrow2Icon from "Assets/arrow2.svg";
 import GrayTrashIcon from "Assets/gray-trash-icon.svg";
 import BluePencil from "Assets/blue-pencil.png";
+import CloseXIcon from "Assets/x.svg";
+import SplitScreenIcon from "Assets/split-screen.png";
+import ArrowIcon from "Assets/arrow.svg";
 
 // Network functions
 async function getStudy(documentId): Promise<Network.NetworkState<DocRaw>> {
@@ -66,11 +69,15 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   // State and Variables
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const [isTopbarOpen, setTopbarOpen] = createSignal(true);
+  const [isSplitScreen, setSplitScreen] = createSignal(false);
+  const [splitScreenOrientation, setSplitScreenOrientation] = createSignal(true);
   const [sectionEditorMode, setSectionEditorMode] = createSignal(false);
   const [sectionTitles, setSectionTitles] = createSignal([]);
 
   let editorRoot: HTMLDivElement;
+  let editorRootSplitScreen: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
+  let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
   // Effects and Mounts
   createEffect(() => {
@@ -138,6 +145,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   onMount(() => {
     editor.addEditor(editorRoot);
+    editorSplitScreen.addEditor(editorRootSplitScreen);
     updateSectionTitles(doc);
   });
 
@@ -165,22 +173,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     500
   );
 
-  // const deleteSectionFromServer = (updatedDoc) => {
-  //   Network.request("/document/" + updatedDoc.docId, {
-  //     method: "PUT",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify(updatedDoc),
-  //   })
-  //     .then((res) => {
-  //       console.log("Section deleted:", res);
-  //     })
-  //     .catch((err) => {
-  //       console.log("Error deleting section:", err);
-  //     });
-  // };
-
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);
 
@@ -207,14 +199,13 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       ...prevTitles,
       {
         title: "Untitled",
-        order: prevTitles.length,
+        id: prevTitles.length,
       },
     ]);
   };
 
   const updateSectionTitles = (studyDoc) => {
-    console.log("Updating section titles with:", studyDoc);
-    const titlesWithOrder = studyDoc.document.content
+    const titlesWithId = studyDoc.document.content
       .flatMap((section, index) => {
         if (section.content && section.content.length > 0) {
           return section.content
@@ -222,7 +213,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
               if (innerSection.type === "sectionHeader") {
                 return {
                   title: innerSection.content[0].text,
-                  order: index,
+                  id: index,
                 };
               }
             })
@@ -232,8 +223,13 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       })
       .filter(Boolean);
 
-    setSectionTitles(titlesWithOrder);
+    setSectionTitles(titlesWithId);
   };
+
+  function handleDndEvent(e) {
+    const { items: newItems, activeItem } = e.detail;
+    setSectionTitles(newItems);
+  }
 
   return (
     <>
@@ -247,6 +243,8 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         editor={editor}
         isTopbarOpen={isTopbarOpen}
         setTopbarOpen={setTopbarOpen}
+        isSplitScreen={isSplitScreen}
+        setSplitScreen={setSplitScreen}
       />
       <div class={`${classes.pageBody} ${isTopbarOpen() ? "" : classes.collapsed}`}>
         <div class={classes.sidebarContainer}>
@@ -276,7 +274,14 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                 <p>{sectionEditorMode() ? "STOP EDITING" : "EDIT SECTIONS"}</p>
               </div>
             ) : null}
-            <div class={classes.allSectionSidebarContainer}>
+            {/* code where the sections are always draggable */}
+            {/* <div
+              class={classes.allSectionSidebarContainer}
+              //@ts-ignore
+              use:dndzone={{ items: sectionTitles }}
+              on:consider={handleDndEvent}
+              on:finalize={handleDndEvent}
+            >
               {sectionTitles().map(({ title }, index) => (
                 <div
                   id={`sidebar-entry-${index}`}
@@ -304,7 +309,36 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                   ) : null}
                 </div>
               ))}
-            </div>
+            </div> */}
+
+            {sectionEditorMode() ? (
+              <div
+                class={classes.allSectionSidebarContainer}
+                //@ts-ignore
+                use:dndzone={{ items: sectionTitles }}
+                on:consider={handleDndEvent}
+                on:finalize={handleDndEvent}
+              >
+                <AllSectionSidebarContainer
+                  editor={editor}
+                  isSidebarOpen={isSidebarOpen}
+                  sectionEditorMode={sectionEditorMode}
+                  sectionTitles={sectionTitles}
+                  handleScrollToSection={handleScrollToSection}
+                />
+              </div>
+            ) : (
+              <div class={classes.allSectionSidebarContainer}>
+                <AllSectionSidebarContainer
+                  editor={editor}
+                  isSidebarOpen={isSidebarOpen}
+                  sectionEditorMode={sectionEditorMode}
+                  sectionTitles={sectionTitles}
+                  handleScrollToSection={handleScrollToSection}
+                />
+              </div>
+            )}
+
             {isSidebarOpen() && sectionEditorMode() ? (
               <div class={classes.addSectionButton} onClick={addNewSection}>
                 + Add section
@@ -324,12 +358,76 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
             }}
           ></div>
         </Show>
-
         <div
-          ref={editorRoot}
-          class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
-        ></div>
+          class={`${classes.documentAndSplitScreenContainer} ${
+            splitScreenOrientation() ? classes.vertical : classes.horizontal
+          }`}
+        >
+          <div
+            ref={editorRoot}
+            class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
+          ></div>
+          <Show when={isSplitScreen()}>
+            <div ref={editorRootSplitScreen} class={classes.otherUserSplitScreenContainer}>
+              <div class={classes.splitScreenSwitcher}>
+                <img
+                  class={classes.changeSplitScreenOrientation}
+                  src={SplitScreenIcon}
+                  onClick={() => {
+                    setSplitScreenOrientation(!splitScreenOrientation());
+                  }}
+                />
+                <p>
+                  Scott Appleman <img src={ArrowIcon} />
+                </p>
+                <img
+                  class={classes.closeSplitScreen}
+                  src={CloseXIcon}
+                  onClick={() => {
+                    setSplitScreen(false);
+                  }}
+                />
+              </div>
+            </div>
+          </Show>
+        </div>
       </div>
+    </>
+  );
+}
+
+function AllSectionSidebarContainer({
+  editor,
+  isSidebarOpen,
+  sectionEditorMode,
+  sectionTitles,
+  handleScrollToSection,
+}) {
+  return (
+    <>
+      {sectionTitles().map(({ title }, index) => (
+        <div
+          id={`sidebar-entry-${index}`}
+          class={`${classes.sectionSidebarContainer} ${isSidebarOpen() ? "" : classes.closed}`}
+          onClick={() => handleScrollToSection(index)}
+        >
+          {isSidebarOpen() && sectionEditorMode() ? <img src={DragHandleIcon} /> : null}
+          <span class={classes.sectionSidebarStatus}>
+            <img src={BlueCheckIcon} />
+          </span>
+          {isSidebarOpen() ? <span class={classes.sectionSidebarTitle}>{title}</span> : null}
+          {isSidebarOpen() && sectionEditorMode() ? (
+            <img
+              src={GrayTrashIcon}
+              onClick={async (e) => {
+                e.stopPropagation();
+                editor.deleteSection(index);
+              }}
+              class={classes.deleteSectionIcon}
+            />
+          ) : null}
+        </div>
+      ))}
     </>
   );
 }

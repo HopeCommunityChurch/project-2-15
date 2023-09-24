@@ -1,6 +1,11 @@
 .sidebarContainer {
   display: flex;
   align-items: stretch; // ensures both children stretch to the full height of the container
+  -webkit-user-select: none; /* Chrome, Safari, Opera */
+  -khtml-user-select: none; /* Konqueror */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Standard Syntax */
 
   .sidebar {
     flex: 1;
@@ -17,7 +22,7 @@
 
     .sidebarToggle {
       background-color: #fbfbfb;
-      z-index: 1001;
+      z-index: 11;
       color: var(--blue-100);
       white-space: nowrap;
       text-overflow: ellipsis;
@@ -116,6 +121,15 @@
 
         .sectionSidebarStatus {
           padding: 7px 0px;
+        }
+
+        .deleteSectionIcon {
+          padding: 10px;
+          border-radius: 8px;
+          cursor: pointer !important;
+          &:hover {
+            background-color: #ffebeb;
+          }
         }
       }
     }
@@ -289,10 +303,88 @@
   background-color: #a8bbbf;
 }
 
-.deleteSectionIcon {
-  padding: 10px;
-  border-radius: 8px;
-  &:hover {
-    background-color: #ffebeb;
+.documentAndSplitScreenContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+
+  &.vertical {
+    flex-direction: row;
+    .otherUserSplitScreenContainer {
+      border-left: 2px solid #eeeeee;
+    }
+  }
+
+  &.horizontal {
+    flex-direction: column;
+
+    .otherUserSplitScreenContainer {
+      border-top: 2px solid #eeeeee;
+      border-left: 2px solid #eeeeee;
+    }
+  }
+  > div {
+    flex: 1;
+  }
+}
+
+.otherUserSplitScreenContainer {
+  background-color: #fbfbfb;
+  position: relative;
+
+  .splitScreenSwitcher {
+    background-color: white;
+    width: fit-content;
+    border-radius: 55px;
+    filter: drop-shadow(0px 2px 2px #d9d9d9);
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    -webkit-user-select: none; /* Chrome, Safari, Opera */
+    -khtml-user-select: none; /* Konqueror */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Standard Syntax */
+
+    p {
+      margin: 0;
+      display: flex;
+      gap: 5px;
+      padding: 4px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #f0f0f0;
+      }
+
+      img {
+        max-width: 12px;
+      }
+    }
+    .closeSplitScreen {
+      max-width: 13px;
+      cursor: pointer;
+      padding: 15px 15px 15px 10px;
+      border-radius: 5px;
+      &:hover {
+        background-color: #f0f0f0;
+      }
+    }
+
+    .changeSplitScreenOrientation {
+      max-width: 15px;
+      padding: 15px 10px 15px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      &:hover {
+        background-color: #f0f0f0;
+      }
+    }
   }
 }

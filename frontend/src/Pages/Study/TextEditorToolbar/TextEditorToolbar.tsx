@@ -23,35 +23,59 @@ import ClearFormattingIcon from "./Assets/clear-formatting-icon.svg";
 import QuestionIcon from "./Assets/question-icon.svg";
 import * as Editor from "Editor/Editor";
 
-type TextEditorToolbarProps = {
-  editor: Editor.P215Editor;
-  isTopbarOpen: () => boolean;
-  setTopbarOpen: (value: boolean) => void;
-};
-
-export function TextEditorToolbar(props: TextEditorToolbarProps) {
+export function TextEditorToolbar({
+  editor,
+  isTopbarOpen,
+  setTopbarOpen,
+  isSplitScreen,
+  setSplitScreen,
+}) {
   const [showExtendedToolbar, setShowExtendedToolbar] = createSignal(false);
+  const [windowWidth, setWindowWidth] = createSignal(window.innerWidth);
+
+  createEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  });
 
   return (
     <>
-      <div
-        class={`${classes.topTextEditingToolbar} ${props.isTopbarOpen() ? "" : classes.collapsed}`}
-      >
-        <img src={UndoIcon} class={classes.toolbarIcon} />
-        <img src={RedoIcon} class={classes.toolbarIcon} />
+      <div class={`${classes.topTextEditingToolbar} ${isTopbarOpen() ? "" : classes.collapsed}`}>
+        <img
+          src={UndoIcon}
+          class={classes.toolbarIcon}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.undo();
+          }}
+        />
+        <img
+          src={RedoIcon}
+          class={classes.toolbarIcon}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.redo();
+          }}
+        />
         <div class={classes.seperator} />
-        <button class={classes.toobarTextDropdown}>
-          <p>100%</p>
-          <img src={ArrowIcon} />
-        </button>
-        <div class={classes.seperator} />
-        <ToolbarGroup1 />
-        <ToolbarGroup2 />
-        <ToolbarGroup3 />
-        <ToolbarGroup4 editor={props.editor} />
-        <ToolbarGroup5 editor={props.editor} />
-        <ToolbarGroup6 editor={props.editor} />
-        <ClearFormattingSection />
+        <ToolbarGroup1 editor={editor} />
+        <ToolbarGroup2 editor={editor} />
+        <ToolbarGroup3 editor={editor} />
+        <ToolbarGroup4 editor={editor} />
+        <ToolbarGroup5
+          editor={editor}
+          isSplitScreen={isSplitScreen}
+          setSplitScreen={setSplitScreen}
+          windowWidth={windowWidth}
+        />
+        <ClearFormattingSection editor={editor} />
         <div class={classes.extendedMenuContainer}>
           <img
             src={VerticalElipsesIcon}
@@ -63,13 +87,17 @@ export function TextEditorToolbar(props: TextEditorToolbarProps) {
           {/* Conditionally show extended toolbar */}
           <Show when={showExtendedToolbar()}>
             <div class={classes.extendedToolbar}>
-              <ToolbarGroup1 />
-              <ToolbarGroup2 />
-              <ToolbarGroup3 />
-              <ToolbarGroup4 editor={props.editor} />
-              <ToolbarGroup5 editor={props.editor} />
-              <ToolbarGroup6 editor={props.editor} />
-              <ClearFormattingSection />
+              <ToolbarGroup1 editor={editor} />
+              <ToolbarGroup2 editor={editor} />
+              <ToolbarGroup3 editor={editor} />
+              <ToolbarGroup4 editor={editor} />
+              <ToolbarGroup5
+                editor={editor}
+                isSplitScreen={isSplitScreen}
+                setSplitScreen={setSplitScreen}
+                windowWidth={windowWidth}
+              />
+              <ClearFormattingSection editor={editor} />
             </div>
           </Show>
         </div>
@@ -77,7 +105,7 @@ export function TextEditorToolbar(props: TextEditorToolbarProps) {
           src={ArrowIcon}
           class={`${classes.toolbarIcon} ${classes.collapseTopBar}`}
           onClick={() => {
-            props.setTopbarOpen(!props.isTopbarOpen());
+            setTopbarOpen(!isTopbarOpen());
           }}
         />
       </div>
@@ -85,56 +113,278 @@ export function TextEditorToolbar(props: TextEditorToolbarProps) {
   );
 }
 
-function ClearFormattingSection() {
+function ClearFormattingSection({ editor }) {
   return (
-    <img src={ClearFormattingIcon} class={`${classes.toolbarIcon} ${classes.clearFormatting}`} />
+    <img
+      src={ClearFormattingIcon}
+      class={`${classes.toolbarIcon} ${classes.clearFormatting}`}
+      onClick={(e) => {
+        e.preventDefault();
+        editor.clearFormatting();
+      }}
+    />
   );
 }
-function ToolbarGroup1() {
+
+function ToolbarGroup1({ editor }) {
+  const [showColorPickerPopup, setShowColorPickerPopup] = createSignal(false);
+  const [showHighlightColorPickerPopup, setShowHighlightColorPickerPopup] = createSignal(false);
+
+  const [colorPickerPosition, setColorPickerPosition] = createSignal({ x: 0, y: 0 });
+  const [highlightColorPickerPosition, setHighlightColorPickerPosition] = createSignal({
+    x: 0,
+    y: 0,
+  });
+
+  const toggleColorPickerPopup = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = rect.left + window.pageXOffset;
+    const y = rect.bottom + window.pageYOffset;
+    setColorPickerPosition({ x: x + rect.width / 2, y: y });
+    setTimeout(() => {
+      setShowColorPickerPopup(!showColorPickerPopup());
+    }, 10);
+  };
+
+  const toggleHighlightColorPickerPopup = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = rect.left + window.pageXOffset;
+    const y = rect.bottom + window.pageYOffset;
+    setHighlightColorPickerPosition({ x: x + rect.width / 2, y: y });
+    setTimeout(() => {
+      setShowHighlightColorPickerPopup(!showHighlightColorPickerPopup());
+    }, 10);
+  };
+
+  createEffect(() => {
+    const handleClick = () => {
+      if (showColorPickerPopup()) {
+        setShowColorPickerPopup(!showColorPickerPopup());
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  });
+
+  createEffect(() => {
+    const handleClick = () => {
+      if (showHighlightColorPickerPopup()) {
+        setShowHighlightColorPickerPopup(!showHighlightColorPickerPopup());
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  });
+
   return (
     <div class={classes.toolbarGroup1}>
-      <button class={classes.toobarTextDropdown}>
-        <p>Normal Text</p>
-        <img src={ArrowIcon} />
-      </button>
+      <img
+        src={BoldIcon}
+        class={classes.toolbarIcon}
+        onClick={(e) => {
+          e.preventDefault();
+          editor.toggleBold();
+        }}
+      />
+      <img
+        src={ItalicIcon}
+        class={classes.toolbarIcon}
+        onClick={(e) => {
+          e.preventDefault();
+          editor.toggleItalic();
+        }}
+      />
+      <img
+        src={UnderlineIcon}
+        class={classes.toolbarIcon}
+        onClick={(e) => {
+          e.preventDefault();
+          editor.toggleUnderline();
+        }}
+      />
+      <img src={TextColorIcon} class={classes.toolbarIcon} onClick={toggleColorPickerPopup} />
+      {showColorPickerPopup() && (
+        <div
+          class={classes.colorPickerPopUp}
+          style={{
+            position: "absolute",
+            left: `${colorPickerPosition().x}px`,
+            top: `${colorPickerPosition().y - 52}px`,
+            transform: "translate(-50%, 0)",
+          }}
+        >
+          <div
+            class={classes.black}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setTextColor("#000");
+            }}
+          ></div>
+          <div
+            class={classes.gray}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setTextColor("#91A4B1");
+            }}
+          ></div>
+          <div
+            class={classes.brown}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setTextColor("#8B4E35");
+            }}
+          ></div>
+          <div
+            class={classes.red}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setTextColor("#F13A35");
+            }}
+          ></div>
+          <div
+            class={classes.orange}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setTextColor("#EB732E");
+            }}
+          ></div>
+          <div
+            class={classes.yellow}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setTextColor("#F8AC2B");
+            }}
+          ></div>
+          <div
+            class={classes.green}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setTextColor("#00A55B");
+            }}
+          ></div>
+          <div
+            class={classes.blue}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setTextColor("#2D78ED");
+            }}
+          ></div>
+        </div>
+      )}
+      <img
+        src={HilightIcon}
+        class={classes.toolbarIcon}
+        onClick={toggleHighlightColorPickerPopup}
+      />
+      {showHighlightColorPickerPopup() && (
+        <div
+          class={classes.highlightColorPickerPopUp}
+          style={{
+            position: "absolute",
+            left: `${highlightColorPickerPosition().x}px`,
+            top: `${highlightColorPickerPosition().y - 52}px`,
+            transform: "translate(-50%, 0)",
+          }}
+        >
+          <div
+            class={classes.empty}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.removeHighlightColor();
+            }}
+          ></div>
+          <div
+            class={classes.brown}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setHighlightColor("#EBDED9");
+            }}
+          ></div>
+          <div
+            class={classes.red}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setHighlightColor("#FDDAD8");
+            }}
+          ></div>
+          <div
+            class={classes.orange}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setHighlightColor("#FCE6D6");
+            }}
+          ></div>
+          <div
+            class={classes.yellow}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setHighlightColor("#FDF4D2");
+            }}
+          ></div>
+          <div
+            class={classes.green}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setHighlightColor("#D2EFE0");
+            }}
+          ></div>
+          <div
+            class={classes.blue}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setHighlightColor("#C6E6FD");
+            }}
+          ></div>
+          <div
+            class={classes.purple}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.setHighlightColor("#EFDEEC");
+            }}
+          ></div>
+        </div>
+      )}
       <div class={classes.seperator} />
     </div>
   );
 }
-function ToolbarGroup2() {
+function ToolbarGroup2({ editor }) {
   return (
     <div class={classes.toolbarGroup2}>
-      <img src={BoldIcon} class={classes.toolbarIcon} />
-      <img src={ItalicIcon} class={classes.toolbarIcon} />
-      <img src={UnderlineIcon} class={classes.toolbarIcon} />
-      <img src={TextColorIcon} class={classes.toolbarIcon} />
-      <img src={HilightIcon} class={classes.toolbarIcon} />
-      <div class={classes.seperator} />
-    </div>
-  );
-}
-function ToolbarGroup3() {
-  return (
-    <div class={classes.toolbarGroup3}>
-      <img src={NumberedListIcon} class={classes.toolbarIcon} />
+      <img
+        src={NumberedListIcon}
+        class={classes.toolbarIcon}
+        onClick={(e) => {
+          e.preventDefault();
+          editor.toggleOrderedList();
+        }}
+      />
       <img src={BulletListIcon} class={classes.toolbarIcon} />
       <div class={classes.seperator} />
     </div>
   );
 }
-function ToolbarGroup4(props: GroupProp) {
+function ToolbarGroup3({ editor }) {
   let increaseLevel = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    props.editor.increaseLevel();
+    editor.increaseLevel();
   };
   let decreaseLevel = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    props.editor.decreaseLevel();
+    editor.decreaseLevel();
   };
   return (
-    <div class={classes.toolbarGroup4}>
+    <div class={classes.toolbarGroup3}>
       <img src={OutdentIcon} class={classes.toolbarIcon} onClick={decreaseLevel} />
       <img src={IndentIcon} class={classes.toolbarIcon} onClick={increaseLevel} />
       <div class={classes.seperator} />
@@ -142,48 +392,120 @@ function ToolbarGroup4(props: GroupProp) {
   );
 }
 
-type GroupProp = {
-  editor: Editor.P215Editor;
-};
-
-function ToolbarGroup5(props: GroupProp) {
-  let addQestionClick = (e: MouseEvent) => {
-    e.preventDefault();
-    props.editor.addQuestion();
-  };
+function ToolbarGroup4({ editor }) {
   return (
-    <div class={classes.toolbarGroup5}>
-      <img src={ReferenceIcon} class={classes.toolbarIcon} />
-      <img src={RephraseIcon} class={classes.toolbarIcon} />
-      <img src={QuestionIcon} class={classes.toolbarIcon} onClick={addQestionClick} />
+    <div class={classes.toolbarGroup4}>
+      {/* <img src={ReferenceIcon} class={classes.toolbarIcon} /> */}
+      {/* <img src={RephraseIcon} class={classes.toolbarIcon} /> */}
+      <img
+        src={QuestionIcon}
+        class={classes.toolbarIcon}
+        onClick={(e) => {
+          e.preventDefault();
+          editor.addQuestion();
+        }}
+      />
       <div class={classes.seperator} />
     </div>
   );
 }
 
-function ToolbarGroup6(props: GroupProp) {
-  function addSection(e: MouseEvent) {
+function ToolbarGroup5({ editor, isSplitScreen, setSplitScreen, windowWidth }) {
+  const [showHyperlinkPopUp, setHyperlinkPopUp] = createSignal(false);
+  const [hyperlinkPopUpPosition, setHyperlinkPopUpPosition] = createSignal({ x: 0, y: 0 });
+  const [hyperlinkText, setHyperlinkText] = createSignal("");
+  const [hyperlinkURL, setHyperlinkURL] = createSignal("");
+
+  const toggleHyperlinkPopUp = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = rect.left + window.pageXOffset;
+    const y = rect.bottom + window.pageYOffset;
+    setHyperlinkPopUpPosition({ x: x + rect.width / 2, y: y });
+    setTimeout(() => {
+      setHyperlinkPopUp(!showHyperlinkPopUp());
+    }, 10);
+  };
+
+  createEffect(() => {
+    const handleClick = (event) => {
+      const popupElement = document.getElementById(classes.hyperlinkPopUp); // Replace with your popup's actual ID
+
+      if (popupElement && !popupElement.contains(event.target)) {
+        // Click is outside the popup
+        if (showHyperlinkPopUp()) {
+          setHyperlinkPopUp(!showHyperlinkPopUp());
+        }
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  });
+
+  const applyHyperlink = (e) => {
     e.preventDefault();
-    const book = prompt("Book");
-    const verses = prompt("Verses");
-    const text = prompt("text");
-    props.editor.addSection({
-      header: book + " " + verses,
-      bibleSections: [
-        {
-          book: book,
-          verses: verses,
-          text: text,
-        },
-      ],
-    });
-  }
+    editor.insertLink(hyperlinkURL(), hyperlinkText());
+    setHyperlinkText("");
+    setHyperlinkURL("");
+    setHyperlinkPopUp(false);
+  };
+
   return (
-    <div class={classes.toolbarGroup6}>
-      <img src={LinkIcon} class={classes.toolbarIcon} />
-      <img src={CommentIcon} class={classes.toolbarIcon} />
-      <img src={ParallelViewIcon} class={classes.toolbarIcon} />
-      {/* <button onClick={addSection}>add section </button> */}
+    <div class={classes.toolbarGroup5}>
+      <img src={LinkIcon} class={classes.toolbarIcon} onClick={toggleHyperlinkPopUp} />
+      {showHyperlinkPopUp() && (
+        <div
+          class={classes.hyperlinkPopUp}
+          id={classes.hyperlinkPopUp}
+          style={{
+            position: "absolute",
+            left: `${hyperlinkPopUpPosition().x}px`,
+            top: `${hyperlinkPopUpPosition().y - 52}px`,
+            transform: "translate(-50%, 0)",
+          }}
+        >
+          <form>
+            <div class={classes.allInputsContainer}>
+              <div class={classes.labelInputContainer}>
+                <label for="hyperlinkText">Text</label>
+                <input
+                  type="text"
+                  id="hyperlinkText"
+                  placeholder="Link Title..."
+                  value={hyperlinkText()}
+                  onInput={(e) => setHyperlinkText(e.target.value)}
+                />
+              </div>
+              <div class={classes.labelInputContainer}>
+                <label for="hyperlinkURL">URL</label>
+                <input
+                  type="text"
+                  id="hyperlinkURL"
+                  placeholder="https://..."
+                  value={hyperlinkURL()}
+                  onInput={(e) => setHyperlinkURL(e.target.value)}
+                />
+              </div>
+            </div>
+            <div class={classes.applyHyperlinkButton} onClick={applyHyperlink}>
+              Apply
+            </div>
+          </form>
+        </div>
+      )}
+      {/* <img src={CommentIcon} class={classes.toolbarIcon} /> */}
+      <Show when={windowWidth() > 750}>
+        <img
+          src={ParallelViewIcon}
+          class={`${classes.toolbarIcon} ${isSplitScreen() ? classes.active : ""}`}
+          onClick={() => {
+            setSplitScreen(!isSplitScreen());
+          }}
+        />
+      </Show>
       <div class={classes.seperator} />
     </div>
   );

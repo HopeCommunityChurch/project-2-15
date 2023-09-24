@@ -17,15 +17,13 @@ import { match } from "ts-pattern";
 import useClickOutsideClose from "Hooks/useOutsideClickClose";
 
 export type StudiesTopNavProps = {
-  currentUser: PublicUser
+  currentUser: PublicUser;
 };
 
-export function StudiesTopNav(props : StudiesTopNavProps) {
+export function StudiesTopNav(props: StudiesTopNavProps) {
   const [showDropdown, setShowDropdown] = createSignal(false);
   const [showModal, setShowModal] = createSignal(false);
   const [showNotificationsDropdown, setShowNotificationsDropdown] = createSignal(false);
-
-
 
   const notificationList = [
     {
@@ -50,14 +48,11 @@ export function StudiesTopNav(props : StudiesTopNavProps) {
     },
   ];
 
-
-
   // Helper function to add or remove a study item from the selectedStudyItems array
 
   createEffect(() => {
     useClickOutsideClose(showDropdown, setShowDropdown, classes.profileDropdown);
   });
-
 
   createEffect(() => {
     useClickOutsideClose(
@@ -69,13 +64,12 @@ export function StudiesTopNav(props : StudiesTopNavProps) {
 
   const nav = useNavigate();
 
-  function logoutClick (e : MouseEvent) {
+  function logoutClick(e: MouseEvent) {
     e.preventDefault();
-    handleLogout().then( () => {
+    handleLogout().then(() => {
       nav("/app/login");
     });
   }
-
 
   return (
     <>
@@ -149,44 +143,37 @@ export function StudiesTopNav(props : StudiesTopNavProps) {
           </ul>
         </nav>
         <div class={classes.buttons}>
-            <div
-              class={classes.profileButton}
-              onClick={() => setShowDropdown(!showDropdown())}
-            >
-              {props.currentUser.name.slice(0, 2).toUpperCase()}
-            </div>
-            <div
-              class={`${classes.profileDropdown} ${
-                showDropdown() ? classes.showDropdown : ""
-              }`}
-            >
-              <ul>
-                <li class={classes.mobileOnlyItem}>
-                  <Button type="Blue" onClick={() => setShowModal(true)}>
-                    + New Study
-                  </Button>
-                </li>
-                <li>
-                  <a href="/app/account" class={classes.fullWidthLink}>
-                    My Account
-                  </a>
-                </li>
-                <li>
-                  <A href="/app/admin" class={classes.fullWidthLink}>
-                    Admin Area
-                  </A>
-                </li>
-                <li>
-                  <span onClick={logoutClick} class={classes.fullWidthLink}>
-                    Sign Out
-                  </span>
-                </li>
-              </ul>
-            </div>
+          <div class={classes.profileButton} onClick={() => setShowDropdown(!showDropdown())}>
+            {props.currentUser.name.slice(0, 2).toUpperCase()}
+          </div>
+          <div class={`${classes.profileDropdown} ${showDropdown() ? classes.showDropdown : ""}`}>
+            <ul>
+              <li class={classes.mobileOnlyItem}>
+                <Button type="Blue" onClick={() => setShowModal(true)}>
+                  + New Study
+                </Button>
+              </li>
+              <li>
+                <a href="/app/account" class={classes.fullWidthLink}>
+                  My Account
+                </a>
+              </li>
+              <li>
+                <A href="/app/admin" class={classes.fullWidthLink}>
+                  Admin Area
+                </A>
+              </li>
+              <li>
+                <span onClick={logoutClick} class={classes.fullWidthLink}>
+                  Sign Out
+                </span>
+              </li>
+            </ul>
+          </div>
         </div>
       </header>
       <Show when={showModal()}>
-        <AddStudy setShowModal= { setShowModal } currentUser={props.currentUser} />
+        <AddStudy setShowModal={setShowModal} currentUser={props.currentUser} />
       </Show>
       <div class={classes.headerThingy}></div>
     </>
@@ -194,11 +181,11 @@ export function StudiesTopNav(props : StudiesTopNavProps) {
 }
 
 type AddStudyProp = {
-  setShowModal: (v : Boolean) => void,
-  currentUser : PublicUser,
+  setShowModal: (v: Boolean) => void;
+  currentUser: PublicUser;
 };
 
-function AddStudy (prop : AddStudyProp) {
+function AddStudy(prop: AddStudyProp) {
   const initialStudyItems = [
     {
       Name: "Relate (Opening Prayer)",
@@ -238,7 +225,6 @@ function AddStudy (prop : AddStudyProp) {
   const [selectedStudyItems, setSelectedStudyItems] = createSignal(initialStudyItems);
 
   const [showStudyBlockDropdown, setShowStudyBlockDropdown] = createSignal(false);
-
 
   const filteredBooks = () => {
     return books
@@ -322,7 +308,7 @@ function AddStudy (prop : AddStudyProp) {
     );
   });
 
-  const bookSelectOnKey = (e : KeyboardEvent) => {
+  const bookSelectOnKey = (e: KeyboardEvent) => {
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault(); // Prevent cursor movement
@@ -347,29 +333,30 @@ function AddStudy (prop : AddStudyProp) {
     }
   };
 
-  const bookSelectOnInput = (e : InputEvent & { target: HTMLInputElement} ) => {
-      setStudyBookValue(e.target.value);
-      if (filteredBooks().length > 0) {
-        setFocusedBookIndex(0);
-      } else {
-        setFocusedBookIndex(-1); // Reset index when there are no matches
-      }
+  const bookSelectOnInput = (e: InputEvent & { target: HTMLInputElement }) => {
+    setStudyBookValue(e.target.value);
+    if (filteredBooks().length > 0) {
+      setFocusedBookIndex(0);
+    } else {
+      setFocusedBookIndex(-1); // Reset index when there are no matches
+    }
   };
 
   const nav = useNavigate();
 
-  function createStudySubmitted (e : Event) {
+  function createStudySubmitted(e: Event) {
     e.preventDefault();
     apiCreateDocument({
       name: studyTitleValue(),
-    }).then( (r) => {
+    }).then((r) => {
+      //@ts-ignore
       match(r)
-      .with({state: "error"}, (err) => console.log(r))
-      .with({state: "success"}, ({body}) => {
-        const docId = body.docId;
-        nav("/app/study/" + docId);
-      })
-      .exhaustive();
+        .with({ state: "error" }, (err) => console.log(r))
+        .with({ state: "success" }, ({ body }) => {
+          const docId = body.docId;
+          nav("/app/study/" + docId);
+        })
+        .exhaustive();
     });
   }
 
@@ -383,7 +370,7 @@ function AddStudy (prop : AddStudyProp) {
           class={classes.closeModalIcon}
           onClick={() => setShowModal(false)}
         />
-        <form onSubmit={(e) => createStudySubmitted(e)} >
+        <form onSubmit={(e) => createStudySubmitted(e)}>
           <label for="studyTitle">Title</label>
           <input
             type="text"
@@ -393,30 +380,29 @@ function AddStudy (prop : AddStudyProp) {
             onInput={(e) => setStudyTitleValue(e.target.value)}
           />
           <p class={classes.fieldDescription}>
-            Ex: "<em>Romans {formattedDate} Study</em>" or "<em>Wednesday Night Colossians Study</em>"
+            Ex: "<em>Romans {formattedDate} Study</em>" or "
+            <em>Wednesday Night Colossians Study</em>"
           </p>
           <label for="studyBook">Study Template</label>
           <div class={classes.autocomplete}>
-            {
-              selectedBook() ? (
-                <span class={classes.tag} onClick={() => setSelectedBook(null)}>
-                  {selectedBook()}
-                  <img src={CloseXIcon} alt="Close" class={classes.removeTagIcon} />
-                </span>
-              ) : (
-                <>
-                  <img src={SearchIcon} class={classes.searchIcon} alt="Search" />
-                  <input
-                    type="text"
-                    id="studyBook"
-                    placeholder="Bible Book Name..."
-                    value={studyBookValue()}
-                    onInput={bookSelectOnInput}
-                    onKeyDown={bookSelectOnKey}
-                  />
-                </>
-              )
-            }
+            {selectedBook() ? (
+              <span class={classes.tag} onClick={() => setSelectedBook(null)}>
+                {selectedBook()}
+                <img src={CloseXIcon} alt="Close" class={classes.removeTagIcon} />
+              </span>
+            ) : (
+              <>
+                <img src={SearchIcon} class={classes.searchIcon} alt="Search" />
+                <input
+                  type="text"
+                  id="studyBook"
+                  placeholder="Bible Book Name..."
+                  value={studyBookValue()}
+                  onInput={bookSelectOnInput}
+                  onKeyDown={bookSelectOnKey}
+                />
+              </>
+            )}
             <Show when={studyBookValue() && !selectedBook()}>
               <ul class={classes.dropdownList}>
                 {filteredBooks().length > 0 ? (
@@ -482,8 +468,7 @@ function AddStudy (prop : AddStudyProp) {
                     <p class={classes.studyBlockNoResults}>
                       No study block items match your search.
                       <br />
-                      Maybe you're looking to create a{" "}
-                      <a onClick={addCustomBlock}>Custom Block?</a>
+                      Maybe you're looking to create a <a onClick={addCustomBlock}>Custom Block?</a>
                     </p>
                   )}
                 </div>
@@ -494,9 +479,7 @@ function AddStudy (prop : AddStudyProp) {
             <div class={classes.reorderable}>
               {selectedStudyItems().map((item, index) => {
                 const [localName, setLocalName] = createSignal(item.Name);
-                const [localDescription, setLocalDescription] = createSignal(
-                  item.Description
-                );
+                const [localDescription, setLocalDescription] = createSignal(item.Description);
                 return (
                   <>
                     <div class={classes.reorderableItem}>
@@ -532,9 +515,7 @@ function AddStudy (prop : AddStudyProp) {
                               type="text"
                               value={localName()}
                               onInput={(e) => setLocalName(e.target.value)}
-                              onBlur={() =>
-                                updateStudyItem(localName(), item.Description, index)
-                              }
+                              onBlur={() => updateStudyItem(localName(), item.Description, index)}
                             />
                             <br />
                           </>
@@ -555,9 +536,7 @@ function AddStudy (prop : AddStudyProp) {
                               type="text"
                               value={localDescription()}
                               onInput={(e) => setLocalDescription(e.target.value)}
-                              onBlur={() =>
-                                updateStudyItem(item.Name, localDescription(), index)
-                              }
+                              onBlur={() => updateStudyItem(item.Name, localDescription(), index)}
                             />
                           </>
                         ) : (
@@ -583,37 +562,35 @@ function AddStudy (prop : AddStudyProp) {
               type="submit"
               disabled={!selectedBook() || studyTitleValue().trim() === ""}
               onClick={createStudySubmitted}
-              class={
-                studyTitleValue().trim() === "" ? classes.disabledButton : ""
-              }
+              class={studyTitleValue().trim() === "" ? classes.disabledButton : ""}
             >
               Create
             </button>
             {showTooltip() && (
-              <div class={classes.tooltip}>
-                Please name your study and select a book to create
-              </div>
+              <div class={classes.tooltip}>Please name your study and select a book to create</div>
             )}
           </div>
         </form>
       </div>
     </div>
   );
-};
+}
 
 type CreateStudy = {
-  name : string;
+  name: string;
 };
 
 type ApiCreateDocument = {
-  name : string;
-  document : any;
+  name: string;
+  document: any;
   studyTemplateId?: T.StudyTemplateId;
 };
 
-async function apiCreateDocument (crStudy : CreateStudy) : Promise<Network.SimpleNetworkState<T.DocRaw>> {
-  const body : ApiCreateDocument = {
-    name : crStudy.name,
+async function apiCreateDocument(
+  crStudy: CreateStudy
+): Promise<Network.SimpleNetworkState<T.DocRaw>> {
+  const body: ApiCreateDocument = {
+    name: crStudy.name,
     document: {
       type: "doc",
       content: [],
@@ -627,7 +604,6 @@ async function apiCreateDocument (crStudy : CreateStudy) : Promise<Network.Simpl
     body: JSON.stringify(body),
   });
 }
-
 
 const studyBlockItems = [
   {
