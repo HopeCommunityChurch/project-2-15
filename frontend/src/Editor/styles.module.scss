@@ -5,10 +5,11 @@ body {
 .section {
   margin: 0px;
   padding-bottom: 10px;
-  padding: 30px 20px;
-  border-bottom: 1px solid #c0c0c0;
+  padding: 26px 20px 40px 20px;
+  border: 1px solid #dadada;
   position: relative;
   margin-bottom: 30px;
+  border-radius: 5px;
 }
 
 .section::after {
@@ -18,15 +19,6 @@ body {
   right: 0;
   bottom: -31px;
   border-bottom: 30px solid #f8fafd;
-}
-
-.section::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -32px;
-  border-bottom: 1px solid #c0c0c0;
 }
 
 .section h2 {
@@ -68,10 +60,12 @@ body {
 .studyBlocks {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 20px;
 }
 
 .studyBlocks td {
-  border: 1px solid black;
+  border: 1px solid #c0c0c0;
+  border-radius: 10px;
 }
 
 .questionsLabel {
@@ -175,7 +169,7 @@ body {
   border-radius: 10px;
   border: 1.5px solid #eeeeee;
   box-shadow: 0 0 10px #00000029;
-  z-index: 3;
+  z-index: 15;
 }
 
 .questionEditorHolder {

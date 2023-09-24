@@ -12,13 +12,13 @@
     transition: none !important;
     background-color: #fbfbfb;
     height: calc(100vh - 92px);
+    border-right: 5px solid #fbfbfb; /* Thick border on the inside */
 
     overflow: auto; /* Required for 'resize' to work */
     width: 200px; /* Initial width */
     min-width: 150px; /* Minimum width */
     max-width: 500px; /* Maximum width */
     position: relative;
-    border-right: 5px solid #fbfbfb; /* something so page doesn't jump when hover border is applied */
 
     .sidebarToggle {
       background-color: #fbfbfb;
