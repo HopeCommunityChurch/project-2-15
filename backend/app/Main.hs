@@ -20,6 +20,7 @@ import Servant.Server (
 import System.Environment qualified as Env
 import Prelude hiding (get)
 import UnliftIO.Concurrent (threadDelay)
+import Api.Bible qualified
 
 data DbInfo = MkDbInfo
   { host :: String
@@ -45,6 +46,7 @@ dbToConnectInfo MkDbInfo{host, port, username, password, database} =
 data SecretsFile = MkSecretsFile
   { db :: DbInfo
   , env :: EnvType
+  , esvToken :: Text
   }
   deriving (Generic)
   deriving anyclass (FromJSON)
@@ -57,6 +59,7 @@ logMiddle Prod = logStdout
 data Env = MkEnv
   { envType :: EnvType
   , dbConn :: Db.DbConn
+  , esvToken :: Api.Bible.ESVEnv
   }
   deriving (Generic)
 
@@ -64,9 +67,10 @@ instance Db.HasDbConn Env where
   dbConn = field' @"dbConn"
 
 secretToEnv :: MonadIO m => SecretsFile -> m Env
-secretToEnv MkSecretsFile{db, env} = do
+secretToEnv MkSecretsFile{db, env, esvToken} = do
   dbConn <- liftIO $ Db.createPool (dbToConnectInfo db)
-  pure $ MkEnv env dbConn
+  let esvEnv = Api.Bible.MkESVEnv (encodeUtf8 esvToken)
+  pure $ MkEnv env dbConn esvEnv
 
 
 main :: IO ()

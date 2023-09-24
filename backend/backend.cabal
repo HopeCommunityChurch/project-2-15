@@ -55,7 +55,8 @@ common buildDepends
     servant-swagger-ui,
     servant-swagger-ui-redoc,
     postgresql-migration,
-    email-validate
+    email-validate,
+    wreq,
 
   default-extensions:
     OverloadedStrings,
@@ -114,6 +115,7 @@ library
     Api,
     Api.Helpers,
     Api.User,
+    Api.Bible,
     Api.Auth,
     Api.Errors,
     Api.GroupStudy,

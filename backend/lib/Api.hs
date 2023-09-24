@@ -4,6 +4,7 @@ import Api.Auth qualified
 import Api.Errors qualified as Errs
 import Api.User qualified
 import Api.GroupStudy qualified
+import Api.Bible qualified
 import Types qualified as T
 import Api.Document qualified
 import Data.Aeson ((.=))
@@ -33,14 +34,20 @@ type Api'
     :> "group-study" :> Api.GroupStudy.Api
   :<|> OpenApiTag "document" "document stuff"
     :> "document" :> Api.Document.Api
+  :<|> OpenApiTag "bible" "bible stuff"
+    :> "bible" :> Api.Bible.Api
 
 
-server' :: MonadDb env m => ServerT Api' m
+server'
+  :: MonadDb env m
+  => Api.Bible.HasESVEnv env
+  => ServerT Api' m
 server'
   = Api.Auth.server
   :<|> Api.User.server
   :<|> Api.GroupStudy.server
   :<|> Api.Document.server
+  :<|> Api.Bible.server
 
 
 errToJSON :: Errs.SomeApiException -> ServerError
@@ -111,6 +118,7 @@ openApi =
 server
   :: HasDbConn env
   => HasEnvType env
+  => Api.Bible.HasESVEnv env
   => env
   -> Server Api
 server env =
