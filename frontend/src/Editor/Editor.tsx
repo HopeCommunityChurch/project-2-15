@@ -53,7 +53,7 @@ const textSchema = new Schema({
       group: "sectionChild",
       isolating: true,
       defining: true,
-      attrs: { book: { default: "Genesis" }, verses: { default: "1:1" } },
+      attrs: { bibRef: { default: "Genesis 1:1" },  },
       toDOM: () => {
         return [
           "div",
@@ -728,13 +728,35 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
     },
   });
 
-let addVerseWidget = (studyBlockNode: Node) => () => {
+
+let addVerse = (bibRef: string, verses: string, position: number, state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  if (dispatch) {
+    // Make the mark
+    const text = textSchema.text(verses);
+    const chunk = textSchema.nodes.chunk.create(null, text);
+    const bibleText = textSchema.nodes.bibleText.create(null, chunk);
+
+    const tr = state.tr.insert(position, bibleText);
+    dispatch(tr);
+    return true;
+  }
+};
+
+
+let addVerseWidget = (position: number) => (view : EditorView) => {
   const elem = document.createElement("button");
   elem.innerHTML = "add verse";
   elem.onmousedown = (e) => {
+    console.log(position);
     e.preventDefault();
     e.stopPropagation();
-    alert("not implemented yet");
+    const verses = prompt("verses: ");
+    const text = prompt("text: ");
+    if(verses && text) {
+      addVerse(verses, text, position, view.state, view.dispatch);
+    } else {
+      alert("Missing input");
+    }
   };
   return elem;
 };
@@ -752,7 +774,7 @@ let addVersePlugin = () =>
         const decorations = [];
         stuff.forEach(({ node, position }) => {
           decorations.push(
-            Decoration.widget(position, addVerseWidget(node), {
+            Decoration.widget(position, addVerseWidget(position), {
               stopEvent: (e: Event) => {
                 return e.type === "click";
               },
