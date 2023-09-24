@@ -153,12 +153,20 @@
 }
 
 @media screen and (max-width: 750px) {
+  .pageBody.sidebarCollapsed .documentBody {
+    overflow: hidden;
+    max-height: calc(100vh - 135px);
+  }
+
   .sidebar.closed {
     width: 0px !important;
     min-width: 0px !important;
     display: none !important;
   }
 
+  .sidebarContainer {
+    position: relative;
+  }
   .sidebar {
     top: -92px;
     position: absolute;
@@ -176,11 +184,12 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 100%;
+    height: 100vh;
     display: flex !important;
     position: fixed;
     top: 0;
     left: 0;
+    overflow: hidden;
   }
 
   .documentBody.sidenavOpen {
@@ -198,6 +207,7 @@
     cursor: auto !important;
   }
 }
+
 .mobileSidebarDarkFullscreenBackground {
   display: none;
 }

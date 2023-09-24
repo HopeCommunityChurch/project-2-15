@@ -253,7 +253,11 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         isSplitScreen={isSplitScreen}
         setSplitScreen={setSplitScreen}
       />
-      <div class={`${classes.pageBody} ${isTopbarOpen() ? "" : classes.collapsed}`}>
+      <div
+        class={`${classes.pageBody} ${isTopbarOpen() ? "" : classes.collapsed}  ${
+          isSidebarOpen() ? classes.sidebarCollapsed : ""
+        }`}
+      >
         <div class={classes.sidebarContainer}>
           <div class={`${classes.sidebar} ${isSidebarOpen() ? "" : classes.closed}`}>
             <div
