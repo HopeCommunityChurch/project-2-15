@@ -11,6 +11,7 @@ import UnderlineIcon from "./Assets/underline-icon.svg";
 import TextColorIcon from "./Assets/text-color-icon.svg";
 import HilightIcon from "./Assets/hilight-icon.svg";
 import LinkIcon from "./Assets/link-icon.svg";
+import AddScripture from "../../../Assets/add-scripture.svg";
 import ReferenceIcon from "./Assets/reference-icon.svg";
 import RephraseIcon from "./Assets/rephrase-icon.svg";
 import CommentIcon from "./Assets/comment-icon.svg";
@@ -405,6 +406,7 @@ function ToolbarGroup4({ editor }) {
           editor.addQuestion();
         }}
       />
+      <img src={AddScripture} class={classes.toolbarIcon} />
       <div class={classes.seperator} />
     </div>
   );
