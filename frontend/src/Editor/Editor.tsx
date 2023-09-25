@@ -598,57 +598,51 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
     const pop = document.createElement("questionRefPopup");
     pop.className = classes.questionRefPopup;
 
-    // Append to the body but set it as invisible first to measure its size
-    pop.style.visibility = "hidden";
+    // Initially position it off-screen so it doesn't flicker
+    pop.style.position = "absolute";
+    pop.style.left = "-9999px";
+    pop.style.top = "-9999px";
+
+    // Add it to the body so it renders and we can measure it
     document.body.appendChild(pop);
 
-    // Initially set the popup position to your calculated x, y values
-    let initialLeft = x - 20; // Your original calculation
-    let initialTop = y + parseInt(getComputedStyle(document.documentElement).fontSize); // Assuming 1em is the font-size
-
-    // Set initial position and measure
-    pop.style.left = initialLeft + "px";
-    pop.style.top = initialTop + "px";
-
-    // Check if it goes beyond the viewport and adjust
+    // Now measure it
     const rect = pop.getBoundingClientRect();
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
 
-    if (rect.right > windowWidth) {
+    // Calculate initial position based on incoming x, y
+    let initialLeft = x - 20;
+    let initialTop = y + parseInt(getComputedStyle(document.documentElement).fontSize);
+
+    // Check if it would appear off-screen and adjust
+    if (initialLeft + rect.width > windowWidth) {
       initialLeft = windowWidth - rect.width;
     }
-    if (rect.bottom > windowHeight) {
+    if (initialTop + rect.height > windowHeight) {
       initialTop = windowHeight - rect.height;
     }
 
-    // Adjust position if needed
+    // Now position it correctly and make it visible
     pop.style.left = initialLeft + "px";
     pop.style.top = initialTop + "px";
-
-    // Make it visible now that its position is adjusted
     pop.style.visibility = "visible";
 
     let mover = pop.appendChild(document.createElement("mover"));
-    mover.onmousedown = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
+
+    const startDrag = (clientX, clientY) => {
       const rec = pop.getBoundingClientRect();
-      const diffX = e.pageX - rec.x;
-      const diffY = e.pageY - rec.y;
-      const mousemove = (e: MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        pop.style.left = "calc(" + (e.pageX - diffX) + "px)";
-        pop.style.top = "calc(" + (e.pageY - diffY) + "px)";
+      const diffX = clientX - rec.x;
+      const diffY = clientY - rec.y;
 
-        let newX = e.pageX - diffX;
-        let newY = e.pageY - diffY;
+      const moveDrag = (clientX, clientY) => {
+        let newX = clientX - diffX;
+        let newY = clientY - diffY;
 
+        // Boundary checks
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
         const rect = pop.getBoundingClientRect();
-
         if (newX < 0) newX = 0;
         if (newY < 0) newY = 0;
         if (newX + rect.width > windowWidth) newX = windowWidth - rect.width;
@@ -657,11 +651,40 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
         pop.style.left = "calc(" + newX + "px)";
         pop.style.top = "calc(" + newY + "px)";
       };
-      document.addEventListener("mouseup", (e) => {
+
+      const mousemove = (e) => {
+        e.preventDefault();
+        moveDrag(e.clientX, e.clientY);
+      };
+
+      const touchmove = (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        moveDrag(touch.clientX, touch.clientY);
+      };
+
+      document.addEventListener("mousemove", mousemove);
+      document.addEventListener("mouseup", () => {
         document.removeEventListener("mousemove", mousemove);
       });
-      document.addEventListener("mousemove", mousemove);
+
+      document.addEventListener("touchmove", touchmove);
+      document.addEventListener("touchend", () => {
+        document.removeEventListener("touchmove", touchmove);
+      });
     };
+
+    mover.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      startDrag(e.clientX, e.clientY);
+    });
+
+    mover.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      startDrag(touch.clientX, touch.clientY);
+    });
+
     // Add drag handle
     let dragHandle = mover.appendChild(document.createElement("drag"));
     let dragHandleIcon = document.createElement("img");
@@ -681,6 +704,12 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
       qNode.editor = null;
       pop.parentNode.removeChild(pop);
     };
+    closer.addEventListener("touchstart", (e) => {
+      e.stopPropagation();
+      qNode.editor.destroy();
+      qNode.editor = null;
+      pop.parentNode.removeChild(pop);
+    });
 
     let editorHolder = pop.appendChild(document.createElement("div"));
     editorHolder.className = classes.questionEditorHolder;
