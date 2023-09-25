@@ -10,6 +10,11 @@ body {
   position: relative;
   margin-bottom: 30px;
   border-radius: 5px;
+  max-width: 100%;
+
+  p {
+    word-break: break-word !important;
+  }
 }
 
 .section::after {
@@ -201,6 +206,8 @@ body {
     margin: 0 0 0 9px;
     transform: translateY(-1px);
     pointer-events: none;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .closer {

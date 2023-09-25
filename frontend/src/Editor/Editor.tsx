@@ -77,7 +77,7 @@ const textSchema = new Schema({
       group: "sectionChild",
       isolating: true,
       defining: true,
-      attrs: { verses: { default: "Genesis 1:1" },  },
+      attrs: { verses: { default: "Genesis 1:1" } },
       toDOM: () => {
         return [
           "div",
@@ -597,9 +597,38 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
   if (!qNode.editor) {
     const pop = document.createElement("questionRefPopup");
     pop.className = classes.questionRefPopup;
+
+    // Append to the body but set it as invisible first to measure its size
+    pop.style.visibility = "hidden";
     document.body.appendChild(pop);
-    pop.style.left = "calc(" + x + "px - 20px)";
-    pop.style.top = "calc(" + y + "px + 1em)";
+
+    // Initially set the popup position to your calculated x, y values
+    let initialLeft = x - 20; // Your original calculation
+    let initialTop = y + parseInt(getComputedStyle(document.documentElement).fontSize); // Assuming 1em is the font-size
+
+    // Set initial position and measure
+    pop.style.left = initialLeft + "px";
+    pop.style.top = initialTop + "px";
+
+    // Check if it goes beyond the viewport and adjust
+    const rect = pop.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    if (rect.right > windowWidth) {
+      initialLeft = windowWidth - rect.width;
+    }
+    if (rect.bottom > windowHeight) {
+      initialTop = windowHeight - rect.height;
+    }
+
+    // Adjust position if needed
+    pop.style.left = initialLeft + "px";
+    pop.style.top = initialTop + "px";
+
+    // Make it visible now that its position is adjusted
+    pop.style.visibility = "visible";
+
     let mover = pop.appendChild(document.createElement("mover"));
     mover.onmousedown = (e) => {
       e.stopPropagation();
@@ -612,6 +641,21 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
         e.preventDefault();
         pop.style.left = "calc(" + (e.pageX - diffX) + "px)";
         pop.style.top = "calc(" + (e.pageY - diffY) + "px)";
+
+        let newX = e.pageX - diffX;
+        let newY = e.pageY - diffY;
+
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const rect = pop.getBoundingClientRect();
+
+        if (newX < 0) newX = 0;
+        if (newY < 0) newY = 0;
+        if (newX + rect.width > windowWidth) newX = windowWidth - rect.width;
+        if (newY + rect.height > windowHeight) newY = windowHeight - rect.height;
+
+        pop.style.left = "calc(" + newX + "px)";
+        pop.style.top = "calc(" + newY + "px)";
       };
       document.addEventListener("mouseup", (e) => {
         document.removeEventListener("mousemove", mousemove);
@@ -794,13 +838,18 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
     },
   });
 
-
-let addVerse = (verses: string, text: string, position: number, state: EditorState, dispatch?: (tr: Transaction) => void) => {
+let addVerse = (
+  verses: string,
+  text: string,
+  position: number,
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+) => {
   if (dispatch) {
     // Make the mark
     const textNode = textSchema.text(text);
     const chunk = textSchema.nodes.chunk.create(null, textNode);
-    const bibleText = textSchema.nodes.bibleText.create({verses: verses}, chunk);
+    const bibleText = textSchema.nodes.bibleText.create({ verses: verses }, chunk);
 
     const tr = state.tr.insert(position, bibleText);
     dispatch(tr);
@@ -808,8 +857,7 @@ let addVerse = (verses: string, text: string, position: number, state: EditorSta
   }
 };
 
-
-let addVerseWidget = (position: number) => (view : EditorView) => {
+let addVerseWidget = (position: number) => (view: EditorView) => {
   const elem = document.createElement("button");
   elem.innerHTML = "add verses";
   elem.onmousedown = (e) => {
@@ -818,7 +866,7 @@ let addVerseWidget = (position: number) => (view : EditorView) => {
     e.stopPropagation();
     const verses = prompt("verses: ");
     const text = prompt("text: ");
-    if(verses && text) {
+    if (verses && text) {
       addVerse(verses, text, position, view.state, view.dispatch);
     } else {
       alert("Missing input");
