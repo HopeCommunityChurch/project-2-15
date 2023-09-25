@@ -398,3 +398,13 @@
     }
   }
 }
+
+.dragHandle {
+  padding: 7px;
+  cursor: grab;
+  margin-right: -7px;
+  border-radius: 5px;
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}

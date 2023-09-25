@@ -285,7 +285,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                 <p>{sectionEditorMode() ? "STOP EDITING" : "EDIT SECTIONS"}</p>
               </div>
             ) : null}
-            {/* code where the sections are always draggable */}
             <div
               class={classes.allSectionSidebarContainer}
               //@ts-ignore
@@ -301,16 +300,18 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
                   }`}
                   onClick={() => handleScrollToSection(index)}
                 >
-                  <div
-                    tabindex={dragDisabled() ? 0 : -1}
-                    aria-label="drag-handle"
-                    style={dragDisabled() ? "cursor: grab" : "cursor: grabbing"}
-                    //@ts-ignore
-                    on:mousedown={startDrag}
-                    on:touchstart={startDrag}
-                  >
-                    {isSidebarOpen() && sectionEditorMode() ? <img src={DragHandleIcon} /> : null}
-                  </div>
+                  {isSidebarOpen() && sectionEditorMode() ? (
+                    <div
+                      tabindex={dragDisabled() ? 0 : -1}
+                      aria-label="drag-handle"
+                      class={classes.dragHandle}
+                      //@ts-ignore
+                      on:mousedown={startDrag}
+                      on:touchstart={startDrag}
+                    >
+                      <img src={DragHandleIcon} />
+                    </div>
+                  ) : null}
                   <span class={classes.sectionSidebarStatus}>
                     <img src={BlueCheckIcon} />
                   </span>
