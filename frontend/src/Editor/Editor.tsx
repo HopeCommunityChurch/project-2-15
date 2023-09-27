@@ -175,7 +175,6 @@ const textSchema = new Schema({
           {
             class: classes.chunk,
             level: node.attrs.level,
-            // style: "margin-left:" + 1.5 * node.attrs.level + "em;",
           },
           0,
         ];
@@ -432,9 +431,6 @@ export class ChunkView implements NodeView {
 
   constructor(node: Node, view: EditorView, getPos: () => number) {
     this.dom = document.createElement("p");
-
-    // this.setPadding(node);
-
     this.dom.className = classes.outerChunk;
     this.contentDOM = document.createElement("p");
     this.contentDOM.className = classes.chunk;
@@ -476,11 +472,6 @@ export class ChunkView implements NodeView {
     });
     return hasChunkComment;
   }
-
-  // setPadding(node: Node) {
-  //   let style = "padding-left: calc(" + 2 * node.attrs.level + "em + 7px);";
-  //   this.dom.setAttribute("style", style);
-  // }
 }
 
 export class ChunkCommentView implements NodeView {
