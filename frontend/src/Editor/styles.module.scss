@@ -289,18 +289,18 @@ $indentLeftBorderColors: (
 
   p[level="#{$i}"] {
     border-left: 3px solid $currentColor;
-    padding: 2px 0px 2px 10px;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    padding: 0px 0px 0px 6px;
+    // margin-top: 2px;
+    // margin-bottom: 2px;
 
-    margin-left: calc(#{$i}em + 7px);
+    margin-left: calc(#{$i}em);
 
     @media (min-width: 768px) {
-      margin-left: calc(#{$i * 1.2}em + 7px);
+      margin-left: calc(#{$i * 1.2}em);
     }
 
     @media (min-width: 1024px) {
-      margin-left: calc(#{$i * 1.5}em + 7px);
+      margin-left: calc(#{$i * 1.5}em);
     }
   }
 }
