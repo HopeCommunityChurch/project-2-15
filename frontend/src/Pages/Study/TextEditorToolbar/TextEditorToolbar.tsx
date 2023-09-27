@@ -110,6 +110,7 @@ export function TextEditorToolbar({
           }}
         />
       </div>
+      <div class={classes.toolbarSpacer}></div>
     </>
   );
 }

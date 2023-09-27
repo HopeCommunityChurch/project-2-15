@@ -1143,6 +1143,10 @@ export class P215Editor {
     addQuestion(this.view.state, this.view.dispatch);
   }
 
+  increaseLevel() {
+    increaseLevel(this.view.state, this.view.dispatch);
+  }
+
   decreaseLevel() {
     decreaseLevel(this.view.state, this.view.dispatch);
   }
@@ -1222,10 +1226,6 @@ export class P215Editor {
     }
   }
 
-  increaseLevel() {
-    increaseLevel(this.view.state, this.view.dispatch);
-  }
-
   addSection() {
     addSection(this.view.state, this.view.dispatch);
   }
@@ -1237,6 +1237,7 @@ export class P215Editor {
     tr.addMark(selection.from, selection.to, link);
     dispatch(tr);
   }
+
   deleteSection(sectionIndex: number) {
     sectionCounter = sectionIndex + 1;
     let sectionPositions: number[] = [];

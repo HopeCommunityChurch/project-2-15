@@ -7,7 +7,8 @@
   gap: 5px;
   padding: 0px 7px;
   z-index: 15;
-  position: relative;
+  position: absolute;
+  top: 52px;
 
   &.collapsed {
     transform: translateY(-52px);
@@ -342,4 +343,9 @@
       opacity: 0.7;
     }
   }
+}
+
+.toolbarSpacer {
+  width: 100vw;
+  height: 40px;
 }
