@@ -283,7 +283,7 @@ $indentLeftBorderColors: (
   rgba(240, 105, 55, 0.5)
 );
 
-@for $i from 1 through 31 {
+@for $i from 1 through 100000 {
   $colorIndex: ($i - 1) % 5 + 1;
   $currentColor: nth($indentLeftBorderColors, $colorIndex);
 
