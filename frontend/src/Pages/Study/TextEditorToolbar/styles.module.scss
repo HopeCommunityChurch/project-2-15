@@ -7,8 +7,7 @@
   gap: 5px;
   padding: 0px 7px;
   z-index: 15;
-  position: absolute;
-  top: 52px;
+  position: relative;
 
   &.collapsed {
     transform: translateY(-52px);
@@ -92,8 +91,8 @@
     position: absolute;
     transform: translateY(5px);
     height: 40px;
-    right: 0; // Align with the right edge of the extendedMenuContainer
-    background-color: #eef2fa;
+    right: 0;
+    background-color: #e4ebfa;
     display: none;
     z-index: 1;
     align-items: center;
@@ -343,9 +342,4 @@
       opacity: 0.7;
     }
   }
-}
-
-.toolbarSpacer {
-  width: 100vw;
-  height: 40px;
 }
