@@ -300,7 +300,7 @@ $indentLeftBorderColors: (
     }
 
     @media (min-width: 1024px) {
-      margin-left: calc(#{$i * 1.35}em + 7px);
+      margin-left: calc(#{$i * 1.5}em + 7px);
     }
   }
 }
