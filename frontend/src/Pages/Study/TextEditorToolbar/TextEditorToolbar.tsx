@@ -9,7 +9,6 @@ import BoldIcon from "./Assets/bold-icon.svg";
 import ItalicIcon from "./Assets/italic-icon.svg";
 import UnderlineIcon from "./Assets/underline-icon.svg";
 import TextColorIcon from "./Assets/text-color-icon.svg";
-import HilightIcon from "./Assets/hilight-icon.svg";
 import LinkIcon from "./Assets/link-icon.svg";
 import AddScripture from "../../../Assets/add-scripture.svg";
 import ReferenceIcon from "./Assets/reference-icon.svg";
@@ -23,6 +22,7 @@ import OutdentIcon from "./Assets/outdent-icon.svg";
 import ClearFormattingIcon from "./Assets/clear-formatting-icon.svg";
 import QuestionIcon from "./Assets/question-icon.svg";
 import * as Editor from "Editor/Editor";
+import { isValidVerseReference } from "./validateAndFetchVerses";
 
 export function TextEditorToolbar({
   editor,
@@ -130,8 +130,15 @@ function ClearFormattingSection({ editor }) {
 function ToolbarGroup1({ editor }) {
   const [showColorPickerPopup, setShowColorPickerPopup] = createSignal(false);
   const [showHighlightColorPickerPopup, setShowHighlightColorPickerPopup] = createSignal(false);
+  const [highlightFillColor, setHighlightFillColor] = createSignal("#54585D");
+  const [textFillColor, setTextFillColor] = createSignal("#54585D");
 
   const [colorPickerPosition, setColorPickerPosition] = createSignal({ x: 0, y: 0 });
+
+  editor.onUpdate(() => {
+    editor.getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor);
+  });
+
   const [highlightColorPickerPosition, setHighlightColorPickerPosition] = createSignal({
     x: 0,
     y: 0,
@@ -211,7 +218,14 @@ function ToolbarGroup1({ editor }) {
           editor.toggleUnderline();
         }}
       />
-      <img src={TextColorIcon} class={classes.toolbarIcon} onClick={toggleColorPickerPopup} />
+      <svg class={classes.toolbarIcon} onClick={toggleColorPickerPopup} viewBox="0 0 30 30">
+        <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={textFillColor()} />
+        <path
+          data-name="Path 6847"
+          d="m11.7934,16.3587h6.3985l1.1575,3.9236h4.7398L17.5229,0h-5.0605l-6.5515,20.2804h4.7398l1.1428-3.9217Zm3.1507-10.8656h.0834l2.1188,7.1714h-4.3072l2.105-7.1714Z"
+          fill="#3b3e3d"
+        />
+      </svg>
       {showColorPickerPopup() && (
         <div
           class={classes.colorPickerPopUp}
@@ -280,11 +294,17 @@ function ToolbarGroup1({ editor }) {
           ></div>
         </div>
       )}
-      <img
-        src={HilightIcon}
+      <svg
+        viewBox="0 0 30 30"
         class={classes.toolbarIcon}
         onClick={toggleHighlightColorPickerPopup}
-      />
+      >
+        <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={highlightFillColor()} />
+        <path
+          d="m25.931,4.4543l-3.928-3.7782c-.9636-.9269-2.4962-.8971-3.4231.0665L7.3606,12.4065c-.9268.9637-.8971,2.4963.0665,3.4232l-4.1009,4.4526h9.6924l-.0029-.0036c.6413.0046,1.283-.2386,1.7627-.7373l11.2191-11.6639c.927-.9637.8972-2.4963-.0665-3.4232Zm-7.8282,8.8959l-3.3998,3.5345c-.9268.9637-2.4595.9934-3.4231.0665l-1.1951-1.1494c-.9636-.9269-.9934-2.4595-.0665-3.4232l3.3997-3.5346c.927-.9637,2.4596-.9934,3.4233-.0665l1.1949,1.1494c.9637.9269.9934,2.4595.0665,3.4232Z"
+          fill="#3b3e3d"
+        />
+      </svg>
       {showHighlightColorPickerPopup() && (
         <div
           class={classes.highlightColorPickerPopUp}
@@ -394,6 +414,50 @@ function ToolbarGroup3({ editor }) {
 }
 
 function ToolbarGroup4({ editor }) {
+  const [showAddScripturePopUp, setAddScripturePopUp] = createSignal(false);
+  const [addScripturePopUpPosition, setAddScripturePopUpPosition] = createSignal({ x: 0, y: 0 });
+  const [addScriptureText, setAddScriptureText] = createSignal("");
+  const [addScriptureErrorMessage, setAddScriptureErrorMessage] = createSignal("");
+
+  const toggleAddScripturePopUp = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = rect.left + window.pageXOffset;
+    const y = rect.bottom + window.pageYOffset;
+    setAddScripturePopUpPosition({ x: x + rect.width / 2, y: y });
+    setTimeout(() => {
+      setAddScripturePopUp(!showAddScripturePopUp());
+    }, 10);
+  };
+
+  createEffect(() => {
+    const handleClick = (event) => {
+      const popupElement = document.getElementById(classes.hyperlinkPopUp); // Replace with your popup's actual ID
+
+      if (popupElement && !popupElement.contains(event.target)) {
+        // Click is outside the popup
+        if (showAddScripturePopUp()) {
+          setAddScripturePopUp(!showAddScripturePopUp());
+        }
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  });
+
+  const addScripture = async () => {
+    const passage = await isValidVerseReference(addScriptureText());
+
+    if (passage === false) {
+      setAddScriptureErrorMessage("Verse format not recognized");
+    } else {
+      setAddScriptureErrorMessage("");
+      setAddScriptureText("");
+      setAddScripturePopUp(false);
+      editor.insertTextAtCursor(passage);
+    }
+  };
   return (
     <div class={classes.toolbarGroup4}>
       {/* <img src={ReferenceIcon} class={classes.toolbarIcon} /> */}
@@ -406,7 +470,40 @@ function ToolbarGroup4({ editor }) {
           editor.addQuestion();
         }}
       />
-      <img src={AddScripture} class={classes.toolbarIcon} />
+      <img src={AddScripture} class={classes.toolbarIcon} onClick={toggleAddScripturePopUp} />
+      {showAddScripturePopUp() && (
+        <div
+          class={classes.hyperlinkPopUp}
+          id={classes.hyperlinkPopUp}
+          style={{
+            position: "absolute",
+            left: `${addScripturePopUpPosition().x}px`,
+            top: `${addScripturePopUpPosition().y - 52}px`,
+            transform: "translate(-50%, 0)",
+          }}
+        >
+          <form>
+            <div class={classes.allInputsContainer}>
+              <div class={classes.labelInputContainer}>
+                <label for="hyperlinkURL">Ref:</label>
+                <input
+                  type="text"
+                  id="hyperlinkURL"
+                  placeholder="Ex. John 3:16"
+                  value={addScriptureText()}
+                  onInput={(e) => setAddScriptureText(e.target.value)}
+                />
+              </div>
+            </div>
+            <div class={classes.applyHyperlinkButton} onClick={addScripture}>
+              Insert
+            </div>
+          </form>
+          <Show when={addScriptureErrorMessage() !== ""}>
+            <p class={classes.popUpErrorMessage}>{addScriptureErrorMessage()}</p>
+          </Show>
+        </div>
+      )}
       <div class={classes.seperator} />
     </div>
   );

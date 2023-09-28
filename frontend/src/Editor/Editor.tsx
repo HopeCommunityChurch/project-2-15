@@ -1190,6 +1190,38 @@ export class P215Editor {
     dispatch(tr);
   }
 
+  getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
+    if (!this.view) return;
+
+    const { state } = this.view;
+    const { from } = state.selection;
+
+    const highlightMarkType = state.schema.marks.highlightColor;
+    const textMarkType = state.schema.marks.textColor;
+
+    const marks = state.doc.resolve(from).marks();
+
+    let highlightColorFound = false;
+    let textColorFound = false;
+
+    for (let mark of marks) {
+      if (mark.type === highlightMarkType) {
+        setHighlightFillColor(mark.attrs.color);
+        highlightColorFound = true;
+      }
+
+      if (mark.type === textMarkType) {
+        setTextFillColor(mark.attrs.color);
+        textColorFound = true;
+      }
+
+      if (highlightColorFound && textColorFound) return;
+    }
+
+    if (!highlightColorFound) setHighlightFillColor(null);
+    if (!textColorFound) setTextFillColor(null);
+  }
+
   removeHighlightColor() {
     const { state, dispatch } = this.view;
     const { from, to } = state.selection;
@@ -1219,6 +1251,13 @@ export class P215Editor {
 
   addSection() {
     addSection(this.view.state, this.view.dispatch);
+  }
+
+  insertTextAtCursor(text: string) {
+    const { state, dispatch } = this.view;
+    const { from, to } = state.selection;
+    const tr = state.tr.insertText(text, from, to);
+    dispatch(tr);
   }
 
   insertLink(url: string, title: string = "") {

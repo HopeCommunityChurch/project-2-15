@@ -2479,10 +2479,10 @@ export function isValidVerseReference(reference) {
 
   // Function to do first check if bible format is valid
   function isReferenceFormatValid(reference) {
-    // doesn't start with either two letters or a digit followed by a space, lack at least one letter, space, or period after the initial characters, or if it doesn't end with a digit followed by any combination of spaces, numbers, hyphens, and colons.
-    if (!/^(?:[a-zA-Z]{2}|[0-9]\s)[a-zA-Z\s.]+[\d\s:-]+$/.test(reference)) {
+    // doesn't start with two letters, a digit followed by a space, or a digit followed by a letter, lack at least one letter, space, or period after the initial characters, or if it doesn't end with a digit followed by any combination of spaces, numbers, hyphens, and colons.
+    if (!/^(?:[a-zA-Z]{2}|[0-9]\s|[0-9][a-zA-Z])[a-zA-Z\s.]+[\d\s:-]+$/.test(reference)) {
       console.log(
-        "doesn't start with either two letters or a digit followed by a space, lack at least one letter, space, or period after the initial characters, or if it doesn't end with a digit followed by any combination of spaces, numbers, hyphens, and colons."
+        "doesn't start with two letters, a digit followed by a space, or a digit followed by a letter, lack at least one letter, space, or period after the initial characters, or if it doesn't end with a digit followed by any combination of spaces, numbers, hyphens, and colons."
       );
       return false;
     }
@@ -2754,7 +2754,7 @@ export function isValidVerseReference(reference) {
       query
     )}&include-passage-references=false&include-verse-numbers=true&include-footnotes=false&include-footnote-body=false&include-headings=false&include-short-copyright=false&include-copyright=false&indent-paragraphs=0&indent-poetry=false&line-length=0`;
     const headers = new Headers({
-      Authorization: "Token b97f811347c70fe6b73218d4d51ac3d25592a2c7",
+      Authorization: "Token 30674f8862c1426ae5e3ec6b734c4c151088458a",
     });
 
     try {
