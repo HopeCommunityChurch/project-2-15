@@ -449,6 +449,10 @@ function ToolbarGroup4({ editor }) {
 
   const addScripture = async () => {
     const result = await getBiblePassge(addScriptureText());
+    if (result === null) {
+      setAddScriptureErrorMessage("Verse format not recognized")
+      return;
+    }
     match(result)
       .with({state: "error"}, () =>
         setAddScriptureErrorMessage("Verse format not recognized")
