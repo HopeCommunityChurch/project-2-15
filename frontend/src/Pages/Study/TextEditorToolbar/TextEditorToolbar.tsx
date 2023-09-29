@@ -22,7 +22,8 @@ import OutdentIcon from "./Assets/outdent-icon.svg";
 import ClearFormattingIcon from "./Assets/clear-formatting-icon.svg";
 import QuestionIcon from "./Assets/question-icon.svg";
 import * as Editor from "Editor/Editor";
-import { isValidVerseReference } from "./validateAndFetchVerses";
+import { isValidVerseReference, getBiblePassge } from "./validateAndFetchVerses";
+import { match } from "ts-pattern";
 
 export function TextEditorToolbar({
   editor,
@@ -447,16 +448,17 @@ function ToolbarGroup4({ editor }) {
   });
 
   const addScripture = async () => {
-    const passage = await isValidVerseReference(addScriptureText());
-
-    if (passage === false) {
-      setAddScriptureErrorMessage("Verse format not recognized");
-    } else {
-      setAddScriptureErrorMessage("");
-      setAddScriptureText("");
-      setAddScripturePopUp(false);
-      editor.insertTextAtCursor(passage);
-    }
+    const result = await getBiblePassge(addScriptureText());
+    match(result)
+      .with({state: "error"}, () =>
+        setAddScriptureErrorMessage("Verse format not recognized")
+      ).with({state: "success"}, ({body}) => {
+        setAddScriptureErrorMessage("");
+        setAddScriptureText("");
+        setAddScripturePopUp(false);
+        editor.addVerse(body.canonical, body.passage);
+      })
+      .exhaustive();
   };
   return (
     <div class={classes.toolbarGroup4}>

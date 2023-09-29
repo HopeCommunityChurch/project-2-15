@@ -858,67 +858,6 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
     },
   });
 
-let addVerse = (
-  verses: string,
-  text: string,
-  position: number,
-  state: EditorState,
-  dispatch?: (tr: Transaction) => void
-) => {
-  if (dispatch) {
-    // Make the mark
-    const textNode = textSchema.text(text);
-    const chunk = textSchema.nodes.chunk.create(null, textNode);
-    const bibleText = textSchema.nodes.bibleText.create({ verses: verses }, chunk);
-
-    const tr = state.tr.insert(position, bibleText);
-    dispatch(tr);
-    return true;
-  }
-};
-
-let addVerseWidget = (position: number) => (view: EditorView) => {
-  const elem = document.createElement("button");
-  elem.innerHTML = "add verses";
-  elem.onmousedown = (e) => {
-    console.log(position);
-    e.preventDefault();
-    e.stopPropagation();
-    const verses = prompt("verses: ");
-    const text = prompt("text: ");
-    if (verses && text) {
-      addVerse(verses, text, position, view.state, view.dispatch);
-    } else {
-      alert("Missing input");
-    }
-  };
-  return elem;
-};
-
-let addVersePlugin = () =>
-  new Plugin({
-    props: {
-      decorations(state: EditorState) {
-        const stuff = [];
-        state.doc.descendants((node, position) => {
-          if (node.type.name === "section") return true;
-          if (node.type.name !== "studyBlocks") return false;
-          stuff.push({ node, position });
-        });
-        const decorations = [];
-        stuff.forEach(({ node, position }) => {
-          decorations.push(
-            Decoration.widget(position, addVerseWidget(position), {
-              stopEvent: (e: Event) => {
-                return e.type === "click";
-              },
-            })
-          );
-        });
-        return DecorationSet.create(state.doc, decorations);
-      },
-    },
-  });
 
 const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   let from = state.selection.from;
@@ -1008,6 +947,35 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
   }
 };
 
+
+let addVerse = (
+  verses: string,
+  text: string,
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+) => {
+  if (dispatch) {
+    // Make the mark
+
+    const sectionNode: Node = state.selection.$anchor.node(1);
+    let posOfStudyBlock = null
+    state.doc.descendants((node: Node, pos: number) => {
+      if (node.eq(sectionNode)) {
+        return true;
+      }
+      if (node.type.name !== "studyBlocks") return false;
+      posOfStudyBlock = pos;
+      return false;
+    });
+
+    const textNode = textSchema.text(text);
+    const chunk = textSchema.nodes.chunk.create(null, textNode);
+    const bibleText = textSchema.nodes.bibleText.create({ verses: verses }, chunk);
+    const tr = state.tr.insert(posOfStudyBlock, bibleText);
+    dispatch(tr);
+    return true;
+  }
+};
 function newSectionNode(): Node {
   const header = textSchema.text("Untitled");
   const children = [textSchema.nodes.sectionHeader.create(null, header)];
@@ -1071,7 +1039,6 @@ export class P215Editor {
         keymap(baseKeymap),
         currentChunkPlug,
         questionMarkPlugin(this.questionMap),
-        addVersePlugin(),
         // referencePlugin
       ],
     });
@@ -1251,6 +1218,10 @@ export class P215Editor {
 
   addSection() {
     addSection(this.view.state, this.view.dispatch);
+  }
+
+  addVerse(verses : string, text : string) {
+    addVerse(verses, text, this.view.state, this.view.dispatch);
   }
 
   insertTextAtCursor(text: string) {
