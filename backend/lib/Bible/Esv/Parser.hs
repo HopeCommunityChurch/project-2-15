@@ -3,6 +3,7 @@ module Bible.Esv.Parser where
 import Prelude hiding ((<|>), try)
 import Text.Parsec
 import Data.Char (digitToInt)
+import Data.Text qualified as T
 
 data Book
   = Genesis
@@ -357,12 +358,14 @@ number = do
   seq n (pure n)
 
 
-data ColonOrDash = Colon | Dash
+data ColonOrDash = Colon | Dash | End
 
 colonOrDashParser :: Monad m => ParsecT Text u m ColonOrDash
 colonOrDashParser =
   (char ':' $> Colon)
   <|> (char '-' $> Dash)
+  <|> (char '\8211' $> Dash)
+  <|> (eof $> End)
 
 
 verseRefParser :: Monad m => ParsecT Text u m VerseRefParser
@@ -402,6 +405,8 @@ verseRefParser = do
           -- something like "23-24:4"
           endVerse <- number
           pure $ MkVerseRefParser startChapter endChapter 1 (Just endVerse)
+    End ->
+      pure $ MkVerseRefParser startChapter startChapter 1 Nothing
 
 
 data BibleRef = MkBibleRef
@@ -446,7 +451,7 @@ passageParser = do
          then prevChapter + 1
          else prevChapter
   putState $ MkPState book chapState verse
-  pure $ Verse book chapState verse (toText passage)
+  pure $ Verse book chapState verse (T.strip (toText passage))
 
 
 passagesParser :: Monad m => ParsecT Text PState m [Verse]
