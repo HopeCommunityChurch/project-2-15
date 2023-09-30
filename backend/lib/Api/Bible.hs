@@ -2,17 +2,12 @@ module Api.Bible where
 
 import Api.Auth (AuthUser)
 import Api.Errors qualified as Errs
-import Api.Helpers (getByIdForUser)
-import Data.Aeson (Object)
 import DbHelper (MonadDb)
-import Entity.AuthUser qualified as AuthUser
-import Entity.Document qualified as Doc
-import Entity.User qualified as User
 import Servant
-import Types qualified as T
-import Data.Generics.Product (HasField')
 import Network.Wreq qualified as Wreq
 import GHC.Records (HasField)
+import Text.Parsec qualified as Parsec
+import Bible.Esv.Parser qualified as ESV
 
 
 newtype ESVEnv = MkESVEnv ByteString
@@ -59,13 +54,17 @@ getVersesApi query = do
 
 data ESVResponse = MkESVResponse
   { canonical :: Text
-  , passage :: Text
+  , passage :: [ESV.Verse]
   }
   deriving (Generic, Show)
   deriving anyclass (FromJSON, ToJSON, ToSchema)
 
 
 data VersesNotFound = VersesNotFound
+  deriving (Show, Generic)
+  deriving anyclass (Exception, ToJSON, Errs.ApiException)
+
+data ParseError = ParseError Text
   deriving (Show, Generic)
   deriving anyclass (Exception, ToJSON, Errs.ApiException)
 
@@ -81,7 +80,20 @@ getVerses
 getVerses _ query = do
   result <- getVersesApi query
   when (result.canonical == "") $ Errs.throwApi VersesNotFound
-  pure $ MkESVResponse result.canonical (fold result.passages)
+  let eBibleRef = Parsec.parse ESV.bibleRefParser "" result.canonical
+  case eBibleRef of
+    Left err -> Errs.throwApi $ ParseError (show err)
+    Right bibleRef -> do
+      let state = ESV.MkPState
+                    bibleRef.book
+                    bibleRef.verses.chapterStart
+                    bibleRef.verses.verseStart
+      let epassages =
+            Parsec.runParser ESV.passagesParser state "" (fold result.passages)
+      case epassages of
+        Left err -> Errs.throwApi $ ParseError (show err)
+        Right passages ->
+          pure $ MkESVResponse result.canonical passages
 
 
 type Api =

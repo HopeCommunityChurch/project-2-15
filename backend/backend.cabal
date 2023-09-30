@@ -57,6 +57,7 @@ common buildDepends
     postgresql-migration,
     email-validate,
     wreq,
+    parsec,
 
   default-extensions:
     OverloadedStrings,
@@ -123,7 +124,9 @@ library
     Password,
     SwaggerHelpers,
     Orphans,
-    Fields.Email
+    Fields.Email,
+    Bible.Esv.Parser
+
 
   build-depends:
 
