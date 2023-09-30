@@ -311,3 +311,8 @@ $indentLeftBorderColors: (
   padding-right: 3px;
   color: grey;
 }
+
+[contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
