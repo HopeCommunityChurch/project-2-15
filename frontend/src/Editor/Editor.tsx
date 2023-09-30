@@ -863,6 +863,45 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
     },
   });
 
+const verseRefWidget = (verse) => () => {
+  const elem = document.createElement("span");
+  elem.className = classes.verseRef;
+  if( verse.verse === 1) {
+    elem.innerHTML = "[" + verse.chapter + ":" + verse.verse + '] ';
+  } else {
+    elem.innerHTML = '[' + verse.verse + '] ';
+  }
+
+  return elem;
+}
+
+let verseReferencePlugin = new Plugin({
+  props: {
+    decorations(state: EditorState) {
+      const decorations = [];
+      const verses = {};
+      state.doc.descendants((node, position) => {
+        if (node.type.name === "section") return true;
+        if (node.type.name === "bibleText") return true;
+        if (node.type.name === "chunk") return true;
+        if (node.type.name !== "text") return false;
+        const verse = node.marks.find((m) => m.type.name === "verse");
+        if(!verse) return false;
+        const key = verse.attrs.book + ' ' + verse.attrs.chapter + ':' + verse.attrs.verse
+        if (verses[key]) {return false;}
+        verses[key] = {position, verse: verse.attrs};
+      });
+      Object.keys(verses).forEach((key) => {
+        const {position, verse} = verses[key];
+        decorations.push(
+          Decoration.widget(position, verseRefWidget(verse))
+        );
+      });
+      return DecorationSet.create(state.doc, decorations);
+    },
+  },
+});
+
 
 let sectionIdPlugin =
   new Plugin({
@@ -1129,6 +1168,7 @@ export class P215Editor {
         currentChunkPlug,
         questionMarkPlugin(this.questionMap),
         sectionIdPlugin,
+        verseReferencePlugin,
         // referencePlugin
       ],
     });
