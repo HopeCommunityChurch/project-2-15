@@ -4,6 +4,8 @@ import Prelude hiding ((<|>), try)
 import Text.Parsec
 import Data.Char (digitToInt)
 import Data.Text qualified as T
+import Data.Aeson (ToJSON(..), Value(..))
+import Data.OpenApi qualified as OpenApi
 
 data Book
   = Genesis
@@ -72,8 +74,160 @@ data Book
   | TrdJohn
   | Jude
   | Revelation
-  deriving (Show, Generic)
-  deriving anyclass (FromJSON, ToJSON, ToSchema)
+  deriving (Show, Generic, Enum, Bounded)
+
+bookToText :: Book -> Text
+bookToText Genesis = "Genesis"
+bookToText Exodus = "Exodus"
+bookToText Leviticus = "Leviticus"
+bookToText Numbers = "Numbers"
+bookToText Deuteronomy = "Deuteronomy"
+bookToText Joshua = "Joshua"
+bookToText Judges = "Judges"
+bookToText Ruth = "Ruth"
+bookToText FstSamuel = "1 Samuel"
+bookToText SndSamuel = "2 Samuel"
+bookToText FstKings = "1 Kings"
+bookToText SndKings = "2 Kings"
+bookToText FstChronicles = "1 Chronicles"
+bookToText SndChronicles = "2 Chronicles"
+bookToText Ezra = "Ezra"
+bookToText Nehemiah = "Nehemiah"
+bookToText Esther = "Esther"
+bookToText Job = "Job"
+bookToText Psalm = "Psalm"
+bookToText Proverbs = "Proverbs"
+bookToText Ecclesiastes = "Ecclesiastes"
+bookToText SongOfSolomon = "SongOfSolomon"
+bookToText Isaiah = "Isaiah"
+bookToText Jeremiah = "Jeremiah"
+bookToText Lamentations = "Lamentations"
+bookToText Ezekiel = "Ezekiel"
+bookToText Daniel = "Daniel"
+bookToText Hosea = "Hosea"
+bookToText Joel = "Joel"
+bookToText Amos = "Amos"
+bookToText Obadiah = "Obadiah"
+bookToText Jonah = "Jonah"
+bookToText Micah = "Micah"
+bookToText Nahum = "Nahum"
+bookToText Habakkuk = "Habakkuk"
+bookToText Zephaniah = "Zephaniah"
+bookToText Haggai = "Haggai"
+bookToText Zechariah = "Zechariah"
+bookToText Malachi = "Malachi"
+bookToText Matthew = "Matthew"
+bookToText Mark = "Mark"
+bookToText Luke = "Luke"
+bookToText John = "John"
+bookToText Acts = "Acts"
+bookToText Romans = "Romans"
+bookToText FstCorinthians = "1 Corinthians"
+bookToText SndCorinthians = "2 Corinthians"
+bookToText Galatians = "Galatians"
+bookToText Ephesians = "Ephesians"
+bookToText Philippians = "Philippians"
+bookToText Colossians = "Colossians"
+bookToText FstThessalonians = "1 Thessalonians"
+bookToText SndThessalonians = "2 Thessalonians"
+bookToText FstTimothy = "1 Timothy"
+bookToText SndTimothy = "2 Timothy"
+bookToText Titus = "Titus"
+bookToText Philemon = "Philemon"
+bookToText Hebrews = "Hebrews"
+bookToText James = "James"
+bookToText FstPeter = "1 Peter"
+bookToText SndPeter = "2 Peter"
+bookToText FstJohn = "1 John"
+bookToText SndJohn = "2 John"
+bookToText TrdJohn = "3 John"
+bookToText Jude = "Jude"
+bookToText Revelation = "Revelation"
+
+textToBook :: Text -> Maybe Book
+textToBook "Genesis" = Just Genesis
+textToBook "Exodus" = Just Exodus
+textToBook "Leviticus" = Just Leviticus
+textToBook "Numbers" = Just Numbers
+textToBook "Deuteronomy" = Just Deuteronomy
+textToBook "Joshua" = Just Joshua
+textToBook "Judges" = Just Judges
+textToBook "Ruth" = Just Ruth
+textToBook "1 Samuel" = Just FstSamuel
+textToBook "2 Samuel" = Just SndSamuel
+textToBook "1 Kings" = Just FstKings
+textToBook "2 Kings" = Just SndKings
+textToBook "1 Chronicles" = Just FstChronicles
+textToBook "2 Chronicles" = Just SndChronicles
+textToBook "Ezra" = Just Ezra
+textToBook "Nehemiah" = Just Nehemiah
+textToBook "Esther" = Just Esther
+textToBook "Job" = Just Job
+textToBook "Psalm" = Just Psalm
+textToBook "Proverbs" = Just Proverbs
+textToBook "Ecclesiastes" = Just Ecclesiastes
+textToBook "SongOfSolomon" = Just SongOfSolomon
+textToBook "Isaiah" = Just Isaiah
+textToBook "Jeremiah" = Just Jeremiah
+textToBook "Lamentations" = Just Lamentations
+textToBook "Ezekiel" = Just Ezekiel
+textToBook "Daniel" = Just Daniel
+textToBook "Hosea" = Just Hosea
+textToBook "Joel" = Just Joel
+textToBook "Amos" = Just Amos
+textToBook "Obadiah" = Just Obadiah
+textToBook "Jonah" = Just Jonah
+textToBook "Micah" = Just Micah
+textToBook "Nahum" = Just Nahum
+textToBook "Habakkuk" = Just Habakkuk
+textToBook "Zephaniah" = Just Zephaniah
+textToBook "Haggai" = Just Haggai
+textToBook "Zechariah" = Just Zechariah
+textToBook "Malachi" = Just Malachi
+textToBook "Matthew" = Just Matthew
+textToBook "Mark" = Just Mark
+textToBook "Luke" = Just Luke
+textToBook "John" = Just John
+textToBook "Acts" = Just Acts
+textToBook "Romans" = Just Romans
+textToBook "1 Corinthians" = Just FstCorinthians
+textToBook "2 Corinthians" = Just SndCorinthians
+textToBook "Galatians" = Just Galatians
+textToBook "Ephesians" = Just Ephesians
+textToBook "Philippians" = Just Philippians
+textToBook "Colossians" = Just Colossians
+textToBook "1 Thessalonians" = Just FstThessalonians
+textToBook "2 Thessalonians" = Just SndThessalonians
+textToBook "1 Timothy" = Just FstTimothy
+textToBook "2 Timothy" = Just SndTimothy
+textToBook "Titus" = Just Titus
+textToBook "Philemon" = Just Philemon
+textToBook "Hebrews" = Just Hebrews
+textToBook "James" = Just James
+textToBook "1 Peter" = Just FstPeter
+textToBook "2 Peter" = Just SndPeter
+textToBook "1 John" = Just FstJohn
+textToBook "2 John" = Just SndJohn
+textToBook "3 John" = Just TrdJohn
+textToBook "Jude" = Just Jude
+textToBook "Revelation" = Just Revelation
+textToBook _ = Nothing
+
+
+instance OpenApi.ToSchema Book where
+  declareNamedSchema _ = do
+    pure $ OpenApi.NamedSchema (Just "Book") $ mempty
+      & OpenApi.type_ ?~ OpenApi.OpenApiString
+      & OpenApi.enum_ ?~ values
+    where
+      values =
+        [minBound..maxBound]
+          & fmap (String . bookToText)
+
+
+instance ToJSON Book where
+  toJSON book = String (bookToText book)
+
 
 genesisParser :: Monad m => ParsecT Text u m Book
 genesisParser = string "Genesis" $> Genesis
@@ -431,7 +585,7 @@ data Verse = Verse
   , passage :: Text
   }
   deriving (Show, Generic)
-  deriving anyclass (FromJSON, ToJSON, ToSchema)
+  deriving anyclass (ToJSON, ToSchema)
 
 data PState = MkPState
   { book :: Book

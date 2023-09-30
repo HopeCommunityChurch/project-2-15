@@ -2,6 +2,7 @@
 
 module Prelude
   ( module Relude.Base
+  , module Relude.Enum
   , module Relude.Debug
   , module Relude.Bool
   , module Relude.String
@@ -40,15 +41,15 @@ import Control.Lens (
   Lens,
   Lens',
   Wrapped (..),
-  view,
-  _Right,
-  _Left,
   preview,
+  view,
   (+~),
   (-~),
   (.~),
   (?~),
   (^.),
+  _Left,
+  _Right,
  )
 import Control.Monad.Logger.CallStack (
   LoggingT,
@@ -75,6 +76,7 @@ import Relude.Base
 import Relude.Bool
 import Relude.Container.Reexport
 import Relude.Debug
+import Relude.Enum
 import Relude.Foldable
 import Relude.Function hiding (id)
 import Relude.Functor
@@ -88,7 +90,7 @@ import Relude.Monad.Trans
 import Relude.Monoid
 import Relude.Numeric
 import Relude.String
-import UnliftIO hiding (timeout, Handler)
+import UnliftIO hiding (Handler, timeout)
 
 -- import Data.Generics.Labels
 

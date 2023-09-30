@@ -460,7 +460,8 @@ function ToolbarGroup4({ editor }) {
         setAddScriptureErrorMessage("");
         setAddScriptureText("");
         setAddScripturePopUp(false);
-        editor.addVerse(body.canonical, body.passage);
+        console.log(body);
+        editor.addVerse(body.passage);
       })
       .exhaustive();
   };

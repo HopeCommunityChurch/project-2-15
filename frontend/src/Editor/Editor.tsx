@@ -253,6 +253,10 @@ const textSchema = new Schema({
         0,
       ],
     },
+    verse: {
+      attrs: { book: {}, chapter: {}, verse: {}},
+      toDOM: () => [ "span", 0 ]
+    }
   },
 });
 
@@ -1018,11 +1022,24 @@ function moveSection (
   }
 };
 
+export type AddVerse = {
+  book: string;
+  chapter: number;
+  verse: number;
+  passage: string;
+};
 
+function mkVerseNode (verse : AddVerse) : Node[] {
+  const vMark = textSchema.marks.verse.create({
+    book: verse.book,
+    chapter: verse.chapter,
+    verse: verse.verse,
+  });
+  return [textSchema.text(verse.passage, [vMark]), textSchema.text(" ")];
+}
 
 let addVerse = (
-  verses: string,
-  text: string,
+  verses: Array<AddVerse>,
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) => {
@@ -1040,7 +1057,7 @@ let addVerse = (
       return false;
     });
 
-    const textNode = textSchema.text(text);
+    const textNode = verses.flatMap(mkVerseNode);
     const chunk = textSchema.nodes.chunk.create(null, textNode);
     const bibleText = textSchema.nodes.bibleText.create({ verses: verses }, chunk);
     const tr = state.tr.insert(posOfStudyBlock, bibleText);
@@ -1290,8 +1307,9 @@ export class P215Editor {
     addSection(this.view.state, this.view.dispatch);
   }
 
-  addVerse(verses : string, text : string) {
-    addVerse(verses, text, this.view.state, this.view.dispatch);
+  addVerse(verses : Array<AddVerse>) {
+    console.log(verses);
+    addVerse(verses, this.view.state, this.view.dispatch);
   }
 
   insertTextAtCursor(text: string) {

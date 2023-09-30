@@ -2749,9 +2749,16 @@ function isNumericRangeValid(structuredData, book) {
   return true;
 }
 
+export type Verse = {
+  book: string;
+  chapter: number;
+  verse: number;
+  passage: string;
+};
+
 export type BibleResponse = {
   canonical: string;
-  passage: string;
+  passage: Array<Verse>;
 };
 
 

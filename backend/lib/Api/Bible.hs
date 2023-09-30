@@ -57,7 +57,7 @@ data ESVResponse = MkESVResponse
   , passage :: [ESV.Verse]
   }
   deriving (Generic, Show)
-  deriving anyclass (FromJSON, ToJSON, ToSchema)
+  deriving anyclass (ToJSON, ToSchema)
 
 
 data VersesNotFound = VersesNotFound
