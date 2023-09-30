@@ -23,6 +23,7 @@ import Database.Beam (
   select,
   update,
   val_,
+  guard_',
   (<-.),
   (==.),
   (==?.),
@@ -86,12 +87,10 @@ instance E.Entity GetDoc where
     doc <- all_ Db.db.document
 
     for_ mAuthUser $ \ authUser -> guard_ $ exists_ $ do
-      doc2 <- all_ Db.db.document
-      guard_ $ doc.groupStudyId ==. doc2.groupStudyId
       user <- all_ Db.db.documentEditor
-      guard_ $ user.docId ==. doc2.docId
+      guard_ $ user.docId ==. doc.docId
       guard_ $ val_ authUser.userId ==. user.userId
-      pure doc2.docId
+      pure user.docId
 
     let editors = jsonArraryOf $ do
                     de <- all_ Db.db.documentEditor
