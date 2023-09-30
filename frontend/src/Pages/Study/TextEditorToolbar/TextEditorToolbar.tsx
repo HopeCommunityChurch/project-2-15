@@ -495,6 +495,7 @@ function ToolbarGroup4({ editor }) {
               <div class={classes.labelInputContainer}>
                 <label for="hyperlinkURL">Ref:</label>
                 <input
+                  autofocus={true}
                   type="text"
                   id="hyperlinkURL"
                   placeholder="Ex. John 3:16"
