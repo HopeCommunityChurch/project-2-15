@@ -866,10 +866,11 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
 const verseRefWidget = (verse) => () => {
   const elem = document.createElement("span");
   elem.className = classes.verseRef;
+  elem.contentEditable = 'true';
   if( verse.verse === 1) {
-    elem.innerHTML = "[" + verse.chapter + ":" + verse.verse + '] ';
+    elem.innerHTML = verse.chapter + ":" + verse.verse;
   } else {
-    elem.innerHTML = '[' + verse.verse + '] ';
+    elem.innerHTML = verse.verse;
   }
 
   return elem;
@@ -894,7 +895,7 @@ let verseReferencePlugin = new Plugin({
       Object.keys(verses).forEach((key) => {
         const {position, verse} = verses[key];
         decorations.push(
-          Decoration.widget(position, verseRefWidget(verse))
+          Decoration.widget(position, verseRefWidget(verse), {key})
         );
       });
       return DecorationSet.create(state.doc, decorations);

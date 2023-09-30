@@ -447,7 +447,9 @@ function ToolbarGroup4({ editor }) {
     };
   });
 
-  const addScripture = async () => {
+  const addScripture = async (e : Event) => {
+    e.preventDefault();
+    e.stopPropagation();
     const result = await getBiblePassge(addScriptureText());
     if (result === null) {
       setAddScriptureErrorMessage("Verse format not recognized")
@@ -488,7 +490,7 @@ function ToolbarGroup4({ editor }) {
             transform: "translate(-50%, 0)",
           }}
         >
-          <form>
+          <form onSubmit={addScripture}>
             <div class={classes.allInputsContainer}>
               <div class={classes.labelInputContainer}>
                 <label for="hyperlinkURL">Ref:</label>
