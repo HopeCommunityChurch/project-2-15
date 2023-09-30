@@ -947,6 +947,54 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
   }
 };
 
+function moveSection (
+  originalIndex : number,
+  newIndex: number,
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+) {
+  const from = state.selection.from;
+  const to = state.selection.to;
+  if (from === to) {
+    return false;
+  }
+  if (dispatch) {
+
+    // Find the position of the questions
+    let originalPos : number= null;
+    let originalNode : Node = null;
+    let index = 0;
+    state.doc.descendants((node: Node, pos: number) => {
+      if (node.type.name === "section") {
+        if (index == originalIndex) {
+          originalPos = pos;
+          originalNode = node;
+        }
+        index ++;
+        return false;
+      }
+      return false;
+    });
+    // Make the mark
+    let tr = state.tr.deleteRange(originalPos, originalNode.nodeSize);
+    let newPos = null;
+    tr.doc.descendants((node: Node, pos: number) => {
+      if (node.type.name === "section") {
+        if (index == newIndex) {
+          newPos = pos;
+        }
+        index ++;
+        return false;
+      }
+      return false;
+    });
+    let tr1 = tr.insert(newPos, originalNode);
+    dispatch(tr1);
+    return true;
+  }
+};
+
+
 
 let addVerse = (
   verses: string,
@@ -1237,6 +1285,10 @@ export class P215Editor {
     const link = state.schema.marks.link.create({ href: url, title });
     tr.addMark(selection.from, selection.to, link);
     dispatch(tr);
+  }
+
+  moveSection(oldIndex : number, newIndex: number) {
+    moveSection(oldIndex, newIndex, this.view.state, this.view.dispatch);
   }
 
   deleteSection(sectionIndex: number) {
