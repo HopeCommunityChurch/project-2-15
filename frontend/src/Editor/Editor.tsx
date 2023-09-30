@@ -912,7 +912,6 @@ let sectionIdPlugin =
         let index = 0;
         state.doc.descendants((node, position) => {
           if(node.type.name == "section") {
-            console.log("hello", position);
             decorations.push(
               Decoration.node(position, position+node.nodeSize, { id: `section-${index}` })
             );
@@ -1348,7 +1347,6 @@ export class P215Editor {
   }
 
   addVerse(verses : Array<AddVerse>) {
-    console.log(verses);
     addVerse(verses, this.view.state, this.view.dispatch);
   }
 

@@ -97,7 +97,6 @@ export function LoginPage() {
             setLoginError(res);
           })
           .with({ state: "success" }, () => {
-            console.log(result);
             const params = new URLSearchParams(location.search);
             let redirect = params.get("redirect");
             if (!redirect) {
@@ -114,9 +113,6 @@ export function LoginPage() {
       });
   };
 
-  createEffect(() => {
-    console.log(loginError());
-  });
 
   return (
     <div class={classes.gridContainer}>

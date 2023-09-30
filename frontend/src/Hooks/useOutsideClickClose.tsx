@@ -29,7 +29,6 @@ function useOutsideClickClose(
       const container = document.querySelector("." + containerClass);
       if (container && !container.contains(targetElement)) {
         setIsVisible(false);
-        console.log("click");
       }
     };
 

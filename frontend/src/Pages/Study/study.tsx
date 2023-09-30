@@ -38,7 +38,6 @@ export function StudyPage() {
   });
 
   createEffect(() => {
-    console.log(result());
   });
 
   return (
@@ -165,11 +164,10 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         body: JSON.stringify(change),
       })
         .then((res) => {
-          console.log(res);
           updateSectionTitles(res.body);
         })
         .catch((err) => {
-          console.log(err);
+          console.error(err);
         }),
     500
   );

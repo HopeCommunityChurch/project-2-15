@@ -63,7 +63,6 @@ export function SignUpPage() {
             setSignupError(res.toString());
           })
           .with({ state: "success" }, () => {
-            console.log(result);
             updateLoginState();
             nav("/app/studies");
           })
@@ -73,10 +72,6 @@ export function SignUpPage() {
         console.error(err);
       });
   };
-
-  createEffect(() => {
-    console.log(signupError());
-  });
 
   return (
     <div class={classes.gridContainer}>

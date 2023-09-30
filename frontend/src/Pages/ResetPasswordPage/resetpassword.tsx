@@ -89,7 +89,6 @@ export function ResetPasswordPage() {
             setLoginError(res);
           })
           .with({ state: "success" }, () => {
-            console.log(result);
             updateLoginState();
             nav("/app/studies");
           })
@@ -99,10 +98,6 @@ export function ResetPasswordPage() {
         console.error(err);
       });
   };
-
-  createEffect(() => {
-    console.log(loginError());
-  });
 
   return (
     <div class={classes.gridContainer}>
