@@ -317,19 +317,19 @@ class QuestionsView implements NodeView {
     header.setAttribute("contenteditable", "false");
     header.className = classes.questionsLabel;
     header.innerText = "Questions";
-    const addButton = document.createElement("button");
-    addButton.innerHTML = "+ Question";
-    addButton.onclick = (e) => {
-      e.preventDefault();
-      const qnode = newQuestionNode()[1];
-      const length = this.node.content.size;
-      const pos = getPos() + length;
-      const tr1 = view.state.tr.insert(pos + 1, qnode);
-      const sel = TextSelection.create(tr1.doc, pos + 4);
-      const tr2 = tr1.setSelection(sel);
-      view.dispatch(tr2);
-    };
-    header.appendChild(addButton);
+    // const addButton = document.createElement("button");
+    // addButton.innerHTML = "+ Question";
+    // addButton.onclick = (e) => {
+    //   e.preventDefault();
+    //   const qnode = newQuestionNode()[1];
+    //   const length = this.node.content.size;
+    //   const pos = getPos() + length;
+    //   const tr1 = view.state.tr.insert(pos + 1, qnode);
+    //   const sel = TextSelection.create(tr1.doc, pos + 4);
+    //   const tr2 = tr1.setSelection(sel);
+    //   view.dispatch(tr2);
+    // };
+    // header.appendChild(addButton);
     this.dom.appendChild(header);
     this.contentDOM = document.createElement("td");
     this.dom.appendChild(this.contentDOM);
@@ -975,17 +975,19 @@ const decreaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void)
 const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   const from = state.selection.from;
   const to = state.selection.to;
-  if (from === to) {
-    return false;
-  }
   if (dispatch) {
     const r = newQuestionNode();
     const qId = r[0];
     const qNode = r[1];
 
     // Make the mark
-    const qMark = textSchema.marks.questionReference.create({ questionId: qId });
-    let tr = state.tr.addMark(from, to, qMark);
+    let tr : Transaction = null
+    if (from !== to) {
+      const qMark = textSchema.marks.questionReference.create({ questionId: qId });
+      tr = state.tr.addMark(from, to, qMark);
+    } else {
+      tr = state.tr;
+    }
 
     // Find the position of the questions
     const sectionNode: Node = state.selection.$anchor.node(1);
@@ -1007,8 +1009,6 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
     const qlength = nodeQuestions.content.size;
     const pos = posOfQuestions + qlength + 1;
     const tr1 = tr.insert(pos, qNode);
-    // const sel = TextSelection.create(tr1.doc, pos+3);
-    // const tr2 = tr1.setSelection(sel);
     dispatch(tr1);
     return true;
   }

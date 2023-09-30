@@ -270,6 +270,11 @@ question {
   grid-area: qt;
 }
 
+questiontext p {
+  grid-area: qt;
+  margin: 0px;
+}
+
 questiontext {
   display: block;
 }
@@ -286,6 +291,10 @@ questionanswerouter > div {
 questionanswer {
   display: block;
   margin-bottom: 3px;
+}
+
+questionanswer p {
+  margin: 0px;
 }
 
 .addAnswer {
