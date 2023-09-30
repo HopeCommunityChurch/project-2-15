@@ -1226,42 +1226,50 @@ export class P215Editor {
 
   addQuestion() {
     addQuestion(this.view.state, this.view.dispatch);
+    this.view.focus();
   }
 
   increaseLevel() {
     increaseLevel(this.view.state, this.view.dispatch);
+    this.view.focus();
   }
 
   decreaseLevel() {
     decreaseLevel(this.view.state, this.view.dispatch);
+    this.view.focus();
   }
 
   undo() {
     const { state, dispatch } = this.view;
     undo(state, dispatch);
+    this.view.focus();
   }
 
   redo() {
     const { state, dispatch } = this.view;
     redo(state, dispatch);
+    this.view.focus();
   }
 
   toggleBold() {
     const { state, dispatch } = this.view;
     const markType = state.schema.marks.strong;
     toggleMark(markType)(state, dispatch);
+    this.view.focus();
   }
 
   toggleItalic() {
     const { state, dispatch } = this.view;
     const markType = state.schema.marks.em;
     toggleMark(markType)(state, dispatch);
+    this.view.focus();
   }
 
   toggleUnderline() {
     const { state, dispatch } = this.view;
     const markType = state.schema.marks.underline;
     toggleMark(markType)(state, dispatch);
+    this.view.focus();
   }
 
   setTextColor(color: string) {
@@ -1272,6 +1280,7 @@ export class P215Editor {
     let tr = state.tr.removeMark(from, to, markType);
     tr.addMark(from, to, markType.create(attrs));
     dispatch(tr);
+    this.view.focus();
   }
 
   setHighlightColor(color: string) {
@@ -1282,6 +1291,7 @@ export class P215Editor {
     let tr = state.tr.removeMark(from, to, markType);
     tr.addMark(from, to, markType.create(attrs));
     dispatch(tr);
+    this.view.focus();
   }
 
   getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
@@ -1322,6 +1332,7 @@ export class P215Editor {
     const markType = state.schema.marks.highlightColor;
     const tr = state.tr.removeMark(from, to, markType);
     dispatch(tr);
+    this.view.focus();
   }
 
   clearFormatting() {
@@ -1341,6 +1352,7 @@ export class P215Editor {
     if (tr.docChanged) {
       dispatch(tr);
     }
+    this.view.focus();
   }
 
   addSection() {
@@ -1349,13 +1361,7 @@ export class P215Editor {
 
   addVerse(verses : Array<AddVerse>) {
     addVerse(verses, this.view.state, this.view.dispatch);
-  }
-
-  insertTextAtCursor(text: string) {
-    const { state, dispatch } = this.view;
-    const { from, to } = state.selection;
-    const tr = state.tr.insertText(text, from, to);
-    dispatch(tr);
+    this.view.focus();
   }
 
   insertLink(url: string, title: string = "") {
