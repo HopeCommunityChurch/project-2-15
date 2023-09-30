@@ -61,7 +61,7 @@ const textSchema = new Schema({
       isolating: true,
       defining: true,
       toDOM(node) {
-        return ["div", {class: classes.section}, 0];
+        return ["div", { class: classes.section }, 0];
       },
     },
     sectionHeader: {
@@ -254,8 +254,8 @@ const textSchema = new Schema({
       ],
     },
     verse: {
-      attrs: { book: {}, chapter: {}, verse: {}},
-      toDOM: () => [ "span", 0 ]
+      attrs: { book: {}, chapter: {}, verse: {} },
+      toDOM: () => ["span", 0]
     }
   },
 });
@@ -867,7 +867,7 @@ const verseRefWidget = (verse) => () => {
   const elem = document.createElement("span");
   elem.className = classes.verseRef;
   elem.contentEditable = 'true';
-  if( verse.verse === 1) {
+  if (verse.verse === 1) {
     elem.innerHTML = verse.chapter + ":" + verse.verse;
   } else {
     elem.innerHTML = verse.verse;
@@ -887,15 +887,15 @@ let verseReferencePlugin = new Plugin({
         if (node.type.name === "chunk") return true;
         if (node.type.name !== "text") return false;
         const verse = node.marks.find((m) => m.type.name === "verse");
-        if(!verse) return false;
+        if (!verse) return false;
         const key = verse.attrs.book + ' ' + verse.attrs.chapter + ':' + verse.attrs.verse
-        if (verses[key]) {return false;}
-        verses[key] = {position, verse: verse.attrs};
+        if (verses[key]) { return false; }
+        verses[key] = { position, verse: verse.attrs };
       });
       Object.keys(verses).forEach((key) => {
-        const {position, verse} = verses[key];
+        const { position, verse } = verses[key];
         decorations.push(
-          Decoration.widget(position, verseRefWidget(verse), {key})
+          Decoration.widget(position, verseRefWidget(verse), { key })
         );
       });
       return DecorationSet.create(state.doc, decorations);
@@ -912,9 +912,9 @@ let sectionIdPlugin =
 
         let index = 0;
         state.doc.descendants((node, position) => {
-          if(node.type.name == "section") {
+          if (node.type.name == "section") {
             decorations.push(
-              Decoration.node(position, position+node.nodeSize, { id: `section-${index}` })
+              Decoration.node(position, position + node.nodeSize, { id: `section-${index}` })
             );
             index++;
           }
@@ -981,7 +981,7 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
     const qNode = r[1];
 
     // Make the mark
-    let tr : Transaction = null
+    let tr: Transaction = null
     if (from !== to) {
       const qMark = textSchema.marks.questionReference.create({ questionId: qId });
       tr = state.tr.addMark(from, to, qMark);
@@ -1014,8 +1014,8 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
   }
 };
 
-function moveSection (
-  originalIndex : number,
+function moveSection(
+  originalIndex: number,
   newIndex: number,
   state: EditorState,
   dispatch?: (tr: Transaction) => void
@@ -1028,8 +1028,8 @@ function moveSection (
   if (dispatch) {
 
     // Find the position of the questions
-    let originalPos : number= null;
-    let originalNode : Node = null;
+    let originalPos: number = null;
+    let originalNode: Node = null;
     let index = 0;
     state.doc.descendants((node: Node, pos: number) => {
       if (node.type.name === "section") {
@@ -1037,7 +1037,7 @@ function moveSection (
           originalPos = pos;
           originalNode = node;
         }
-        index ++;
+        index++;
         return false;
       }
       return false;
@@ -1050,7 +1050,7 @@ function moveSection (
         if (index == newIndex) {
           newPos = pos;
         }
-        index ++;
+        index++;
         return false;
       }
       return false;
@@ -1068,7 +1068,7 @@ export type AddVerse = {
   passage: string;
 };
 
-function mkVerseNode (verse : AddVerse) : Node[] {
+function mkVerseNode(verse: AddVerse): Node[] {
   const vMark = textSchema.marks.verse.create({
     book: verse.book,
     chapter: verse.chapter,
@@ -1078,7 +1078,8 @@ function mkVerseNode (verse : AddVerse) : Node[] {
 }
 
 let addVerse = (
-  verses: Array<AddVerse>,
+  verseRef: string,
+  passage: Array<AddVerse>,
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) => {
@@ -1096,9 +1097,9 @@ let addVerse = (
       return false;
     });
 
-    const textNode = verses.flatMap(mkVerseNode);
+    const textNode = passage.flatMap(mkVerseNode);
     const chunk = textSchema.nodes.chunk.create(null, textNode);
-    const bibleText = textSchema.nodes.bibleText.create({ verses: verses }, chunk);
+    const bibleText = textSchema.nodes.bibleText.create({ verses: verseRef }, chunk);
     const tr = state.tr.insert(posOfStudyBlock, bibleText);
     dispatch(tr);
     return true;
@@ -1359,8 +1360,8 @@ export class P215Editor {
     addSection(this.view.state, this.view.dispatch);
   }
 
-  addVerse(verses : Array<AddVerse>) {
-    addVerse(verses, this.view.state, this.view.dispatch);
+  addVerse(verseRef: string, passage: Array<AddVerse>) {
+    addVerse(verseRef, passage, this.view.state, this.view.dispatch);
     this.view.focus();
   }
 
@@ -1372,7 +1373,7 @@ export class P215Editor {
     dispatch(tr);
   }
 
-  moveSection(oldIndex : number, newIndex: number) {
+  moveSection(oldIndex: number, newIndex: number) {
     moveSection(oldIndex, newIndex, this.view.state, this.view.dispatch);
   }
 

@@ -462,7 +462,7 @@ function ToolbarGroup4({ editor }) {
         setAddScriptureErrorMessage("");
         setAddScriptureText("");
         setAddScripturePopUp(false);
-        editor.addVerse(body.passage);
+        editor.addVerse(body.canonical, body.passage);
       })
       .exhaustive();
   };
