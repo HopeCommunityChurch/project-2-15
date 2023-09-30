@@ -22,8 +22,6 @@ import * as classes from "./styles.module.scss";
 import DragHandleIcon from "../Assets/drag-handle.svg";
 import CloseXIcon from "../Assets/x.svg";
 
-let sectionCounter = 0;
-
 const textSchema = new Schema({
   nodes: {
     doc: {
@@ -62,6 +60,9 @@ const textSchema = new Schema({
       content: "sectionChild*",
       isolating: true,
       defining: true,
+      toDOM(node) {
+        return ["div", {class: classes.section}, 0];
+      },
     },
     sectionHeader: {
       content: "text*",
@@ -263,7 +264,7 @@ class SectionView implements NodeView {
   constructor(node: Node, sectionIndex: number) {
     this.dom = document.createElement("div");
     this.dom.className = classes.section;
-    this.dom.id = `section-${sectionIndex}`;
+    // this.dom.id = `section-${sectionIndex}`;
     this.contentDOM = document.createElement("div");
     this.contentDOM.className = classes.content;
     this.dom.appendChild(this.contentDOM);
@@ -859,6 +860,29 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
   });
 
 
+let sectionIdPlugin =
+  new Plugin({
+    props: {
+      decorations(state: EditorState) {
+        const decorations = [];
+
+        let index = 0;
+        state.doc.descendants((node, position) => {
+          if(node.type.name == "section") {
+            console.log("hello", position);
+            decorations.push(
+              Decoration.node(position, position+node.nodeSize, { id: `section-${index}` })
+            );
+            index++;
+          }
+          return false;
+        });
+        return DecorationSet.create(state.doc, decorations);
+      },
+    },
+  });
+
+
 const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   let from = state.selection.from;
   let to = state.selection.to;
@@ -1087,6 +1111,7 @@ export class P215Editor {
         keymap(baseKeymap),
         currentChunkPlug,
         questionMarkPlugin(this.questionMap),
+        sectionIdPlugin,
         // referencePlugin
       ],
     });
@@ -1097,9 +1122,6 @@ export class P215Editor {
     this.view = new EditorView(editorRoot, {
       state: that.state,
       nodeViews: {
-        section(node) {
-          return new SectionView(node, sectionCounter++);
-        },
         studyBlocks(node) {
           return new StudyBlocksView(node);
         },
@@ -1292,7 +1314,6 @@ export class P215Editor {
   }
 
   deleteSection(sectionIndex: number) {
-    sectionCounter = sectionIndex + 1;
     let sectionPositions: number[] = [];
     this.view.state.doc.descendants((node, pos) => {
       if (node.type.name === "section") {
