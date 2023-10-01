@@ -605,15 +605,13 @@ function ToolbarGroup5({ editor, isSplitScreen, setSplitScreen, windowWidth }) {
         </div>
       )}
       {/* <img src={CommentIcon} class={classes.toolbarIcon} /> */}
-      <Show when={windowWidth() > 750}>
-        <img
-          src={ParallelViewIcon}
-          class={`${classes.toolbarIcon} ${isSplitScreen() ? classes.active : ""}`}
-          onClick={() => {
-            setSplitScreen(!isSplitScreen());
-          }}
-        />
-      </Show>
+      <img
+        src={ParallelViewIcon}
+        class={`${classes.toolbarIcon} ${isSplitScreen() ? classes.active : ""}`}
+        onClick={() => {
+          setSplitScreen(!isSplitScreen());
+        }}
+      />
       <div class={classes.seperator} />
     </div>
   );

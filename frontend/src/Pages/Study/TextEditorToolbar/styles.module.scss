@@ -113,7 +113,7 @@
   }
 }
 
-@media screen and (max-width: 1109px) {
+@media screen and (max-width: 750px) {
   .clearFormatting {
     display: none;
   }
@@ -124,6 +124,7 @@
 
   .extendedToolbar {
     display: flex !important;
+    position: fixed !important;
   }
 
   .extendedMenuToggle {
@@ -138,7 +139,7 @@
   }
 }
 
-@media screen and (max-width: 660px) {
+@media screen and (max-width: 735px) {
   .topTextEditingToolbar > .toolbarGroup5 {
     display: none !important;
   }
@@ -147,7 +148,7 @@
   }
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 630px) {
   .topTextEditingToolbar > .toolbarGroup4 {
     display: none !important;
   }
