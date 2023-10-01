@@ -1101,6 +1101,7 @@ let addVerse = (
     return true;
   }
 };
+
 function newSectionNode(): Node {
   const header = textSchema.text("Untitled");
   const children = [textSchema.nodes.sectionHeader.create(null, header)];
@@ -1124,6 +1125,34 @@ const addSection = (state: EditorState, dispatch?: (tr: Transaction) => void) =>
     return true;
   }
 };
+
+const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  if (dispatch) {
+    // should be the end of the document.
+    const sectionNode: Node = state.selection.$anchor.node(1);
+    let position = null;
+    state.doc.descendants((node: Node, pos: number) => {
+      if (node.eq(sectionNode)) {
+        return true;
+      }
+      if (node.type.name === "studyBlocks") {
+        position = pos + node.nodeSize - 1;
+        return false;
+      }
+      return false;
+    });
+    const header = textSchema.text("Untitled");
+    const sbHeader = textSchema.nodes.generalStudyBlockHeader.createChecked(null, header);
+    const bodytxt = textSchema.text("my stuff here");
+    const bodyp = textSchema.nodes.paragraph.createChecked(null, bodytxt);
+    const sbBody = textSchema.nodes.generalStudyBlockBody.create(null, bodyp);
+    const studyBlock = textSchema.nodes.generalStudyBlock.createChecked(null, [sbHeader, sbBody]);
+    const tr = state.tr.insert(position, studyBlock);
+    dispatch(tr);
+    return true;
+  }
+};
+
 
 interface QuestionMapItem {
   node: Node;
@@ -1407,6 +1436,10 @@ export class P215Editor {
     // Deleting the section
     const tr = this.view.state.tr.delete(sectionPos, sectionPos + sectionNode.nodeSize);
     this.view.dispatch(tr);
+  }
+
+  addGeneralStudyBlock() {
+    addGeneralStudyBlock(this.view.state, this.view.dispatch);
   }
 
   onUpdate(f: (change: any) => void) {

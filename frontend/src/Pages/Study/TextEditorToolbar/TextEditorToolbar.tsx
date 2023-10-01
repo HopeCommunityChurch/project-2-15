@@ -466,6 +466,13 @@ function ToolbarGroup4({ editor }) {
       })
       .exhaustive();
   };
+
+  const addGeneralStudyBlock = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    editor.addGeneralStudyBlock();
+  };
+
   return (
     <div class={classes.toolbarGroup4}>
       {/* <img src={ReferenceIcon} class={classes.toolbarIcon} /> */}
@@ -513,6 +520,7 @@ function ToolbarGroup4({ editor }) {
           </Show>
         </div>
       )}
+      <button onClick={addGeneralStudyBlock}>Add Study Block</button>
       <div class={classes.seperator} />
     </div>
   );
