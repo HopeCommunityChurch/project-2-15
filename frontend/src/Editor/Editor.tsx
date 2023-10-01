@@ -255,8 +255,8 @@ const textSchema = new Schema({
     },
     verse: {
       attrs: { book: {}, chapter: {}, verse: {} },
-      toDOM: () => ["span", 0]
-    }
+      toDOM: () => ["span", 0],
+    },
   },
 });
 
@@ -866,7 +866,7 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
 const verseRefWidget = (verse) => () => {
   const elem = document.createElement("span");
   elem.className = classes.verseRef;
-  elem.contentEditable = 'true';
+  elem.contentEditable = "true";
   if (verse.verse === 1) {
     elem.innerHTML = verse.chapter + ":" + verse.verse;
   } else {
@@ -874,7 +874,7 @@ const verseRefWidget = (verse) => () => {
   }
 
   return elem;
-}
+};
 
 let verseReferencePlugin = new Plugin({
   props: {
@@ -888,43 +888,40 @@ let verseReferencePlugin = new Plugin({
         if (node.type.name !== "text") return false;
         const verse = node.marks.find((m) => m.type.name === "verse");
         if (!verse) return false;
-        const key = verse.attrs.book + ' ' + verse.attrs.chapter + ':' + verse.attrs.verse
-        if (verses[key]) { return false; }
+        const key = verse.attrs.book + " " + verse.attrs.chapter + ":" + verse.attrs.verse;
+        if (verses[key]) {
+          return false;
+        }
         verses[key] = { position, verse: verse.attrs };
       });
       Object.keys(verses).forEach((key) => {
         const { position, verse } = verses[key];
-        decorations.push(
-          Decoration.widget(position, verseRefWidget(verse), { key })
-        );
+        decorations.push(Decoration.widget(position, verseRefWidget(verse), { key }));
       });
       return DecorationSet.create(state.doc, decorations);
     },
   },
 });
 
+let sectionIdPlugin = new Plugin({
+  props: {
+    decorations(state: EditorState) {
+      const decorations = [];
 
-let sectionIdPlugin =
-  new Plugin({
-    props: {
-      decorations(state: EditorState) {
-        const decorations = [];
-
-        let index = 0;
-        state.doc.descendants((node, position) => {
-          if (node.type.name == "section") {
-            decorations.push(
-              Decoration.node(position, position + node.nodeSize, { id: `section-${index}` })
-            );
-            index++;
-          }
-          return false;
-        });
-        return DecorationSet.create(state.doc, decorations);
-      },
+      let index = 0;
+      state.doc.descendants((node, position) => {
+        if (node.type.name == "section") {
+          decorations.push(
+            Decoration.node(position, position + node.nodeSize, { id: `section-${index}` })
+          );
+          index++;
+        }
+        return false;
+      });
+      return DecorationSet.create(state.doc, decorations);
     },
-  });
-
+  },
+});
 
 const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   let from = state.selection.from;
@@ -981,7 +978,7 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
     const qNode = r[1];
 
     // Make the mark
-    let tr: Transaction = null
+    let tr: Transaction = null;
     if (from !== to) {
       const qMark = textSchema.marks.questionReference.create({ questionId: qId });
       tr = state.tr.addMark(from, to, qMark);
@@ -1026,7 +1023,6 @@ function moveSection(
     return false;
   }
   if (dispatch) {
-
     // Find the position of the questions
     let originalPos: number = null;
     let originalNode: Node = null;
@@ -1059,7 +1055,7 @@ function moveSection(
     dispatch(tr1);
     return true;
   }
-};
+}
 
 export type AddVerse = {
   book: string;
@@ -1087,7 +1083,7 @@ let addVerse = (
     // Make the mark
 
     const sectionNode: Node = state.selection.$anchor.node(1);
-    let posOfStudyBlock = null
+    let posOfStudyBlock = null;
     state.doc.descendants((node: Node, pos: number) => {
       if (node.eq(sectionNode)) {
         return true;
@@ -1340,7 +1336,16 @@ export class P215Editor {
     const { state, dispatch } = this.view;
     const { tr, schema, selection } = state;
     const { from, to } = selection;
-    tr.removeMark(from, to);
+
+    const marksToRemove = ["strong", "em", "underline", "textColor", "highlightColor"];
+
+    marksToRemove.forEach((markName) => {
+      const markType = schema.marks[markName];
+      if (markType) {
+        tr.removeMark(from, to, markType);
+      }
+    });
+
     state.doc.nodesBetween(from, to, (node, pos) => {
       if (node.type === schema.nodes.section) {
         return false;
@@ -1350,6 +1355,7 @@ export class P215Editor {
       }
       return true;
     });
+
     if (tr.docChanged) {
       dispatch(tr);
     }

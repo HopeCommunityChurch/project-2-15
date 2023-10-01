@@ -447,18 +447,18 @@ function ToolbarGroup4({ editor }) {
     };
   });
 
-  const addScripture = async (e : Event) => {
+  const addScripture = async (e: Event) => {
     e.preventDefault();
     e.stopPropagation();
     const result = await getBiblePassge(addScriptureText());
     if (result === null) {
-      setAddScriptureErrorMessage("Verse format not recognized")
+      setAddScriptureErrorMessage("Verse format not recognized");
       return;
     }
+    //@ts-ignore
     match(result)
-      .with({state: "error"}, () =>
-        setAddScriptureErrorMessage("Verse format not recognized")
-      ).with({state: "success"}, ({body}) => {
+      .with({ state: "error" }, () => setAddScriptureErrorMessage("Verse format not recognized"))
+      .with({ state: "success" }, ({ body }) => {
         setAddScriptureErrorMessage("");
         setAddScriptureText("");
         setAddScripturePopUp(false);
