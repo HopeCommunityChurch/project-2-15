@@ -111,6 +111,7 @@ export function TextEditorToolbar({
           }}
         />
       </div>
+      <div class={classes.editorpushdown}></div>
     </>
   );
 }
