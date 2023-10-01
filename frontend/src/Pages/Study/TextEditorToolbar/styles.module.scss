@@ -7,7 +7,7 @@
   gap: 5px;
   padding: 0px 7px;
   z-index: 15;
-  position: relative;
+  position: fixed;
 
   &.collapsed {
     transform: translateY(-52px);
@@ -32,6 +32,7 @@
       margin-top: 4.5px;
     }
   }
+
   .toobarTextDropdown {
     display: flex;
     align-items: center;
@@ -56,6 +57,7 @@
       max-width: 12px;
     }
   }
+
   .toolbarIcon {
     max-height: 16px;
     min-height: 16px;

@@ -605,7 +605,7 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
     // Now measure it
     const rect = pop.getBoundingClientRect();
     const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
+    const windowHeight = document.body.scrollHeight;
 
     // Calculate initial position based on incoming x, y
     let initialLeft = x - 20;
@@ -637,7 +637,7 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
 
         // Boundary checks
         const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
+        const windowHeight = document.body.scrollHeight;
         const rect = pop.getBoundingClientRect();
         if (newX < 0) newX = 0;
         if (newY < 0) newY = 0;
@@ -650,13 +650,13 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
 
       const mousemove = (e) => {
         e.preventDefault();
-        moveDrag(e.clientX, e.clientY);
+        moveDrag(e.pageX, e.pageY);
       };
 
       const touchmove = (e) => {
         e.preventDefault();
         const touch = e.touches[0];
-        moveDrag(touch.clientX, touch.clientY);
+        moveDrag(touch.pageX, touch.pageY);
       };
 
       document.addEventListener("mousemove", mousemove);
@@ -752,17 +752,11 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
   }
 };
 
-export const questionReferenceMarkView =
-  (questionMap: Dictionary<QuestionMapItem>) => (mark: Mark, view: EditorView) => {
+export const questionReferenceMarkView = (mark: Mark, view: EditorView) => {
     const mview = document.createElement("questionRef");
     mview.className = classes.questionRef;
     const qId = mark.attrs.questionId;
     mview.setAttribute("questionId", qId);
-    let pop = null;
-    // mview.onclick = (e) => {
-    //   e.preventDefault();
-    //   questionPopup(e.pageX, e.pageY, qId, questionMap, view);
-    // };
     return { dom: mview };
   };
 
@@ -1226,7 +1220,7 @@ export class P215Editor {
       },
       markViews: {
         referenceTo: referenceToMarkView,
-        questionReference: questionReferenceMarkView(that.questionMap),
+        questionReference: questionReferenceMarkView,
       },
       dispatchTransaction: (transaction) => {
         let newState = that.view.state.apply(transaction);

@@ -155,7 +155,7 @@
 @media screen and (max-width: 750px) {
   .pageBody.sidebarCollapsed .documentBody {
     overflow: hidden;
-    max-height: calc(100vh - 135px);
+    // max-height: calc(100vh - 135px);
   }
 
   .sidebar.closed {
@@ -230,7 +230,7 @@
 
 .pageBody {
   display: flex;
-  height: calc(100vh - 92px);
+  // height: calc(100vh - 92px);
   overflow-wrap: anywhere;
   position: relative;
 
@@ -251,7 +251,7 @@
 @media screen and (max-width: 620px) {
   .pageBody {
     display: flex;
-    height: calc(100vh - 132px) !important;
+    // height: calc(100vh - 132px) !important;
 
     overflow-wrap: anywhere;
     position: relative;
