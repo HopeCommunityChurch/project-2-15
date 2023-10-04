@@ -37,8 +37,7 @@ export function StudyPage() {
     initialValue: { state: "loading" },
   });
 
-  createEffect(() => {
-  });
+  createEffect(() => {});
 
   return (
     <>
@@ -78,14 +77,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   let editorRootSplitScreen: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
   let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
-
-  // Effects and Mounts
-  // createEffect(() => {
-  //   const isStudyPage = document.querySelector(`.${classes.documentBody}`);
-  //   if (isStudyPage) {
-  //     document.body.style.overflow = "hidden";
-  //   }
-  // });
 
   //Resizing sidebar
   onMount(() => {
@@ -237,7 +228,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   }
 
   return (
-    <>
+    <div class={classes.wholePageContainer}>
       <StudyTopNav
         isSidebarOpen={isSidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -383,6 +374,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
           </Show>
         </div>
       </div>
-    </>
+    </div>
   );
 }

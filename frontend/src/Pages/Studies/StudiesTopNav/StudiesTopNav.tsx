@@ -383,7 +383,7 @@ function AddStudy(prop: AddStudyProp) {
             Ex: "<em>Romans {formattedDate} Study</em>" or "
             <em>Wednesday Night Colossians Study</em>"
           </p>
-          <label for="studyBook">Study Template</label>
+          <label for="studyBook">Study Template (Optional)</label>
           <div class={classes.autocomplete}>
             {selectedBook() ? (
               <span class={classes.tag} onClick={() => setSelectedBook(null)}>
@@ -552,7 +552,7 @@ function AddStudy(prop: AddStudyProp) {
           <div
             class={classes.tooltipContainer}
             onMouseEnter={() => {
-              if (!selectedBook() || studyTitleValue().trim() === "") {
+              if (studyTitleValue().trim() === "") {
                 setShowTooltip(true);
               }
             }}
@@ -560,15 +560,13 @@ function AddStudy(prop: AddStudyProp) {
           >
             <button
               type="submit"
-              disabled={!selectedBook() || studyTitleValue().trim() === ""}
+              disabled={studyTitleValue().trim() === ""}
               onClick={createStudySubmitted}
               class={studyTitleValue().trim() === "" ? classes.disabledButton : ""}
             >
               Create
             </button>
-            {showTooltip() && (
-              <div class={classes.tooltip}>Please name your study and select a book to create</div>
-            )}
+            {showTooltip() && <div class={classes.tooltip}>Please name your study to create</div>}
           </div>
         </form>
       </div>

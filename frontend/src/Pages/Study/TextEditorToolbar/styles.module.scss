@@ -1,13 +1,12 @@
 .topTextEditingToolbar {
-  height: 40px;
+  grid-row: 2;
+  grid-column: 1;
   background-color: #eef2fa;
-  width: calc(100% - 14px);
   display: flex;
   align-items: center;
   gap: 5px;
   padding: 0px 7px;
   z-index: 15;
-  position: fixed;
 
   &.collapsed {
     transform: translateY(-52px);
@@ -351,8 +350,4 @@
     margin-bottom: 0px;
     margin-top: 7px;
   }
-}
-
-.editorpushdown {
-  height: 50px;
 }

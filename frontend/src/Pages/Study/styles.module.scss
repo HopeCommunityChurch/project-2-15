@@ -1,3 +1,10 @@
+.wholePageContainer {
+  display: grid;
+  grid-template-rows: 52px 40px auto;
+  grid-template-columns: 1fr;
+  height: 100vh;
+}
+
 .sidebarContainer {
   display: flex;
   align-items: stretch; // ensures both children stretch to the full height of the container
@@ -214,9 +221,7 @@
 
 .documentBody {
   flex: 1;
-  transition: width 0.3s; // smooth transition
-  overflow-y: scroll;
-  // padding: 20px;
+  transition: width 0.3s;
   scrollbar-width: thin;
   &::-webkit-scrollbar {
     width: 10px;
@@ -230,9 +235,10 @@
 
 .pageBody {
   display: flex;
-  // height: calc(100vh - 92px);
   overflow-wrap: anywhere;
-  position: relative;
+  grid-row: 3;
+  grid-column: 1;
+  overflow: auto;
 
   &.collapsed {
     transform: translateY(-52px);
@@ -317,6 +323,7 @@
   width: 100%;
   height: 100%;
   display: flex;
+  overflow: auto;
 
   &.vertical {
     flex-direction: row;

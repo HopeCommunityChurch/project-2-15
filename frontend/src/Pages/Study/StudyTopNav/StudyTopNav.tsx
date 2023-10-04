@@ -320,7 +320,6 @@ export function StudyTopNav(props: StudyTopNavProps) {
           </div>
         </div>
       </Show>
-      <div class={classes.headerThingy}></div>
     </>
   );
 }

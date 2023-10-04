@@ -10,15 +10,13 @@
 }
 
 .header {
-  grid-column-start: 1;
-  grid-column-end: 13;
+  grid-row: 1;
+  grid-column: 1;
+  // grid-column-start: 1;
+  // grid-column-end: 13;
   display: flex;
   align-items: center;
   padding: 0 20px 0 4px;
-  height: 52px;
-  position: fixed;
-  width: 100%;
-  box-sizing: border-box;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   background-color: #fff;
   z-index: 16;
@@ -49,11 +47,6 @@
       text-overflow: ellipsis;
     }
   }
-}
-
-.headerThingy {
-  width: 100vw;
-  height: 52px;
 }
 
 .shareButton {
