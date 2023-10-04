@@ -78,6 +78,25 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
   let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
+  //resizing height on mobile
+  onMount(() => {
+    // Handle dynamic viewport resizing
+    const updateVH = () => {
+      let vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
+
+    // Set initial viewport height
+    updateVH();
+
+    window.addEventListener("resize", updateVH);
+
+    // Cleanup listeners when component is destroyed
+    return () => {
+      window.removeEventListener("resize", updateVH);
+    };
+  });
+
   //Resizing sidebar
   onMount(() => {
     const handleSidebarState = () => {

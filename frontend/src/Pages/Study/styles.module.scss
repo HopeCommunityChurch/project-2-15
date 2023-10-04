@@ -2,7 +2,7 @@
   display: grid;
   grid-template-rows: 52px 40px auto;
   grid-template-columns: 100vw;
-  height: 100vh;
+  height: calc(100 * var(--vh));
 }
 
 .sidebarContainer {
