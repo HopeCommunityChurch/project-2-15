@@ -223,6 +223,7 @@
   flex: 1;
   transition: width 0.3s;
   scrollbar-width: thin;
+  overflow-y: auto;
   &::-webkit-scrollbar {
     width: 10px;
   }
@@ -348,6 +349,7 @@
 .otherUserSplitScreenContainer {
   background-color: #fbfbfb;
   position: relative;
+  overflow-y: auto;
 
   .splitScreenSwitcher {
     background-color: white;
