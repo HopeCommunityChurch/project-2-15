@@ -175,11 +175,12 @@
     position: relative;
   }
   .sidebar {
-    top: -92px;
-    position: absolute;
+    top: 0px;
+    position: fixed !important;
     z-index: 1000;
     border-bottom-right-radius: 10px;
     width: 90% !important;
+    height: 100vh !important;
     max-width: 300px !important;
     min-width: 90vw !important;
     cursor: auto !important;
@@ -349,7 +350,6 @@
 .otherUserSplitScreenContainer {
   background-color: #fbfbfb;
   position: relative;
-  overflow-y: auto;
 
   .splitScreenSwitcher {
     background-color: white;
