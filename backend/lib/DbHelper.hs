@@ -71,7 +71,7 @@ createPool connInfo =
   <$> Pool.createPool
     (Db.connect connInfo)
     Db.close
-    2
+    1
     timeout
     11
   where
