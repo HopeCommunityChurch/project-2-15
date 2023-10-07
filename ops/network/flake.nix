@@ -26,7 +26,7 @@
       # Also see the non-Flakes hive.nix example above.
       dev-server = {
         deployment = {
-          targetHost = "178.128.133.233";
+          targetHost = builtins.getEnv "SERVER_IP";
           targetUser = "root";
           keys."secrets" =
             let fileLoc = builtins.getEnv "SECRETS_FILE_LOC";
@@ -48,12 +48,12 @@
           enable = true;
         };
 
-        services.nginx = {
+        services.nginx = let host = builtins.getEnv "HOST_NAME" in {
           enable = true;
           package = nixpkgs-unstable.legacyPackages.x86_64-linux.nginxQuic;
           recommendedProxySettings = true;
           virtualHosts = {
-            "dev.p215.church" = {
+            "${host}" = {
               forceSSL = true;
               enableACME = true;
               quic = true;
@@ -81,7 +81,7 @@
         };
 
         security.acme.acceptTerms = true;
-        security.acme.certs."dev.p215.church" = {
+        security.acme.certs."${host}"  = {
           email = "jonny.covert@gmail.com";
         };
 
