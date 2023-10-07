@@ -710,6 +710,25 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
     let editorHolder = pop.appendChild(document.createElement("div"));
     editorHolder.className = classes.questionEditorHolder;
 
+    //Add "add answer" button
+    const addAnswerButton = document.createElement("button");
+    addAnswerButton.innerText = "+ Answer";
+    addAnswerButton.className = classes.questionPopUpAddAnswer;
+
+    addAnswerButton.onclick = (e) => {
+      e.preventDefault();
+      const qnode = newQuestionAnswerNode();
+      const length = qNode.node.content.size;
+      const pos = qNode.getPos() + length;
+      const tr1 = view.state.tr.insert(pos + 1, qnode);
+      const sel = TextSelection.create(tr1.doc, pos + 3);
+      const tr2 = tr1.setSelection(sel);
+
+      view.dispatch(tr2);
+    };
+
+    pop.appendChild(addAnswerButton);
+
     let dispatchInner = (tr: Transaction) => {
       let { state, transactions } = qNode.editor.state.applyTransaction(tr);
       qNode.editor.updateState(state);

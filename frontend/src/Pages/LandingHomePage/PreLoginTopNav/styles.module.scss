@@ -1,4 +1,3 @@
-
 .logo {
   max-height: 40px;
 }
@@ -48,19 +47,23 @@
   display: none;
 }
 
-@media (min-width: 701px) {
+.hamburger {
+  transform: scale(0.6);
+  padding-left: 10px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+@media screen and (min-width: 764px) {
   .hamburger,
   .mobileNav {
     display: none;
   }
 }
-@media (max-width: 725px) {
+
+@media screen and (max-width: 765px) {
   .hamburger {
     display: block;
-    scale: 0.6;
-    padding-left: 10px;
-    cursor: pointer;
-    margin-left: auto;
   }
 
   .menu,
