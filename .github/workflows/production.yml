@@ -29,4 +29,5 @@ jobs:
           nix run
         env:
           SECRETS_FILE: ${{secrets.SECRETS_FILE}}
+          HOST_NAME: ${{secrets.HOST_NAME}}
 
