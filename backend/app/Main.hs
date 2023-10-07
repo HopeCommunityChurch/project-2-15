@@ -21,6 +21,8 @@ import System.Environment qualified as Env
 import Prelude hiding (get)
 import UnliftIO.Concurrent (threadDelay)
 import Api.Bible qualified
+import Mail qualified
+
 
 data DbInfo = MkDbInfo
   { host :: String
@@ -42,11 +44,18 @@ dbToConnectInfo MkDbInfo{host, port, username, password, database} =
     password
     database
 
+data Smtp = MkSmtp
+  { host :: String
+  , port :: Int
+  }
+  deriving (Generic)
+  deriving anyclass (FromJSON)
 
 data SecretsFile = MkSecretsFile
   { db :: DbInfo
   , env :: EnvType
   , esvToken :: Text
+  , smtp :: Smtp
   }
   deriving (Generic)
   deriving anyclass (FromJSON)
@@ -60,6 +69,7 @@ data Env = MkEnv
   { envType :: EnvType
   , dbConn :: Db.DbConn
   , esvToken :: Api.Bible.ESVEnv
+  , smtp :: Mail.Smtp
   }
   deriving (Generic)
 
@@ -67,10 +77,11 @@ instance Db.HasDbConn Env where
   dbConn = field' @"dbConn"
 
 secretToEnv :: MonadIO m => SecretsFile -> m Env
-secretToEnv MkSecretsFile{db, env, esvToken} = do
+secretToEnv MkSecretsFile{db, env, esvToken, smtp} = do
   dbConn <- liftIO $ Db.createPool (dbToConnectInfo db)
   let esvEnv = Api.Bible.MkESVEnv (encodeUtf8 esvToken)
-  pure $ MkEnv env dbConn esvEnv
+  let smtp2 = Mail.MkSmtp smtp.host (fromIntegral smtp.port)
+  pure $ MkEnv env dbConn esvEnv smtp2
 
 
 main :: IO ()

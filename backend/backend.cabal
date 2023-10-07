@@ -58,6 +58,9 @@ common buildDepends
     email-validate,
     wreq,
     parsec,
+    HaskellNet,
+    mime-mail,
+    network,
 
   default-extensions:
     OverloadedStrings,
@@ -125,7 +128,8 @@ library
     SwaggerHelpers,
     Orphans,
     Fields.Email,
-    Bible.Esv.Parser
+    Bible.Esv.Parser,
+    Mail,
 
 
   build-depends:

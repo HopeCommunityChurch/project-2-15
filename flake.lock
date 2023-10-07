@@ -8,7 +8,7 @@
       },
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-3SbUoDvmVmjsYbckFETCwpyXlSnFg/mmX4dnqTUtTgI=",
+        "narHash": "sha256-FBr1wOMPGPIt5Rozi4o67CxgBdswprFxJsyCDS1bZds=",
         "path": "./backend/",
         "type": "path"
       },
@@ -333,7 +333,8 @@
         "backend": "backend",
         "devenv": "devenv",
         "flake-parts": "flake-parts_2",
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_3",
+        "unstable": "unstable"
       }
     },
     "systems": {
@@ -348,6 +349,22 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "unstable": {
+      "locked": {
+        "lastModified": 1696375444,
+        "narHash": "sha256-Sv0ICt/pXfpnFhTGYTsX6lUr1SljnuXWejYTI2ZqHa4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "81e8f48ebdecf07aab321182011b067aafc78896",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
         "type": "github"
       }
     }
