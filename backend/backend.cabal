@@ -127,9 +127,9 @@ library
     Password,
     SwaggerHelpers,
     Orphans,
+    Mail,
     Fields.Email,
     Bible.Esv.Parser,
-    Mail,
 
 
   build-depends:
