@@ -48,7 +48,7 @@
           enable = true;
         };
 
-        services.nginx = let host = builtins.getEnv "HOST_NAME" in {
+        services.nginx = let host = builtins.getEnv "HOST_NAME"; in {
           enable = true;
           package = nixpkgs-unstable.legacyPackages.x86_64-linux.nginxQuic;
           recommendedProxySettings = true;
