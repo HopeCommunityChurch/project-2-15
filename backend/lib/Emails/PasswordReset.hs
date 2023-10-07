@@ -1,0 +1,3 @@
+module Emails.PasswordReset where
+
+

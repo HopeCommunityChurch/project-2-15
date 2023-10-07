@@ -53,6 +53,7 @@ data Smtp = MkSmtp
 
 data SecretsFile = MkSecretsFile
   { db :: DbInfo
+  , port :: Maybe Int
   , env :: EnvType
   , esvToken :: Text
   , smtp :: Smtp
@@ -67,6 +68,7 @@ logMiddle Prod = logStdout
 
 data Env = MkEnv
   { envType :: EnvType
+  , port :: Maybe Int
   , dbConn :: Db.DbConn
   , esvToken :: Api.Bible.ESVEnv
   , smtp :: Mail.Smtp
@@ -77,18 +79,18 @@ instance Db.HasDbConn Env where
   dbConn = field' @"dbConn"
 
 secretToEnv :: MonadIO m => SecretsFile -> m Env
-secretToEnv MkSecretsFile{db, env, esvToken, smtp} = do
+secretToEnv MkSecretsFile{db, env, port, esvToken, smtp} = do
   dbConn <- liftIO $ Db.createPool (dbToConnectInfo db)
   let esvEnv = Api.Bible.MkESVEnv (encodeUtf8 esvToken)
   let smtp2 = Mail.MkSmtp smtp.host (fromIntegral smtp.port)
-  pure $ MkEnv env dbConn esvEnv smtp2
+  pure $ MkEnv env port dbConn esvEnv smtp2
 
 
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
-  secretsFile <- liftIO $ Env.getEnv "SECRETS_FILE"
-  envResult <- Aeson.eitherDecodeFileStrict secretsFile
+  secretsFile <- liftIO $ Env.lookupEnv "SECRETS_FILE"
+  envResult <- Aeson.eitherDecodeFileStrict (fromMaybe "./local-secrets.json" secretsFile)
   case envResult of
     Left err -> error (toText err)
     Right (file :: SecretsFile) -> do
@@ -99,7 +101,7 @@ main = do
       putStrLn "running migration"
       migration (dbToConnectInfo file.db)
       putStrLn "starting on port 3000"
-      run 3000
+      run (fromMaybe 3000 env.port)
         (logMiddle env.envType
            (serveWithContext
               (Proxy @Api.Api)
@@ -122,11 +124,11 @@ migration
   => Db.ConnectInfo
   -> m ()
 migration dbInfo = do
-  envPath <- liftIO $ Env.getEnv "MIGRATION_PATH"
+  envPath <- liftIO $ Env.lookupEnv "MIGRATION_PATH"
   conn <- liftIO $ PgS.connect dbInfo
   result <- liftIO $ Mig.runMigrations conn migrationOptions
     [ Mig.MigrationInitialization
-    , Mig.MigrationDirectory envPath
+    , Mig.MigrationDirectory (fromMaybe "./migrations/" envPath)
     ]
   print result
   liftIO $ PgS.close conn

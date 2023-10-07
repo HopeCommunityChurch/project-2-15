@@ -23,6 +23,7 @@ import Servant.Server.Experimental.Auth (
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 import Servant.Swagger.UI.ReDoc qualified as ReDoc
 import SwaggerHelpers (OpenApiTag)
+import Mail qualified
 
 
 type Api'
@@ -39,7 +40,9 @@ type Api'
 
 
 server'
-  :: MonadDb env m
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     )
   => Api.Bible.HasESVEnv env
   => ServerT Api' m
 server'
@@ -119,6 +122,7 @@ server
   :: HasDbConn env
   => HasEnvType env
   => Api.Bible.HasESVEnv env
+  => Mail.HasSmtp env
   => env
   -> Server Api
 server env =

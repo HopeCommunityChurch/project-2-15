@@ -47,6 +47,9 @@ import Servant.Server.Experimental.Auth (
 import SwaggerHelpers (AuthDescription (..))
 import Types qualified as T
 import Web.Cookie qualified as Cookie
+import Mail qualified
+import Network.Mail.Mime (simpleMail, Address(..))
+import Emails.Welcome qualified
 
 
 instance AuthDescription "cookie" where
@@ -263,12 +266,34 @@ logout (_, token) = do
 
 
 createUser
-  :: MonadDb env m
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     )
   => User.NewUser
   -> m (CookieHeader ())
 createUser newUser = do
   userId <- User.createUser newUser
+  Mail.sendMail (Emails.Welcome.mail newUser.email)
   setCookie userId
+
+
+newtype PassReset = MkPassReset
+  { email :: T.Email
+  }
+  deriving (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON, ToSchema)
+
+
+resetPassword
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     )
+  => PassReset
+  -> m NoContent
+resetPassword MkPassReset{email} = do
+  Mail.sendMail (Emails.Welcome.mail email)
+  pure NoContent
+
 
 
 type Api =
@@ -282,12 +307,18 @@ type Api =
   :<|> "register"
     :> ReqBody '[JSON] User.NewUser
     :> Verb 'POST 204 '[JSON] (CookieHeader ())
+  :<|> "password_reset"
+    :> ReqBody '[JSON] PassReset
+    :> PostNoContent
 
 
 server
-  :: MonadDb env m
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     )
   => ServerT Api m
 server =
   passwordLogin
   :<|> logout
   :<|> createUser
+  :<|> resetPassword

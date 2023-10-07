@@ -119,7 +119,7 @@
             let backend = inputs.backend.packages.${system}.backend;
             in {
               exec = ''
-                export SECRETS_FILE=${./backend/local-secrets.json}
+                export SECRETS_FILE=${./local-secrets.json}
                 export MIGRATION_PATH=${./backend/migrations}
                 ${backend}/bin/backend +RTS -M1G -T
               '';

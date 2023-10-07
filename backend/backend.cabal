@@ -61,6 +61,8 @@ common buildDepends
     HaskellNet,
     mime-mail,
     network,
+    lucid,
+    clay,
 
   default-extensions:
     OverloadedStrings,
@@ -130,6 +132,9 @@ library
     Mail,
     Fields.Email,
     Bible.Esv.Parser,
+    Emails.Base,
+    Emails.Welcome,
+    Emails.PasswordReset,
 
 
   build-depends:
