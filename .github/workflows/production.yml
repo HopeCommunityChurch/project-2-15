@@ -30,4 +30,5 @@ jobs:
         env:
           SECRETS_FILE: ${{secrets.SECRETS_FILE}}
           HOST_NAME: ${{secrets.HOST_NAME}}
+          SERVER_IP: ${{secrets.SERVER_IP}}
 
