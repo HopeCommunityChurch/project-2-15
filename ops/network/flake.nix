@@ -23,8 +23,7 @@
         };
       };
 
-      # Also see the non-Flakes hive.nix example above.
-      dev-server = {
+      p215-server = let host = builtins.getEnv "HOST_NAME"; in {
         deployment = {
           targetHost = builtins.getEnv "SERVER_IP";
           targetUser = "root";
@@ -48,7 +47,7 @@
           enable = true;
         };
 
-        services.nginx = let host = builtins.getEnv "HOST_NAME"; in {
+        services.nginx = {
           enable = true;
           package = nixpkgs-unstable.legacyPackages.x86_64-linux.nginxQuic;
           recommendedProxySettings = true;
