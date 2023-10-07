@@ -3,13 +3,13 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - production
   pull_request:
 
 jobs:
   deploy:
     runs-on: ubuntu-22.04
-    environment: dev
+    environment: prod
     steps:
       - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v20
