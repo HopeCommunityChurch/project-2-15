@@ -318,9 +318,18 @@
           max-width: 18px;
           padding: 7px 15px;
           opacity: 50%;
+          &:hover {
+            background-color: #00000024;
+            border-radius: 5px;
+          }
         }
         .arrowUp {
           transform: rotate(180deg);
+          cursor: pointer;
+        }
+
+        .arrowDown {
+          cursor: pointer;
         }
       }
     }
@@ -559,5 +568,27 @@
     button:nth-child(1) {
       margin-bottom: 7px;
     }
+  }
+}
+
+.studyBlockResetButton {
+  color: #fff;
+  cursor: pointer;
+  background-color: #0057d1;
+  border: none;
+  border-radius: 4px;
+  padding: 12px;
+  transition: background-color 0.3s;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  vertical-align: middle;
+  outline: none;
+  text-decoration: none;
+  display: inline-block;
+  position: relative;
+
+  &:hover {
+    background-color: var(--blue-75);
   }
 }
