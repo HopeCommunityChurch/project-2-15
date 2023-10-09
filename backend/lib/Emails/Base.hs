@@ -16,7 +16,6 @@ baseCss = do
     C.backgroundColor C.white
     C.width (C.px 500)
     C.maxWidth (C.pct 100)
-    C.boxShadow $ pure $ C.bsColor C.grey $ C.shadowWithBlur (C.px 0) (C.px 0) (C.px 20)
     C.margin (C.px 30) C.auto C.auto C.auto
     C.padding (C.px 30) (C.px 10) (C.px 30) (C.px 10)
     C.boxSizing C.borderBox
