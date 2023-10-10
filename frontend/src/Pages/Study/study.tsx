@@ -236,7 +236,19 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   };
 
   function handleDndEvent(e) {
-    const { items: newItems, activeItem } = e.detail;
+    const {
+      items: newItems,
+      info: { id, trigger },
+    } = e.detail;
+
+    // If the drag has ended, log the initial and final index
+    if (trigger === "droppedIntoZone") {
+      const finalIdx = newItems.findIndex((item) => item.id === id);
+      console.log(`Moved from index ${id} to ${finalIdx}`);
+
+      //TODO Jonny: add function to push update to editor
+    }
+
     setSectionTitles(newItems);
     setDragDisabled(true);
   }
