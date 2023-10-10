@@ -1669,7 +1669,7 @@ const bibleStructure = {
     "41": "34",
     "42": "17",
   },
-  Psalm: {
+  Psalms: {
     "1": "6",
     "2": "12",
     "3": "8",
@@ -2478,77 +2478,39 @@ const bibleStructure = {
   },
 };
 
-
 // Function to do first check if bible format is valid
 function isReferenceFormatValid(reference) {
-  // doesn't start with two letters, a digit followed by a space, or a digit followed by a letter, lack at least one letter, space, or period after the initial characters, or if it doesn't end with a digit followed by any combination of spaces, numbers, hyphens, and colons.
-  if (!/^(?:[a-zA-Z]{2}|[0-9]\s|[0-9][a-zA-Z])[a-zA-Z\s.]+[\d\s:-]+$/.test(reference)) {
-    console.log(
-      "doesn't start with two letters, a digit followed by a space, or a digit followed by a letter, lack at least one letter, space, or period after the initial characters, or if it doesn't end with a digit followed by any combination of spaces, numbers, hyphens, and colons."
-    );
+  //fail if it doesn't end in a number
+  if (!/.*\d$/.test(reference)) {
+    console.log("Fail: does not end in a number");
     return false;
   }
 
-  // Fail if two special characters appear right after each other with no characters or only whitespaces between them
-  if (/(?:[^\w\s]|^)\s*[\W_]+\s*(?:[^\w\s]|$)/.test(reference)) {
-    console.log(
-      "Fail: Two special characters detected with no characters or only whitespaces between them."
-    );
+  //fail if it doesn't end in a number
+  if (/(--|::|:-|:-)/.test(reference)) {
+    console.log("Fail: Two special characters in a row.");
     return false;
   }
 
   // Fail if there are more than 2 colons, more than one hyphen, or more than one period
-  if (
-    (reference.match(/:/g) || []).length > 2 ||
-    (reference.match(/-/g) || []).length > 1 ||
-    (reference.match(/\./g) || []).length > 1
-  ) {
+  if ((reference.match(/:/g) || []).length > 2 || (reference.match(/-/g) || []).length > 1) {
     console.log(
       "Fail: More than 2 colons, more than one hyphen, or more than one period detected."
     );
     return false;
   }
 
-  // Fail if there is a special character other than periods, hyphens, or colons
-  if (/[^a-zA-Z0-9\s\-\.:]/.test(reference)) {
-    console.log("Fail: Special character other than periods, hyphens, or colons detected.");
+  // Check if valid verse ref format
+  if (!/^[0-9a-z][a-z]+\d{1,3}:?\d{0,3}-?\d{0,3}:?\d{0,3}$/.test(reference)) {
+    console.log("Fail: Not valid verse ref format");
     return false;
   }
 
-  // Fail if it begins or ends with a special character
-  if (/^[\-:.\s]/.test(reference.trim()) || /[\-:.\s]$/.test(reference.trim())) {
-    console.log("Fail: Begins or ends with a special character.");
-    return false;
-  }
-
-  const regexPattern =
-    /(?<Book>[a-zA-Z0-9. ]+?)\s*(?:(?<StartChapter>\d+)\s*(?::\s*(?<StartVerse>\d+)\s*)?(?:-\s*(?:(?<EndChapter>\d+)\s*:)?(?<EndVerse>\d+)\s*)?)?$/;
-
-  const match = reference.match(regexPattern);
-
-  if (match) {
-    const groups = match.groups;
-
-    // Ensure at least a chapter is present for it to be a valid reference
-    if (groups.StartChapter) {
-      return true;
-    }
-  }
-
-  console.log("Fail: Reference format is invalid.");
-  return false;
+  return true;
 }
 
 // Function to parse the book from a Bible reference
 function parseBookFromNumericRange(reference): { book: string; numericRef: string } | false {
-  // Replace 2 or more white spaces with a single white space
-  // Remove special characters other than spaces, colons, and hyphens
-  let cleanedReference = reference
-    .replace(/\s{2,}/g, " ")
-    .replace(/[^a-zA-Z0-9\s:-]/g, "")
-    .trim()
-    .toLowerCase();
-
   let book = null;
   let numericRef = null;
   let longestMatchLength = 0;
@@ -2560,14 +2522,15 @@ function parseBookFromNumericRange(reference): { book: string; numericRef: strin
     for (const alias of aliases) {
       const lowerAlias = alias.toLowerCase(); // Convert alias to lowercase
       const aliasLength = lowerAlias.length;
+
       if (
-        cleanedReference.startsWith(lowerAlias) &&
-        (cleanedReference[aliasLength] === " " || cleanedReference[aliasLength] === ":") &&
+        reference.startsWith(lowerAlias) &&
+        reference[aliasLength].match(/[0-9]/) &&
         aliasLength > longestMatchLength
       ) {
         longestMatchLength = aliasLength;
         book = bookName;
-        numericRef = cleanedReference.substring(aliasLength).trim().replace(/\s/g, ""); // Use the original reference for the numericRef part, but trim it
+        numericRef = reference.substring(aliasLength).trim().replace(/\s/g, ""); // Use the original reference for the numericRef part, but trim it
       }
     }
   }
@@ -2580,80 +2543,42 @@ function parseBookFromNumericRange(reference): { book: string; numericRef: strin
   }
 }
 
-function parseNumericRange(reference) {
-  // Initialize the object to store structured data
+function parseNumericRange(numericReference) {
   const structuredData = {
-    full_reference: reference,
+    full_reference: numericReference,
     StartChapter: null,
     StartVerse: null,
     EndChapter: null,
     EndVerse: null,
   };
 
-  // Case: Single chapter (e.g., "1")
-  if (!reference.includes("-") && !reference.includes(":")) {
-    structuredData.StartChapter = reference;
-    return structuredData;
+  const regexPattern =
+    /^(?<StartChapter>\d{1,3}):?(?<StartVerse>\d{0,3})-?(?<EndChapter>\d{0,3}):?(?<EndVerse>\d{0,3})$/;
+
+  const match = numericReference.match(regexPattern);
+
+  // Ensure at least a chapter is present for it to be a valid reference
+  if (match.groups.StartChapter === "") {
+    console.log("Fail: there is no starting chapter");
+    return false;
   }
 
-  // Case: Range of chapters (e.g., "1-3")
-  if (reference.includes("-") && !reference.includes(":")) {
-    const [startChapter, endChapter] = reference.split("-");
-    structuredData.StartChapter = startChapter;
-    structuredData.EndChapter = endChapter;
-    return structuredData;
+  if (match && match.groups) {
+    for (let group in match.groups) {
+      if (match.groups[group] !== "") {
+        // Ensure the key exists in structuredData before assigning
+        if (structuredData.hasOwnProperty(group)) {
+          structuredData[group] = match.groups[group];
+        }
+      }
+    }
   }
 
-  // Case: Single chapter with range of verses (e.g., "1:2-4")
-  if (
-    reference.includes("-") &&
-    reference.includes(":") &&
-    (reference.match(/-/g) || []).length === 1 &&
-    (reference.match(/:/g) || []).length === 1
-  ) {
-    const [startChapter, verseRange] = reference.split(":");
-    const [startVerse, endVerse] = verseRange.split("-");
-    structuredData.StartChapter = startChapter;
-    structuredData.StartVerse = startVerse;
-    structuredData.EndVerse = endVerse;
-    return structuredData;
-  }
-
-  // Case: Range of chapters and verses (e.g., "1:2-3:4")
-  if (
-    reference.includes("-") &&
-    reference.includes(":") &&
-    (reference.match(/-/g) || []).length === 1 &&
-    (reference.match(/:/g) || []).length === 2
-  ) {
-    const [startRef, endRef] = reference.split("-");
-    const [startChapter, startVerse] = startRef.split(":");
-    const [endChapter, endVerse] = endRef.split(":");
-    structuredData.StartChapter = startChapter;
-    structuredData.StartVerse = startVerse;
-    structuredData.EndChapter = endChapter;
-    structuredData.EndVerse = endVerse;
-    return structuredData;
-  }
-
-  // Case: Single chapter with a single verse (e.g., "1:1")
-  if (
-    !reference.includes("-") &&
-    reference.includes(":") &&
-    (reference.match(/:/g) || []).length === 1
-  ) {
-    const [startChapter, startVerse] = reference.split(":");
-    structuredData.StartChapter = startChapter;
-    structuredData.StartVerse = startVerse;
-    return structuredData;
-  }
-
-  // If none of the above cases apply, return an error message
-  return false;
+  return structuredData;
 }
 
 function isNumericRangeValid(structuredData, book) {
-  const { full_reference, StartChapter, StartVerse, EndChapter, EndVerse } = structuredData;
+  const { StartChapter, StartVerse, EndChapter, EndVerse } = structuredData;
 
   // Check if the start chapter or verse is zero
   if (parseInt(StartChapter, 10) === 0 || (StartVerse && parseInt(StartVerse, 10) === 0)) {
@@ -2683,10 +2608,7 @@ function isNumericRangeValid(structuredData, book) {
   }
 
   // Check if the start chapter exists in the given book
-  if (
-    !bibleStructure.hasOwnProperty(book) ||
-    !bibleStructure[book].hasOwnProperty(StartChapter)
-  ) {
+  if (!bibleStructure.hasOwnProperty(book) || !bibleStructure[book].hasOwnProperty(StartChapter)) {
     console.log(`Start chapter does not exist in the book ${book}.`);
     return false;
   }
@@ -2761,41 +2683,42 @@ export type BibleResponse = {
   passage: Array<Verse>;
 };
 
-
-export function getBiblePassge(reference: string) :  Promise<Network.SimpleNetworkState<BibleResponse>> | null {
+export function getBiblePassge(
+  reference: string
+): Promise<Network.SimpleNetworkState<BibleResponse>> | null {
   const query = isValidVerseReference(reference);
+
+  console.log(query);
+
   if (query === null) {
     return null;
   }
   return fetchBiblePassage(query);
 }
 
-function fetchBiblePassage(query : string) : Promise<Network.SimpleNetworkState<BibleResponse>> {
+function fetchBiblePassage(query: string): Promise<Network.SimpleNetworkState<BibleResponse>> {
   return Network.request("/bible/esv?q=" + encodeURIComponent(query));
 }
 
+export function isValidVerseReference(reference: string): string | null {
+  // Remove any characters that are NOT letters, numbers, semi colons, or hyphens
+  // Also make lower case
+  let cleanedReference = reference.replace(/[^a-zA-Z0-9:-]/g, "").toLowerCase();
 
-export function isValidVerseReference(reference : string) : string | null {
   //return fail if something isn't accecptable
-  if (!isReferenceFormatValid(reference)) {
-    console.log("isReferenceFormatValid failed");
-    return null;
-  }
-  if (!parseBookFromNumericRange(reference)) {
-    console.log("parseBookFromNumericRange failed");
-    return null;
-  }
-  if (parseBookFromNumericRange(reference) === false) {
-    return null;
-  }
-  const { book, numericRef } = parseBookFromNumericRange(reference) as {
+  if (!isReferenceFormatValid(cleanedReference)) return null;
+  if (!parseBookFromNumericRange(cleanedReference)) return null;
+
+  const { book, numericRef } = parseBookFromNumericRange(cleanedReference) as {
     book: string;
     numericRef: string;
   };
+
   if (!parseNumericRange(numericRef)) {
     console.log("parseNumericRange failed");
     return null;
   }
+
   if (!isNumericRangeValid(parseNumericRange(numericRef), book)) {
     console.log("parseNumericRange failed");
     return null;
