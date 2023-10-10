@@ -22,7 +22,7 @@ import OutdentIcon from "./Assets/outdent-icon.svg";
 import ClearFormattingIcon from "./Assets/clear-formatting-icon.svg";
 import QuestionIcon from "./Assets/question-icon.svg";
 import * as Editor from "Editor/Editor";
-import { isValidVerseReference, getBiblePassge } from "./validateAndFetchVerses";
+import { getBiblePassge } from "./validateAndFetchVerses";
 import { match } from "ts-pattern";
 
 export function TextEditorToolbar({
