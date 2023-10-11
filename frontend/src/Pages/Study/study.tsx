@@ -246,6 +246,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       const finalIdx = newItems.findIndex((item) => item.id === id);
       console.log(`Moved from index ${id} to ${finalIdx}`);
 
+      editor.moveSection(id, finalIdx);
       //TODO Jonny: add function to push update to editor
     }
 

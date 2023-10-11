@@ -772,12 +772,12 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
 };
 
 export const questionReferenceMarkView = (mark: Mark, view: EditorView) => {
-    const mview = document.createElement("questionRef");
-    mview.className = classes.questionRef;
-    const qId = mark.attrs.questionId;
-    mview.setAttribute("questionId", qId);
-    return { dom: mview };
-  };
+  const mview = document.createElement("questionRef");
+  mview.className = classes.questionRef;
+  const qId = mark.attrs.questionId;
+  mview.setAttribute("questionId", qId);
+  return { dom: mview };
+};
 
 export const referenceToMarkView = (mark: Mark, view: EditorView) => {
   const mview = document.createElement("span");
@@ -1030,42 +1030,74 @@ function moveSection(
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) {
-  const from = state.selection.from;
-  const to = state.selection.to;
-  if (from === to) {
+  console.log("Function called: moveSection");
+  console.log("originalIndex:", originalIndex, "newIndex:", newIndex);
+
+  if (originalIndex === newIndex) {
+    console.log("Indices are the same, exiting...");
     return false;
   }
+
   if (dispatch) {
-    // Find the position of the questions
+    console.log("Dispatch exists");
+
     let originalPos: number = null;
     let originalNode: Node = null;
     let index = 0;
+
+    console.log("Starting to find original section...");
     state.doc.descendants((node: Node, pos: number) => {
+      console.log("Checking node at pos:", pos, "with type:", node.type.name);
+
       if (node.type.name === "section") {
-        if (index == originalIndex) {
+        console.log("Found a section at index:", index);
+
+        if (index === originalIndex) {
+          console.log("Matched originalIndex, storing pos and node");
           originalPos = pos;
           originalNode = node;
         }
         index++;
-        return false;
       }
       return false;
     });
-    // Make the mark
-    let tr = state.tr.deleteRange(originalPos, originalNode.nodeSize);
-    let newPos = null;
-    tr.doc.descendants((node: Node, pos: number) => {
+
+    // Reset index for the next loop
+    index = 0;
+
+    let newPos: number = null;
+    state.doc.descendants((node: Node, pos: number) => {
+      console.log("Checking node at pos:", pos, "with type:", node.type.name);
+
       if (node.type.name === "section") {
-        if (index == newIndex) {
+        console.log("Found a section at index:", index);
+
+        if (index === newIndex) {
+          console.log("Matched newIndex, storing new pos");
           newPos = pos;
         }
         index++;
-        return false;
       }
       return false;
     });
-    let tr1 = tr.insert(newPos, originalNode);
-    dispatch(tr1);
+
+    let tr = state.tr;
+
+    // If the new position is before the original, insert first then delete
+    if (newPos < originalPos) {
+      tr = tr.insert(newPos, originalNode);
+      tr = tr.deleteRange(
+        originalPos + originalNode.nodeSize,
+        originalPos + 2 * originalNode.nodeSize
+      );
+    } else {
+      // If the new position is after the original, delete first then insert
+      tr = tr.deleteRange(originalPos, originalPos + originalNode.nodeSize);
+      tr = tr.insert(newPos - originalNode.nodeSize, originalNode);
+    }
+
+    // Dispatch the transaction
+    dispatch(tr);
     return true;
   }
 }
@@ -1165,7 +1197,6 @@ const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transaction) =
     return true;
   }
 };
-
 
 interface QuestionMapItem {
   node: Node;
