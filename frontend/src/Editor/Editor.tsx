@@ -1030,73 +1030,47 @@ function moveSection(
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) {
-  console.log("Function called: moveSection");
-  console.log("originalIndex:", originalIndex, "newIndex:", newIndex);
-
-  if (originalIndex === newIndex) {
-    console.log("Indices are the same, exiting...");
-    return false;
-  }
-
   if (dispatch) {
-    console.log("Dispatch exists");
-
     let originalPos: number = null;
     let originalNode: Node = null;
     let index = 0;
-
-    console.log("Starting to find original section...");
     state.doc.descendants((node: Node, pos: number) => {
-      console.log("Checking node at pos:", pos, "with type:", node.type.name);
-
       if (node.type.name === "section") {
-        console.log("Found a section at index:", index);
-
-        if (index === originalIndex) {
-          console.log("Matched originalIndex, storing pos and node");
+        if (index == originalIndex) {
           originalPos = pos;
           originalNode = node;
         }
         index++;
+        return false;
       }
       return false;
     });
+    let tr = state.tr.deleteRange(originalPos, originalPos + originalNode.nodeSize);
 
-    // Reset index for the next loop
+    let newPos = null;
     index = 0;
-
-    let newPos: number = null;
-    state.doc.descendants((node: Node, pos: number) => {
-      console.log("Checking node at pos:", pos, "with type:", node.type.name);
-
+    let lastNode = null;
+    let lastPos = null;
+    tr.doc.descendants((node: Node, pos: number) => {
       if (node.type.name === "section") {
-        console.log("Found a section at index:", index);
-
-        if (index === newIndex) {
-          console.log("Matched newIndex, storing new pos");
+        lastNode = node;
+        lastPos = pos;
+        if (index == newIndex) {
+          console.log(pos, node);
           newPos = pos;
         }
         index++;
+        return false;
       }
       return false;
     });
 
-    let tr = state.tr;
-
-    // If the new position is before the original, insert first then delete
-    if (newPos < originalPos) {
-      tr = tr.insert(newPos, originalNode);
-      tr = tr.deleteRange(
-        originalPos + originalNode.nodeSize,
-        originalPos + 2 * originalNode.nodeSize
-      );
-    } else {
-      // If the new position is after the original, delete first then insert
-      tr = tr.deleteRange(originalPos, originalPos + originalNode.nodeSize);
-      tr = tr.insert(newPos - originalNode.nodeSize, originalNode);
+    if(newPos === null) {
+      newPos = lastPos + lastNode.nodeSize;
     }
 
-    // Dispatch the transaction
+    tr.insert(newPos, originalNode);
+
     dispatch(tr);
     return true;
   }

@@ -215,23 +215,22 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   const updateSectionTitles = (studyDoc) => {
     const titlesWithId = studyDoc.document.content
-      .flatMap((section, index) => {
-        if (section.content && section.content.length > 0) {
-          return section.content
-            .map((innerSection) => {
-              if (innerSection.type === "sectionHeader") {
-                return {
-                  title: innerSection.content[0].text,
-                  id: index,
-                };
-              }
-            })
-            .filter(Boolean);
+      .map((section, index) => {
+        let header = section.content.find((innerSection) => {
+              return innerSection.type === "sectionHeader";
+        });
+        if(header) {
+          return {
+            title: header.content[0].text,
+            id: index,
+          };
+        } else {
+          return {
+            title: "untitled",
+            id: index,
+          };
         }
-        return [];
       })
-      .filter(Boolean);
-
     setSectionTitles(titlesWithId);
   };
 
