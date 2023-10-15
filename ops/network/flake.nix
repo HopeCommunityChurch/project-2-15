@@ -59,7 +59,7 @@
                     ];
                     installPhase = ''
                       mkdir -p $out/
-                      cp -r $(frontend)/lib/node_modules/frontend/dist/* $out/
+                      cp -r ${frontend}/lib/node_modules/frontend/dist/* $out/
                     '';
                   };
         in {
