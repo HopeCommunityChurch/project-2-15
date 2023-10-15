@@ -48,7 +48,20 @@
           enable = true;
         };
 
-        services.nginx = {
+        services.nginx =
+        let frontend = inputs.frontend.packages.x86_64-linux.frontend;
+            drv = pkgs.stdenv.mkDerivation {
+                    name = "frontend-drv";
+                    src = ./.;
+                    buildInputs = [
+                      frontend
+                    ];
+                    installPhase = ''
+                      mkdir -p $out/
+                      cp -r $(frontend)/lib/node_modules/frontend/dist/* $out/
+                    '';
+                  };
+        in {
           enable = true;
           package = nixpkgs-unstable.legacyPackages.x86_64-linux.nginxQuic;
           recommendedProxySettings = true;
@@ -58,15 +71,11 @@
               enableACME = true;
               quic = true;
               http3_hq = true;
-              locations."/" =
-                let frontend = inputs.frontend.packages.x86_64-linux.frontend;
-                in {
-                root = "${frontend}/lib/node_modules/frontend/dist/";
+              locations."/" = {
+                root = "${drv}/";
               };
-              locations."/app/" =
-                let frontend = inputs.frontend.packages.x86_64-linux.frontend;
-                in {
-                root = "${frontend}/lib/node_modules/frontend/dist/";
+              locations."/app/" = {
+                root = "${drv}/";
                 extraConfig = "rewrite ^ /index.html break;";
               };
               locations."/api/" = {
