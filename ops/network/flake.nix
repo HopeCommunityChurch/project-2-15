@@ -50,7 +50,7 @@
 
         services.nginx =
         let frontend = inputs.frontend.packages.x86_64-linux.frontend;
-            drv = pkgs.stdenv.mkDerivation {
+            drv = nixpkgs.stdenv.mkDerivation {
                     name = "frontend-drv";
                     src = ./.;
                     buildInputs = [
