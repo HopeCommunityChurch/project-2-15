@@ -1,9 +1,17 @@
 module Entity.AuthUser where
 
-import qualified Types as T
-import qualified Database as Db
-import qualified Entity as E
-import Database.Beam (C, Beamable, all_, exists_, guard_, (==.), in_)
+import Database qualified as Db
+import Database.Beam (
+  Beamable,
+  C,
+  all_,
+  exists_,
+  guard_,
+  in_,
+  (==.),
+ )
+import Entity qualified as E
+import Types qualified as T
 
 
 data AuthUser = MkAuthUser
@@ -52,3 +60,4 @@ instance E.Entity AuthUser where
 instance E.GuardValue AuthUser T.UserId where
   guardValues ids user =
     guard_ $ user.userId `in_` ids
+

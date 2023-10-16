@@ -94,6 +94,37 @@ userPasswordTable =
       }
 
 
+data UserPasswordResetT f = MkUserPasswordResetT
+  { userId :: C f T.UserId
+  , token :: C f T.PasswordResetToken
+  , usedAt :: C f (Maybe UTCTime)
+  , expiresAt :: C f UTCTime
+  , created :: C f UTCTime
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table UserPasswordResetT where
+  data PrimaryKey UserPasswordResetT f =
+    UserPasswordResetKey (C f T.PasswordResetToken)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = UserPasswordResetKey <$> (.token)
+
+userPasswordResetTable :: TableMod UserPasswordResetT
+userPasswordResetTable =
+  modifyTable
+    "user_password_reset"
+    MkUserPasswordResetT
+      { userId = fieldNamed "userId"
+      , token = fieldNamed "token"
+      , usedAt = fieldNamed "usedAt"
+      , expiresAt = fieldNamed "expiresAt"
+      , created = fieldNamed "created"
+      }
+
+
+
 data UserSessionT f = MkUserSessionT
   { userId :: C f T.UserId
   , token :: C f T.CookieToken
@@ -315,6 +346,7 @@ documentEditorTable =
 data Db f = MkDb
   { user :: f (TableEntity UserT)
   , userPassword :: f (TableEntity UserPasswordT)
+  , userPasswordReset :: f (TableEntity UserPasswordResetT)
   , userSession :: f (TableEntity UserSessionT)
   , church :: f (TableEntity ChurchT)
   , churchElder :: f (TableEntity ChurchElderT)
@@ -333,6 +365,7 @@ db = defaultDbSettings `withDbModification`
         MkDb
           { user = userTable
           , userPassword = userPasswordTable
+          , userPasswordReset = userPasswordResetTable
           , userSession = userSessionTable
           , church = churchTable
           , churchElder = churchElderTable

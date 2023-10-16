@@ -13,7 +13,7 @@ import Data.OpenApi qualified as OpenApi
 import Data.Typeable (tyConName, typeRep, typeRepTyCon)
 import DbHelper (HasDbConn, MonadDb)
 import Entity.AuthUser (AuthUser)
-import EnvFields (HasEnvType)
+import EnvFields (HasEnvType, HasUrl)
 import Network.Wai (Request)
 import Servant
 import Servant.OpenApi (toOpenApi)
@@ -42,6 +42,7 @@ type Api'
 server'
   :: ( MonadDb env m
      , Mail.HasSmtp env
+     , HasUrl env
      )
   => Api.Bible.HasESVEnv env
   => ServerT Api' m
@@ -121,6 +122,7 @@ openApi =
 server
   :: HasDbConn env
   => HasEnvType env
+  => HasUrl env
   => Api.Bible.HasESVEnv env
   => Mail.HasSmtp env
   => env

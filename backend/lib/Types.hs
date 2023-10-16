@@ -8,6 +8,8 @@ module Types (
   DocId,
   CookieToken,
   genCookieToken,
+  PasswordResetToken,
+  genPasswordResetToken,
   genToken,
 ) where
 
@@ -92,6 +94,10 @@ validChars :: [Char]
 validChars = ['0'..'9'] <> ['a'..'z'] <> ['A'..'Z'] <> ['_']
 
 
+data PasswordResetToken'
+type PasswordResetToken = NewType PasswordResetToken' Text
+
+
 convert :: Word8 -> Text
 convert int =
   let (d,m) = int `divMod` fromIntegral (length validChars)
@@ -112,3 +118,7 @@ genToken i = do
 
 genCookieToken :: (MonadIO m) => m CookieToken
 genCookieToken = MkNewType <$> genToken 32
+
+
+genPasswordResetToken :: (MonadIO m) => m PasswordResetToken
+genPasswordResetToken = MkNewType <$> genToken 32

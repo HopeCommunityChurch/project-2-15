@@ -32,7 +32,7 @@ import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
 import Entity qualified as E
 import Entity.User qualified as User
 import Entity.AuthUser (AuthUser(..))
-import EnvFields (HasEnvType, EnvType(..))
+import EnvFields (HasEnvType, EnvType(..), HasUrl)
 import Network.Wai (
   Request,
   requestHeaders,
@@ -48,8 +48,8 @@ import SwaggerHelpers (AuthDescription (..))
 import Types qualified as T
 import Web.Cookie qualified as Cookie
 import Mail qualified
-import Network.Mail.Mime (simpleMail, Address(..))
 import Emails.Welcome qualified
+import Emails.PasswordReset qualified
 
 
 instance AuthDescription "cookie" where
@@ -287,11 +287,15 @@ newtype PassReset = MkPassReset
 resetPassword
   :: ( MonadDb env m
      , Mail.HasSmtp env
+     , HasUrl env
      )
   => PassReset
   -> m NoContent
 resetPassword MkPassReset{email} = do
-  Mail.sendMail (Emails.Welcome.mail email)
+  mToken <- User.passwordResetToken email
+  for_ mToken $ \ token -> do
+    url <- asks (.url)
+    Mail.sendMail (Emails.PasswordReset.mail email token url)
   pure NoContent
 
 
@@ -315,6 +319,7 @@ type Api =
 server
   :: ( MonadDb env m
      , Mail.HasSmtp env
+     , HasUrl env
      )
   => ServerT Api m
 server =

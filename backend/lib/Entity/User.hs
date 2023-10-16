@@ -1,13 +1,29 @@
 module Entity.User where
 
-import qualified Types as T
-import qualified Database as Db
-import qualified Entity as E
+import Data.Time.Lens qualified as TL
+import Database qualified as Db
+import Database.Beam (
+  Beamable,
+  C,
+  all_,
+  default_,
+  guard_,
+  in_,
+  insert,
+  insertExpressions,
+  insertValues,
+  runInsert,
+  runSelectReturningOne,
+  select,
+  val_,
+  (==.),
+ )
+import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
 import DbHelper (MonadDb, runBeam)
-import Database.Beam (C, Beamable, all_, guard_, (==.), insertExpressions, val_, in_, val_, insert, default_, runInsert, insertValues)
+import Entity qualified as E
 import Entity.AuthUser
 import Password (NewPassword, getHash)
-import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
+import Types qualified as T
 
 
 data GetUser = MkGetUser
@@ -95,4 +111,40 @@ createUser newUser = do
         hash
       ]
   pure user.userId
+
+
+passwordResetToken
+  :: MonadDb env m
+  => T.Email
+  -> m (Maybe T.PasswordResetToken)
+passwordResetToken email = do
+  mUser <- getUser
+  forM mUser $ \ user -> do
+    token <- T.genPasswordResetToken
+    insertToken user.userId token
+    pure token
+  where
+    getUser =
+      runBeam
+        $ runSelectReturningOne
+        $ select
+        $ do
+          user <- all_ Db.db.user
+          guard_ $ user.email ==. val_ email
+          pure user
+
+    insertToken userId token = do
+      now <- getCurrentTime
+      let expiresAt = now & (TL.flexDT . TL.minutes) +~ 10
+      runBeam
+        $ runInsert
+        $ insert Db.db.userPasswordReset
+        $ insertValues
+          [ Db.MkUserPasswordResetT
+            userId
+            token
+            Nothing
+            expiresAt
+            now
+          ]
 
