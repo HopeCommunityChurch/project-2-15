@@ -15,7 +15,8 @@ export function ResetPasswordPage() {
   const nav = useNavigate();
 
   const resetPushed = (e: Event) => {
-    Network.request("/auth/password", {
+    e.preventDefault();
+    Network.request("/auth/password_reset", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

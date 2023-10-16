@@ -36,8 +36,7 @@ passwordReset token baseUrl = do
   "If you didn't request a password reset ignore this email. The link will expire in 10 minutes."
   br_ []
   br_ []
-  a_ [href_ url] $ do
-    div_ [style buttonStyle] (toHtml url)
+  a_ [href_ url, style buttonStyle] "Reset Password"
     where
       url = baseUrl <> "/app/reset_token?token=" <> unwrap token
 

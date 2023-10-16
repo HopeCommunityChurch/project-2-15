@@ -25,11 +25,14 @@ innerBodyStyle = do
 
 buttonStyle :: C.Css
 buttonStyle = do
-  C.display C.flex
+  C.display C.inlineBlock
+  C.textAlign C.center
+  C.textDecoration C.none
   C.cursor C.pointer
   C.outline C.none (C.px 0) C.white
   C.border (C.px 0) C.none C.white
   C.borderRadius (C.px 5) (C.px 5) (C.px 5) (C.px 5)
+  C.padding (C.px 12) (C.px 12) (C.px 12) (C.px 12)
   C.backgroundColor (C.rgb 0 87 209)
   C.whiteSpace C.nowrap
   --there's got to be a better way to do this
