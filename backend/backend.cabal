@@ -45,7 +45,6 @@ common buildDepends
     time,
     tz,
     tzdata,
-    quic,
     vector,
     cryptonite,
     QuickCheck,

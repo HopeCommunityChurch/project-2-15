@@ -28,7 +28,7 @@ buttonStyle = do
   C.display C.flex
   C.cursor C.pointer
   C.outline C.none (C.px 0) C.white
-  C.border C.none (C.px 0) C.white
+  C.border (C.px 0) C.none C.white
   C.borderRadius (C.px 5) (C.px 5) (C.px 5) (C.px 5)
   C.backgroundColor (C.rgb 0 87 209)
   C.whiteSpace C.nowrap
