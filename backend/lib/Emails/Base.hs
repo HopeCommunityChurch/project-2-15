@@ -42,11 +42,6 @@ buttonStyle = do
 
 baseCss :: C.Css
 baseCss = do
-  C.body ? do
-    bodyStyle
-  "#innerBody" ? do
-    innerBodyStyle
-
   C.query CM.screen [CM.maxWidth (C.px 620)] $ do
     "#innerBody" ? do
       C.important (C.width (C.pct 100))
@@ -80,5 +75,5 @@ baseHtml css inner = do
       meta_ [content_ "width=device-width, initial-scale=1.0", name_ "viewport"]
     style_ [type_ "text/css", media_ "screen"] $
       toStrict (C.render (baseCss <> css))
-    body_ $ do
+    body_ [style bodyStyle] $ do
       div_ [ id_ "innerBody", style innerBodyStyle] inner

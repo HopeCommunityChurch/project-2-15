@@ -10,8 +10,18 @@ import p215Logo from "./P215.png";
 import { PublicUser } from "../../Types";
 import { match } from "ts-pattern";
 
+
+
 export function ResetPasswordPage() {
   const [email, setEmail] = createSignal("");
+  const [resetResult, setResetResult] = createSignal<
+    Network.NetworkError
+    | Network.NetworkNotLoaded
+    | Network.NetworkSuccess<null>
+    >(
+    Network.notLoaded
+  );
+
   const nav = useNavigate();
 
   const resetPushed = (e: Event) => {
@@ -24,21 +34,11 @@ export function ResetPasswordPage() {
       body: JSON.stringify({
         email: email(),
       }),
-    })
-      .then((result) => {
-        // @ts-ignore
-        match(result)
-          .with({ state: "error" }, (res) => {
-            console.error(res);
-          })
-          .with({ state: "success" }, () => {
-            // nav("/app/studies");
-          })
-          .exhaustive();
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    }).then((result : Network.SimpleNetworkState<null>) => {
+        setResetResult(result);
+    }).catch((err) => {
+      console.error(err);
+    });
   };
 
   return (
@@ -63,21 +63,22 @@ export function ResetPasswordPage() {
               Reset Password
             </button>
             {
-              // @ts-ignore
-              // match(loginError())
-              //   .with({ state: "notloaded" }, () => <> </>)
-              //   .with({ state: "error" }, ({ body }) =>
-              //     // @ts-ignore
-              //     match(body)
-              //       .with({ error: "AuthError" }, () => <div>email or password wrong</div>)
-              //       .otherwise((err) => (
-              //         <div>
-              //           You shouldn't hit this error so here it is raw:
-              //           {JSON.stringify(err)}
-              //         </div>
-              //       ))
-              //   )
-              //   .exhaustive()
+              match(resetResult())
+                .with({ state: "notloaded" }, () => <> </>)
+                .with({ state: "error" }, ({ body }) =>
+                  <div>
+                    You shouldn't hit this error so here it is raw:
+                    {JSON.stringify(body)}
+                  </div>
+                )
+                .with({ state: "success" }, ({ body }) =>
+                  <div>
+                    Check your email for a password reset email.
+                    <br />
+                    If you don't see it check the spam folder.
+                  </div>
+                )
+                .exhaustive()
             }
           </form>
         </div>
