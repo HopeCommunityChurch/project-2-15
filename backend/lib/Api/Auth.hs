@@ -32,7 +32,7 @@ import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
 import Entity qualified as E
 import Entity.User qualified as User
 import Entity.AuthUser (AuthUser(..))
-import EnvFields (HasEnvType, EnvType(..))
+import EnvFields (HasEnvType, EnvType(..), HasUrl)
 import Network.Wai (
   Request,
   requestHeaders,
@@ -47,6 +47,9 @@ import Servant.Server.Experimental.Auth (
 import SwaggerHelpers (AuthDescription (..))
 import Types qualified as T
 import Web.Cookie qualified as Cookie
+import Mail qualified
+import Emails.Welcome qualified
+import Emails.PasswordReset qualified
 
 
 instance AuthDescription "cookie" where
@@ -263,12 +266,38 @@ logout (_, token) = do
 
 
 createUser
-  :: MonadDb env m
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     )
   => User.NewUser
   -> m (CookieHeader ())
 createUser newUser = do
   userId <- User.createUser newUser
+  Mail.sendMail (Emails.Welcome.mail newUser.email)
   setCookie userId
+
+
+newtype PassReset = MkPassReset
+  { email :: T.Email
+  }
+  deriving (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON, ToSchema)
+
+
+resetPassword
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     , HasUrl env
+     )
+  => PassReset
+  -> m NoContent
+resetPassword MkPassReset{email} = do
+  mToken <- User.passwordResetToken email
+  for_ mToken $ \ token -> do
+    url <- asks (.url)
+    Mail.sendMail (Emails.PasswordReset.mail email token url)
+  pure NoContent
+
 
 
 type Api =
@@ -282,12 +311,19 @@ type Api =
   :<|> "register"
     :> ReqBody '[JSON] User.NewUser
     :> Verb 'POST 204 '[JSON] (CookieHeader ())
+  :<|> "password_reset"
+    :> ReqBody '[JSON] PassReset
+    :> PostNoContent
 
 
 server
-  :: MonadDb env m
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     , HasUrl env
+     )
   => ServerT Api m
 server =
   passwordLogin
   :<|> logout
   :<|> createUser
+  :<|> resetPassword

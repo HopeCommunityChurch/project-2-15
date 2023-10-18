@@ -21,6 +21,8 @@ import System.Environment qualified as Env
 import Prelude hiding (get)
 import UnliftIO.Concurrent (threadDelay)
 import Api.Bible qualified
+import Mail qualified
+
 
 data DbInfo = MkDbInfo
   { host :: String
@@ -42,11 +44,20 @@ dbToConnectInfo MkDbInfo{host, port, username, password, database} =
     password
     database
 
+data Smtp = MkSmtp
+  { host :: String
+  , port :: Int
+  }
+  deriving (Generic)
+  deriving anyclass (FromJSON)
 
 data SecretsFile = MkSecretsFile
   { db :: DbInfo
+  , port :: Maybe Int
   , env :: EnvType
   , esvToken :: Text
+  , smtp :: Smtp
+  , url :: Text
   }
   deriving (Generic)
   deriving anyclass (FromJSON)
@@ -58,8 +69,11 @@ logMiddle Prod = logStdout
 
 data Env = MkEnv
   { envType :: EnvType
+  , port :: Maybe Int
   , dbConn :: Db.DbConn
   , esvToken :: Api.Bible.ESVEnv
+  , smtp :: Mail.Smtp
+  , url :: Text
   }
   deriving (Generic)
 
@@ -67,17 +81,18 @@ instance Db.HasDbConn Env where
   dbConn = field' @"dbConn"
 
 secretToEnv :: MonadIO m => SecretsFile -> m Env
-secretToEnv MkSecretsFile{db, env, esvToken} = do
+secretToEnv MkSecretsFile{db, env, port, esvToken, smtp, url} = do
   dbConn <- liftIO $ Db.createPool (dbToConnectInfo db)
   let esvEnv = Api.Bible.MkESVEnv (encodeUtf8 esvToken)
-  pure $ MkEnv env dbConn esvEnv
+  let smtp2 = Mail.MkSmtp smtp.host (fromIntegral smtp.port)
+  pure $ MkEnv env port dbConn esvEnv smtp2 url
 
 
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
-  secretsFile <- liftIO $ Env.getEnv "SECRETS_FILE"
-  envResult <- Aeson.eitherDecodeFileStrict secretsFile
+  secretsFile <- liftIO $ Env.lookupEnv "SECRETS_FILE"
+  envResult <- Aeson.eitherDecodeFileStrict (fromMaybe "./local-secrets.json" secretsFile)
   case envResult of
     Left err -> error (toText err)
     Right (file :: SecretsFile) -> do
@@ -88,7 +103,7 @@ main = do
       putStrLn "running migration"
       migration (dbToConnectInfo file.db)
       putStrLn "starting on port 3000"
-      run 3000
+      run (fromMaybe 3000 env.port)
         (logMiddle env.envType
            (serveWithContext
               (Proxy @Api.Api)
@@ -111,11 +126,11 @@ migration
   => Db.ConnectInfo
   -> m ()
 migration dbInfo = do
-  envPath <- liftIO $ Env.getEnv "MIGRATION_PATH"
+  envPath <- liftIO $ Env.lookupEnv "MIGRATION_PATH"
   conn <- liftIO $ PgS.connect dbInfo
   result <- liftIO $ Mig.runMigrations conn migrationOptions
     [ Mig.MigrationInitialization
-    , Mig.MigrationDirectory envPath
+    , Mig.MigrationDirectory (fromMaybe "./migrations/" envPath)
     ]
   print result
   liftIO $ PgS.close conn

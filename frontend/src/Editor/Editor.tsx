@@ -772,12 +772,12 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
 };
 
 export const questionReferenceMarkView = (mark: Mark, view: EditorView) => {
-    const mview = document.createElement("questionRef");
-    mview.className = classes.questionRef;
-    const qId = mark.attrs.questionId;
-    mview.setAttribute("questionId", qId);
-    return { dom: mview };
-  };
+  const mview = document.createElement("questionRef");
+  mview.className = classes.questionRef;
+  const qId = mark.attrs.questionId;
+  mview.setAttribute("questionId", qId);
+  return { dom: mview };
+};
 
 export const referenceToMarkView = (mark: Mark, view: EditorView) => {
   const mview = document.createElement("span");
@@ -1030,13 +1030,7 @@ function moveSection(
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) {
-  const from = state.selection.from;
-  const to = state.selection.to;
-  if (from === to) {
-    return false;
-  }
   if (dispatch) {
-    // Find the position of the questions
     let originalPos: number = null;
     let originalNode: Node = null;
     let index = 0;
@@ -1051,12 +1045,18 @@ function moveSection(
       }
       return false;
     });
-    // Make the mark
-    let tr = state.tr.deleteRange(originalPos, originalNode.nodeSize);
+    let tr = state.tr.deleteRange(originalPos, originalPos + originalNode.nodeSize);
+
     let newPos = null;
+    index = 0;
+    let lastNode = null;
+    let lastPos = null;
     tr.doc.descendants((node: Node, pos: number) => {
       if (node.type.name === "section") {
+        lastNode = node;
+        lastPos = pos;
         if (index == newIndex) {
+          console.log(pos, node);
           newPos = pos;
         }
         index++;
@@ -1064,8 +1064,14 @@ function moveSection(
       }
       return false;
     });
-    let tr1 = tr.insert(newPos, originalNode);
-    dispatch(tr1);
+
+    if(newPos === null) {
+      newPos = lastPos + lastNode.nodeSize;
+    }
+
+    tr.insert(newPos, originalNode);
+
+    dispatch(tr);
     return true;
   }
 }
@@ -1165,7 +1171,6 @@ const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transaction) =
     return true;
   }
 };
-
 
 interface QuestionMapItem {
   node: Node;

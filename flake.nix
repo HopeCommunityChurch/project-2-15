@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+    unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     devenv.url = "github:cachix/devenv";
     backend.url = "path:./backend/";
   };
@@ -27,6 +28,11 @@
 
           # https://devenv.sh/reference/options/
           # packages = [ config.packages.default ];
+
+          services.mailpit = {
+            enable = true;
+            package = inputs.unstable.legacyPackages.${system}.mailpit;
+          };
 
           services.postgres = {
             enable = true;
@@ -81,6 +87,7 @@
                   proxy_set_header        X-Forwarded-Server $host;
                   proxy_pass http://localhost:1234/;
                 }
+
                 location /api/ {
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
@@ -91,6 +98,18 @@
                   proxy_set_header        X-Forwarded-Host $host;
                   proxy_set_header        X-Forwarded-Server $host;
                   proxy_pass http://localhost:3000/;
+                }
+
+                location /mailpit/ {
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection $connection_upgrade;
+                  proxy_set_header        X-Real-IP $remote_addr;
+                  proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header        X-Forwarded-Proto $scheme;
+                  proxy_set_header        X-Forwarded-Host $host;
+                  proxy_set_header        X-Forwarded-Server $host;
+                  proxy_pass http://localhost:8025/;
                 }
               }
             '';

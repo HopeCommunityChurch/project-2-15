@@ -9,7 +9,6 @@ module SwaggerHelpers
 
 import           Control.Lens                             ((<>~))
 import qualified Data.OpenApi                             as OpenApi
-import qualified Data.OpenApi.Lens                        as OpenApi
 import           Servant
 import           Servant.OpenApi                          (HasOpenApi(..))
 import           GHC.TypeLits (KnownSymbol, symbolVal)

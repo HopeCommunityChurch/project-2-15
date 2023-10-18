@@ -396,7 +396,7 @@ function AddStudy(prop: AddStudyProp) {
                 <input
                   type="text"
                   id="studyBook"
-                  placeholder="Bible Book Name..."
+                  placeholder="Ex: Romans"
                   value={studyBookValue()}
                   onInput={bookSelectOnInput}
                   onKeyDown={bookSelectOnKey}
@@ -431,6 +431,7 @@ function AddStudy(prop: AddStudyProp) {
                 value={studyBlockValue()}
                 onInput={(e) => setStudyBlockValue(e.target.value)}
                 onFocus={() => setShowStudyBlockDropdown(true)}
+                onkeydown={(e) => e.key === "Enter" && e.preventDefault()}
               />
               <Show when={studyBlockValue()}>
                 <img
@@ -443,7 +444,9 @@ function AddStudy(prop: AddStudyProp) {
                   }}
                 />
               </Show>
-              <Button type="Blue">Reset</Button>
+              <button class={classes.studyBlockResetButton} type="button">
+                Reset
+              </button>
             </div>
             <Show when={showStudyBlockDropdown()}>
               <div class={classes.studyBlockDropdown}>
@@ -489,7 +492,11 @@ function AddStudy(prop: AddStudyProp) {
                           src={ArrowIcon}
                           onClick={() => moveItemUp(index)}
                         />
-                        <img src={ArrowIcon} onClick={() => moveItemDown(index)} />
+                        <img
+                          src={ArrowIcon}
+                          class={classes.arrowDown}
+                          onClick={() => moveItemDown(index)}
+                        />
                       </div>
                       <div class={classes.reordableItemNameAndDescription}>
                         <Show when={!item.Required}>

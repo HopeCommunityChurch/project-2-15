@@ -215,28 +215,40 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   const updateSectionTitles = (studyDoc) => {
     const titlesWithId = studyDoc.document.content
-      .flatMap((section, index) => {
-        if (section.content && section.content.length > 0) {
-          return section.content
-            .map((innerSection) => {
-              if (innerSection.type === "sectionHeader") {
-                return {
-                  title: innerSection.content[0].text,
-                  id: index,
-                };
-              }
-            })
-            .filter(Boolean);
+      .map((section, index) => {
+        let header = section.content.find((innerSection) => {
+              return innerSection.type === "sectionHeader";
+        });
+        if(header) {
+          return {
+            title: header.content[0].text,
+            id: index,
+          };
+        } else {
+          return {
+            title: "untitled",
+            id: index,
+          };
         }
-        return [];
       })
-      .filter(Boolean);
-
     setSectionTitles(titlesWithId);
   };
 
   function handleDndEvent(e) {
-    const { items: newItems, activeItem } = e.detail;
+    const {
+      items: newItems,
+      info: { id, trigger },
+    } = e.detail;
+
+    // If the drag has ended, log the initial and final index
+    if (trigger === "droppedIntoZone") {
+      const finalIdx = newItems.findIndex((item) => item.id === id);
+      console.log(`Moved from index ${id} to ${finalIdx}`);
+
+      editor.moveSection(id, finalIdx);
+      //TODO Jonny: add function to push update to editor
+    }
+
     setSectionTitles(newItems);
     setDragDisabled(true);
   }

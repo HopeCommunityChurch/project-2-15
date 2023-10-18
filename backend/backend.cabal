@@ -45,7 +45,6 @@ common buildDepends
     time,
     tz,
     tzdata,
-    quic,
     vector,
     cryptonite,
     QuickCheck,
@@ -58,6 +57,11 @@ common buildDepends
     email-validate,
     wreq,
     parsec,
+    HaskellNet,
+    mime-mail,
+    network,
+    lucid,
+    clay,
 
   default-extensions:
     OverloadedStrings,
@@ -124,8 +128,12 @@ library
     Password,
     SwaggerHelpers,
     Orphans,
+    Mail,
     Fields.Email,
-    Bible.Esv.Parser
+    Bible.Esv.Parser,
+    Emails.Base,
+    Emails.Welcome,
+    Emails.PasswordReset,
 
 
   build-depends:

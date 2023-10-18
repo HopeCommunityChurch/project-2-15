@@ -26,7 +26,7 @@ data Book
   | Nehemiah
   | Esther
   | Job
-  | Psalm
+  | Psalms
   | Proverbs
   | Ecclesiastes
   | SongOfSolomon
@@ -95,7 +95,7 @@ bookToText Ezra = "Ezra"
 bookToText Nehemiah = "Nehemiah"
 bookToText Esther = "Esther"
 bookToText Job = "Job"
-bookToText Psalm = "Psalm"
+bookToText Psalms = "Psalms"
 bookToText Proverbs = "Proverbs"
 bookToText Ecclesiastes = "Ecclesiastes"
 bookToText SongOfSolomon = "SongOfSolomon"
@@ -163,7 +163,7 @@ textToBook "Ezra" = Just Ezra
 textToBook "Nehemiah" = Just Nehemiah
 textToBook "Esther" = Just Esther
 textToBook "Job" = Just Job
-textToBook "Psalm" = Just Psalm
+textToBook "Psalms" = Just Psalms
 textToBook "Proverbs" = Just Proverbs
 textToBook "Ecclesiastes" = Just Ecclesiastes
 textToBook "SongOfSolomon" = Just SongOfSolomon
@@ -284,7 +284,7 @@ jobParser :: Monad m => ParsecT Text u m Book
 jobParser = string "Job" $> Job
 
 psalmParser :: Monad m => ParsecT Text u m Book
-psalmParser = string "Psalm" $> Psalm
+psalmParser = string "Psalms" $> Psalms
 
 proverbsParser :: Monad m => ParsecT Text u m Book
 proverbsParser = string "Proverbs" $> Proverbs

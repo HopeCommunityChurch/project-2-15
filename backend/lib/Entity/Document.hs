@@ -23,7 +23,6 @@ import Database.Beam (
   select,
   update,
   val_,
-  guard_',
   (<-.),
   (==.),
   (==?.),
@@ -33,7 +32,6 @@ import Database.Beam.Postgres (PgJSONB (..))
 import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam)
 import Entity qualified as E
 import Entity.AuthUser
-import Entity.GroupStudy qualified as GroupStudy
 import Entity.User qualified as User
 import Types qualified as T
 

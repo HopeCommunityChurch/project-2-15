@@ -31,14 +31,17 @@ export function SignUpPage() {
       setSignupError("passwords don't match");
       return;
     }
+
     if (password().length < 9) {
       setSignupError("passwords must be more than 8 characters long");
       return;
     }
+
     if (email() == "") {
       setSignupError("empty email address");
       return;
     }
+
     if (name() == "") {
       setSignupError("empty name");
       return;
@@ -63,8 +66,9 @@ export function SignUpPage() {
             setSignupError(res.toString());
           })
           .with({ state: "success" }, () => {
-            updateLoginState();
-            nav("/app/studies");
+            updateLoginState().then( () => {
+              nav("/app/studies");
+            });
           })
           .exhaustive();
       })
