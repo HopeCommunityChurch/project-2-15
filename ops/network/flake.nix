@@ -47,6 +47,14 @@
           enable = true;
         };
 
+        services.journald = {
+          rateLimitBurst = 0;
+          rateLimitInterval = "0";
+          extraConfig = "
+            SystemKeepFree=2G
+          ";
+        };
+
         services.nginx =
         let frontend = inputs.frontend.packages.x86_64-linux.frontend;
             pkgs = import nixpkgs {};
