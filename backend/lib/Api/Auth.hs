@@ -20,24 +20,27 @@ import Database.Beam (
   insertValues,
   runInsert,
   runSelectReturningOne,
-  update,
   runUpdate,
   select,
+  update,
   val_,
-  (==.),
   (<-.),
+  (==.),
   (>=.),
  )
 import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
+import Emails.PasswordReset qualified
+import Emails.Welcome qualified
 import Entity qualified as E
+import Entity.AuthUser (AuthUser (..))
 import Entity.User qualified as User
-import Entity.AuthUser (AuthUser(..))
-import EnvFields (HasEnvType, EnvType(..), HasUrl)
+import EnvFields (EnvType (..), HasEnvType, HasUrl)
+import Mail qualified
 import Network.Wai (
   Request,
   requestHeaders,
  )
-import Password (Password, PasswordHash, comparePassword)
+import Password (NewPassword, Password, PasswordHash, comparePassword)
 import Servant
 import Servant.Server.Experimental.Auth (
   AuthHandler,
@@ -47,9 +50,6 @@ import Servant.Server.Experimental.Auth (
 import SwaggerHelpers (AuthDescription (..))
 import Types qualified as T
 import Web.Cookie qualified as Cookie
-import Mail qualified
-import Emails.Welcome qualified
-import Emails.PasswordReset qualified
 
 
 instance AuthDescription "cookie" where
@@ -299,6 +299,32 @@ resetPassword MkPassReset{email} = do
   pure NoContent
 
 
+data PassResetTokenReq = MkPassResetTokenReq
+  { token :: T.PasswordResetToken
+  , password :: NewPassword
+  }
+  deriving (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON, ToSchema)
+
+
+data ResetTokenNotFoundOrExpired = ResetTokenNotFoundOrExpired
+  deriving (Show, Generic)
+  deriving anyclass (Exception, ToJSON, Errs.ApiException)
+
+
+resetPasswordToken
+  :: ( MonadDb env m
+     )
+  => PassResetTokenReq
+  -> m (CookieHeader ())
+resetPasswordToken MkPassResetTokenReq{token, password} = do
+  mUserId <- User.getUserFromResetToken token
+  case mUserId of
+    Nothing -> Errs.throwApi ResetTokenNotFoundOrExpired
+    Just userId -> do
+      User.updatePassword userId password
+      setCookie userId
+
 
 type Api =
   "password"
@@ -314,6 +340,9 @@ type Api =
   :<|> "password_reset"
     :> ReqBody '[JSON] PassReset
     :> PostNoContent
+  :<|> "password_reset_token"
+    :> ReqBody '[JSON] PassResetTokenReq
+    :> Verb 'POST 204 '[JSON] (CookieHeader ())
 
 
 server
@@ -327,3 +356,4 @@ server =
   :<|> logout
   :<|> createUser
   :<|> resetPassword
+  :<|> resetPasswordToken
