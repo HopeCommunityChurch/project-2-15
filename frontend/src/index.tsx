@@ -7,6 +7,7 @@ import { LandingHomePage } from "./Pages/LandingHomePage/LandingHomePage";
 import { LoginPage } from "./Pages/LoginPage/login";
 import { SignUpPage } from "./Pages/SignUpPage/signup";
 import { ResetPasswordPage } from "./Pages/ResetPasswordPage/resetpassword";
+import { ResetPasswordTokenPage } from "./Pages/ResetPasswordToken/resetpassword";
 import { StudiesPage } from "./Pages/Studies/studies";
 import { StudyPage } from "./Pages/Study/study";
 import { AdminArea } from "./Pages/AdminArea/AdminArea";
@@ -21,6 +22,7 @@ export function App() {
         <Route path={["/", "/app"]} component={LandingHomePage} />
         <Route path={"/app/login"} component={LoginPage} />
         <Route path={"/app/resetpassword"} component={ResetPasswordPage} />
+        <Route path={"/app/reset_token"} component={ResetPasswordTokenPage} />
         <Route path={"/app/signup"} component={SignUpPage} />
         <Route path={"/app/studies"} component={StudiesPage} />
         <Route path={"/app/admin"} component={AdminArea} />

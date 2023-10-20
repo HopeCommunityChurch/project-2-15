@@ -17,6 +17,8 @@ import Database.Beam (
   select,
   val_,
   (==.),
+  (<-.),
+  (>=.), runUpdate, update, SqlDeconstructMaybe (isNothing_),
  )
 import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
 import DbHelper (MonadDb, runBeam)
@@ -147,4 +149,44 @@ passwordResetToken email = do
             expiresAt
             now
           ]
+
+getUserFromResetToken
+  :: MonadDb env m
+  => T.PasswordResetToken
+  -> m (Maybe T.UserId)
+getUserFromResetToken token = do
+  now <- getCurrentTime
+  userId <- runBeam
+    $ runSelectReturningOne
+    $ select
+    $ do
+      reset <- all_ Db.db.userPasswordReset
+      guard_ $ reset.token ==. val_ token
+      guard_ $ reset.expiresAt >=. val_ now
+      guard_ $ isNothing_ $ reset.usedAt
+      pure reset.userId
+
+  runBeam
+    $ runUpdate
+    $ update
+        Db.db.userPasswordReset
+        (\ r -> r.usedAt <-. val_ (Just now))
+        (\ r -> r.token ==. val_ token)
+
+  pure userId
+
+
+updatePassword
+  :: MonadDb env m
+  => T.UserId
+  -> NewPassword
+  -> m ()
+updatePassword userId pwd = do
+  hash <- liftIO $ getHash pwd
+  runBeam
+    $ runUpdate
+    $ update
+        Db.db.userPassword
+        (\ r -> r.password <-. val_ hash)
+        (\ r -> r.userId ==. val_ userId)
 
