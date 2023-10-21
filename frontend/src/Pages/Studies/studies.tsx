@@ -39,7 +39,6 @@ function Studies(currentUser: T.PublicUser) {
       <div class={classes.studiesPage}>
         <div class={classes.pageHeader}>
           <h1>My Studies</h1>
-          <a href="/app/trash">View Trash</a>
         </div>
         <table class={classes.tableContainer}>
           <thead>

@@ -385,6 +385,17 @@ export class QuestionView implements NodeView {
     addAnswer.innerText = "+ Answer";
     addAnswer.className = classes.addAnswer;
     this.dom.appendChild(addAnswer);
+
+    const deleteQuestion = document.createElement("button");
+    deleteQuestion.onclick = (e) => {
+      e.preventDefault();
+      removeQuestion(this.questionId, view.state, view.dispatch);
+      delete this.questionMap[this.questionId];
+    };
+    deleteQuestion.innerText = "delete question";
+    deleteQuestion.className = classes.deleteQuestion;
+    this.dom.appendChild(deleteQuestion);
+
   }
 
   update(node: Node) {
@@ -1023,6 +1034,47 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
     return true;
   }
 };
+
+
+function removeQuestion (
+  questionId : string,
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+) {
+  if (dispatch) {
+    const qMark = textSchema.marks.questionReference.create({ questionId });
+    const tr = state.tr.removeMark(0, state.doc.nodeSize-2, qMark);
+
+    let posOfQuestion = null;
+    let nodeQuestion = null;
+    tr.doc.descendants((node: Node, pos: number) => {
+      if (node.type.name === "section") {
+        return true;
+      }
+      if (node.type.name === "studyBlocks") {
+        return true;
+      }
+      if (node.type.name === "questions") {
+        return true;
+      }
+      if (node.type.name === "question") {
+        if (node.attrs.questionId === questionId) {
+          posOfQuestion = pos;
+          nodeQuestion = node;
+        }
+        return false;
+      }
+      return false;
+    });
+    if (posOfQuestion !== null) {
+      tr.deleteRange(posOfQuestion, posOfQuestion + nodeQuestion.nodeSize);
+    }
+
+    dispatch(tr);
+    return true;
+  }
+};
+
 
 function moveSection(
   originalIndex: number,

@@ -97,15 +97,6 @@ export function StudiesTopNav(props: StudiesTopNavProps) {
                 + New Study
               </Button>
             </li>
-            <li class={classes.notificationBellContainer}>
-              <div
-                class={classes.notificationBell}
-                onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown())}
-              >
-                <img src={NotificationBell} />
-                <div class={classes.notificationBadge}>{notificationList.length}</div>
-              </div>
-            </li>
             <Show when={showNotificationsDropdown()}>
               <div class={classes.notificationDropdown}>
                 {notificationList.map((notification) => (
@@ -157,11 +148,6 @@ export function StudiesTopNav(props: StudiesTopNavProps) {
                 <a href="/app/account" class={classes.fullWidthLink}>
                   My Account
                 </a>
-              </li>
-              <li>
-                <A href="/app/admin" class={classes.fullWidthLink}>
-                  Admin Area
-                </A>
               </li>
               <li>
                 <span onClick={logoutClick} class={classes.fullWidthLink}>
@@ -346,6 +332,9 @@ function AddStudy(prop: AddStudyProp) {
 
   function createStudySubmitted(e: Event) {
     e.preventDefault();
+    if ( studyTitleValue().trim() === "" ) {
+      return;
+    }
     apiCreateDocument({
       name: studyTitleValue(),
     }).then((r) => {
@@ -383,179 +372,6 @@ function AddStudy(prop: AddStudyProp) {
             Ex: "<em>Romans {formattedDate} Study</em>" or "
             <em>Wednesday Night Colossians Study</em>"
           </p>
-          <label for="studyBook">Study Template (Optional)</label>
-          <div class={classes.autocomplete}>
-            {selectedBook() ? (
-              <span class={classes.tag} onClick={() => setSelectedBook(null)}>
-                {selectedBook()}
-                <img src={CloseXIcon} alt="Close" class={classes.removeTagIcon} />
-              </span>
-            ) : (
-              <>
-                <img src={SearchIcon} class={classes.searchIcon} alt="Search" />
-                <input
-                  type="text"
-                  id="studyBook"
-                  placeholder="Ex: Romans"
-                  value={studyBookValue()}
-                  onInput={bookSelectOnInput}
-                  onKeyDown={bookSelectOnKey}
-                />
-              </>
-            )}
-            <Show when={studyBookValue() && !selectedBook()}>
-              <ul class={classes.dropdownList}>
-                {filteredBooks().length > 0 ? (
-                  filteredBooks().map((book, index) => (
-                    <li
-                      onClick={() => selectBook(book)}
-                      class={focusedBookIndex() === index ? classes.focusedBook : ""}
-                    >
-                      {book}
-                    </li>
-                  ))
-                ) : (
-                  <li class={classes.noResult}>There are no books that match your search</li>
-                )}
-              </ul>
-            </Show>
-          </div>
-          <label>Study Block</label>
-          <div class={classes.studyBlockDropdownContainer}>
-            <div class={classes.autocomplete}>
-              <img src={SearchIcon} class={classes.searchIcon} alt="Search" />
-              <input
-                type="text"
-                id="studyBlock"
-                placeholder="Add Study Items"
-                value={studyBlockValue()}
-                onInput={(e) => setStudyBlockValue(e.target.value)}
-                onFocus={() => setShowStudyBlockDropdown(true)}
-                onkeydown={(e) => e.key === "Enter" && e.preventDefault()}
-              />
-              <Show when={studyBlockValue()}>
-                <img
-                  src={CloseXIcon}
-                  class={`${classes.closeIcon} preventClose`}
-                  alt="Clear"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setStudyBlockValue("");
-                  }}
-                />
-              </Show>
-              <button class={classes.studyBlockResetButton} type="button">
-                Reset
-              </button>
-            </div>
-            <Show when={showStudyBlockDropdown()}>
-              <div class={classes.studyBlockDropdown}>
-                <div class={classes.studyBlockCategory}>
-                  {filteredStudyBlockItems().length > 0 ? (
-                    filteredStudyBlockItems().map((item) => (
-                      <div
-                        class={`${classes.studyBlockItem} ${
-                          selectedStudyItems().some(
-                            (selectedItem) => selectedItem.Name === item.Name
-                          )
-                            ? classes.selectedItem
-                            : ""
-                        }`}
-                        onClick={() => toggleStudyItem(item)}
-                      >
-                        <strong>{item.Name}</strong>
-                        <p>{item.Description}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <p class={classes.studyBlockNoResults}>
-                      No study block items match your search.
-                      <br />
-                      Maybe you're looking to create a <a onClick={addCustomBlock}>Custom Block?</a>
-                    </p>
-                  )}
-                </div>
-              </div>
-            </Show>
-          </div>
-          <div class={classes.studyBlockPreview}>
-            <div class={classes.reorderable}>
-              {selectedStudyItems().map((item, index) => {
-                const [localName, setLocalName] = createSignal(item.Name);
-                const [localDescription, setLocalDescription] = createSignal(item.Description);
-                return (
-                  <>
-                    <div class={classes.reorderableItem}>
-                      <div class={classes.upAndDownArrows}>
-                        <img
-                          class={classes.arrowUp}
-                          src={ArrowIcon}
-                          onClick={() => moveItemUp(index)}
-                        />
-                        <img
-                          src={ArrowIcon}
-                          class={classes.arrowDown}
-                          onClick={() => moveItemDown(index)}
-                        />
-                      </div>
-                      <div class={classes.reordableItemNameAndDescription}>
-                        <Show when={!item.Required}>
-                          <img
-                            src={CloseXIcon}
-                            alt="Close"
-                            class={classes.removeReordableItemIcon}
-                            onClick={() => {
-                              // Create a new array without the item at the current index
-                              const updatedStudyItems = [...selectedStudyItems()].filter(
-                                (_, idx) => idx !== index
-                              );
-                              setSelectedStudyItems(updatedStudyItems);
-                            }}
-                          />
-                        </Show>
-                        {item.Custom ? (
-                          <>
-                            <label>Custom Name</label>
-                            <br />
-                            <input
-                              class={classes.customReordableItemName}
-                              type="text"
-                              value={localName()}
-                              onInput={(e) => setLocalName(e.target.value)}
-                              onBlur={() => updateStudyItem(localName(), item.Description, index)}
-                            />
-                            <br />
-                          </>
-                        ) : (
-                          <div class={classes.reordableItemNameContainer}>
-                            <p class={classes.reordableItemName}>{item.Name}</p>
-                            <Show when={item.Required}>
-                              <img src={PadlockIcon} class={classes.padlockIcon} />
-                            </Show>
-                          </div>
-                        )}
-                        {item.Custom ? (
-                          <>
-                            <label>Custom Description</label>
-                            <br />
-                            <input
-                              class={classes.customReordableItemDescription}
-                              type="text"
-                              value={localDescription()}
-                              onInput={(e) => setLocalDescription(e.target.value)}
-                              onBlur={() => updateStudyItem(item.Name, localDescription(), index)}
-                            />
-                          </>
-                        ) : (
-                          <p class={classes.reordableItemDescription}>{item.Description}</p>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                );
-              })}
-            </div>
-          </div>
           <div
             class={classes.tooltipContainer}
             onMouseEnter={() => {
@@ -596,10 +412,7 @@ async function apiCreateDocument(
 ): Promise<Network.SimpleNetworkState<T.DocRaw>> {
   const body: ApiCreateDocument = {
     name: crStudy.name,
-    document: {
-      type: "doc",
-      content: [],
-    },
+    document: blankDoc,
   };
   return Network.request("/document", {
     method: "POST",
@@ -609,6 +422,9 @@ async function apiCreateDocument(
     body: JSON.stringify(body),
   });
 }
+
+const blankDoc =
+{"type":"doc","content":[{"type":"section","content":[{"type":"sectionHeader","content":[{"text":"Untitled","type":"text"}]},{"type":"studyBlocks","content":[{"type":"questions"}]}]}]};
 
 const studyBlockItems = [
   {
