@@ -68,15 +68,8 @@ export function TextEditorToolbar({
         />
         <div class={classes.seperator} />
         <ToolbarGroup1 editor={editor} />
-        <ToolbarGroup2 editor={editor} />
         <ToolbarGroup3 editor={editor} />
         <ToolbarGroup4 editor={editor} />
-        <ToolbarGroup5
-          editor={editor}
-          isSplitScreen={isSplitScreen}
-          setSplitScreen={setSplitScreen}
-          windowWidth={windowWidth}
-        />
         <ClearFormattingSection editor={editor} />
         <div class={classes.extendedMenuContainer}>
           <img
@@ -90,15 +83,8 @@ export function TextEditorToolbar({
           <Show when={showExtendedToolbar()}>
             <div class={classes.extendedToolbar}>
               <ToolbarGroup1 editor={editor} />
-              <ToolbarGroup2 editor={editor} />
               <ToolbarGroup3 editor={editor} />
               <ToolbarGroup4 editor={editor} />
-              <ToolbarGroup5
-                editor={editor}
-                isSplitScreen={isSplitScreen}
-                setSplitScreen={setSplitScreen}
-                windowWidth={windowWidth}
-              />
               <ClearFormattingSection editor={editor} />
             </div>
           </Show>

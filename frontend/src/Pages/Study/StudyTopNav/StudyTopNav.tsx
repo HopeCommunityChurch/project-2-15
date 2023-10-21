@@ -163,22 +163,6 @@ export function StudyTopNav(props: StudyTopNavProps) {
         <img class={classes.logo} src={Logo} onClick={() => nav("/app/studies")} />
         <div class={classes.studyHeaderText}>
           <p>{props.doc.name}</p>
-          <div>
-            <p>Study Template</p>
-            <p class={classes.hideBelow750px}>|</p>
-            <p class={classes.hideBelow750px}>Study Collaborators</p>
-          </div>
-        </div>
-        <div class={`${classes.otherUsersCurrentlyViewing} ${classes.hideBelow750px}`}>
-          {otherUsersCurrentlyViewing.map((user) => (
-            <div class={classes.userInitials}>{user.name.slice(0, 2).toUpperCase()}</div>
-          ))}
-        </div>
-        <div class={classes.shareButton} onClick={() => setShowShareModal(true)}>
-          <Button type="Blue">
-            <img src={ShareIcon} />
-            <p>Share</p>
-          </Button>
         </div>
         <div>
           {
@@ -211,16 +195,6 @@ export function StudyTopNav(props: StudyTopNavProps) {
                       <li>
                         <a href="/app/studies" class={classes.fullWidthLink}>
                           Home
-                        </a>
-                      </li>
-                      <li>
-                        <a href="/app/account" class={classes.fullWidthLink}>
-                          My Account
-                        </a>
-                      </li>
-                      <li>
-                        <a href="/app/admin" class={classes.fullWidthLink}>
-                          Admin Area
                         </a>
                       </li>
                       <li>
