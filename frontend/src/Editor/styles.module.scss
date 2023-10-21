@@ -272,6 +272,7 @@ questionouter {
   display: grid;
   grid-template-areas: "q qt" "b a";
   grid-template-columns: 1.4em 1fr;
+  position: relative;
 }
 
 questionouter > div {
@@ -327,6 +328,26 @@ questionanswer p {
 
   &:hover {
     background-color: #ddeafc;
+  }
+}
+
+.deleteQuestion {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  color: white;
+  margin-left: 10px;
+  background-color: #ff7d7d;
+  white-space: nowrap;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 11px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #c63333;
   }
 }
 

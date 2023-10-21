@@ -392,8 +392,8 @@ export class QuestionView implements NodeView {
       removeQuestion(this.questionId, view.state, view.dispatch);
       delete this.questionMap[this.questionId];
     };
-    deleteQuestion.innerText = "trash can here";
-    deleteQuestion.className = classes.addAnswer;
+    deleteQuestion.innerText = "delete question";
+    deleteQuestion.className = classes.deleteQuestion;
     this.dom.appendChild(deleteQuestion);
 
   }
