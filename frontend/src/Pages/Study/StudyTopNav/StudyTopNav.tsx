@@ -193,9 +193,9 @@ export function StudyTopNav(props: StudyTopNavProps) {
                   >
                     <ul>
                       <li>
-                        <a href="/app/studies" class={classes.fullWidthLink}>
+                        <A href="/app/studies" class={classes.fullWidthLink}>
                           Home
-                        </a>
+                        </A>
                       </li>
                       <li>
                         <span onClick={logoutClick} class={classes.fullWidthLink}>
