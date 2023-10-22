@@ -159,15 +159,15 @@ type Api =
   :<|> AuthProtect "cookie"
     :> Summary "Gets all the studies for a user"
     :> Description "Gets all the studies for a user"
-    :> Capture "studyId" T.GroupStudyId
+    :> Capture "groupStudyId" T.GroupStudyId
     :> Get '[JSON] GroupStudy.GetGroupStudy
-  :<|> Capture "studyId" T.GroupStudyId :> "share"
+  :<|> Capture "groupStudyId" T.GroupStudyId :> "share"
     :> AuthProtect "cookie"
     :> Summary "shares the study with other people"
     :> Description "shares the study with other people"
     :> ReqBody '[JSON] [Shares.ShareUnit]
     :> PostNoContent
-  :<|> Capture "studyId" T.GroupStudyId :> "share"
+  :<|> Capture "groupStudyId" T.GroupStudyId :> "share"
     :> AuthProtect "cookie"
     :> Summary "Get who you have invited to share the study"
     :> Description "Get who you have invited to share the study"
