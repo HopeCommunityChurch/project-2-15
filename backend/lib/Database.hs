@@ -260,6 +260,43 @@ groupStudyTable =
       }
 
 
+data GroupStudyShareT f = MkGroupStudyShareT
+  { groupStudyId :: C f T.GroupStudyId
+  , shareToken :: C f T.ShareToken
+  , email :: C f T.Email
+  , shareAsOwner :: C f Bool
+  , expiresAt :: C f UTCTime
+  , usedAt :: C f (Maybe UTCTime)
+  , message :: C f (Maybe Text)
+  , created :: C f UTCTime
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table GroupStudyShareT where
+  data PrimaryKey GroupStudyShareT f =
+    GroupStudyShareKey
+      (C f T.ShareToken)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = GroupStudyShareKey <$>  (.shareToken)
+
+groupStudyShareTable :: TableMod GroupStudyShareT
+groupStudyShareTable =
+  modifyTable
+    "group_study_share"
+    MkGroupStudyShareT
+      { groupStudyId = fieldNamed "groupStudyId"
+      , shareToken = fieldNamed "shareToken"
+      , email = fieldNamed "email"
+      , shareAsOwner = fieldNamed "shareAsOwner"
+      , expiresAt = fieldNamed "expiresAt"
+      , usedAt = fieldNamed "usedAt"
+      , message = fieldNamed "message"
+      , created = fieldNamed "created"
+      }
+
+
 data GroupStudyOwnerT f = MkGroupStudyOwnerT
   { groupStudyId :: C f T.GroupStudyId
   , userId :: C f T.UserId
@@ -353,6 +390,7 @@ data Db f = MkDb
   , studyTemplate :: f (TableEntity StudyTemplateT)
   , groupStudy :: f (TableEntity GroupStudyT)
   , groupStudyOwner :: f (TableEntity GroupStudyOwnerT)
+  , groupStudyShare :: f (TableEntity GroupStudyShareT)
   , document :: f (TableEntity DocumentT)
   , documentEditor :: f (TableEntity DocumentEditorT)
   }
@@ -372,6 +410,7 @@ db = defaultDbSettings `withDbModification`
           , studyTemplate = studyTemplateTable
           , groupStudy = groupStudyTable
           , groupStudyOwner = groupStudyOwnerTable
+          , groupStudyShare = groupStudyShareTable
           , document = documentTable
           , documentEditor = documentEditorTable
           }

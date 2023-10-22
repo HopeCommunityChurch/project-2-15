@@ -116,6 +116,7 @@ library
     Entity.User,
     Entity.AuthUser,
     Entity.GroupStudy,
+    Entity.Shares,
     Entity.Document,
     Api,
     Api.Helpers,
@@ -134,6 +135,7 @@ library
     Emails.Base,
     Emails.Welcome,
     Emails.PasswordReset,
+    Emails.ShareGroupStudy,
 
 
   build-depends:

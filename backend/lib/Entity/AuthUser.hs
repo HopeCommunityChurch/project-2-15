@@ -16,6 +16,7 @@ import Types qualified as T
 
 data AuthUser = MkAuthUser
   { userId :: T.UserId
+  , email :: T.Email
   , isElder :: Bool
   , churchId :: T.ChurchId
   }
@@ -29,6 +30,7 @@ type instance E.DbUser Db.Db = AuthUser
 instance E.Entity AuthUser where
   data DbEntity AuthUser f = MkDbAuthUser
     { userId :: C f T.UserId
+    , email :: C f T.Email
     , isElder :: C f Bool
     , churchId :: C f T.ChurchId
     }
@@ -40,6 +42,7 @@ instance E.Entity AuthUser where
   toEntity MkDbAuthUser{..} =
     MkAuthUser
       userId
+      email
       isElder
       churchId
 
@@ -54,6 +57,7 @@ instance E.Entity AuthUser where
     pure $
       MkDbAuthUser
         user.userId
+        user.email
         isElder
         user.churchId
 
