@@ -2552,6 +2552,7 @@ function parseNumericRange(numericReference) {
     EndVerse: null,
   };
 
+  // TODO: this is wrong
   const regexPattern =
     /^(?<StartChapter>\d{1,3}):?(?<StartVerse>\d{0,3})-?(?<EndChapter>\d{0,3}):?(?<EndVerse>\d{0,3})$/;
 
@@ -2714,15 +2715,15 @@ export function isValidVerseReference(reference: string): string | null {
     numericRef: string;
   };
 
-  if (!parseNumericRange(numericRef)) {
-    console.log("parseNumericRange failed");
-    return null;
-  }
+  // if (!parseNumericRange(numericRef)) {
+  //   console.log("parseNumericRange failed");
+  //   return null;
+  // }
 
-  if (!isNumericRangeValid(parseNumericRange(numericRef), book)) {
-    console.log("parseNumericRange failed");
-    return null;
-  }
+  // if (!isNumericRangeValid(parseNumericRange(numericRef), book)) {
+  //   console.log("parseNumericRange failed");
+  //   return null;
+  // }
 
   return book + " " + numericRef;
 }
