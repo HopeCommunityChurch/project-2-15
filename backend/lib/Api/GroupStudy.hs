@@ -53,11 +53,11 @@ shareGroupStudy
      , Mail.HasSmtp env
      , HasUrl env
      )
-  => AuthUser
-  -> T.GroupStudyId
+  => T.GroupStudyId
+  -> AuthUser
   -> [Shares.ShareUnit]
   -> m NoContent
-shareGroupStudy user gsId shares = do
+shareGroupStudy gsId user shares = do
   groupStudy <- getByIdForUser @GroupStudy.GetGroupStudy user gsId
   unless (user.userId `elem` fmap (.userId) groupStudy.owners)
     Errs.throwAuthErr
@@ -67,6 +67,22 @@ shareGroupStudy user gsId shares = do
     let email = Emails.ShareGroupStudy.mail share groupStudy.name token url
     Mail.sendMail email
   pure NoContent
+
+
+getGroupShareData
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     , HasUrl env
+     )
+  => T.GroupStudyId
+  -> AuthUser
+  -> m [Shares.GetShareData]
+getGroupShareData gsId user = do
+  groupStudy <- getByIdForUser @GroupStudy.GetGroupStudy user gsId
+  unless (user.userId `elem` fmap (.userId) groupStudy.owners)
+    Errs.throwAuthErr
+  Shares.getGroupShareData gsId
+
 
 
 data AcceptShare = MkAcceptShare
@@ -145,13 +161,17 @@ type Api =
     :> Description "Gets all the studies for a user"
     :> Capture "studyId" T.GroupStudyId
     :> Get '[JSON] GroupStudy.GetGroupStudy
-  :<|> "share"
+  :<|> Capture "studyId" T.GroupStudyId :> "share"
     :> AuthProtect "cookie"
     :> Summary "shares the study with other people"
     :> Description "shares the study with other people"
-    :> Capture "studyId" T.GroupStudyId
     :> ReqBody '[JSON] [Shares.ShareUnit]
     :> PostNoContent
+  :<|> Capture "studyId" T.GroupStudyId :> "share"
+    :> AuthProtect "cookie"
+    :> Summary "Get who you have invited to share the study"
+    :> Description "Get who you have invited to share the study"
+    :> Get '[JSON] [Shares.GetShareData]
   :<|> "share"
     :> "accept"
     :> AuthProtect "cookie"
@@ -197,6 +217,7 @@ server =
   :<|> createStudy
   :<|> getGroupStudyMeta
   :<|> shareGroupStudy
+  :<|> getGroupShareData
   :<|> acceptShare
   :<|> rejectShare
   :<|> Shares.getSharesForUser
