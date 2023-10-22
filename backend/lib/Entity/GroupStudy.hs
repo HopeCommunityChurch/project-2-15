@@ -1,6 +1,5 @@
 module Entity.GroupStudy where
 
-import Data.Time.Lens qualified as TL
 import Data.Aeson (Object)
 import Database qualified as Db
 import Database.Beam (
@@ -207,43 +206,3 @@ addStudy userId crStudy = do
       ]
 
   pure study.groupStudyId
-
-
-data ShareUnit = MkShareUnit
-  { email :: T.Email
-  , asOwner :: Bool
-  , message :: Maybe Text
-  }
-  deriving (Show, Generic)
-  deriving anyclass (FromJSON, ToJSON, ToSchema)
-
-
-addShares
-  :: MonadDb env m
-  => T.GroupStudyId
-  -> [ShareUnit]
-  -> m [(ShareUnit, T.ShareToken)]
-addShares gsId shares = do
-  st <- forM shares $ \ email -> do
-    token <- T.genShareToken
-    pure (email, token)
-  now <- getCurrentTime
-
-  runBeam
-    $ runInsert
-    $ insert Db.db.groupStudyShare
-    $ insertValues
-    $ st <&>
-      (\ (MkShareUnit{email, asOwner, message}, token) ->
-        Db.MkGroupStudyShareT
-          gsId
-          token
-          email
-          asOwner
-          (now & (TL.flexDT . TL.days) +~ 14)
-          Nothing
-          message
-          now
-      )
-  pure st
-

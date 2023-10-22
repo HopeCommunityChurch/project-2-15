@@ -268,6 +268,7 @@ data GroupStudyShareT f = MkGroupStudyShareT
   , expiresAt :: C f UTCTime
   , usedAt :: C f (Maybe UTCTime)
   , message :: C f (Maybe Text)
+  , rejected :: C f Bool
   , created :: C f UTCTime
   }
   deriving (Generic)
@@ -293,6 +294,7 @@ groupStudyShareTable =
       , expiresAt = fieldNamed "expiresAt"
       , usedAt = fieldNamed "usedAt"
       , message = fieldNamed "message"
+      , rejected = fieldNamed "rejected"
       , created = fieldNamed "created"
       }
 

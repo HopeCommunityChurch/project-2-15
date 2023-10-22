@@ -3,7 +3,6 @@ module Emails.ShareGroupStudy where
 import Data.CaseInsensitive qualified as CI
 import Emails.Base
 import Entity.Shares qualified as Shares
-import Fields.Email (Email)
 import Lucid hiding (for_)
 import Network.Mail.Mime (Address (..), Mail (..), htmlPart)
 import Types qualified as T
