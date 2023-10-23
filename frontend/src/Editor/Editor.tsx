@@ -905,14 +905,15 @@ let verseReferencePlugin = new Plugin({
     decorations(state: EditorState) {
       const decorations = [];
       const verses = {};
+      let sectionIndex = -1;
       state.doc.descendants((node, position) => {
-        if (node.type.name === "section") return true;
+        if (node.type.name === "section") { sectionIndex ++; return true; }
         if (node.type.name === "bibleText") return true;
         if (node.type.name === "chunk") return true;
         if (node.type.name !== "text") return false;
         const verse = node.marks.find((m) => m.type.name === "verse");
         if (!verse) return false;
-        const key = verse.attrs.book + " " + verse.attrs.chapter + ":" + verse.attrs.verse;
+        const key = sectionIndex + "-" + verse.attrs.book + " " + verse.attrs.chapter + ":" + verse.attrs.verse;
         if (verses[key]) {
           return false;
         }
