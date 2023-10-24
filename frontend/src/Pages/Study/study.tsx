@@ -72,6 +72,8 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   const [sectionEditorMode, setSectionEditorMode] = createSignal(false);
   const [sectionTitles, setSectionTitles] = createSignal([]);
   const [dragDisabled, setDragDisabled] = createSignal(true);
+  const [saving, setSaving] = createSignal<boolean>(false);
+  const [savingError, setSavingError] = createSignal<string | null>(null);
 
   let editorRoot: HTMLDivElement;
   let editorRootSplitScreen: HTMLDivElement;
@@ -164,23 +166,28 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   });
 
   // Helper Functions
-  const updateSignal = throttle(
-    (change) =>
-      Network.request("/document/" + doc.docId, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(change),
-      })
-        .then((res) => {
-          updateSectionTitles(res.body);
-        })
-        .catch((err) => {
-          console.error(err);
-        }),
-    500
-  );
+  const updateSignal = throttle((change) => {
+    setSaving(true);
+    Network.request("/document/" + doc.docId, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(change),
+    }).then((res) => {
+      setSaving(false);
+      match(res)
+      .with({ state: "error" }, ({ body }) =>
+        setSavingError(JSON.stringify(body))
+      ).with({ state: "success" }, ({ body }) => {
+        setSavingError(null);
+        updateSectionTitles(body);
+      }).exhaustive()
+    }).catch((err) => {
+      setSaving(false);
+      setSavingError(err)
+    });
+  }, 500);
 
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);
@@ -264,6 +271,8 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         isSidebarOpen={isSidebarOpen}
         setSidebarOpen={setSidebarOpen}
         isTopbarOpen={isTopbarOpen}
+        saving={saving}
+        savingError={savingError}
         doc={doc}
       />
       <TextEditorToolbar

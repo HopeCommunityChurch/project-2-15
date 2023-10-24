@@ -918,6 +918,7 @@ let verseReferencePlugin = new Plugin({
           return false;
         }
         verses[key] = { position, verse: verse.attrs };
+        return false;
       });
       Object.keys(verses).forEach((key) => {
         const { position, verse } = verses[key];
