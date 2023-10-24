@@ -896,7 +896,6 @@ const verseRefWidget = (verse) => () => {
                 + book + "/"
                 + verse.chapter + "-" + verse.verse + ".htm";
     window.open(url, "_blank").focus();
-    console.log(verse);
   };
   elem.className = classes.verseRef;
   elem.contentEditable = "true";
