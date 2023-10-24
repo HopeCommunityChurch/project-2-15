@@ -889,6 +889,15 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
 
 const verseRefWidget = (verse) => () => {
   const elem = document.createElement("span");
+  elem.onclick = (e) => {
+    e.preventDefault();
+    let book = verse.book.replace(" ", "_").toLowerCase();
+    let url = "https://biblehub.com/"
+                + book + "/"
+                + verse.chapter + "-" + verse.verse + ".htm";
+    window.open(url, "_blank").focus();
+    console.log(verse);
+  };
   elem.className = classes.verseRef;
   elem.contentEditable = "true";
   if (verse.verse === 1) {
