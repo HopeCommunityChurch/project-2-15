@@ -1053,6 +1053,8 @@ function deleteQuestionSelection (state: EditorState, dispatch?: (tr: Transactio
     if (anchor.parentOffset !== 0) return false;
     const questionTextNode: Node = anchor.node(anchor.depth-1);
     if (questionTextNode.type.name !== "questionText") return false;
+    if (anchor.index(anchor.depth-1) !== 0) return false;
+
     const questionNode: Node = anchor.node(anchor.depth-2);
     return removeQuestion(questionNode.attrs.questionId, state, dispatch);
   }
@@ -1067,9 +1069,11 @@ function deleteAnswerSelection (state: EditorState, dispatch?: (tr: Transaction)
     if (anchor.parentOffset !== 0) return false;
     const answerTextNode: Node = anchor.node(anchor.depth-1);
     if (answerTextNode.type.name !== "questionAnswer") return false;
+    if (anchor.index(anchor.depth-1) !== 0) return false;
     let pos = anchor.pos-2;
     let endPos = pos + answerTextNode.nodeSize;
     const tr = state.tr.deleteRange(pos, endPos);
+
     dispatch(tr);
     return true;
   }
