@@ -9,7 +9,7 @@ import {
 } from "prosemirror-state";
 import { EditorView, NodeView, DecorationSet, Decoration } from "prosemirror-view";
 import { undoItem, redoItem, MenuItem, MenuItemSpec, menuBar } from "prosemirror-menu";
-import { toggleMark } from "prosemirror-commands";
+import { chainCommands, deleteSelection, joinBackward, selectNodeBackward, toggleMark } from "prosemirror-commands";
 
 import { undo, redo, history } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
@@ -386,15 +386,15 @@ export class QuestionView implements NodeView {
     addAnswer.className = classes.addAnswer;
     this.dom.appendChild(addAnswer);
 
-    const deleteQuestion = document.createElement("button");
-    deleteQuestion.onclick = (e) => {
-      e.preventDefault();
-      removeQuestion(this.questionId, view.state, view.dispatch);
-      delete this.questionMap[this.questionId];
-    };
-    deleteQuestion.innerText = "delete question";
-    deleteQuestion.className = classes.deleteQuestion;
-    this.dom.appendChild(deleteQuestion);
+    // const deleteQuestion = document.createElement("button");
+    // deleteQuestion.onclick = (e) => {
+    //   e.preventDefault();
+    //   removeQuestion(this.questionId, view.state, view.dispatch);
+    //   delete this.questionMap[this.questionId];
+    // };
+    // deleteQuestion.innerText = "delete question";
+    // deleteQuestion.className = classes.deleteQuestion;
+    // this.dom.appendChild(deleteQuestion);
 
   }
 
@@ -754,7 +754,6 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
         if (outerTr.docChanged) view.dispatch(outerTr);
       }
     };
-
     qNode.editor = new EditorView(editorHolder, {
       state: EditorState.create({
         schema: textSchema,
@@ -1045,6 +1044,37 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
   }
 };
 
+function deleteQuestionSelection (state: EditorState, dispatch?: (tr: Transaction) => void) : boolean {
+  const from = state.selection.from;
+  const to = state.selection.to;
+  if (to !== from) return false;
+  if (dispatch) {
+    const anchor = state.selection.$anchor;
+    if (anchor.parentOffset !== 0) return false;
+    const questionTextNode: Node = anchor.node(anchor.depth-1);
+    if (questionTextNode.type.name !== "questionText") return false;
+    const questionNode: Node = anchor.node(anchor.depth-2);
+    return removeQuestion(questionNode.attrs.questionId, state, dispatch);
+  }
+}
+
+function deleteAnswerSelection (state: EditorState, dispatch?: (tr: Transaction) => void) : boolean {
+  const from = state.selection.from;
+  const to = state.selection.to;
+  if (to !== from) return false;
+  if (dispatch) {
+    const anchor = state.selection.$anchor;
+    if (anchor.parentOffset !== 0) return false;
+    const answerTextNode: Node = anchor.node(anchor.depth-1);
+    if (answerTextNode.type.name !== "questionAnswer") return false;
+    let pos = anchor.pos-2;
+    let endPos = pos + answerTextNode.nodeSize;
+    const tr = state.tr.deleteRange(pos, endPos);
+    dispatch(tr);
+    return true;
+  }
+}
+
 
 function removeQuestion (
   questionId : string,
@@ -1118,7 +1148,6 @@ function moveSection(
         lastNode = node;
         lastPos = pos;
         if (index == newIndex) {
-          console.log(pos, node);
           newPos = pos;
         }
         index++;
@@ -1256,6 +1285,9 @@ export class P215Editor {
     let node = Node.fromJSON(textSchema, initialState);
     this.updateHanlders = [];
     this.questionMap = {};
+
+    baseKeymap["Backspace"] = chainCommands(deleteQuestionSelection, deleteAnswerSelection, deleteSelection, joinBackward, selectNodeBackward);
+
     this.state = EditorState.create({
       schema: textSchema,
       doc: node,
