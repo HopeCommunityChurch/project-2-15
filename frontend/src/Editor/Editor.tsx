@@ -1049,17 +1049,32 @@ function deleteQuestionSelection (state: EditorState, dispatch?: (tr: Transactio
   const to = state.selection.to;
   if (to !== from) return false;
   if (dispatch) {
-    console.log("test 1");
     const anchor = state.selection.$anchor;
-    console.log("test 2", anchor.parentOffset);
     if (anchor.parentOffset !== 0) return false;
     const questionTextNode: Node = anchor.node(anchor.depth-1);
-    console.log("test 3", questionTextNode.type.name);
     if (questionTextNode.type.name !== "questionText") return false;
     const questionNode: Node = anchor.node(anchor.depth-2);
     return removeQuestion(questionNode.attrs.questionId, state, dispatch);
   }
 }
+
+function deleteAnswerSelection (state: EditorState, dispatch?: (tr: Transaction) => void) : boolean {
+  const from = state.selection.from;
+  const to = state.selection.to;
+  if (to !== from) return false;
+  if (dispatch) {
+    const anchor = state.selection.$anchor;
+    if (anchor.parentOffset !== 0) return false;
+    const answerTextNode: Node = anchor.node(anchor.depth-1);
+    if (answerTextNode.type.name !== "questionAnswer") return false;
+    let pos = anchor.pos-2;
+    let endPos = pos + answerTextNode.nodeSize;
+    const tr = state.tr.deleteRange(pos, endPos);
+    dispatch(tr);
+    return true;
+  }
+}
+
 
 function removeQuestion (
   questionId : string,
@@ -1133,7 +1148,6 @@ function moveSection(
         lastNode = node;
         lastPos = pos;
         if (index == newIndex) {
-          console.log(pos, node);
           newPos = pos;
         }
         index++;
@@ -1272,8 +1286,7 @@ export class P215Editor {
     this.updateHanlders = [];
     this.questionMap = {};
 
-    baseKeymap["Backspace"] = chainCommands(deleteSelection, joinBackward, deleteQuestionSelection, selectNodeBackward);
-    console.log(baseKeymap);
+    baseKeymap["Backspace"] = chainCommands(deleteQuestionSelection, deleteAnswerSelection, deleteSelection, joinBackward, selectNodeBackward);
 
     this.state = EditorState.create({
       schema: textSchema,
