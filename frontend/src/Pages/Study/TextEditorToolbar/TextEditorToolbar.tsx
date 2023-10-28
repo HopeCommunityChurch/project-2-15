@@ -34,6 +34,22 @@ export function TextEditorToolbar({
 }) {
   const [showExtendedToolbar, setShowExtendedToolbar] = createSignal(false);
   const [windowWidth, setWindowWidth] = createSignal(window.innerWidth);
+  const [operatingSystem, setOperatingSystem] = createSignal("Unknown");
+
+  createEffect(() => {
+    const isDesktop = window.innerWidth > 800;
+
+    if (isDesktop) {
+      const platform = navigator.platform.toLowerCase();
+      let os = "Unknown OS";
+
+      if (platform.includes("win")) os = "Windows";
+      else if (platform.includes("mac")) os = "Mac";
+      else if (platform.includes("linux")) os = "Linux";
+
+      setOperatingSystem(os);
+    }
+  });
 
   createEffect(() => {
     const handleResize = () => {
@@ -75,9 +91,9 @@ export function TextEditorToolbar({
         </div>
 
         <div class={classes.seperator} />
-        <ToolbarGroup1 editor={editor} />
-        <ToolbarGroup3 editor={editor} />
-        <ToolbarGroup4 editor={editor} />
+        <ToolbarGroup1 editor={editor} operatingSystem={operatingSystem} />
+        <ToolbarGroup3 editor={editor} operatingSystem={operatingSystem} />
+        <ToolbarGroup4 editor={editor} operatingSystem={operatingSystem} />
         <ClearFormattingSection editor={editor} />
         <div class={classes.extendedMenuContainer}>
           <img
@@ -90,9 +106,9 @@ export function TextEditorToolbar({
           {/* Conditionally show extended toolbar */}
           <Show when={showExtendedToolbar()}>
             <div class={classes.extendedToolbar}>
-              <ToolbarGroup1 editor={editor} />
-              <ToolbarGroup3 editor={editor} />
-              <ToolbarGroup4 editor={editor} />
+              <ToolbarGroup1 editor={editor} operatingSystem={operatingSystem} />
+              <ToolbarGroup3 editor={editor} operatingSystem={operatingSystem} />
+              <ToolbarGroup4 editor={editor} operatingSystem={operatingSystem} />
               <ClearFormattingSection editor={editor} />
             </div>
           </Show>
@@ -111,7 +127,7 @@ export function TextEditorToolbar({
 
 function ClearFormattingSection({ editor }) {
   return (
-    <div class={classes.tooltipContainer}>
+    <div class={`${classes.tooltipContainer} ${classes.clearFormattingContainer}`}>
       <img
         src={ClearFormattingIcon}
         class={`${classes.toolbarIcon} ${classes.clearFormatting}`}
@@ -125,7 +141,7 @@ function ClearFormattingSection({ editor }) {
   );
 }
 
-function ToolbarGroup1({ editor }) {
+function ToolbarGroup1({ editor, operatingSystem }) {
   const [showColorPickerPopup, setShowColorPickerPopup] = createSignal(false);
   const [showHighlightColorPickerPopup, setShowHighlightColorPickerPopup] = createSignal(false);
   const [highlightFillColor, setHighlightFillColor] = createSignal("#54585D");
@@ -201,7 +217,9 @@ function ToolbarGroup1({ editor }) {
             editor.toggleBold();
           }}
         />{" "}
-        <span class={classes.tooltipText}>Bold</span>
+        <span class={classes.tooltipText}>
+          Bold ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+b)
+        </span>
       </div>
 
       <div class={classes.tooltipContainer}>
@@ -212,8 +230,10 @@ function ToolbarGroup1({ editor }) {
             e.preventDefault();
             editor.toggleItalic();
           }}
-        />{" "}
-        <span class={classes.tooltipText}>Italic</span>
+        />
+        <span class={classes.tooltipText}>
+          Italic ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+i)
+        </span>
       </div>
 
       <div class={classes.tooltipContainer}>
@@ -225,7 +245,9 @@ function ToolbarGroup1({ editor }) {
             editor.toggleUnderline();
           }}
         />{" "}
-        <span class={classes.tooltipText}>Underline</span>
+        <span class={classes.tooltipText}>
+          Underline ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+u)
+        </span>
       </div>
 
       <div class={classes.tooltipContainer}>
@@ -395,7 +417,7 @@ function ToolbarGroup1({ editor }) {
     </div>
   );
 }
-function ToolbarGroup2({ editor }) {
+function ToolbarGroup2({ editor, operatingSystem }) {
   return (
     <div class={classes.toolbarGroup2}>
       <img
@@ -411,7 +433,7 @@ function ToolbarGroup2({ editor }) {
     </div>
   );
 }
-function ToolbarGroup3({ editor }) {
+function ToolbarGroup3({ editor, operatingSystem }) {
   let increaseLevel = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -426,18 +448,22 @@ function ToolbarGroup3({ editor }) {
     <div class={classes.toolbarGroup3}>
       <div class={classes.tooltipContainer}>
         <img src={OutdentIcon} class={classes.toolbarIcon} onClick={decreaseLevel} />
-        <span class={classes.tooltipText}>Outdent</span>
+        <span class={classes.tooltipText}>
+          Outdent ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+{`[`})
+        </span>
       </div>
       <div class={classes.tooltipContainer}>
         <img src={IndentIcon} class={classes.toolbarIcon} onClick={increaseLevel} />
-        <span class={classes.tooltipText}>Indent</span>
+        <span class={classes.tooltipText}>
+          Indent ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+{`]`})
+        </span>
       </div>
       <div class={classes.seperator} />
     </div>
   );
 }
 
-function ToolbarGroup4({ editor }) {
+function ToolbarGroup4({ editor, operatingSystem }) {
   const [showAddScripturePopUp, setAddScripturePopUp] = createSignal(false);
   const [addScripturePopUpPosition, setAddScripturePopUpPosition] = createSignal({ x: 0, y: 0 });
   const [addScriptureText, setAddScriptureText] = createSignal("");
@@ -509,7 +535,9 @@ function ToolbarGroup4({ editor }) {
             editor.addQuestion();
           }}
         />
-        <span class={classes.tooltipText}>Add Question</span>
+        <span class={classes.tooltipText}>
+          Add Question ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+e)
+        </span>
       </div>
 
       <div class={classes.tooltipContainer}>
@@ -552,14 +580,16 @@ function ToolbarGroup4({ editor }) {
       )}
       <div class={classes.tooltipContainer}>
         <img src={AddStudyBlockIcon} class={classes.toolbarIcon} onClick={addGeneralStudyBlock} />
-        <span class={classes.tooltipText}>Add Study Block</span>
+        <span class={classes.tooltipText}>
+          Add Study Block ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+s)
+        </span>
       </div>
       <div class={classes.seperator} />
     </div>
   );
 }
 
-function ToolbarGroup5({ editor, isSplitScreen, setSplitScreen, windowWidth }) {
+function ToolbarGroup5({ editor, operatingSystem, isSplitScreen, setSplitScreen, windowWidth }) {
   const [showHyperlinkPopUp, setHyperlinkPopUp] = createSignal(false);
   const [hyperlinkPopUpPosition, setHyperlinkPopUpPosition] = createSignal({ x: 0, y: 0 });
   const [hyperlinkText, setHyperlinkText] = createSignal("");

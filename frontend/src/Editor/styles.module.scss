@@ -32,7 +32,7 @@ body {
 }
 
 .questionMark {
-  background-color: grey;
+  background-color: #9a9ba6;
   color: white;
   border-radius: 0.625em;
   width: 1.25em;
@@ -40,6 +40,7 @@ body {
   display: inline-block;
   text-align: center;
   cursor: pointer;
+  scale: 0.9;
 }
 
 .outerChunk {

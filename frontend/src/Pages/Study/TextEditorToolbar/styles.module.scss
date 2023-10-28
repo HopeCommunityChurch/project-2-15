@@ -384,3 +384,7 @@
   visibility: visible;
   transition-delay: 0.5s; /* Delay only for the hover state */
 }
+
+.clearFormattingContainer {
+  display: flex;
+}
