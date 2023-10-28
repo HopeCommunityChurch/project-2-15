@@ -8,7 +8,6 @@ import RedoIcon from "./Assets/redo-icon.svg";
 import BoldIcon from "./Assets/bold-icon.svg";
 import ItalicIcon from "./Assets/italic-icon.svg";
 import UnderlineIcon from "./Assets/underline-icon.svg";
-import TextColorIcon from "./Assets/text-color-icon.svg";
 import LinkIcon from "./Assets/link-icon.svg";
 import AddScripture from "../../../Assets/add-scripture.svg";
 import ReferenceIcon from "./Assets/reference-icon.svg";
@@ -24,6 +23,7 @@ import QuestionIcon from "./Assets/question-icon.svg";
 import * as Editor from "Editor/Editor";
 import { getBiblePassge } from "./validateAndFetchVerses";
 import { match } from "ts-pattern";
+import AddStudyBlockIcon from "../../../Assets/add-study-block-icon.svg";
 
 export function TextEditorToolbar({
   editor,
@@ -50,22 +50,30 @@ export function TextEditorToolbar({
   return (
     <>
       <div class={`${classes.topTextEditingToolbar} ${isTopbarOpen() ? "" : classes.collapsed}`}>
-        <img
-          src={UndoIcon}
-          class={classes.toolbarIcon}
-          onClick={(e) => {
-            e.preventDefault();
-            editor.undo();
-          }}
-        />
-        <img
-          src={RedoIcon}
-          class={classes.toolbarIcon}
-          onClick={(e) => {
-            e.preventDefault();
-            editor.redo();
-          }}
-        />
+        <div class={classes.tooltipContainer}>
+          <img
+            src={UndoIcon}
+            class={classes.toolbarIcon}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.undo();
+            }}
+          />{" "}
+          <span class={classes.tooltipText}>Undo</span>
+        </div>
+
+        <div class={classes.tooltipContainer}>
+          <img
+            src={RedoIcon}
+            class={classes.toolbarIcon}
+            onClick={(e) => {
+              e.preventDefault();
+              editor.redo();
+            }}
+          />{" "}
+          <span class={classes.tooltipText}>Redo</span>
+        </div>
+
         <div class={classes.seperator} />
         <ToolbarGroup1 editor={editor} />
         <ToolbarGroup3 editor={editor} />
@@ -103,14 +111,17 @@ export function TextEditorToolbar({
 
 function ClearFormattingSection({ editor }) {
   return (
-    <img
-      src={ClearFormattingIcon}
-      class={`${classes.toolbarIcon} ${classes.clearFormatting}`}
-      onClick={(e) => {
-        e.preventDefault();
-        editor.clearFormatting();
-      }}
-    />
+    <div class={classes.tooltipContainer}>
+      <img
+        src={ClearFormattingIcon}
+        class={`${classes.toolbarIcon} ${classes.clearFormatting}`}
+        onClick={(e) => {
+          e.preventDefault();
+          editor.clearFormatting();
+        }}
+      />
+      <span class={classes.tooltipText}>Clear Formatting</span>
+    </div>
   );
 }
 
@@ -181,38 +192,54 @@ function ToolbarGroup1({ editor }) {
 
   return (
     <div class={classes.toolbarGroup1}>
-      <img
-        src={BoldIcon}
-        class={classes.toolbarIcon}
-        onClick={(e) => {
-          e.preventDefault();
-          editor.toggleBold();
-        }}
-      />
-      <img
-        src={ItalicIcon}
-        class={classes.toolbarIcon}
-        onClick={(e) => {
-          e.preventDefault();
-          editor.toggleItalic();
-        }}
-      />
-      <img
-        src={UnderlineIcon}
-        class={classes.toolbarIcon}
-        onClick={(e) => {
-          e.preventDefault();
-          editor.toggleUnderline();
-        }}
-      />
-      <svg class={classes.toolbarIcon} onClick={toggleColorPickerPopup} viewBox="0 0 30 30">
-        <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={textFillColor()} />
-        <path
-          data-name="Path 6847"
-          d="m11.7934,16.3587h6.3985l1.1575,3.9236h4.7398L17.5229,0h-5.0605l-6.5515,20.2804h4.7398l1.1428-3.9217Zm3.1507-10.8656h.0834l2.1188,7.1714h-4.3072l2.105-7.1714Z"
-          fill="#3b3e3d"
-        />
-      </svg>
+      <div class={classes.tooltipContainer}>
+        <img
+          src={BoldIcon}
+          class={classes.toolbarIcon}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.toggleBold();
+          }}
+        />{" "}
+        <span class={classes.tooltipText}>Bold</span>
+      </div>
+
+      <div class={classes.tooltipContainer}>
+        <img
+          src={ItalicIcon}
+          class={classes.toolbarIcon}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.toggleItalic();
+          }}
+        />{" "}
+        <span class={classes.tooltipText}>Italic</span>
+      </div>
+
+      <div class={classes.tooltipContainer}>
+        <img
+          src={UnderlineIcon}
+          class={classes.toolbarIcon}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.toggleUnderline();
+          }}
+        />{" "}
+        <span class={classes.tooltipText}>Underline</span>
+      </div>
+
+      <div class={classes.tooltipContainer}>
+        <svg class={classes.toolbarIcon} onClick={toggleColorPickerPopup} viewBox="0 0 30 30">
+          <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={textFillColor()} />
+          <path
+            data-name="Path 6847"
+            d="m11.7934,16.3587h6.3985l1.1575,3.9236h4.7398L17.5229,0h-5.0605l-6.5515,20.2804h4.7398l1.1428-3.9217Zm3.1507-10.8656h.0834l2.1188,7.1714h-4.3072l2.105-7.1714Z"
+            fill="#3b3e3d"
+          />
+        </svg>{" "}
+        <span class={classes.tooltipText}>Text Color</span>
+      </div>
+
       {showColorPickerPopup() && (
         <div
           class={classes.colorPickerPopUp}
@@ -281,17 +308,21 @@ function ToolbarGroup1({ editor }) {
           ></div>
         </div>
       )}
-      <svg
-        viewBox="0 0 30 30"
-        class={classes.toolbarIcon}
-        onClick={toggleHighlightColorPickerPopup}
-      >
-        <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={highlightFillColor()} />
-        <path
-          d="m25.931,4.4543l-3.928-3.7782c-.9636-.9269-2.4962-.8971-3.4231.0665L7.3606,12.4065c-.9268.9637-.8971,2.4963.0665,3.4232l-4.1009,4.4526h9.6924l-.0029-.0036c.6413.0046,1.283-.2386,1.7627-.7373l11.2191-11.6639c.927-.9637.8972-2.4963-.0665-3.4232Zm-7.8282,8.8959l-3.3998,3.5345c-.9268.9637-2.4595.9934-3.4231.0665l-1.1951-1.1494c-.9636-.9269-.9934-2.4595-.0665-3.4232l3.3997-3.5346c.927-.9637,2.4596-.9934,3.4233-.0665l1.1949,1.1494c.9637.9269.9934,2.4595.0665,3.4232Z"
-          fill="#3b3e3d"
-        />
-      </svg>
+      <div class={classes.tooltipContainer}>
+        <svg
+          viewBox="0 0 30 30"
+          class={classes.toolbarIcon}
+          onClick={toggleHighlightColorPickerPopup}
+        >
+          <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={highlightFillColor()} />
+          <path
+            d="m25.931,4.4543l-3.928-3.7782c-.9636-.9269-2.4962-.8971-3.4231.0665L7.3606,12.4065c-.9268.9637-.8971,2.4963.0665,3.4232l-4.1009,4.4526h9.6924l-.0029-.0036c.6413.0046,1.283-.2386,1.7627-.7373l11.2191-11.6639c.927-.9637.8972-2.4963-.0665-3.4232Zm-7.8282,8.8959l-3.3998,3.5345c-.9268.9637-2.4595.9934-3.4231.0665l-1.1951-1.1494c-.9636-.9269-.9934-2.4595-.0665-3.4232l3.3997-3.5346c.927-.9637,2.4596-.9934,3.4233-.0665l1.1949,1.1494c.9637.9269.9934,2.4595.0665,3.4232Z"
+            fill="#3b3e3d"
+          />
+        </svg>{" "}
+        <span class={classes.tooltipText}>Highlight Color</span>
+      </div>
+
       {showHighlightColorPickerPopup() && (
         <div
           class={classes.highlightColorPickerPopUp}
@@ -393,8 +424,14 @@ function ToolbarGroup3({ editor }) {
   };
   return (
     <div class={classes.toolbarGroup3}>
-      <img src={OutdentIcon} class={classes.toolbarIcon} onClick={decreaseLevel} />
-      <img src={IndentIcon} class={classes.toolbarIcon} onClick={increaseLevel} />
+      <div class={classes.tooltipContainer}>
+        <img src={OutdentIcon} class={classes.toolbarIcon} onClick={decreaseLevel} />
+        <span class={classes.tooltipText}>Outdent</span>
+      </div>
+      <div class={classes.tooltipContainer}>
+        <img src={IndentIcon} class={classes.toolbarIcon} onClick={increaseLevel} />
+        <span class={classes.tooltipText}>Indent</span>
+      </div>
       <div class={classes.seperator} />
     </div>
   );
@@ -463,15 +500,22 @@ function ToolbarGroup4({ editor }) {
     <div class={classes.toolbarGroup4}>
       {/* <img src={ReferenceIcon} class={classes.toolbarIcon} /> */}
       {/* <img src={RephraseIcon} class={classes.toolbarIcon} /> */}
-      <img
-        src={QuestionIcon}
-        class={classes.toolbarIcon}
-        onClick={(e) => {
-          e.preventDefault();
-          editor.addQuestion();
-        }}
-      />
-      <img src={AddScripture} class={classes.toolbarIcon} onClick={toggleAddScripturePopUp} />
+      <div class={classes.tooltipContainer}>
+        <img
+          src={QuestionIcon}
+          class={classes.toolbarIcon}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.addQuestion();
+          }}
+        />
+        <span class={classes.tooltipText}>Add Question</span>
+      </div>
+
+      <div class={classes.tooltipContainer}>
+        <img src={AddScripture} class={classes.toolbarIcon} onClick={toggleAddScripturePopUp} />
+        <span class={classes.tooltipText}>Insert Scripture</span>
+      </div>
       {showAddScripturePopUp() && (
         <div
           class={classes.hyperlinkPopUp}
@@ -506,7 +550,10 @@ function ToolbarGroup4({ editor }) {
           </Show>
         </div>
       )}
-      <button onClick={addGeneralStudyBlock}>Add Study Block</button>
+      <div class={classes.tooltipContainer}>
+        <img src={AddStudyBlockIcon} class={classes.toolbarIcon} onClick={addGeneralStudyBlock} />
+        <span class={classes.tooltipText}>Add Study Block</span>
+      </div>
       <div class={classes.seperator} />
     </div>
   );

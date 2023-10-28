@@ -8,7 +8,8 @@ body {
   padding: 26px 20px 40px 20px;
   border: 1px solid #dadada;
   position: relative;
-  margin-bottom: 30px;
+  margin-top: 20px;
+  margin-bottom: 10px;
   border-radius: 5px;
   max-width: 100%;
 
@@ -66,15 +67,35 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
-}
 
-.studyBlocks td {
-  border: 1px solid #c0c0c0;
-  border-radius: 10px;
-}
+  td {
+    border: 1px solid #c0c0c0;
+    padding: 10px;
+    vertical-align: top;
+  }
 
-.questionsLabel {
-  width: 25%;
+  p {
+    margin: 0px;
+  }
+
+  td:first-child {
+    background-color: #f0f0f0;
+    border-radius: 0px;
+    font-weight: 700;
+    color: #050020cf;
+    width: 200px;
+  }
+
+  @media (max-width: 750px) {
+    tr {
+      display: flex;
+      flex-direction: column;
+    }
+    td:first-child {
+      width: auto;
+      margin-top: 10px;
+    }
+  }
 }
 
 .chunk {
@@ -154,10 +175,6 @@ $indentLeftBorderColors: (
 
 .question {
   padding: 0px;
-}
-
-.questions {
-  padding: 10px;
 }
 
 .questions h3 {
