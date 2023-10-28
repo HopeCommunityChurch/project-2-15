@@ -10,17 +10,11 @@ import p215Logo from "./P215.png";
 import { PublicUser } from "../../Types";
 import { match } from "ts-pattern";
 
-
-
 export function ResetPasswordPage() {
   const [email, setEmail] = createSignal("");
   const [resetResult, setResetResult] = createSignal<
-    Network.NetworkError
-    | Network.NetworkNotLoaded
-    | Network.NetworkSuccess<null>
-    >(
-    Network.notLoaded
-  );
+    Network.NetworkError | Network.NetworkNotLoaded | Network.NetworkSuccess<null>
+  >(Network.notLoaded);
 
   const nav = useNavigate();
 
@@ -34,11 +28,13 @@ export function ResetPasswordPage() {
       body: JSON.stringify({
         email: email(),
       }),
-    }).then((result : Network.SimpleNetworkState<null>) => {
+    })
+      .then((result: Network.SimpleNetworkState<null>) => {
         setResetResult(result);
-    }).catch((err) => {
-      console.error(err);
-    });
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   return (
@@ -55,7 +51,12 @@ export function ResetPasswordPage() {
           </p>
           <form onSubmit={(e) => resetPushed(e)}>
             <label for="username">Email</label>
-            <input type="email" id="username" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
+            <input
+              type="email"
+              id="username"
+              onKeyUp={(e) => setEmail(e.currentTarget.value)}
+              onInput={(e) => setEmail(e.currentTarget.value)}
+            />
             <p>
               Remember your account? <A href="/app/login">Login</A>
             </p>
@@ -63,21 +64,22 @@ export function ResetPasswordPage() {
               Reset Password
             </button>
             {
+              //@ts-ignore
               match(resetResult())
                 .with({ state: "notloaded" }, () => <> </>)
-                .with({ state: "error" }, ({ body }) =>
+                .with({ state: "error" }, ({ body }) => (
                   <div>
                     You shouldn't hit this error so here it is raw:
                     {JSON.stringify(body)}
                   </div>
-                )
-                .with({ state: "success" }, ({ body }) =>
+                ))
+                .with({ state: "success" }, ({ body }) => (
                   <div>
                     Check your email for a password reset email.
                     <br />
                     If you don't see it check the spam folder.
                   </div>
-                )
+                ))
                 .exhaustive()
             }
           </form>

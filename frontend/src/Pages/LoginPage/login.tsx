@@ -61,10 +61,10 @@ export async function updateLoginState(): Promise<LoginUser> {
   });
 }
 
-export async function handleLogout () : Promise<LoginUser> {
+export async function handleLogout(): Promise<LoginUser> {
   return Network.request("/auth/logout", {
     method: "POST",
-  }).then( () => {
+  }).then(() => {
     return updateLoginState();
   });
 }
@@ -103,7 +103,6 @@ export function LoginPage() {
               redirect = "/app/studies";
             }
 
-
             updateLoginState().then(() => nav(redirect));
           })
           .exhaustive();
@@ -112,7 +111,6 @@ export function LoginPage() {
         console.error(err);
       });
   };
-
 
   return (
     <div class={classes.gridContainer}>
@@ -129,12 +127,14 @@ export function LoginPage() {
               type="email"
               id="email"
               placeholder="example@example.com"
+              onInput={(e) => setEmail(e.currentTarget.value)}
               onKeyUp={(e) => setEmail(e.currentTarget.value)}
             />
             <label for="password">Password</label>
             <input
               type={showP() ? "text" : "password"}
               id="password"
+              onInput={(e) => setPassword(e.currentTarget.value)}
               onKeyUp={(e) => setPassword(e.currentTarget.value)}
             />
             <div class={classes.formGroup}>

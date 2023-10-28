@@ -46,17 +46,17 @@
 }
 
 .leftColumn input[type="email"],
-.leftColumn input[type="password"] {
+.leftColumn input[type="password"],
+.leftColumn input[type="text"] {
   padding: 12px;
   margin-bottom: 15px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
-}
 
-.leftColumn input[type="email"]:focus,
-.leftColumn input[type="password"]:focus {
-  border-color: #37aefd;
+  &:focus {
+    border-color: #37aefd;
+  }
 }
 
 .leftColumn label {

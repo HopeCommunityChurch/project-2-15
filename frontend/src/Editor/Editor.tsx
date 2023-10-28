@@ -9,7 +9,13 @@ import {
 } from "prosemirror-state";
 import { EditorView, NodeView, DecorationSet, Decoration } from "prosemirror-view";
 import { undoItem, redoItem, MenuItem, MenuItemSpec, menuBar } from "prosemirror-menu";
-import { chainCommands, deleteSelection, joinBackward, selectNodeBackward, toggleMark } from "prosemirror-commands";
+import {
+  chainCommands,
+  deleteSelection,
+  joinBackward,
+  selectNodeBackward,
+  toggleMark,
+} from "prosemirror-commands";
 
 import { undo, redo, history } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
@@ -315,21 +321,7 @@ class QuestionsView implements NodeView {
     this.dom.className = classes.questions;
     const header = document.createElement("td");
     header.setAttribute("contenteditable", "false");
-    header.className = classes.questionsLabel;
     header.innerText = "Questions";
-    // const addButton = document.createElement("button");
-    // addButton.innerHTML = "+ Question";
-    // addButton.onclick = (e) => {
-    //   e.preventDefault();
-    //   const qnode = newQuestionNode()[1];
-    //   const length = this.node.content.size;
-    //   const pos = getPos() + length;
-    //   const tr1 = view.state.tr.insert(pos + 1, qnode);
-    //   const sel = TextSelection.create(tr1.doc, pos + 4);
-    //   const tr2 = tr1.setSelection(sel);
-    //   view.dispatch(tr2);
-    // };
-    // header.appendChild(addButton);
     this.dom.appendChild(header);
     this.contentDOM = document.createElement("td");
     this.dom.appendChild(this.contentDOM);
@@ -395,7 +387,6 @@ export class QuestionView implements NodeView {
     // deleteQuestion.innerText = "delete question";
     // deleteQuestion.className = classes.deleteQuestion;
     // this.dom.appendChild(deleteQuestion);
-
   }
 
   update(node: Node) {
@@ -891,9 +882,7 @@ const verseRefWidget = (verse) => () => {
   elem.onclick = (e) => {
     e.preventDefault();
     let book = verse.book.replace(" ", "_").toLowerCase();
-    let url = "https://biblehub.com/"
-                + book + "/"
-                + verse.chapter + "-" + verse.verse + ".htm";
+    let url = "https://biblehub.com/" + book + "/" + verse.chapter + "-" + verse.verse + ".htm";
     window.open(url, "_blank").focus();
   };
   elem.className = classes.verseRef;
@@ -914,13 +903,23 @@ let verseReferencePlugin = new Plugin({
       const verses = {};
       let sectionIndex = -1;
       state.doc.descendants((node, position) => {
-        if (node.type.name === "section") { sectionIndex ++; return true; }
+        if (node.type.name === "section") {
+          sectionIndex++;
+          return true;
+        }
         if (node.type.name === "bibleText") return true;
         if (node.type.name === "chunk") return true;
         if (node.type.name !== "text") return false;
         const verse = node.marks.find((m) => m.type.name === "verse");
         if (!verse) return false;
-        const key = sectionIndex + "-" + verse.attrs.book + " " + verse.attrs.chapter + ":" + verse.attrs.verse;
+        const key =
+          sectionIndex +
+          "-" +
+          verse.attrs.book +
+          " " +
+          verse.attrs.chapter +
+          ":" +
+          verse.attrs.verse;
         if (verses[key]) {
           return false;
         }
@@ -1044,33 +1043,36 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
   }
 };
 
-function deleteQuestionSelection (state: EditorState, dispatch?: (tr: Transaction) => void) : boolean {
+function deleteQuestionSelection(
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+): boolean {
   const from = state.selection.from;
   const to = state.selection.to;
   if (to !== from) return false;
   if (dispatch) {
     const anchor = state.selection.$anchor;
     if (anchor.parentOffset !== 0) return false;
-    const questionTextNode: Node = anchor.node(anchor.depth-1);
+    const questionTextNode: Node = anchor.node(anchor.depth - 1);
     if (questionTextNode.type.name !== "questionText") return false;
-    if (anchor.index(anchor.depth-1) !== 0) return false;
+    if (anchor.index(anchor.depth - 1) !== 0) return false;
 
-    const questionNode: Node = anchor.node(anchor.depth-2);
+    const questionNode: Node = anchor.node(anchor.depth - 2);
     return removeQuestion(questionNode.attrs.questionId, state, dispatch);
   }
 }
 
-function deleteAnswerSelection (state: EditorState, dispatch?: (tr: Transaction) => void) : boolean {
+function deleteAnswerSelection(state: EditorState, dispatch?: (tr: Transaction) => void): boolean {
   const from = state.selection.from;
   const to = state.selection.to;
   if (to !== from) return false;
   if (dispatch) {
     const anchor = state.selection.$anchor;
     if (anchor.parentOffset !== 0) return false;
-    const answerTextNode: Node = anchor.node(anchor.depth-1);
+    const answerTextNode: Node = anchor.node(anchor.depth - 1);
     if (answerTextNode.type.name !== "questionAnswer") return false;
-    if (anchor.index(anchor.depth-1) !== 0) return false;
-    let pos = anchor.pos-2;
+    if (anchor.index(anchor.depth - 1) !== 0) return false;
+    let pos = anchor.pos - 2;
     let endPos = pos + answerTextNode.nodeSize;
     const tr = state.tr.deleteRange(pos, endPos);
 
@@ -1079,15 +1081,14 @@ function deleteAnswerSelection (state: EditorState, dispatch?: (tr: Transaction)
   }
 }
 
-
-function removeQuestion (
-  questionId : string,
+function removeQuestion(
+  questionId: string,
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) {
   if (dispatch) {
     const qMark = textSchema.marks.questionReference.create({ questionId });
-    const tr = state.tr.removeMark(0, state.doc.nodeSize-2, qMark);
+    const tr = state.tr.removeMark(0, state.doc.nodeSize - 2, qMark);
 
     let posOfQuestion = null;
     let nodeQuestion = null;
@@ -1117,8 +1118,7 @@ function removeQuestion (
     dispatch(tr);
     return true;
   }
-};
-
+}
 
 function moveSection(
   originalIndex: number,
@@ -1160,7 +1160,7 @@ function moveSection(
       return false;
     });
 
-    if(newPos === null) {
+    if (newPos === null) {
       newPos = lastPos + lastNode.nodeSize;
     }
 
@@ -1290,7 +1290,13 @@ export class P215Editor {
     this.updateHanlders = [];
     this.questionMap = {};
 
-    baseKeymap["Backspace"] = chainCommands(deleteQuestionSelection, deleteAnswerSelection, deleteSelection, joinBackward, selectNodeBackward);
+    baseKeymap["Backspace"] = chainCommands(
+      deleteQuestionSelection,
+      deleteAnswerSelection,
+      deleteSelection,
+      joinBackward,
+      selectNodeBackward
+    );
 
     this.state = EditorState.create({
       schema: textSchema,
