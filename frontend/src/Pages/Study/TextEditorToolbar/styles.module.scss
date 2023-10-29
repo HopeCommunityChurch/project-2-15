@@ -352,3 +352,39 @@
     margin-top: 7px;
   }
 }
+
+.tooltipContainer {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  margin-top: 0px !important;
+}
+
+.tooltipText {
+  opacity: 0;
+  visibility: hidden;
+
+  color: #f4f4f4;
+  white-space: nowrap;
+  pointer-events: none;
+  background-color: #4f4f4f;
+  border-radius: 23px;
+  padding: 5px 11px;
+  transition: opacity 0.3s ease, visibility 0.3s ease; /* Remove the delays here */
+
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+}
+
+.tooltipContainer:hover .tooltipText {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.5s; /* Delay only for the hover state */
+}
+
+.clearFormattingContainer {
+  display: flex;
+}

@@ -170,14 +170,12 @@ export function StudyTopNav(props: StudyTopNavProps) {
             <Show when={props.savingError() === null}>
               <span class={classes.saving}>
                 &nbsp; - &nbsp;
-                { props.saving() ? "saving" : "saved" }
+                {props.saving() ? "saving" : "saved"}
               </span>
             </Show>
             <Show when={props.savingError() !== null}>
               &nbsp; - &nbsp;
-              <span class={classes.savingError}>
-                Error saving
-              </span>
+              <span class={classes.savingError}>Error saving</span>
             </Show>
           </p>
         </div>
