@@ -134,9 +134,6 @@ const textSchema = new Schema({
       group: "generalStudyBlockChildren",
       isolating: true,
       defining: true,
-      toDOM: () => {
-        return ["td", 0];
-      },
     },
     generalStudyBlockBody: {
       content: "richText*",
@@ -321,9 +318,30 @@ class QuestionsView implements NodeView {
     this.dom.className = classes.questions;
     const header = document.createElement("td");
     header.setAttribute("contenteditable", "false");
-    header.innerText = "Questions";
+    const headerDiv = document.createElement("div");
+    headerDiv.setAttribute("contenteditable", "false");
+    headerDiv.innerText = "Questions";
+    headerDiv.className = classes.studyBlockHeaderDiv;
+    header.appendChild(headerDiv);
     this.dom.appendChild(header);
     this.contentDOM = document.createElement("td");
+    this.dom.appendChild(this.contentDOM);
+  }
+  update(node: Node) {
+    this.node = node;
+    return true;
+  }
+}
+
+class GeneralStudyBlockHeader implements NodeView {
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+  node: Node;
+  constructor(node: Node) {
+    this.node = node;
+    this.dom = document.createElement("td");
+    this.contentDOM = document.createElement("div");;
+    this.contentDOM.className = classes.studyBlockHeaderDiv;
     this.dom.appendChild(this.contentDOM);
   }
   update(node: Node) {
@@ -1349,6 +1367,9 @@ export class P215Editor {
         questionAnswer(node) {
           return new QuestionAnswerView(node);
         },
+        generalStudyBlockHeader(node) {
+          return new GeneralStudyBlockHeader(node);
+        }
       },
       markViews: {
         referenceTo: referenceToMarkView,
