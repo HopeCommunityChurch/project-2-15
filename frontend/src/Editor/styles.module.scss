@@ -85,6 +85,9 @@ body {
     font-weight: 700;
     color: #050020cf;
     width: 200px;
+    position: sticky;
+    top: 0px;
+    z-index: 1;
   }
 
   @media (max-width: 750px) {
