@@ -85,6 +85,12 @@ body {
     font-weight: 700;
     color: #050020cf;
     width: 200px;
+    z-index: 1;
+  }
+
+  .studyBlockHeaderDiv {
+    position: sticky;
+    top: 7px;
   }
 
   @media (max-width: 750px) {
@@ -95,9 +101,12 @@ body {
     td:first-child {
       width: auto;
       margin-top: 10px;
+      position: sticky;
+      top: 0px;
     }
   }
 }
+
 
 .chunk {
   margin: 0px;
