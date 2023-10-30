@@ -11,18 +11,32 @@ import Entity.User qualified as User
 import Servant
 import Types qualified as T
 
+data UpdateDocument = MkUpdateDocument
+  { document :: Object
+  , lastUpdated :: UTCTime
+  }
+  deriving (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON, ToSchema)
+
+
+data DocumentUpdatedNotMatch = MkDocumentUpdated
+  deriving (Show, Generic)
+  deriving anyclass (Exception, ToJSON, Errs.ApiException)
+
 
 updateDocument
   :: MonadDb env m
   => AuthUser
   -> T.DocId
-  -> Object
+  -> UpdateDocument
   -> m Doc.GetDoc
-updateDocument user docId obj = do
+updateDocument user docId update = do
   doc <- getByIdForUser @Doc.GetDoc user docId
-  unless (user.userId `elem` fmap (.userId) doc.editors) $ do
+  unless (user.userId `elem` fmap (.userId) doc.editors)
     Errs.throwAuthErr
-  Doc.updateDocument docId obj
+  unless (doc.updated == update.lastUpdated) $
+    Errs.throwApi MkDocumentUpdated
+  Doc.updateDocument docId update.document
   getByIdForUser user docId
 
 
@@ -60,7 +74,7 @@ type Api =
     :> Summary "Update document"
     :> Description "Update document"
     :> Capture "documentId" T.DocId
-    :> ReqBody '[JSON] Object
+    :> ReqBody '[JSON] UpdateDocument
     :> Put '[JSON] Doc.GetDoc
   :<|> AuthProtect "cookie"
     :> Summary "Create a document, it's not in a study"
