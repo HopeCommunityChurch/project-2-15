@@ -75,6 +75,8 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   const [saving, setSaving] = createSignal<boolean>(false);
   const [savingError, setSavingError] = createSignal<string | null>(null);
 
+  const [lastUpdate, setLastUpdate] = createSignal<string>(doc.updated);
+
   let editorRoot: HTMLDivElement;
   let editorRootSplitScreen: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
@@ -168,18 +170,29 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   // Helper Functions
   const updateSignal = throttle((change) => {
     setSaving(true);
-    Network.request("/document/" + doc.docId, {
+    const updated = lastUpdate();
+    Network.request<DocRaw>("/document/" + doc.docId, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(change),
+      body: JSON.stringify({
+        document: change,
+        lastUpdated: updated,
+      }),
     }).then((res) => {
       setSaving(false);
       match(res)
       .with({ state: "error" }, ({ body }) =>
-        setSavingError(JSON.stringify(body))
+        match(body)
+        .with( {error: "DocumentUpdatedNotMatch"}, () => {
+          alert("Study have been updated on the server. Refreshing to get that version.");
+          location.reload();
+        }).otherwise( () =>
+          setSavingError(JSON.stringify(body))
+        )
       ).with({ state: "success" }, ({ body }) => {
+        setLastUpdate(body.updated);
         setSavingError(null);
         updateSectionTitles(body);
       }).exhaustive()
