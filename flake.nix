@@ -74,7 +74,7 @@
               server_tokens off;
 
               server {
-                listen 0.0.0.0:8080;
+                listen 0.0.0.0:80;
                 location / {
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
