@@ -161,12 +161,10 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     editor.addEditor(editorRoot);
     const [documentThingy, setDocumentThingy] = createSignal(doc.document);
     editorSplitScreen.addEditor(editorRootSplitScreen);
-    let headers = createMemo(() => {
-      return documentThingy();
-    });
     createEffect(() => {
-      updateSectionTitles(headers());
-    })
+      updateSectionTitles(documentThingy());
+    });
+
     editor.onUpdate((value) => {
       setDocumentThingy(value);
       updateSignal(value);
@@ -229,14 +227,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   const addNewSection = () => {
     editor.addSection();
-
-    setSectionTitles((prevTitles) => [
-      ...prevTitles,
-      {
-        title: "Untitled",
-        id: prevTitles.length,
-      },
-    ]);
   };
 
   const updateSectionTitles = (doc) => {
