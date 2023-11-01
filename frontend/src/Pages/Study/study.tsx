@@ -1,5 +1,5 @@
 // Libraries and external modules
-import { createEffect, createSignal, onMount, createResource, Show } from "solid-js";
+import { createEffect, createSignal, onMount, createResource, Show, createMemo } from "solid-js";
 import { useParams, useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
 import { match } from "ts-pattern";
@@ -159,13 +159,20 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   onMount(() => {
     editor.addEditor(editorRoot);
+    const [documentThingy, setDocumentThingy] = createSignal(doc.document);
     editorSplitScreen.addEditor(editorRootSplitScreen);
-    updateSectionTitles(doc);
+    let headers = createMemo(() => {
+      return documentThingy();
+    });
+    createEffect(() => {
+      updateSectionTitles(headers());
+    })
+    editor.onUpdate((value) => {
+      setDocumentThingy(value);
+      updateSignal(value);
+    });
   });
 
-  editor.onUpdate((value) => {
-    updateSignal(value);
-  });
 
   // Helper Functions
   const updateSignal = throttle((change) => {
@@ -194,13 +201,12 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       ).with({ state: "success" }, ({ body }) => {
         setLastUpdate(body.updated);
         setSavingError(null);
-        updateSectionTitles(body);
       }).exhaustive()
     }).catch((err) => {
       setSaving(false);
       setSavingError(err)
     });
-  }, 500);
+  }, 1000);
 
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);
@@ -233,8 +239,8 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     ]);
   };
 
-  const updateSectionTitles = (studyDoc) => {
-    const titlesWithId = studyDoc.document.content
+  const updateSectionTitles = (doc) => {
+    const titlesWithId = doc.content
       .map((section, index) => {
         let header = section.content.find((innerSection) => {
               return innerSection.type === "sectionHeader";
