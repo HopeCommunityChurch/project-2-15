@@ -340,7 +340,7 @@ class GeneralStudyBlockHeader implements NodeView {
   constructor(node: Node) {
     this.node = node;
     this.dom = document.createElement("td");
-    this.contentDOM = document.createElement("div");;
+    this.contentDOM = document.createElement("div");
     this.contentDOM.className = classes.studyBlockHeaderDiv;
     this.dom.appendChild(this.contentDOM);
   }
@@ -910,45 +910,66 @@ const verseRefWidget = (verse) => () => {
   } else {
     elem.innerHTML = verse.verse;
   }
-
   return elem;
 };
+
+function getDecorations(state: EditorState) {
+  const decorations = [];
+  const verses = {};
+  let sectionIndex = -1;
+  state.doc.descendants((node, position) => {
+    if (node.type.name === "section") {
+      sectionIndex++;
+      return true;
+    }
+    if (node.type.name === "bibleText") return true;
+    if (node.type.name === "chunk") return true;
+    if (node.type.name !== "text") return false;
+    const verse = node.marks.find((m) => m.type.name === "verse");
+    if (!verse) return false;
+    const key =
+      sectionIndex + "-" + verse.attrs.book + " " + verse.attrs.chapter + ":" + verse.attrs.verse;
+    if (verses[key]) {
+      return false;
+    }
+    verses[key] = { position, verse: verse.attrs };
+    return false;
+  });
+  Object.keys(verses).forEach((key) => {
+    const { position, verse } = verses[key];
+    decorations.push(
+      Decoration.widget(position, verseRefWidget(verse), {
+        key,
+        ignoreSelection: true,
+        side: -1,
+      })
+    );
+  });
+  return decorations;
+}
 
 let verseReferencePlugin = new Plugin({
   props: {
     decorations(state: EditorState) {
-      const decorations = [];
-      const verses = {};
-      let sectionIndex = -1;
-      state.doc.descendants((node, position) => {
-        if (node.type.name === "section") {
-          sectionIndex++;
+      return DecorationSet.create(state.doc, getDecorations(state));
+    },
+    handleKeyDown(view, event) {
+      if (event.keyCode === 37) {
+        // left arrow key
+        const { state, dispatch } = view;
+        const { selection } = state;
+        const decorations = getDecorations(state);
+        const widgetAtSelection = DecorationSet.create(state.doc, decorations).find(
+          selection.from,
+          selection.from
+        );
+        if (widgetAtSelection.length) {
+          event.preventDefault();
+          dispatch(state.tr.setSelection(TextSelection.create(state.tr.doc, selection.from - 1)));
           return true;
         }
-        if (node.type.name === "bibleText") return true;
-        if (node.type.name === "chunk") return true;
-        if (node.type.name !== "text") return false;
-        const verse = node.marks.find((m) => m.type.name === "verse");
-        if (!verse) return false;
-        const key =
-          sectionIndex +
-          "-" +
-          verse.attrs.book +
-          " " +
-          verse.attrs.chapter +
-          ":" +
-          verse.attrs.verse;
-        if (verses[key]) {
-          return false;
-        }
-        verses[key] = { position, verse: verse.attrs };
-        return false;
-      });
-      Object.keys(verses).forEach((key) => {
-        const { position, verse } = verses[key];
-        decorations.push(Decoration.widget(position, verseRefWidget(verse), { key }));
-      });
-      return DecorationSet.create(state.doc, decorations);
+      }
+      return false;
     },
   },
 });
@@ -1369,7 +1390,7 @@ export class P215Editor {
         },
         generalStudyBlockHeader(node) {
           return new GeneralStudyBlockHeader(node);
-        }
+        },
       },
       markViews: {
         referenceTo: referenceToMarkView,
