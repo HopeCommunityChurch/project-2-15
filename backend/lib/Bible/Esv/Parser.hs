@@ -283,8 +283,8 @@ estherParser = string "Esther" $> Esther
 jobParser :: Monad m => ParsecT Text u m Book
 jobParser = string "Job" $> Job
 
-psalmParser :: Monad m => ParsecT Text u m Book
-psalmParser = string "Psalms" $> Psalms
+psalmsParser :: Monad m => ParsecT Text u m Book
+psalmsParser = string "Psalms" $> Psalms
 
 proverbsParser :: Monad m => ParsecT Text u m Book
 proverbsParser = string "Proverbs" $> Proverbs
@@ -447,7 +447,7 @@ bookParser =
   <|> try nehemiahParser
   <|> try estherParser
   <|> try jobParser
-  <|> try psalmParser
+  <|> try psalmsParser
   <|> try proverbsParser
   <|> try ecclesiastesParser
   <|> try songOfSolomonParser
