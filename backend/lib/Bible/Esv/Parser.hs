@@ -284,7 +284,11 @@ jobParser :: Monad m => ParsecT Text u m Book
 jobParser = string "Job" $> Job
 
 psalmsParser :: Monad m => ParsecT Text u m Book
-psalmsParser = string "Psalms" $> Psalms
+psalmsParser =
+  (   try (string "Psalms")
+  <|> try (string "Psalm")
+  )
+  $> Psalms
 
 proverbsParser :: Monad m => ParsecT Text u m Book
 proverbsParser = string "Proverbs" $> Proverbs
