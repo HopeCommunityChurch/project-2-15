@@ -429,7 +429,7 @@ revelationParser = string "Revelation" $> Revelation
 
 bookParser :: Monad m => ParsecT Text u m Book
 bookParser =
-  genesisParser
+  try genesisParser
   <|> try exodusParser
   <|> try leviticusParser
   <|> try numbersParser
