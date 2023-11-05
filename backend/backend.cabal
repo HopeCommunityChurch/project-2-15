@@ -62,6 +62,9 @@ common buildDepends
     network,
     lucid,
     clay,
+    servant-lucid,
+    template-haskell,
+    file-embed,
 
   default-extensions:
     OverloadedStrings,
@@ -102,6 +105,7 @@ common buildDepends
     DeriveAnyClass,
     OverloadedRecordDot,
     AllowAmbiguousTypes,
+    TemplateHaskell,
 
 library
   import: warnings
@@ -125,6 +129,7 @@ library
     Api.Errors,
     Api.GroupStudy,
     Api.Document,
+    Api.Htmx.Studies,
     Password,
     SwaggerHelpers,
     Orphans,
