@@ -24,9 +24,9 @@ type Url = Text
 blue100 :: Text
 blue100 = "#0057d1"
 
--- jsFileBs :: ByteString
--- jsFileBs =
---   $(makeRelativeToLocationPredicate (const True) "./Studies.js" >>= embedFile)
+jsFileBs :: ByteString
+jsFileBs =
+  $(makeRelativeToLocationPredicate (const True) "Studies.js" >>= embedFile)
 
 css :: C.Css
 css = do
@@ -206,7 +206,7 @@ baseHtml user = do
                     Nothing -> "Independent"
                 td_ $ toHtml (show @Text doc.updated)
 
-        -- script_ [] $ jsFileBs
+        script_ [] $ jsFileBs
 
 
 type Api

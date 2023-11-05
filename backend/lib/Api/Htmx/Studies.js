@@ -1,4 +1,5 @@
 
+console.log("test");
 document.getElementById("profile_button").addEventListener("click",  (e) => {
   e.stopPropagation();
   const elem = document.getElementById("profile_dropdown");

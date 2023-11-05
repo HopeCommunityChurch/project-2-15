@@ -9,6 +9,9 @@ maintainer:         jonny@p215.church
 category:           Web
 build-type:         Simple
 extra-doc-files:    CHANGELOG.md
+extra-source-files:
+  ./lib/**/*.js
+
 
 common warnings
   ghc-options: -Wall -Werror=missing-fields -Werror=incomplete-uni-patterns
@@ -139,7 +142,6 @@ library
     Emails.Base,
     Emails.Welcome,
     Emails.PasswordReset,
-
 
   build-depends:
 
