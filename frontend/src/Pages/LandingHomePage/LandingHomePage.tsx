@@ -1,6 +1,6 @@
 import { Button3D } from "Components/Button3D/Button3D";
 import { PreLoginTopNav } from "./PreLoginTopNav/PreLoginTopNav";
-import { A } from "@solidjs/router";
+import { A, useNavigate } from "@solidjs/router";
 
 import bookFaceGirl from "./book-face-girl.jpg";
 import peopleTalking from "./people-talking.png";
@@ -8,6 +8,7 @@ import peopleTalking from "./people-talking.png";
 import * as classes from "./styles.module.scss";
 
 export function LandingHomePage() {
+  const nav = useNavigate();
   return (
     <div class={classes.grid}>
       <PreLoginTopNav />
@@ -25,7 +26,7 @@ export function LandingHomePage() {
                 <h3>Intuitive Study Tools</h3>
                 <p>Unlock the treasures of God’s word</p>
               </div>
-              <Button3D>BEGIN YOUR JOURNEY</Button3D>
+              <Button3D onclick={() => nav("/app/signup")} >BEGIN YOUR JOURNEY</Button3D>
             </div>
           </div>
           <div class={classes.rightImage}>
@@ -43,7 +44,7 @@ export function LandingHomePage() {
             <p class={classes.sectionDescription}>
               Disciple each other and seek God’s Truth through His Word
             </p>
-            <Button3D>SIGN UP</Button3D>
+            <Button3D onclick={() => nav("/app/signup")} >SIGN UP</Button3D>
           </div>
         </div>
       </div>
