@@ -2,6 +2,7 @@ module Api.Htmx.Studies where
 
 import Clay ((?), (-:), (**))
 import Clay qualified as C
+import Lucid qualified as L
 import Lucid hiding (for_)
 import Lucid.Base
 import Servant
@@ -23,9 +24,9 @@ type Url = Text
 blue100 :: Text
 blue100 = "#0057d1"
 
-jsFileBs :: ByteString
-jsFileBs =
-  $(makeRelativeToLocationPredicate (const True) "Studies.js" >>= embedFile)
+-- jsFileBs :: ByteString
+-- jsFileBs =
+--   $(makeRelativeToLocationPredicate (const True) "Studies.js" >>= embedFile)
 
 hxTrigger_ :: Text -> Attribute
 hxTrigger_ = makeAttribute "hx-trigger"
@@ -152,6 +153,56 @@ css = do
     "color" -: "#797d80"
   ".show" ? do
     "display" -: "block"
+  ".modal-background" ? do
+    "z-index" -: "1001"
+    "background-color" -: "#00000080"
+    "justify-content" -: "center"
+    "align-items" -: "center"
+    "width" -: "100%"
+    "height" -: "100%"
+    "display" -: "flex"
+    "position" -: "fixed"
+    "top" -: "0"
+    "left" -: "0"
+  ".modal" ? do
+    "background-color" -: "#fff"
+    "border-radius" -: "8px"
+    "width" -: "90%"
+    "max-width" -: "700px"
+    "min-height" -: "50vh"
+    "max-height" -: "93vh"
+    "padding" -: "20px"
+    "position" -: "relative"
+    "overflow-y" -: "scroll"
+    "box-shadow" -: "0 4px 6px #0000001a"
+  ".model label" ? do
+    "color" -: "#666"
+    "margin-bottom" -: "5px"
+    "font-size" -: "16px"
+  ".modal input" ? do
+    "border" -: "1px solid #ccc"
+    "border-radius" -: "4px"
+    "margin-bottom" -: "15px"
+    "padding" -: "12px"
+    "font-size" -: "14px"
+  ".modal p" ? do
+    "color" -: "#aaa"
+    "margin-top" -: "-7px"
+    "font-size" -: "14px"
+  ".modal form" ? do
+    "flex-direction" -: "column"
+    "align-items" -: "stretch"
+    "width" -: "100%"
+    "margin-top" -: "20px"
+    "display" -: "flex"
+  ".modal form:invalid input" ? do
+    "border-color" -: "red"
+  ".modal form:invalid button" ? do
+    "opacity" -: ".5"
+    "cursor" -: "not-allowed !important"
+
+
+
 
 
 cssRendered :: Text
@@ -186,6 +237,9 @@ xClickOutside = makeAttribute "@click.outside"
 
 xShow :: Text -> Attribute
 xShow = makeAttribute "x-show"
+
+xRef :: Text -> Attribute
+xRef = makeAttribute "x-ref"
 
 header :: AuthUser -> Html ()
 header user = do
@@ -231,7 +285,6 @@ baseHtml user = do
         style_ [type_ "text/css", media_ "screen"] cssRendered
       body_ [] $ do
         header user
-        div_ [id_ "modal-placeholder"] ""
         div_ [class_ "my-studies"] $ do
           h1_ "My Studies"
           table_ [ class_ "studies" ] $ do
@@ -248,8 +301,33 @@ baseHtml user = do
 
         -- script_ [] $ jsFileBs
 
+
 newStudyHtml :: MonadDb env m => AuthUser -> m (Html ())
-newStudyHtml _ = pure $ div_ "hello"
+newStudyHtml _ = pure $
+  div_
+    [ class_ "modal-background"
+    , xData ""
+    , xRef "test"
+    ]
+    $ div_
+      [ xClickOutside "$refs.test.remove()"
+      , class_ "modal"
+      ]
+      $ do
+        h3_ "Create New Study"
+        form_ [hxPost_ "/studies/new-study"] $ do
+          label_ [L.for_ "name"] "Title"
+          input_ [id_ "name", placeholder_ "New Title", required_ ""]
+          p_ [] $ do
+            "Ex: \""
+            em_ "Romans"
+            "\" or \""
+            em_ "1 Corinthians"
+          button_ [type_ "submit", class_ "blue_button"] "Create"
+
+
+
+
 
 type Api
   = AuthProtect "cookie"
