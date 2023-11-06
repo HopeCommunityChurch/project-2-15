@@ -1320,12 +1320,14 @@ interface Dictionary<T extends notUndefined = notUndefined> {
 
 export class P215Editor {
   state: EditorState;
+  editable: boolean;
   view: EditorView;
   questionMap: Dictionary<QuestionMapItem>;
   updateHanlders: Array<(change: any) => void>;
 
-  constructor(initialState) {
-    let node = Node.fromJSON(textSchema, initialState);
+  constructor({initDoc, editable}) {
+    this.editable = editable;
+    let node = Node.fromJSON(textSchema, initDoc);
     this.updateHanlders = [];
     this.questionMap = {};
 
@@ -1369,6 +1371,7 @@ export class P215Editor {
     let that = this;
     this.view = new EditorView(editorRoot, {
       state: that.state,
+      editable: () => that.editable,
       nodeViews: {
         studyBlocks(node) {
           return new StudyBlocksView(node);
