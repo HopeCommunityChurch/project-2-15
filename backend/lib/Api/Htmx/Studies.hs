@@ -24,9 +24,9 @@ type Url = Text
 blue100 :: Text
 blue100 = "#0057d1"
 
--- jsFileBs :: ByteString
--- jsFileBs =
---   $(makeRelativeToLocationPredicate (const True) "Studies.js" >>= embedFile)
+jsFileBs :: ByteString
+jsFileBs =
+  $(makeRelativeToLocationPredicate (const True) "LocalTime.js" >>= embedFile)
 
 hxTrigger_ :: Text -> Attribute
 hxTrigger_ = makeAttribute "hx-trigger"
@@ -241,6 +241,9 @@ xShow = makeAttribute "x-show"
 xRef :: Text -> Attribute
 xRef = makeAttribute "x-ref"
 
+xLocalTime :: Text -> Attribute
+xLocalTime = makeAttribute "x-localtime"
+
 header :: AuthUser -> Html ()
 header user = do
   header_ [] $ do
@@ -281,6 +284,7 @@ baseHtml user = do
         meta_ [content_ "width=device-width, initial-scale=1.0", name_ "viewport"]
         script_ [src_ "https://unpkg.com/htmx.org@1.9.7"] ("" :: Text)
         script_ [defer_ "true", src_ "https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"] ("" :: Text)
+        script_ [] jsFileBs
         title_ "Project 2:15 - My Studies"
         style_ [type_ "text/css", media_ "screen"] cssRendered
       body_ [] $ do
@@ -297,9 +301,8 @@ baseHtml user = do
                 td_ $ toHtml doc.name
                 td_ [class_ "groupStudy"] $ toHtml $
                   fromMaybe "Independent" doc.groupStudyName
-                td_ $ toHtml (show @Text doc.updated)
+                td_ [xData "", xLocalTime ""] $ toHtml (show @Text doc.updated)
 
-        -- script_ [] $ jsFileBs
 
 
 newStudyHtml :: MonadDb env m => AuthUser -> m (Html ())
