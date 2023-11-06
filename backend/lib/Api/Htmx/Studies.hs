@@ -2,9 +2,8 @@ module Api.Htmx.Studies where
 
 import Clay ((?), (-:), (**))
 import Clay qualified as C
-import Clay.Media qualified as CM
-import Clay.Render (Config (..))
 import Lucid hiding (for_)
+import Lucid.Base
 import Servant
 import Servant.HTML.Lucid
 import DbHelper (MonadDb)
@@ -27,6 +26,24 @@ blue100 = "#0057d1"
 jsFileBs :: ByteString
 jsFileBs =
   $(makeRelativeToLocationPredicate (const True) "Studies.js" >>= embedFile)
+
+hxTrigger_ :: Text -> Attribute
+hxTrigger_ = makeAttribute "hx-trigger"
+
+hxSwap_ :: Text -> Attribute
+hxSwap_ = makeAttribute "hx-swap"
+
+hxTarget_ :: Text -> Attribute
+hxTarget_ = makeAttribute "hx-target"
+
+hxPost_ :: Url -> Attribute
+hxPost_ = makeAttribute "hx-post"
+
+hxGet_ :: Url -> Attribute
+hxGet_ = makeAttribute "hx-get"
+
+under_ :: Text -> Attribute
+under_ = makeAttribute "_"
 
 css :: C.Css
 css = do
@@ -79,7 +96,7 @@ css = do
     "font-weight" -: "600"
     "overflow" -: "hidden"
 
-  ".profile_button" ? do
+  "#profile_button" ? do
     "color" -: "#333"
     "cursor" -: "pointer"
     "background-color" -: "#eee"
@@ -92,24 +109,23 @@ css = do
     "display" -: "flex"
     "position" -: "relative"
 
-  ".profile_dropdown" ? do
+  "#profile_dropdown" ? do
     "z-index" -: "1000"
     "background-color" -: "#fff"
     "border" -: "1px solid #ccc"
     "border-radius" -: "7px"
     "padding" -: "14px 0"
-    "display" -: "none"
     "position" -: "absolute"
     "top" -: "50px"
     "right" -: "10px"
     "box-shadow" -: "0 2px 4px #0003"
 
-  ".profile_dropdown a" ? do
+  "#profile_dropdown a" ? do
     "text-decoration" -: "none"
     "color" -: "#6c6c6c"
     "padding" -: "8px 26px"
 
-  ".profile_dropdown a:hover" ? do
+  "#profile_dropdown a:hover" ? do
     "background-color" -: "#f6f6f6"
 
   ".my-studies" ? do
@@ -159,6 +175,17 @@ externalLinks = do
       li_ [] $
         a_ [href_ url, target_ "_blank"] (toHtml name)
 
+xData :: Text -> Attribute
+xData = makeAttribute "x-data"
+
+xClick :: Text -> Attribute
+xClick = makeAttribute "@click"
+
+xClickOutside :: Text -> Attribute
+xClickOutside = makeAttribute "@click.outside"
+
+xShow :: Text -> Attribute
+xShow = makeAttribute "x-show"
 
 header :: AuthUser -> Html ()
 header user = do
@@ -167,12 +194,26 @@ header user = do
     nav_ [] $ do
       ul_ [] $ do
         externalLinks
-        li_ $ do
-          button_ [class_ "blue_button" ] "+ New Study"
-    div_ [] $ do
-      div_ [class_ "profile_button", id_ "profile_button"] "JO"
-      div_ [class_ "profile_dropdown", id_ "profile_dropdown"] $
-        a_ [href_ (urlBase <> "/signout")] "Sign Out"
+        li_ $
+          button_
+            [ class_ "blue_button"
+            , hxGet_ (urlBase <> "/studies/new-study")
+            , hxTarget_ "body"
+            , hxSwap_ "beforeend"
+            ]
+            "+ New Study"
+    div_ [xData "{open : false}"] $ do
+      div_
+        [ id_ "profile_button"
+        , xClick "open = !open"
+        ]
+        (toHtml nameAbbr)
+      div_
+        [ id_ "profile_dropdown"
+        , xShow "open"
+        , xClickOutside "open = false"
+        ]
+        (a_ [href_ (urlBase <> "/signout")] "Sign Out")
   where
     nameAbbr = T.toUpper $ T.take 2 $ user.name
 
@@ -185,11 +226,12 @@ baseHtml user = do
       head_ $ do
         meta_ [content_ "width=device-width, initial-scale=1.0", name_ "viewport"]
         script_ [src_ "https://unpkg.com/htmx.org@1.9.7"] ("" :: Text)
+        script_ [defer_ "true", src_ "https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"] ("" :: Text)
         title_ "Project 2:15 - My Studies"
-        style_ [type_ "text/css", media_ "screen"] $
-          cssRendered
+        style_ [type_ "text/css", media_ "screen"] cssRendered
       body_ [] $ do
         header user
+        div_ [id_ "modal-placeholder"] ""
         div_ [class_ "my-studies"] $ do
           h1_ "My Studies"
           table_ [ class_ "studies" ] $ do
@@ -201,20 +243,25 @@ baseHtml user = do
               tr_ [class_ "tableRow"] $ do
                 td_ $ toHtml doc.name
                 td_ [class_ "groupStudy"] $ toHtml $
-                  case doc.groupStudyName of
-                    Just name -> name
-                    Nothing -> "Independent"
+                  fromMaybe "Independent" doc.groupStudyName
                 td_ $ toHtml (show @Text doc.updated)
 
-        script_ [] $ jsFileBs
+        -- script_ [] $ jsFileBs
 
+newStudyHtml :: MonadDb env m => AuthUser -> m (Html ())
+newStudyHtml _ = pure $ div_ "hello"
 
 type Api
   = AuthProtect "cookie"
+    :> Get '[HTML] (Html ())
+  :<|> AuthProtect "cookie"
+    :> "new-study"
     :> Get '[HTML] (Html ())
 
 
 server
   :: MonadDb env m
   => ServerT Api m
-server = baseHtml
+server =
+  baseHtml
+  :<|> newStudyHtml

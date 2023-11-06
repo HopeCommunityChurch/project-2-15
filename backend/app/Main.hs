@@ -99,7 +99,8 @@ main = do
       putStrLn "read the secrets file"
       env <- secretToEnv file
       when (env.envType /= Prod) $
-        threadDelay (10*1000*1000)
+        pure ()
+        -- threadDelay (10*1000*1000)
       putStrLn "running migration"
       migration (dbToConnectInfo file.db)
       putStrLn "starting on port 3000"
