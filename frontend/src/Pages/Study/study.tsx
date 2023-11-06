@@ -81,7 +81,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   let editorRootSplitScreen: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor({
     initDoc: doc.document,
-    editable: false,
+    editable: true,
   });
   // let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
