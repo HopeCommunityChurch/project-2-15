@@ -35,6 +35,7 @@ export function App() {
 }
 
 updateLoginState().then(() => {
+  console.log("test");
   render(
     () => (
       <Router>
@@ -44,3 +45,22 @@ updateLoginState().then(() => {
     document.getElementById("root")
   );
 });
+
+setInterval( () => {
+  const script = document.getElementById("js-source");
+  if (script) {
+    let src = script.src;
+    fetch(src, {
+      method: "HEAD",
+    }).then( (response) => {
+      let status = response.status
+      if (status === 200) {
+        return;
+      }
+      if (status == 404) {
+        alert("New version of p215 found. To ensure nothing breaks forcing an update.");
+        location.reload();
+      }
+    });
+  }
+}, 60_000);

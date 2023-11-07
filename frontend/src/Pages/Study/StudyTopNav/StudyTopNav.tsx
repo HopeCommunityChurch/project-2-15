@@ -17,6 +17,8 @@ type StudyTopNavProps = {
   isSidebarOpen: () => boolean;
   isTopbarOpen: () => boolean;
   setSidebarOpen: (value: boolean) => void;
+  saving: () => boolean;
+  savingError: () => string | null;
   doc: DocRaw;
 };
 
@@ -162,7 +164,20 @@ export function StudyTopNav(props: StudyTopNavProps) {
 
         <img class={classes.logo} src={Logo} onClick={() => nav("/app/studies")} />
         <div class={classes.studyHeaderText}>
-          <p>{props.doc.name}</p>
+          <p>
+            {props.doc.name}
+
+            <Show when={props.savingError() === null}>
+              <span class={classes.saving}>
+                &nbsp; - &nbsp;
+                {props.saving() ? "saving" : "saved"}
+              </span>
+            </Show>
+            <Show when={props.savingError() !== null}>
+              &nbsp; - &nbsp;
+              <span class={classes.savingError}>Error saving</span>
+            </Show>
+          </p>
         </div>
         <div>
           {

@@ -8,7 +8,8 @@ body {
   padding: 26px 20px 40px 20px;
   border: 1px solid #dadada;
   position: relative;
-  margin-bottom: 30px;
+  margin-top: 20px;
+  margin-bottom: 10px;
   border-radius: 5px;
   max-width: 100%;
 
@@ -31,7 +32,7 @@ body {
 }
 
 .questionMark {
-  background-color: grey;
+  background-color: #9a9ba6;
   color: white;
   border-radius: 0.625em;
   width: 1.25em;
@@ -39,6 +40,7 @@ body {
   display: inline-block;
   text-align: center;
   cursor: pointer;
+  scale: 0.9;
 }
 
 .outerChunk {
@@ -66,16 +68,45 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+
+  td {
+    border: 1px solid #c0c0c0;
+    padding: 10px;
+    vertical-align: top;
+  }
+
+  p {
+    margin: 0px;
+  }
+
+  td:first-child {
+    background-color: #f0f0f0;
+    border-radius: 0px;
+    font-weight: 700;
+    color: #050020cf;
+    width: 200px;
+    z-index: 1;
+  }
+
+  .studyBlockHeaderDiv {
+    position: sticky;
+    top: 7px;
+  }
+
+  @media (max-width: 750px) {
+    tr {
+      display: flex;
+      flex-direction: column;
+    }
+    td:first-child {
+      width: auto;
+      margin-top: 10px;
+      position: sticky;
+      top: 0px;
+    }
+  }
 }
 
-.studyBlocks td {
-  border: 1px solid #c0c0c0;
-  border-radius: 10px;
-}
-
-.questionsLabel {
-  width: 25%;
-}
 
 .chunk {
   margin: 0px;
@@ -145,6 +176,7 @@ $indentLeftBorderColors: (
 
 .bibleText {
   padding: 0px;
+  margin-bottom: 10px;
 }
 
 .content {
@@ -153,10 +185,6 @@ $indentLeftBorderColors: (
 
 .question {
   padding: 0px;
-}
-
-.questions {
-  padding: 10px;
 }
 
 .questions h3 {
@@ -356,6 +384,7 @@ questionanswer p {
   vertical-align: super;
   padding-right: 3px;
   color: grey;
+  cursor: pointer;
 }
 
 [contenteditable] {

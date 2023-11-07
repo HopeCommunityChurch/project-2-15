@@ -1,5 +1,5 @@
 // Libraries and external modules
-import { createEffect, createSignal, onMount, createResource, Show } from "solid-js";
+import { createEffect, createSignal, onMount, createResource, Show, createMemo } from "solid-js";
 import { useParams, useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
 import { match } from "ts-pattern";
@@ -72,11 +72,18 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   const [sectionEditorMode, setSectionEditorMode] = createSignal(false);
   const [sectionTitles, setSectionTitles] = createSignal([]);
   const [dragDisabled, setDragDisabled] = createSignal(true);
+  const [saving, setSaving] = createSignal<boolean>(false);
+  const [savingError, setSavingError] = createSignal<string | null>(null);
+
+  const [lastUpdate, setLastUpdate] = createSignal<string>(doc.updated);
 
   let editorRoot: HTMLDivElement;
   let editorRootSplitScreen: HTMLDivElement;
-  let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
-  let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
+  let editor: Editor.P215Editor = new Editor.P215Editor({
+    initDoc: doc.document,
+    editable: true,
+  });
+  // let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
   //resizing height on mobile
   onMount(() => {
@@ -155,32 +162,52 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   onMount(() => {
     editor.addEditor(editorRoot);
-    editorSplitScreen.addEditor(editorRootSplitScreen);
-    updateSectionTitles(doc);
+    const [documentThingy, setDocumentThingy] = createSignal(doc.document);
+    // editorSplitScreen.addEditor(editorRootSplitScreen);
+    createEffect(() => {
+      updateSectionTitles(documentThingy());
+    });
+
+    editor.onUpdate((value) => {
+      setDocumentThingy(value);
+      updateSignal(value);
+    });
   });
 
-  editor.onUpdate((value) => {
-    updateSignal(value);
-  });
 
   // Helper Functions
-  const updateSignal = throttle(
-    (change) =>
-      Network.request("/document/" + doc.docId, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(change),
-      })
-        .then((res) => {
-          updateSectionTitles(res.body);
-        })
-        .catch((err) => {
-          console.error(err);
-        }),
-    500
-  );
+  const updateSignal = throttle((change) => {
+    setSaving(true);
+    const updated = lastUpdate();
+    Network.request<DocRaw>("/document/" + doc.docId, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        document: change,
+        lastUpdated: updated,
+      }),
+    }).then((res) => {
+      setSaving(false);
+      match(res)
+      .with({ state: "error" }, ({ body }) =>
+        match(body)
+        .with( {error: "DocumentUpdatedNotMatch"}, () => {
+          alert("Study have been updated on the server. Refreshing to get that version.");
+          location.reload();
+        }).otherwise( () =>
+          setSavingError(JSON.stringify(body))
+        )
+      ).with({ state: "success" }, ({ body }) => {
+        setLastUpdate(body.updated);
+        setSavingError(null);
+      }).exhaustive()
+    }).catch((err) => {
+      setSaving(false);
+      setSavingError(err)
+    });
+  }, 1000);
 
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);
@@ -203,18 +230,10 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   const addNewSection = () => {
     editor.addSection();
-
-    setSectionTitles((prevTitles) => [
-      ...prevTitles,
-      {
-        title: "Untitled",
-        id: prevTitles.length,
-      },
-    ]);
   };
 
-  const updateSectionTitles = (studyDoc) => {
-    const titlesWithId = studyDoc.document.content
+  const updateSectionTitles = (doc) => {
+    const titlesWithId = doc.content
       .map((section, index) => {
         let header = section.content.find((innerSection) => {
               return innerSection.type === "sectionHeader";
@@ -264,6 +283,8 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         isSidebarOpen={isSidebarOpen}
         setSidebarOpen={setSidebarOpen}
         isTopbarOpen={isTopbarOpen}
+        saving={saving}
+        savingError={savingError}
         doc={doc}
       />
       <TextEditorToolbar

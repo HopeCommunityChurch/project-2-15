@@ -24,6 +24,12 @@ export type NetworkError420AuthError = {
   error: "AuthError";
 };
 
+export type NetworkError420DocumentUpdate = {
+  status: 420;
+  error: "DocumentUpdatedNotMatch";
+};
+
+
 export type NetworkError420Other = {
   status: 420;
   error: string;
@@ -57,6 +63,7 @@ export type NetworkError = {
   body: NetworkError420Other
         | NetworkError420NotFound
         | NetworkError420AuthError
+        | NetworkError420DocumentUpdate
         | NetworkError400
         | NetworkError404
         | NetworkErrorInternal

@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "parcel src/index.html",
+    "dev": "parcel src/index.html --target=default",
     "build": "parcel build src/index.html"
   },
   "author": "",
@@ -40,5 +40,6 @@
     "drafts": {
       "nesting": true
     }
-  }
+  },
+  "browserslist": "> 0.5%, last 3 versions, not dead"
 }

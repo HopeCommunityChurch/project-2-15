@@ -66,7 +66,7 @@ export function SignUpPage() {
             setSignupError(res.toString());
           })
           .with({ state: "success" }, () => {
-            updateLoginState().then( () => {
+            updateLoginState().then(() => {
               nav("/app/studies");
             });
           })
@@ -88,20 +88,32 @@ export function SignUpPage() {
           <p>Please enter your login credentials below to start using the admin console.</p>
           <form onSubmit={(e) => signupPushed(e)}>
             <label for="name">Name</label>
-            <input type="text" id="name" onKeyUp={(e) => setName(e.currentTarget.value)} />
+            <input
+              type="text"
+              id="name"
+              onKeyUp={(e) => setName(e.currentTarget.value)}
+              onInput={(e) => setName(e.currentTarget.value)}
+            />
             <label for="email">Email</label>
-            <input type="email" id="email" onKeyUp={(e) => setEmail(e.currentTarget.value)} />
+            <input
+              type="email"
+              id="email"
+              onKeyUp={(e) => setEmail(e.currentTarget.value)}
+              onInput={(e) => setEmail(e.currentTarget.value)}
+            />
             <label for="password">Password</label>
             <input
               type={showP() ? "text" : "password"}
               id="password"
               onKeyUp={(e) => setPassword(e.currentTarget.value)}
+              onInput={(e) => setPassword(e.currentTarget.value)}
             />
             <label for="password2">Repeat Password</label>
             <input
               type={showP() ? "text" : "password"}
               id="password2"
               onKeyUp={(e) => setPassword2(e.currentTarget.value)}
+              onInput={(e) => setPassword2(e.currentTarget.value)}
             />
             <div class={classes.formGroup}>
               <div>
