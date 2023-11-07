@@ -74,7 +74,7 @@
               server_tokens off;
 
               server {
-                listen 0.0.0.0:80;
+                listen 0.0.0.0:8080;
                 location / {
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
@@ -115,23 +115,23 @@
             '';
           };
 
-          processes.backend =
-            let backend = inputs.backend.packages.${system}.backend;
-            in {
-              exec = ''
-                export SECRETS_FILE=${./backend/local-secrets.json}
-                export MIGRATION_PATH=${./backend/migrations}
-                ${backend}/bin/backend +RTS -M1G -T
-              '';
-              process-compose = {
-                depends_on.postgres.condition = "process_started";
-                availability = {
-                  restart = "on_failure";
-                  backoff_seconds = 2;
-                  max_restarts = 5;
-                };
-              };
-            };
+#           processes.backend =
+#             let backend = inputs.backend.packages.${system}.backend;
+#             in {
+#               exec = ''
+#                 export SECRETS_FILE=${./backend/local-secrets.json}
+#                 export MIGRATION_PATH=${./backend/migrations}
+#                 ${backend}/bin/backend +RTS -M1G -T
+#               '';
+#               process-compose = {
+#                 depends_on.postgres.condition = "process_started";
+#                 availability = {
+#                   restart = "on_failure";
+#                   backoff_seconds = 2;
+#                   max_restarts = 5;
+#                 };
+#               };
+#             };
 
         };
 
