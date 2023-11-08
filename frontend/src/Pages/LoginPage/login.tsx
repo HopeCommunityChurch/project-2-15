@@ -6,7 +6,7 @@ import * as Network from "../../Utils/Network";
 import * as classes from "./styles.module.scss";
 
 import laptopMockup from "./laptop-mockup.png";
-import p215Logo from "./P215.png";
+import p215Logo from "../../Assets/P215.png";
 import { PublicUser } from "../../Types";
 import { match } from "ts-pattern";
 

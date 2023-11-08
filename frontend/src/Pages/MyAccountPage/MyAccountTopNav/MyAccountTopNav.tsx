@@ -1,4 +1,4 @@
-import Logo from "Assets/p215-full-logo.svg";
+import Logo from "Assets/p215.png";
 import { Button } from "Components/Button/Button";
 import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";

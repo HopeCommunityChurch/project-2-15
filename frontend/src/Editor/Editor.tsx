@@ -903,7 +903,7 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
 
 const verseRefWidget = (verse) => () => {
   const elem = document.createElement("span");
-  elem.onclick = (e) => {
+  elem.ondblclick = (e) => {
     e.preventDefault();
     let book = verse.book.replace(" ", "_").toLowerCase();
     let url = "https://biblehub.com/" + book + "/" + verse.chapter + "-" + verse.verse + ".htm";
@@ -1331,7 +1331,7 @@ export class P215Editor {
   questionMap: Dictionary<QuestionMapItem>;
   updateHanlders: Array<(change: any) => void>;
 
-  constructor({initDoc, editable}) {
+  constructor({ initDoc, editable }) {
     this.editable = editable;
     let node = Node.fromJSON(textSchema, initDoc);
     this.updateHanlders = [];
@@ -1428,28 +1428,28 @@ export class P215Editor {
   }
 
   addQuestion() {
-    if(this.editable) {
+    if (this.editable) {
       addQuestion(this.view.state, this.view.dispatch);
       this.view.focus();
     }
   }
 
   increaseLevel() {
-    if(this.editable) {
+    if (this.editable) {
       increaseLevel(this.view.state, this.view.dispatch);
       this.view.focus();
     }
   }
 
   decreaseLevel() {
-    if(this.editable) {
+    if (this.editable) {
       decreaseLevel(this.view.state, this.view.dispatch);
       this.view.focus();
     }
   }
 
   undo() {
-    if(this.editable) {
+    if (this.editable) {
       const { state, dispatch } = this.view;
       undo(state, dispatch);
       this.view.focus();
@@ -1457,7 +1457,7 @@ export class P215Editor {
   }
 
   redo() {
-    if(this.editable) {
+    if (this.editable) {
       const { state, dispatch } = this.view;
       redo(state, dispatch);
       this.view.focus();
@@ -1465,7 +1465,7 @@ export class P215Editor {
   }
 
   toggleBold() {
-    if(this.editable) {
+    if (this.editable) {
       const { state, dispatch } = this.view;
       const markType = state.schema.marks.strong;
       toggleMark(markType)(state, dispatch);
@@ -1474,7 +1474,7 @@ export class P215Editor {
   }
 
   toggleItalic() {
-    if(this.editable) {
+    if (this.editable) {
       const { state, dispatch } = this.view;
       const markType = state.schema.marks.em;
       toggleMark(markType)(state, dispatch);
@@ -1483,7 +1483,7 @@ export class P215Editor {
   }
 
   toggleUnderline() {
-    if(this.editable) {
+    if (this.editable) {
       const { state, dispatch } = this.view;
       const markType = state.schema.marks.underline;
       toggleMark(markType)(state, dispatch);
@@ -1492,7 +1492,7 @@ export class P215Editor {
   }
 
   setTextColor(color: string) {
-    if(this.editable) {
+    if (this.editable) {
       const { state, dispatch } = this.view;
       const { from, to } = state.selection;
       const markType = state.schema.marks.textColor;
@@ -1505,7 +1505,7 @@ export class P215Editor {
   }
 
   setHighlightColor(color: string) {
-    if(this.editable) {
+    if (this.editable) {
       const { state, dispatch } = this.view;
       const { from, to } = state.selection;
       const markType = state.schema.marks.highlightColor;
@@ -1518,7 +1518,7 @@ export class P215Editor {
   }
 
   getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
-    if(this.editable) {
+    if (this.editable) {
       if (!this.view) return;
 
       const { state } = this.view;
@@ -1552,7 +1552,7 @@ export class P215Editor {
   }
 
   removeHighlightColor() {
-    if(this.editable) {
+    if (this.editable) {
       const { state, dispatch } = this.view;
       const { from, to } = state.selection;
       const markType = state.schema.marks.highlightColor;
@@ -1563,7 +1563,7 @@ export class P215Editor {
   }
 
   clearFormatting() {
-    if(this.editable) {
+    if (this.editable) {
       const { state, dispatch } = this.view;
       const { tr, schema, selection } = state;
       const { from, to } = selection;
@@ -1595,20 +1595,20 @@ export class P215Editor {
   }
 
   addSection() {
-    if(this.editable) {
+    if (this.editable) {
       addSection(this.view.state, this.view.dispatch);
     }
   }
 
   addVerse(verseRef: string, passage: Array<AddVerse>) {
-    if(this.editable) {
+    if (this.editable) {
       addVerse(verseRef, passage, this.view.state, this.view.dispatch);
       this.view.focus();
     }
   }
 
   insertLink(url: string, title: string = "") {
-    if(this.editable) {
+    if (this.editable) {
       const { state, dispatch } = this.view;
       const { tr, selection } = state;
       const link = state.schema.marks.link.create({ href: url, title });
@@ -1618,13 +1618,13 @@ export class P215Editor {
   }
 
   moveSection(oldIndex: number, newIndex: number) {
-    if(this.editable) {
+    if (this.editable) {
       moveSection(oldIndex, newIndex, this.view.state, this.view.dispatch);
     }
   }
 
   deleteSection(sectionIndex: number) {
-    if(this.editable) {
+    if (this.editable) {
       let sectionPositions: number[] = [];
       this.view.state.doc.descendants((node, pos) => {
         if (node.type.name === "section") {
@@ -1652,13 +1652,13 @@ export class P215Editor {
   }
 
   addGeneralStudyBlock() {
-    if(this.editable) {
+    if (this.editable) {
       addGeneralStudyBlock(this.view.state, this.view.dispatch);
     }
   }
 
   onUpdate(f: (change: any) => void) {
-    if(this.editable) {
+    if (this.editable) {
       this.updateHanlders.push(f);
     }
   }
