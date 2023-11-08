@@ -1,5 +1,6 @@
 module Main where
 
+import Api.Websocket qualified as WS
 import Api qualified
 import Data.Aeson qualified as Aeson
 import Data.Generics.Product (HasField' (field'))
@@ -74,6 +75,7 @@ data Env = MkEnv
   , esvToken :: Api.Bible.ESVEnv
   , smtp :: Mail.Smtp
   , url :: Text
+  , subs :: WS.Subs
   }
   deriving (Generic)
 
@@ -85,7 +87,8 @@ secretToEnv MkSecretsFile{db, env, port, esvToken, smtp, url} = do
   dbConn <- liftIO $ Db.createPool (dbToConnectInfo db)
   let esvEnv = Api.Bible.MkESVEnv (encodeUtf8 esvToken)
   let smtp2 = Mail.MkSmtp smtp.host (fromIntegral smtp.port)
-  pure $ MkEnv env port dbConn esvEnv smtp2 url
+  subs <- WS.mkSubs
+  pure $ MkEnv env port dbConn esvEnv smtp2 url subs
 
 
 main :: IO ()

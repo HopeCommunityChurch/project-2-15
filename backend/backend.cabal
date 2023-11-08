@@ -136,6 +136,7 @@ library
     Api.Errors,
     Api.GroupStudy,
     Api.Document,
+    Api.Websocket,
     Api.Htmx.Studies,
     Password,
     SwaggerHelpers,
