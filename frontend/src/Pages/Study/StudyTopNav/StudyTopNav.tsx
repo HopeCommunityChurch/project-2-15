@@ -213,6 +213,16 @@ export function StudyTopNav(props: StudyTopNavProps) {
                         </A>
                       </li>
                       <li>
+                        <a
+                          href="https://forms.gle/koJrP31Vh9TfvPcq7"
+                          class={classes.fullWidthLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Give Feedback
+                        </a>
+                      </li>
+                      <li>
                         <span onClick={logoutClick} class={classes.fullWidthLink}>
                           Sign Out
                         </span>

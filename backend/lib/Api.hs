@@ -4,6 +4,7 @@ import Api.Auth qualified
 import Api.Errors qualified as Errs
 import Api.User qualified
 import Api.GroupStudy qualified
+import Api.Htmx.Studies qualified
 import Api.Bible qualified
 import Types qualified as T
 import Api.Document qualified
@@ -37,6 +38,8 @@ type Api'
     :> "document" :> Api.Document.Api
   :<|> OpenApiTag "bible" "bible stuff"
     :> "bible" :> Api.Bible.Api
+  :<|> OpenApiTag "htmx studies" "htmx studies"
+    :> "htmx" :> "studies" :> Api.Htmx.Studies.Api
 
 
 server'
@@ -52,6 +55,7 @@ server'
   :<|> Api.GroupStudy.server
   :<|> Api.Document.server
   :<|> Api.Bible.server
+  :<|> Api.Htmx.Studies.server
 
 
 errToJSON :: Errs.SomeApiException -> ServerError
@@ -107,16 +111,16 @@ serverContext env =
 
 type Api
   = Api'
-  :<|> SwaggerSchemaUI "swagger-ui" "swagger.json"
-  :<|> ReDoc.SwaggerSchemaUI "swagger-ui2" "swagger2.json"
+  -- :<|> SwaggerSchemaUI "swagger-ui" "swagger.json"
+  -- :<|> ReDoc.SwaggerSchemaUI "swagger-ui2" "swagger2.json"
 
 
-openApi :: OpenApi.OpenApi
-openApi =
-  toOpenApi (Proxy @Api')
-  & OpenApi.info . OpenApi.title   .~ "Project 2:15"
-  & OpenApi.info . OpenApi.version   .~ "0.1"
-  & OpenApi.info . OpenApi.description   ?~ "Yay!"
+-- openApi :: OpenApi.OpenApi
+-- openApi =
+--   toOpenApi (Proxy @Api')
+--   & OpenApi.info . OpenApi.title   .~ "Project 2:15"
+--   & OpenApi.info . OpenApi.version   .~ "0.1"
+--   & OpenApi.info . OpenApi.description   ?~ "Yay!"
 
 
 server
@@ -133,5 +137,5 @@ server env =
     (Proxy @MyContext)
     (toHandler env)
     server'
-  :<|> swaggerSchemaUIServer openApi
-  :<|> ReDoc.redocSchemaUIServer openApi
+  -- :<|> swaggerSchemaUIServer openApi
+  -- :<|> ReDoc.redocSchemaUIServer openApi

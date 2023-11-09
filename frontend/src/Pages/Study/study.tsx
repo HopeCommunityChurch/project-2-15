@@ -79,8 +79,11 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   let editorRoot: HTMLDivElement;
   let editorRootSplitScreen: HTMLDivElement;
-  let editor: Editor.P215Editor = new Editor.P215Editor(doc.document);
-  let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
+  let editor: Editor.P215Editor = new Editor.P215Editor({
+    initDoc: doc.document,
+    editable: true,
+  });
+  // let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
   //resizing height on mobile
   onMount(() => {
@@ -160,7 +163,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   onMount(() => {
     editor.addEditor(editorRoot);
     const [documentThingy, setDocumentThingy] = createSignal(doc.document);
-    editorSplitScreen.addEditor(editorRootSplitScreen);
+    // editorSplitScreen.addEditor(editorRootSplitScreen);
     createEffect(() => {
       updateSectionTitles(documentThingy());
     });

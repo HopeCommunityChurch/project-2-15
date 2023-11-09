@@ -9,6 +9,9 @@ maintainer:         jonny@p215.church
 category:           Web
 build-type:         Simple
 extra-doc-files:    CHANGELOG.md
+extra-source-files:
+  ./lib/**/*.js
+
 
 common warnings
   ghc-options: -Wall -Werror=missing-fields -Werror=incomplete-uni-patterns
@@ -62,6 +65,9 @@ common buildDepends
     network,
     lucid,
     clay,
+    servant-lucid,
+    template-haskell,
+    file-embed,
 
   default-extensions:
     OverloadedStrings,
@@ -102,6 +108,7 @@ common buildDepends
     DeriveAnyClass,
     OverloadedRecordDot,
     AllowAmbiguousTypes,
+    TemplateHaskell,
 
 library
   import: warnings
@@ -125,6 +132,7 @@ library
     Api.Errors,
     Api.GroupStudy,
     Api.Document,
+    Api.Htmx.Studies,
     Password,
     SwaggerHelpers,
     Orphans,
@@ -134,7 +142,6 @@ library
     Emails.Base,
     Emails.Welcome,
     Emails.PasswordReset,
-
 
   build-depends:
 
