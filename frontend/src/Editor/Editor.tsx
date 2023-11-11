@@ -11,7 +11,7 @@ import { EditorView, NodeView, DecorationSet, Decoration } from "prosemirror-vie
 import { undoItem, redoItem, MenuItem, MenuItemSpec, menuBar } from "prosemirror-menu";
 import {
   chainCommands,
-  deleteSelection,
+  // deleteSelection, //DON'T USE THIS - It deleted section titles, body text, study blocks, and more when selecting across them.
   joinBackward,
   selectNodeBackward,
   toggleMark,
@@ -1239,26 +1239,38 @@ let addVerse = (
   dispatch?: (tr: Transaction) => void
 ) => {
   if (dispatch) {
-    // Make the mark
-
-    const sectionNode: Node = state.selection.$anchor.node(1);
-    let posOfStudyBlock = null;
-    state.doc.descendants((node: Node, pos: number) => {
-      if (node.eq(sectionNode)) {
-        return true;
+    // Get the current selection
+    const selection = state.selection;
+    // Find the parent section node of the current selection
+    let sectionNode = null;
+    let sectionPos = null;
+    state.doc.nodesBetween(selection.from, selection.to, (node, pos, parent, index) => {
+      if (node.type.name === "section") {
+        sectionNode = node;
+        sectionPos = pos;
       }
-      if (node.type.name !== "studyBlocks") return false;
-      posOfStudyBlock = pos;
-      return false;
     });
 
-    const textNode = passage.flatMap(mkVerseNode);
-    const chunk = textSchema.nodes.chunk.create(null, textNode);
-    const bibleText = textSchema.nodes.bibleText.create({ verses: verseRef }, chunk);
-    const tr = state.tr.insert(posOfStudyBlock, bibleText);
-    dispatch(tr);
-    return true;
+    if (sectionNode && sectionPos !== null) {
+      let posOfStudyBlock = null;
+      // Find the position of the studyBlocks within the current section
+      sectionNode.forEach((childNode, offset, index) => {
+        if (childNode.type.name === "studyBlocks") {
+          posOfStudyBlock = sectionPos + 1 + offset;
+        }
+      });
+
+      if (posOfStudyBlock !== null) {
+        const textNode = passage.flatMap(mkVerseNode);
+        const chunk = textSchema.nodes.chunk.create(null, textNode);
+        const bibleText = textSchema.nodes.bibleText.create({ verses: verseRef }, chunk);
+        const tr = state.tr.insert(posOfStudyBlock, bibleText);
+        dispatch(tr);
+        return true;
+      }
+    }
   }
+  return false;
 };
 
 function newSectionNode(): Node {
@@ -1340,7 +1352,7 @@ export class P215Editor {
     baseKeymap["Backspace"] = chainCommands(
       deleteQuestionSelection,
       deleteAnswerSelection,
-      deleteSelection,
+      // deleteSelection,
       joinBackward,
       selectNodeBackward
     );
