@@ -291,8 +291,8 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
           <div class={classes.errorMessage}>
             <img src={CouldntSaveImage} />
             <h2>Can't Save</h2>
-            Looks like we're momentarily lost in the wilderness and can't save. We're praying for a
-            pillar of cloud by day and fire by night to lead us back.
+            Looks like a Jonah situation – we're in the belly of a tech whale. Trying to be 'spat'
+            out soon!
             <a
               class={classes.bluelink}
               href="https://forms.gle/koJrP31Vh9TfvPcq7"
