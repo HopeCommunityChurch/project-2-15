@@ -190,7 +190,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       }),
     })
       .then((res) => {
-        setSaving(false);
+        setTimeout(() => setSaving(false), 1000);
         //@ts-ignore
         match(res)
           .with({ state: "error" }, ({ body }) =>
@@ -209,7 +209,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
           .exhaustive();
       })
       .catch((err) => {
-        setSaving(false);
+        setTimeout(() => setSaving(false), 1000);
         setSavingError(err);
       });
   }, 1000);

@@ -35,7 +35,6 @@ export function App() {
 }
 
 updateLoginState().then(() => {
-  console.log("test");
   render(
     () => (
       <Router>
@@ -46,14 +45,14 @@ updateLoginState().then(() => {
   );
 });
 
-setInterval( () => {
-  const script = document.getElementById("js-source");
+setInterval(() => {
+  const script = document.getElementById("js-source") as HTMLScriptElement;
   if (script) {
     let src = script.src;
     fetch(src, {
       method: "HEAD",
-    }).then( (response) => {
-      let status = response.status
+    }).then((response) => {
+      let status = response.status;
       if (status === 200) {
         return;
       }

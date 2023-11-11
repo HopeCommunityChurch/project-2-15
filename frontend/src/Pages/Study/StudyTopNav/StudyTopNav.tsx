@@ -6,6 +6,8 @@ import { A, useNavigate } from "@solidjs/router";
 import { loginState, LoginUser, handleLogout } from "Pages/LoginPage/login";
 import CloseXIcon from "Assets/x.svg";
 import SearchIcon from "Assets/magnifying_glass.svg";
+import SavingIcon from "./saving.svg";
+import SavedIcon from "./saved.svg";
 import HamburgerMenuIcon from "Assets/hamburger-menu-icon.svg";
 
 import * as classes from "./styles.module.scss";
@@ -169,8 +171,18 @@ export function StudyTopNav(props: StudyTopNavProps) {
 
             <Show when={props.savingError() === null}>
               <span class={classes.saving}>
-                &nbsp; - &nbsp;
-                {props.saving() ? "saving" : "saved"}
+                &nbsp; | &nbsp;
+                {props.saving() ? (
+                  <>
+                    <span>saving</span>
+                    <img src={SavingIcon} class={classes.savingUpdateIcon} />
+                  </>
+                ) : (
+                  <>
+                    <span>saved</span>
+                    <img src={SavedIcon} class={classes.saveUpdateIcon} />
+                  </>
+                )}
               </span>
             </Show>
             <Show when={props.savingError() !== null}>

@@ -28,10 +28,13 @@
     display: flex;
     flex-direction: column;
     margin-right: auto;
-    overflow: hidden;
     text-overflow: ellipsis;
     padding-right: 16px;
 
+    * {
+      display: flex;
+      align-items: center;
+    }
     div {
       display: flex;
       gap: 10px;
@@ -42,8 +45,35 @@
     p {
       margin: 0px;
       white-space: nowrap;
-      overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .saving {
+      color: grey;
+      font-size: 13px;
+    }
+    .savingError {
+      color: red;
+    }
+
+    .saveUpdateIcon,
+    .savingUpdateIcon {
+      width: 15px;
+      opacity: 0.5;
+      margin-left: 5px;
+    }
+
+    .savingUpdateIcon {
+      animation: rotateClockwise 1.5s linear infinite;
+    }
+
+    @keyframes rotateClockwise {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
     }
   }
 }
@@ -428,11 +458,4 @@
   textarea {
     resize: none;
   }
-}
-
-.saving {
-  color: grey;
-}
-.savingError {
-  color: red;
 }
