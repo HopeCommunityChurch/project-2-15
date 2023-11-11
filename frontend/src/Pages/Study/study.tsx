@@ -174,7 +174,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     });
   });
 
-
   // Helper Functions
   const updateSignal = throttle((change) => {
     setSaving(true);
@@ -188,25 +187,30 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         document: change,
         lastUpdated: updated,
       }),
-    }).then((res) => {
-      setSaving(false);
-      match(res)
-      .with({ state: "error" }, ({ body }) =>
-        match(body)
-        .with( {error: "DocumentUpdatedNotMatch"}, () => {
-          alert("Study have been updated on the server. Refreshing to get that version.");
-          location.reload();
-        }).otherwise( () =>
-          setSavingError(JSON.stringify(body))
-        )
-      ).with({ state: "success" }, ({ body }) => {
-        setLastUpdate(body.updated);
-        setSavingError(null);
-      }).exhaustive()
-    }).catch((err) => {
-      setSaving(false);
-      setSavingError(err)
-    });
+    })
+      .then((res) => {
+        setSaving(false);
+        //@ts-ignore
+        match(res)
+          .with({ state: "error" }, ({ body }) =>
+            //@ts-ignore
+            match(body)
+              .with({ error: "DocumentUpdatedNotMatch" }, () => {
+                alert("Study have been updated on the server. Refreshing to get that version.");
+                location.reload();
+              })
+              .otherwise(() => setSavingError(JSON.stringify(body)))
+          )
+          .with({ state: "success" }, ({ body }) => {
+            setLastUpdate(body.updated);
+            setSavingError(null);
+          })
+          .exhaustive();
+      })
+      .catch((err) => {
+        setSaving(false);
+        setSavingError(err);
+      });
   }, 1000);
 
   const handleScrollToSection = (sectionIndex) => {
@@ -233,23 +237,25 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   };
 
   const updateSectionTitles = (doc) => {
-    const titlesWithId = doc.content
-      .map((section, index) => {
-        let header = section.content.find((innerSection) => {
-              return innerSection.type === "sectionHeader";
-        });
-        if(header) {
-          return {
-            title: header.content[0].text,
-            id: index,
-          };
-        } else {
-          return {
-            title: "untitled",
-            id: index,
-          };
-        }
-      })
+    const titlesWithId = doc.content.map((section, index) => {
+      let header = section.content.find((innerSection) => {
+        return innerSection.type === "sectionHeader";
+      });
+
+      // Check if header exists and has content property
+      if (header && header.content && header.content.length > 0 && header.content[0].text) {
+        return {
+          title: header.content[0].text,
+          id: index,
+        };
+      } else {
+        return {
+          title: "", // Return empty string if header or its content is null, undefined, or empty
+          id: index,
+        };
+      }
+    });
+
     setSectionTitles(titlesWithId);
   };
 
