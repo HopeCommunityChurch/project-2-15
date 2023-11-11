@@ -24,6 +24,7 @@ import BluePencil from "Assets/blue-pencil.png";
 import CloseXIcon from "Assets/x.svg";
 import SplitScreenIcon from "Assets/split-screen.png";
 import ArrowIcon from "Assets/arrow.svg";
+import CouldntSaveImage from "./couldnt-save-error-image.svg";
 
 // Network functions
 async function getStudy(documentId): Promise<Network.NetworkState<DocRaw>> {
@@ -283,6 +284,38 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     setDragDisabled(false);
   }
 
+  function ErrorOverlay({ savingError }) {
+    return (
+      <Show when={savingError()}>
+        <div class={classes.errorOverlay}>
+          <div class={classes.errorMessage}>
+            <img src={CouldntSaveImage} />
+            <h2>Can't Save</h2>
+            Looks like we're momentarily lost in the wilderness and can't save. We're praying for a
+            pillar of cloud by day and fire by night to lead us back.
+            <a
+              class={classes.bluelink}
+              href="https://forms.gle/koJrP31Vh9TfvPcq7"
+              onClick={() => location.reload()}
+            >
+              Try refreshing the page to fix
+            </a>
+            <div>
+              If this issue persists,{" "}
+              <a
+                href="https://forms.gle/koJrP31Vh9TfvPcq7"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Let us know.
+              </a>
+            </div>
+          </div>
+        </div>
+      </Show>
+    );
+  }
+
   return (
     <div class={classes.wholePageContainer}>
       <StudyTopNav
@@ -293,6 +326,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         savingError={savingError}
         doc={doc}
       />
+      <ErrorOverlay savingError={savingError} />
       <TextEditorToolbar
         editor={editor}
         isTopbarOpen={isTopbarOpen}

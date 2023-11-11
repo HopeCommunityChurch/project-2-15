@@ -1324,6 +1324,45 @@ const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transaction) =
   }
 };
 
+const complexNodeTypes = new Set(["bibleText", "sectionHeader", "studyBlocks"]);
+
+const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
+  key: new PluginKey("preventUpdatingMultipleComplexNodesSelection"),
+  props: {
+    handleDOMEvents: {
+      keydown(view, event) {
+        const { selection, doc } = view.state;
+        let spansComplexNodes = false;
+        let lastNodeName = null;
+        let nodesEncountered = new Set();
+
+        doc.nodesBetween(selection.from, selection.to, (node) => {
+          if (complexNodeTypes.has(node.type.name)) {
+            nodesEncountered.add(node.type.name);
+            if (lastNodeName && lastNodeName !== node.type.name) {
+              spansComplexNodes = true;
+            }
+            lastNodeName = node.type.name;
+          }
+        });
+
+        if ((nodesEncountered.size > 1 || spansComplexNodes) && isModificationKey(event)) {
+          event.preventDefault();
+          return true;
+        }
+
+        return false;
+      },
+    },
+  },
+});
+
+function isModificationKey(event) {
+  const modifyingKeys = ["Enter", "Backspace", "Delete"];
+  const isCharacterKey = event.key.length === 1 && event.key.match(/\S/);
+  return modifyingKeys.includes(event.key) || isCharacterKey;
+}
+
 interface QuestionMapItem {
   node: Node;
   getPos: () => number;
@@ -1380,6 +1419,7 @@ export class P215Editor {
         questionMarkPlugin(this.questionMap),
         sectionIdPlugin,
         verseReferencePlugin,
+        preventUpdatingMultipleComplexNodesSelectionPlugin,
         // referencePlugin
       ],
     });
