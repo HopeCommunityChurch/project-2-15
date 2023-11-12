@@ -64,8 +64,12 @@ export function StudyTopNav(props: StudyTopNavProps) {
 
   const [showDropdown, setShowDropdown] = createSignal(false);
   const [showShareModal, setShowShareModal] = createSignal(false);
+  const [showDeleteStudyModal, setShowDeleteStudyModal] = createSignal(false);
   const [emailInputErrorMsg, setEmailInputErrorMsg] = createSignal("");
   const [emailTags, setEmailTags] = createSignal<string[]>([]);
+  const [isStudyNameEditable, setIsStudyNameEditable] = createSignal(false);
+  const [studyName, setStudyName] = createSignal(props.doc.name);
+  const [previousStudyName, setPreviousStudyName] = createSignal(props.doc.name);
 
   function applyUniqueColorsToElements() {
     // List of colors
@@ -155,6 +159,28 @@ export function StudyTopNav(props: StudyTopNavProps) {
     });
   }
 
+  function submitStudyNameChange(e) {
+    setIsStudyNameEditable(false);
+    // Reset the scroll to show beginning of the title for long names
+    if (e.target instanceof HTMLElement) {
+      e.target.scrollLeft = 0;
+    }
+
+    if (previousStudyName() != studyName()) {
+      setPreviousStudyName(studyName());
+
+      // Add code HERE to post new name <---- JON BOI HERE
+      console.log(studyName());
+    }
+  }
+
+  function handleDeleteStudy() {
+    setShowDeleteStudyModal(false);
+    // Add code HERE to delete Study <---- JON BOI HERE
+    console.log("delete it");
+    // nav("/app/studies"); //redirect back to studies page
+  }
+
   return (
     <>
       <header class={`${classes.header} ${props.isTopbarOpen() ? "" : classes.collapsed}`}>
@@ -165,32 +191,47 @@ export function StudyTopNav(props: StudyTopNavProps) {
         />
 
         <img class={classes.logo} src={Logo} onClick={() => nav("/app/studies")} />
-        <div class={classes.studyHeaderText}>
-          <p>
-            {props.doc.name}
+        <p
+          class={classes.studyHeaderInput}
+          contentEditable={isStudyNameEditable()}
+          onClick={(e) => {
+            setIsStudyNameEditable(true);
+            if (e.target instanceof HTMLElement) {
+              e.target.focus();
+            }
+          }}
+          onBlur={submitStudyNameChange}
+          onInput={(e) => {
+            if (e.target instanceof HTMLElement) {
+              setStudyName(e.target.innerText);
+            }
+          }}
+        >
+          {props.doc.name}
+        </p>
 
-            <Show when={props.savingError() === null}>
-              <span class={classes.saving}>
-                &nbsp; | &nbsp;
-                {props.saving() ? (
-                  <>
-                    <span>saving</span>
-                    <img src={SavingIcon} class={classes.savingUpdateIcon} />
-                  </>
-                ) : (
-                  <>
-                    <span>saved</span>
-                    <img src={SavedIcon} class={classes.saveUpdateIcon} />
-                  </>
-                )}
-              </span>
-            </Show>
-            <Show when={props.savingError() !== null}>
-              &nbsp; - &nbsp;
-              <span class={classes.savingError}>Error saving</span>
-            </Show>
+        <Show when={props.savingError() === null}>
+          <span class={classes.saving}>
+            |
+            {props.saving() ? (
+              <p>
+                <span>saving</span>
+                <img src={SavingIcon} class={classes.savingUpdateIcon} />
+              </p>
+            ) : (
+              <p>
+                <span>saved</span>
+                <img src={SavedIcon} class={classes.saveUpdateIcon} />
+              </p>
+            )}
+          </span>
+        </Show>
+        <Show when={props.savingError() !== null}>
+          <p>
+            |<span class={classes.savingError}>Error saving</span>
           </p>
-        </div>
+        </Show>
+
         <div>
           {
             // @ts-ignore
@@ -223,6 +264,17 @@ export function StudyTopNav(props: StudyTopNavProps) {
                         <A href="/app/studies" class={classes.fullWidthLink}>
                           Home
                         </A>
+                      </li>
+                      <li>
+                        <span
+                          onClick={(e) => {
+                            setShowDeleteStudyModal(!showDeleteStudyModal());
+                            setShowDropdown(!showDropdown());
+                          }}
+                          class={classes.fullWidthLink}
+                        >
+                          Delete Study
+                        </span>
                       </li>
                       <li>
                         <a
@@ -328,6 +380,26 @@ export function StudyTopNav(props: StudyTopNavProps) {
                 ))}
               </Show>
             </form>
+          </div>
+        </div>
+      </Show>
+      <Show when={showDeleteStudyModal()}>
+        <div class={classes.modalBackground} onClick={() => setShowDeleteStudyModal(false)}>
+          <div
+            class={`${classes.shareModal} ${classes.deleteStudyModal}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Are you sure?</h3>
+            <p>
+              "<strong>{props.doc.name}</strong>" will be moved to the trash. Don't worry, you can
+              restore it later if you change your mind.
+            </p>
+            <div class={classes.shareBottomButtons}>
+              <button onClick={() => setShowDeleteStudyModal(false)}>Cancel</button>
+              <button type="submit" onClick={handleDeleteStudy}>
+                Yes, delete
+              </button>
+            </div>
           </div>
         </div>
       </Show>

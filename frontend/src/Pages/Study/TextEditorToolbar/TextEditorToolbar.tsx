@@ -477,6 +477,13 @@ function ToolbarGroup4({ editor, operatingSystem }) {
     setTimeout(() => {
       setAddScripturePopUp(!showAddScripturePopUp());
     }, 10);
+
+    setTimeout(() => {
+      const inputField = document.getElementById("addScriptureField");
+      if (inputField) {
+        inputField.focus();
+      }
+    }, 10);
   };
 
   createEffect(() => {
@@ -558,11 +565,11 @@ function ToolbarGroup4({ editor, operatingSystem }) {
           <form onSubmit={addScripture}>
             <div class={classes.allInputsContainer}>
               <div class={classes.labelInputContainer}>
-                <label for="hyperlinkURL">Ref:</label>
+                <label for="addScriptureField">Ref:</label>
                 <input
                   autofocus={true}
                   type="text"
-                  id="hyperlinkURL"
+                  id="addScriptureField"
                   placeholder="Ex. John 3:16"
                   value={addScriptureText()}
                   onInput={(e) => setAddScriptureText(e.target.value)}
