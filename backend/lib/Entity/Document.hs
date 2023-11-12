@@ -142,6 +142,37 @@ updateDocument docId document = do
       (\ r -> r.docId ==. val_ docId)
 
 
+updateDocMeta
+  :: MonadDb env m
+  => T.DocId
+  -> Text
+  -> m ()
+updateDocMeta docId name = do
+  now <- getCurrentTime
+  runBeam
+    $ runUpdate
+    $ update
+      Db.db.document
+      (\ r ->
+           (r.name <-. val_ name)
+        <> (r.updated <-. val_ now)
+      )
+      (\ r -> r.docId ==. val_ docId)
+
+
+deleteDocument
+  :: MonadDb env m
+  => T.DocId
+  -> m ()
+deleteDocument docId = do
+  runBeam
+    $ runUpdate
+    $ update
+      Db.db.document
+      (\ r -> r.isDeleted <-. val_ True)
+      (\ r -> r.docId ==. val_ docId)
+
+
 data CrDoc = CrDoc
   { studyTemplateId :: Maybe T.StudyTemplateId
   , name :: Text
@@ -169,6 +200,7 @@ crDocument crDoc = do
           (val_ crDoc.studyTemplateId)
           (val_ crDoc.name)
           (val_ (PgJSONB crDoc.document))
+          (val_ False)
           (val_ now)
           (val_ now)
         ]

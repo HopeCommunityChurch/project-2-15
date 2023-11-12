@@ -40,6 +40,28 @@ updateDocument user docId update = do
   getByIdForUser user docId
 
 
+newtype UpdateDocMeta = MkUpdateDocMeta
+  { name :: Text
+  }
+  deriving (Show, Generic)
+  deriving anyclass (FromJSON, ToJSON, ToSchema)
+
+
+
+updateDocMeta
+  :: MonadDb env m
+  => AuthUser
+  -> T.DocId
+  -> UpdateDocMeta
+  -> m Doc.GetDoc
+updateDocMeta user docId up = do
+  doc <- getByIdForUser @Doc.GetDoc user docId
+  unless (user.userId `elem` fmap (.userId) doc.editors)
+    Errs.throwAuthErr
+  Doc.updateDocMeta docId up.name
+  getByIdForUser user docId
+
+
 data CrDoc = MkCrDoc
   { studyTemplateId :: Maybe T.StudyTemplateId
   , name :: Text
@@ -60,6 +82,19 @@ createDocument user cr = do
   getByIdForUser user docId
 
 
+deleteDocument
+  :: MonadDb env m
+  => AuthUser
+  -> T.DocId
+  -> m NoContent
+deleteDocument user docId = do
+  doc <- getByIdForUser @Doc.GetDoc user docId
+  unless (user.userId `elem` fmap (.userId) doc.editors)
+    Errs.throwAuthErr
+  Doc.deleteDocument docId
+  pure NoContent
+
+
 type Api =
   AuthProtect "cookie"
     :> Summary "Gets all documents for a user"
@@ -76,6 +111,18 @@ type Api =
     :> Capture "documentId" T.DocId
     :> ReqBody '[JSON] UpdateDocument
     :> Put '[JSON] Doc.GetDoc
+  :<|> "meta"
+    :> AuthProtect "cookie"
+    :> Summary "Update document metadata"
+    :> Description "Update document metadata"
+    :> Capture "documentId" T.DocId
+    :> ReqBody '[JSON] UpdateDocMeta
+    :> Put '[JSON] Doc.GetDoc
+  :<|> AuthProtect "cookie"
+    :> Summary "Update document metadata"
+    :> Description "Update document metadata"
+    :> Capture "documentId" T.DocId
+    :> DeleteNoContent
   :<|> AuthProtect "cookie"
     :> Summary "Create a document, it's not in a study"
     :> Description "Create a document, it's not in a study"
@@ -91,5 +138,7 @@ server =
   Doc.getAllDocs
   :<|> getByIdForUser
   :<|> updateDocument
+  :<|> updateDocMeta
+  :<|> deleteDocument
   :<|> createDocument
 
