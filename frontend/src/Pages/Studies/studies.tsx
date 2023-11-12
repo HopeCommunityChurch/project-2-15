@@ -49,7 +49,7 @@ function Studies(currentUser: T.PublicUser) {
             </>
           ) : (
             <>
-              <h1>Trashed Studies</h1>
+              <h1 style={{ color: "#fd6161" }}>Trashed Studies</h1>
               <a class={classes.trashButton2} onClick={() => setIsViewingTrashn(!isViewingTrash())}>
                 Go Back
               </a>
