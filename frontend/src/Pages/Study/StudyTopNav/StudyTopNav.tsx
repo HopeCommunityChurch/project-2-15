@@ -159,6 +159,24 @@ export function StudyTopNav(props: StudyTopNavProps) {
     });
   }
 
+  function handlePaste(event) {
+    event.preventDefault();
+    const clipboardData = (event as any).clipboardData || (window as any).clipboardData;
+    const pastedText = clipboardData.getData("text/plain");
+
+    // Replace all newline characters with a single space
+    const cleanedText = pastedText.replace(/\n/g, " ");
+
+    // Insert the cleaned text at the current selection point
+    const selection = window.getSelection();
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(document.createTextNode(cleanedText));
+
+    // Update the content state with the new content
+    setStudyName(event.target.innerHTML);
+  }
+
   function submitStudyNameChange(e) {
     setIsStudyNameEditable(false);
     // Reset the scroll to show beginning of the title for long names
@@ -206,6 +224,7 @@ export function StudyTopNav(props: StudyTopNavProps) {
               setStudyName(e.target.innerText);
             }
           }}
+          onPaste={handlePaste}
         >
           {props.doc.name}
         </p>

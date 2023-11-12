@@ -1432,6 +1432,7 @@ export class P215Editor {
       state: that.state,
       editable: () => that.editable,
       handlePaste: this.handlePaste.bind(this),
+
       nodeViews: {
         studyBlocks(node) {
           return new StudyBlocksView(node);
@@ -1478,8 +1479,27 @@ export class P215Editor {
   }
 
   handlePaste(view, event, slice) {
-    console.log("Pasting content", slice);
+    const { state, dispatch } = view;
+    const { selection } = state;
+    const targetNode = selection.$head.parent;
 
+    // Handle paste into 'sectionHeader'
+    if (targetNode.type.name === "sectionHeader") {
+      event.preventDefault();
+
+      // Extract text content from the slice and replace line breaks with spaces
+      let textContent = "";
+      slice.content.forEach((block) => {
+        textContent += block.textContent.replace(/\n/g, " ") + " ";
+      });
+
+      // Insert the plain text into the editor
+      dispatch(view.state.tr.insertText(textContent, selection.$head.pos, selection.$head.pos));
+
+      return true;
+    }
+
+    // Below is the existing logic for handling other paste scenarios
     const allowedTextColor = new Set([
       "#000",
       "#91A4B1",
