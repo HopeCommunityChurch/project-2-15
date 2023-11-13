@@ -14,6 +14,7 @@ import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
 import useClickOutsideClose from "Hooks/useOutsideClickClose";
 import { DocRaw } from "Types";
+import * as Network from "Utils/Network";
 
 type StudyTopNavProps = {
   isSidebarOpen: () => boolean;
@@ -188,7 +189,20 @@ export function StudyTopNav(props: StudyTopNavProps) {
       setPreviousStudyName(studyName());
 
       // Add code HERE to post new name <---- JON BOI HERE
-      console.log(studyName());
+
+      Network.request<DocRaw>("/document/meta/" + props.doc.docId, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: studyName(),
+        }),
+      }).then((res) => {
+        console.log(res);
+      }).catch((err) => {
+        console.error(err);
+      });
     }
   }
 
@@ -410,7 +424,7 @@ export function StudyTopNav(props: StudyTopNavProps) {
           >
             <h3>Are you sure?</h3>
             <p>
-              "<strong>{props.doc.name}</strong>" will be moved to the trash. Don't worry, you can
+              "<strong>{studyName()}</strong>" will be moved to the trash. Don't worry, you can
               restore it later if you change your mind.
             </p>
             <div class={classes.shareBottomButtons}>

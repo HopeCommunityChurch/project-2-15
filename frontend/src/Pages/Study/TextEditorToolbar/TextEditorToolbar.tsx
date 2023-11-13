@@ -251,7 +251,12 @@ function ToolbarGroup1({ editor, operatingSystem }) {
       </div>
 
       <div class={classes.tooltipContainer}>
-        <svg class={classes.toolbarIcon} onClick={toggleColorPickerPopup} viewBox="0 0 30 30">
+        <svg
+          class={classes.toolbarIcon}
+          onMousedown={ (e) => e.preventDefault() }
+          onClick={toggleColorPickerPopup}
+          viewBox="0 0 30 30"
+        >
           <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={textFillColor()} />
           <path
             data-name="Path 6847"
@@ -334,6 +339,7 @@ function ToolbarGroup1({ editor, operatingSystem }) {
         <svg
           viewBox="0 0 30 30"
           class={classes.toolbarIcon}
+          onMousedown={ (e) => e.preventDefault() }
           onClick={toggleHighlightColorPickerPopup}
         >
           <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={highlightFillColor()} />
