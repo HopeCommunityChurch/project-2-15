@@ -43,9 +43,6 @@ function Studies(currentUser: T.PublicUser) {
           {isViewingTrash() ? (
             <>
               <h1>My Studies</h1>
-              <a class={classes.trashButton} onClick={() => setIsViewingTrashn(!isViewingTrash())}>
-                Trashed Studies
-              </a>
             </>
           ) : (
             <>

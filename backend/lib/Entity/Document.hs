@@ -8,14 +8,15 @@ import Database.Beam (
   all_,
   default_,
   desc_,
-  leftJoin_',
-  just_,
   exists_,
   guard_,
   in_,
   insert,
   insertExpressions,
   insertValues,
+  just_,
+  leftJoin_',
+  not_,
   orderBy_,
   runInsert,
   runSelectReturningList,
@@ -83,6 +84,8 @@ instance E.Entity GetDoc where
 
   queryEntity mAuthUser = do
     doc <- all_ Db.db.document
+
+    guard_ $ not_ doc.isDeleted
 
     for_ mAuthUser $ \ authUser -> guard_ $ exists_ $ do
       user <- all_ Db.db.documentEditor

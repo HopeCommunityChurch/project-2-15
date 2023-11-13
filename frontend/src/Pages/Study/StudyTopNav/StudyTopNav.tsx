@@ -207,10 +207,20 @@ export function StudyTopNav(props: StudyTopNavProps) {
   }
 
   function handleDeleteStudy() {
-    setShowDeleteStudyModal(false);
-    // Add code HERE to delete Study <---- JON BOI HERE
-    console.log("delete it");
-    // nav("/app/studies"); //redirect back to studies page
+    Network.request("/document/" + props.doc.docId, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+      }),
+    }).then((res) => {
+      console.log(res);
+      nav("/app/studies");
+      setShowDeleteStudyModal(false);
+    }).catch((err) => {
+      console.error(err);
+    });
   }
 
   return (
