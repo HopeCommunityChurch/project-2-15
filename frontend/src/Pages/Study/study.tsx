@@ -176,46 +176,43 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       const data = savingData();
       if (saving() === true) return;
       if (data == null) return;
-      if (contentHasChanged(data)) {
-        setSaving(true);
-        setSavingData(null);
-        setLastSavedContent(data);
-        const updated = lastUpdate();
-        Network.request<DocRaw>("/document/" + doc.docId, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            document: data,
-            lastUpdated: updated,
-          }),
-        })
-          .then((res) => {
+      if (!contentHasChanged(data)) return;
+      setSaving(true);
+      setSavingData(null);
+      setLastSavedContent(data);
+      const updated = lastUpdate();
+      Network.request<DocRaw>("/document/" + doc.docId, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          document: data,
+          lastUpdated: updated,
+        }),
+      }).then((res) => {
+        //@ts-ignore
+        match(res)
+          .with({ state: "error" }, ({ body }) =>
             //@ts-ignore
-            match(res)
-              .with({ state: "error" }, ({ body }) =>
-                //@ts-ignore
-                match(body)
-                  .with({ error: "DocumentUpdatedNotMatch" }, () => {
-                    alert("Study have been updated on the server. Refreshing to get that version.");
-                    location.reload();
-                  })
-                  .otherwise(() => setSavingError(JSON.stringify(body)))
-              )
-              .with({ state: "success" }, ({ body }) => {
-                setLastUpdate(body.updated);
-                setSavingError(null);
-                setTimeout(() => setSaving(false), 1000);
+            match(body)
+              .with({ error: "DocumentUpdatedNotMatch" }, () => {
+                alert("Study have been updated on the server. Refreshing to get that version.");
+                location.reload();
               })
-              .exhaustive();
-          })
-          .catch((err) => {
-            setSaving(false);
+              .otherwise(() => setSavingError(JSON.stringify(body)))
+          )
+          .with({ state: "success" }, ({ body }) => {
+            setLastUpdate(body.updated);
+            setSavingError(null);
             setTimeout(() => setSaving(false), 1000);
-            setSavingError(err);
-          });
-      }
+          })
+          .exhaustive();
+      }).catch((err) => {
+        setSaving(false);
+        setTimeout(() => setSaving(false), 1000);
+        setSavingError(err);
+      });
     });
   };
 
