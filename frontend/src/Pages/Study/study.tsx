@@ -162,30 +162,24 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     };
   });
 
-  onMount(() => {
-    editor.addEditor(editorRoot);
-    const [documentThingy, setDocumentThingy] = createSignal(doc.document);
-    // editorSplitScreen.addEditor(editorRootSplitScreen);
-    createEffect(() => {
-      updateSectionTitles(documentThingy());
-    });
+  const savingContext = () => {
+    const [savingData, setSavingData] = createSignal(null);
+    const throttledSave = throttle( (change) => {
+
+      setSavingData(change);
+    }, 1000);
 
     editor.onUpdate((value) => {
-      setDocumentThingy(value);
-      updateSignal(value);
+      throttledSave(value);
     });
-  });
 
-  const contentHasChanged = (newContent) => {
-    const currentContent = lastSavedContent();
-    return JSON.stringify(newContent) !== JSON.stringify(currentContent);
-  };
-
-  // Helper Functions
-  const updateSignal = throttle((change) => {
-    if (contentHasChanged(change)) {
+    createEffect( () => {
+      const data = savingData();
+      if(saving() === true) return;
+      if (data == null) return;
       setSaving(true);
-      setLastSavedContent(change);
+      setSavingData(null);
+      setLastSavedContent(data);
       const updated = lastUpdate();
       Network.request<DocRaw>("/document/" + doc.docId, {
         method: "PUT",
@@ -193,35 +187,53 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          document: change,
+          document: data,
           lastUpdated: updated,
         }),
-      })
-        .then((res) => {
-          setTimeout(() => setSaving(false), 1000);
+      }).then((res) => {
           //@ts-ignore
           match(res)
-            .with({ state: "error" }, ({ body }) =>
-              //@ts-ignore
-              match(body)
-                .with({ error: "DocumentUpdatedNotMatch" }, () => {
-                  alert("Study have been updated on the server. Refreshing to get that version.");
-                  location.reload();
-                })
-                .otherwise(() => setSavingError(JSON.stringify(body)))
-            )
-            .with({ state: "success" }, ({ body }) => {
-              setLastUpdate(body.updated);
-              setSavingError(null);
+          .with({ state: "error" }, ({ body }) =>
+            //@ts-ignore
+            match(body)
+            .with({ error: "DocumentUpdatedNotMatch" }, () => {
+              alert("Study have been updated on the server. Refreshing to get that version.");
+              location.reload();
             })
-            .exhaustive();
-        })
-        .catch((err) => {
-          setTimeout(() => setSaving(false), 1000);
-          setSavingError(err);
-        });
-    }
-  }, 1000);
+            .otherwise(() => setSavingError(JSON.stringify(body)))
+          ).with({ state: "success" }, ({ body }) => {
+            setLastUpdate(body.updated);
+            setSavingError(null);
+            setTimeout(() => setSaving(false), 1000);
+          })
+          .exhaustive();
+      }).catch((err) => {
+        setSaving(false);
+        setTimeout(() => setSaving(false), 1000);
+        setSavingError(err);
+      });
+
+    });
+  };
+
+  onMount(() => {
+    editor.addEditor(editorRoot);
+    const [documentThingy, setDocumentThingy] = createSignal(doc.document);
+    // editorSplitScreen.addEditor(editorRootSplitScreen);
+    createEffect(() => {
+      updateSectionTitles(documentThingy());
+    });
+    editor.onUpdate((value) => {
+      setDocumentThingy(value);
+    });
+    savingContext();
+  });
+
+  const contentHasChanged = (newContent) => {
+    const currentContent = lastSavedContent();
+    return JSON.stringify(newContent) !== JSON.stringify(currentContent);
+  };
+
 
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);

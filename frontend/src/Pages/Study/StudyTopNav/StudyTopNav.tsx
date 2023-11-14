@@ -189,8 +189,6 @@ export function StudyTopNav(props: StudyTopNavProps) {
     if (previousStudyName() != studyName()) {
       setPreviousStudyName(studyName());
 
-      // Add code HERE to post new name <---- JON BOI HERE
-
       Network.request<DocRaw>("/document/meta/" + props.doc.docId, {
         method: "PUT",
         headers: {
