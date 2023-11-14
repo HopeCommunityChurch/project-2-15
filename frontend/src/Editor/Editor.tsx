@@ -25,6 +25,7 @@ import { StepMap } from "prosemirror-transform";
 import { baseKeymap } from "prosemirror-commands";
 import "./styles.css";
 import * as classes from "./styles.module.scss";
+import QuestionIcon from "../Pages/Study/TextEditorToolbar/Assets/question-icon.svg";
 
 import DragHandleIcon from "../Assets/drag-handle.svg";
 import CloseXIcon from "../Assets/x.svg";
@@ -860,7 +861,9 @@ const questionMarkWidget =
   (qId: string, questionMap: Dictionary<QuestionMapItem>) => (view: EditorView) => {
     const elem = document.createElement("div");
     elem.className = classes.questionMark;
-    elem.innerHTML = "?";
+    // elem.innerHTML = "?";
+    elem.innerHTML = '<img src="' + QuestionIcon + '" />';
+
     elem.onmousedown = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -894,6 +897,7 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
               stopEvent: (e: Event) => {
                 return e.type === "click";
               },
+              side: -1,
             })
           );
         });
