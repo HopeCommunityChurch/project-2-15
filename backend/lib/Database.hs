@@ -292,6 +292,7 @@ data DocumentT f = MkDocumentT
   , studyTemplateId :: C f (Maybe T.StudyTemplateId)
   , name :: C f Text
   , document :: C f (PgJSONB Object)
+  , isDeleted :: C f Bool
   , created :: C f UTCTime
   , updated :: C f UTCTime
   }
@@ -314,6 +315,7 @@ documentTable =
       , studyTemplateId = fieldNamed "studyTemplateId"
       , name = fieldNamed "name"
       , document = fieldNamed "document"
+      , isDeleted = fieldNamed "isDeleted"
       , updated = fieldNamed "updated"
       , created = fieldNamed "created"
       }

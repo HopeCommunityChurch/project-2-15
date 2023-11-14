@@ -9,9 +9,10 @@ import {
 } from "prosemirror-state";
 import { EditorView, NodeView, DecorationSet, Decoration } from "prosemirror-view";
 import { undoItem, redoItem, MenuItem, MenuItemSpec, menuBar } from "prosemirror-menu";
+
 import {
   chainCommands,
-  deleteSelection,
+  // deleteSelection, //DON'T USE THIS - It deleted section titles, body text, study blocks, and more when selecting across them.
   joinBackward,
   selectNodeBackward,
   toggleMark,
@@ -19,7 +20,7 @@ import {
 
 import { undo, redo, history } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
-import { Schema, Node, Mark, Fragment } from "prosemirror-model";
+import { Slice, Schema, Node, Mark, Fragment } from "prosemirror-model";
 import { StepMap } from "prosemirror-transform";
 import { baseKeymap } from "prosemirror-commands";
 import "./styles.css";
@@ -1239,26 +1240,38 @@ let addVerse = (
   dispatch?: (tr: Transaction) => void
 ) => {
   if (dispatch) {
-    // Make the mark
-
-    const sectionNode: Node = state.selection.$anchor.node(1);
-    let posOfStudyBlock = null;
-    state.doc.descendants((node: Node, pos: number) => {
-      if (node.eq(sectionNode)) {
-        return true;
+    // Get the current selection
+    const selection = state.selection;
+    // Find the parent section node of the current selection
+    let sectionNode = null;
+    let sectionPos = null;
+    state.doc.nodesBetween(selection.from, selection.to, (node, pos, parent, index) => {
+      if (node.type.name === "section") {
+        sectionNode = node;
+        sectionPos = pos;
       }
-      if (node.type.name !== "studyBlocks") return false;
-      posOfStudyBlock = pos;
-      return false;
     });
 
-    const textNode = passage.flatMap(mkVerseNode);
-    const chunk = textSchema.nodes.chunk.create(null, textNode);
-    const bibleText = textSchema.nodes.bibleText.create({ verses: verseRef }, chunk);
-    const tr = state.tr.insert(posOfStudyBlock, bibleText);
-    dispatch(tr);
-    return true;
+    if (sectionNode && sectionPos !== null) {
+      let posOfStudyBlock = null;
+      // Find the position of the studyBlocks within the current section
+      sectionNode.forEach((childNode, offset, index) => {
+        if (childNode.type.name === "studyBlocks") {
+          posOfStudyBlock = sectionPos + 1 + offset;
+        }
+      });
+
+      if (posOfStudyBlock !== null) {
+        const textNode = passage.flatMap(mkVerseNode);
+        const chunk = textSchema.nodes.chunk.create(null, textNode);
+        const bibleText = textSchema.nodes.bibleText.create({ verses: verseRef }, chunk);
+        const tr = state.tr.insert(posOfStudyBlock, bibleText);
+        dispatch(tr);
+        return true;
+      }
+    }
   }
+  return false;
 };
 
 function newSectionNode(): Node {
@@ -1312,6 +1325,45 @@ const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transaction) =
   }
 };
 
+const complexNodeTypes = new Set(["bibleText", "sectionHeader", "studyBlocks"]);
+
+const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
+  key: new PluginKey("preventUpdatingMultipleComplexNodesSelection"),
+  props: {
+    handleDOMEvents: {
+      keydown(view, event) {
+        const { selection, doc } = view.state;
+        let spansComplexNodes = false;
+        let lastNodeName = null;
+        let nodesEncountered = new Set();
+
+        doc.nodesBetween(selection.from, selection.to, (node) => {
+          if (complexNodeTypes.has(node.type.name)) {
+            nodesEncountered.add(node.type.name);
+            if (lastNodeName && lastNodeName !== node.type.name) {
+              spansComplexNodes = true;
+            }
+            lastNodeName = node.type.name;
+          }
+        });
+
+        if ((nodesEncountered.size > 1 || spansComplexNodes) && isModificationKey(event)) {
+          event.preventDefault();
+          return true;
+        }
+
+        return false;
+      },
+    },
+  },
+});
+
+function isModificationKey(event) {
+  const modifyingKeys = ["Enter", "Backspace", "Delete"];
+  const isCharacterKey = event.key.length === 1 && event.key.match(/\S/);
+  return modifyingKeys.includes(event.key) || isCharacterKey;
+}
+
 interface QuestionMapItem {
   node: Node;
   getPos: () => number;
@@ -1340,7 +1392,7 @@ export class P215Editor {
     baseKeymap["Backspace"] = chainCommands(
       deleteQuestionSelection,
       deleteAnswerSelection,
-      deleteSelection,
+      // deleteSelection,
       joinBackward,
       selectNodeBackward
     );
@@ -1368,6 +1420,7 @@ export class P215Editor {
         questionMarkPlugin(this.questionMap),
         sectionIdPlugin,
         verseReferencePlugin,
+        preventUpdatingMultipleComplexNodesSelectionPlugin,
         // referencePlugin
       ],
     });
@@ -1378,6 +1431,8 @@ export class P215Editor {
     this.view = new EditorView(editorRoot, {
       state: that.state,
       editable: () => that.editable,
+      handlePaste: this.handlePaste.bind(this),
+
       nodeViews: {
         studyBlocks(node) {
           return new StudyBlocksView(node);
@@ -1421,6 +1476,88 @@ export class P215Editor {
         });
       },
     });
+  }
+
+  handlePaste(view, event, slice) {
+    const { state, dispatch } = view;
+    const { selection } = state;
+    const targetNode = selection.$head.parent;
+
+    // Handle paste into 'sectionHeader'
+    if (targetNode.type.name === "sectionHeader") {
+      event.preventDefault();
+
+      // Extract text content from the slice and replace line breaks with spaces
+      let textContent = "";
+      slice.content.forEach((block) => {
+        textContent += block.textContent.replace(/\n/g, " ") + " ";
+      });
+
+      // Insert the plain text into the editor
+      dispatch(view.state.tr.insertText(textContent, selection.$head.pos, selection.$head.pos));
+
+      return true;
+    }
+
+    // Below is the existing logic for handling other paste scenarios
+    const allowedTextColor = new Set([
+      "#000",
+      "#91A4B1",
+      "#8B4E35",
+      "#F13A35",
+      "#EB732E",
+      "#F8AC2B",
+      "#00A55B",
+      "#2D78ED",
+    ]);
+
+    const allowedHighlightColor = new Set([
+      "#EBDED9",
+      "#FDDAD8",
+      "#FCE6D6",
+      "#FDF4D2",
+      "#D2EFE0",
+      "#C6E6FD",
+      "#EFDEEC",
+    ]);
+
+    function processNode(node) {
+      if (node.isText && node.marks.length) {
+        // Adjust marks for text color and highlight color
+        node.marks = node.marks
+          .map((mark) => {
+            if (mark.type.name === "textColor" && !allowedTextColor.has(mark.attrs.color)) {
+              return null;
+            } else if (
+              mark.type.name === "highlightColor" &&
+              !allowedHighlightColor.has(mark.attrs.color)
+            ) {
+              return null;
+            }
+            return mark;
+          })
+          .filter(Boolean); // Remove nulls from the array
+      } else if (node.isBlock) {
+        // Recursively process child nodes
+        let newContent = [];
+        node.content.forEach((childNode) => {
+          newContent.push(processNode(childNode));
+        });
+        return node.copy(Fragment.from(newContent));
+      }
+      return node;
+    }
+
+    let newContent = [];
+    slice.content.forEach((node) => {
+      newContent.push(processNode(node));
+    });
+
+    // Process the slice and replace the original paste content
+    let newSlice = new Slice(Fragment.from(newContent), slice.openStart, slice.openEnd);
+    let transaction = view.state.tr.replaceSelection(newSlice);
+    view.dispatch(transaction);
+    return true;
   }
 
   removeEditor() {

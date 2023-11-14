@@ -8,14 +8,15 @@ import Database.Beam (
   all_,
   default_,
   desc_,
-  leftJoin_',
-  just_,
   exists_,
   guard_,
   in_,
   insert,
   insertExpressions,
   insertValues,
+  just_,
+  leftJoin_',
+  not_,
   orderBy_,
   runInsert,
   runSelectReturningList,
@@ -84,6 +85,8 @@ instance E.Entity GetDoc where
   queryEntity mAuthUser = do
     doc <- all_ Db.db.document
 
+    guard_ $ not_ doc.isDeleted
+
     for_ mAuthUser $ \ authUser -> guard_ $ exists_ $ do
       user <- all_ Db.db.documentEditor
       guard_ $ user.docId ==. doc.docId
@@ -142,6 +145,37 @@ updateDocument docId document = do
       (\ r -> r.docId ==. val_ docId)
 
 
+updateDocMeta
+  :: MonadDb env m
+  => T.DocId
+  -> Text
+  -> m ()
+updateDocMeta docId name = do
+  now <- getCurrentTime
+  runBeam
+    $ runUpdate
+    $ update
+      Db.db.document
+      (\ r ->
+           (r.name <-. val_ name)
+        <> (r.updated <-. val_ now)
+      )
+      (\ r -> r.docId ==. val_ docId)
+
+
+deleteDocument
+  :: MonadDb env m
+  => T.DocId
+  -> m ()
+deleteDocument docId = do
+  runBeam
+    $ runUpdate
+    $ update
+      Db.db.document
+      (\ r -> r.isDeleted <-. val_ True)
+      (\ r -> r.docId ==. val_ docId)
+
+
 data CrDoc = CrDoc
   { studyTemplateId :: Maybe T.StudyTemplateId
   , name :: Text
@@ -169,6 +203,7 @@ crDocument crDoc = do
           (val_ crDoc.studyTemplateId)
           (val_ crDoc.name)
           (val_ (PgJSONB crDoc.document))
+          (val_ False)
           (val_ now)
           (val_ now)
         ]

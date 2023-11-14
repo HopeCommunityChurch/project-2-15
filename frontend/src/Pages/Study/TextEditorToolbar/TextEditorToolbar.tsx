@@ -251,7 +251,12 @@ function ToolbarGroup1({ editor, operatingSystem }) {
       </div>
 
       <div class={classes.tooltipContainer}>
-        <svg class={classes.toolbarIcon} onClick={toggleColorPickerPopup} viewBox="0 0 30 30">
+        <svg
+          class={classes.toolbarIcon}
+          onMousedown={ (e) => e.preventDefault() }
+          onClick={toggleColorPickerPopup}
+          viewBox="0 0 30 30"
+        >
           <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={textFillColor()} />
           <path
             data-name="Path 6847"
@@ -334,6 +339,7 @@ function ToolbarGroup1({ editor, operatingSystem }) {
         <svg
           viewBox="0 0 30 30"
           class={classes.toolbarIcon}
+          onMousedown={ (e) => e.preventDefault() }
           onClick={toggleHighlightColorPickerPopup}
         >
           <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={highlightFillColor()} />
@@ -477,6 +483,13 @@ function ToolbarGroup4({ editor, operatingSystem }) {
     setTimeout(() => {
       setAddScripturePopUp(!showAddScripturePopUp());
     }, 10);
+
+    setTimeout(() => {
+      const inputField = document.getElementById("addScriptureField");
+      if (inputField) {
+        inputField.focus();
+      }
+    }, 10);
   };
 
   createEffect(() => {
@@ -558,11 +571,11 @@ function ToolbarGroup4({ editor, operatingSystem }) {
           <form onSubmit={addScripture}>
             <div class={classes.allInputsContainer}>
               <div class={classes.labelInputContainer}>
-                <label for="hyperlinkURL">Ref:</label>
+                <label for="addScriptureField">Ref:</label>
                 <input
                   autofocus={true}
                   type="text"
-                  id="hyperlinkURL"
+                  id="addScriptureField"
                   placeholder="Ex. John 3:16"
                   value={addScriptureText()}
                   onInput={(e) => setAddScriptureText(e.target.value)}
