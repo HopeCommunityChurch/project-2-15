@@ -32,15 +32,18 @@ body {
 }
 
 .questionMark {
-  background-color: #9a9ba6;
-  color: white;
-  border-radius: 0.625em;
-  width: 1.25em;
-  height: 1.25em;
+  width: 1.05em;
   display: inline-block;
   text-align: center;
   cursor: pointer;
-  scale: 0.9;
+  margin-right: 2px;
+  opacity: 0.9;
+  background-color: #fff;
+  margin-right: 0px;
+  img {
+    max-width: 100%;
+    transform: translateY(3px);
+  }
 }
 
 .outerChunk {

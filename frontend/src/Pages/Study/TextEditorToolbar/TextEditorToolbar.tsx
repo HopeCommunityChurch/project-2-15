@@ -253,7 +253,7 @@ function ToolbarGroup1({ editor, operatingSystem }) {
       <div class={classes.tooltipContainer}>
         <svg
           class={classes.toolbarIcon}
-          onMousedown={ (e) => e.preventDefault() }
+          onMouseDown={(e) => e.preventDefault()}
           onClick={toggleColorPickerPopup}
           viewBox="0 0 30 30"
         >
@@ -339,7 +339,7 @@ function ToolbarGroup1({ editor, operatingSystem }) {
         <svg
           viewBox="0 0 30 30"
           class={classes.toolbarIcon}
-          onMousedown={ (e) => e.preventDefault() }
+          onMouseDown={(e) => e.preventDefault()}
           onClick={toggleHighlightColorPickerPopup}
         >
           <rect x=".0884" y="23.8309" width="29.8233" height="6.1691" fill={highlightFillColor()} />
