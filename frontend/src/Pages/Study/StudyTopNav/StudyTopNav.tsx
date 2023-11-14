@@ -21,7 +21,7 @@ type StudyTopNavProps = {
   isTopbarOpen: () => boolean;
   setSidebarOpen: (value: boolean) => void;
   saving: () => boolean;
-  setLastUpdate : (u : string) => void;
+  setLastUpdate: (u: string) => void;
   savingError: () => string | null;
   doc: DocRaw;
 };
@@ -197,18 +197,19 @@ export function StudyTopNav(props: StudyTopNavProps) {
         body: JSON.stringify({
           name: studyName(),
         }),
-      }).then((res) => {
-        match(res)
-          .with({ state: "error" }, ({ body }) =>
-            console.error(body)
-          )
-          .with({ state: "success" }, ({ body }) => {
-            props.setLastUpdate(body.updated);
-          })
-          .exhaustive();
-      }).catch((err) => {
-        console.error(err);
-      });
+      })
+        .then((res) => {
+          //@ts-ignore
+          match(res)
+            .with({ state: "error" }, ({ body }) => console.error(body))
+            .with({ state: "success" }, ({ body }) => {
+              props.setLastUpdate(body.updated);
+            })
+            .exhaustive();
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
   }
 
@@ -218,15 +219,16 @@ export function StudyTopNav(props: StudyTopNavProps) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-      }),
-    }).then((res) => {
-      console.log(res);
-      nav("/app/studies");
-      setShowDeleteStudyModal(false);
-    }).catch((err) => {
-      console.error(err);
-    });
+      body: JSON.stringify({}),
+    })
+      .then((res) => {
+        console.log(res);
+        nav("/app/studies");
+        setShowDeleteStudyModal(false);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }
 
   return (
@@ -440,8 +442,8 @@ export function StudyTopNav(props: StudyTopNavProps) {
           >
             <h3>Are you sure?</h3>
             <p>
-              "<strong>{studyName()}</strong>" will be moved to the trash. Don't worry, you can
-              restore it later if you change your mind.
+              "<strong>{studyName()}</strong>" will be moved to the trash. Warning: your study
+              cannot be recovered.
             </p>
             <div class={classes.shareBottomButtons}>
               <button onClick={() => setShowDeleteStudyModal(false)}>Cancel</button>
