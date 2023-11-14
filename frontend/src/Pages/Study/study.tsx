@@ -164,8 +164,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   const savingContext = () => {
     const [savingData, setSavingData] = createSignal(null);
-    const throttledSave = throttle( (change) => {
-
+    const throttledSave = throttle((change) => {
       setSavingData(change);
     }, 1000);
 
@@ -173,46 +172,50 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       throttledSave(value);
     });
 
-    createEffect( () => {
+    createEffect(() => {
       const data = savingData();
-      if(saving() === true) return;
+      if (saving() === true) return;
       if (data == null) return;
-      setSaving(true);
-      setSavingData(null);
-      setLastSavedContent(data);
-      const updated = lastUpdate();
-      Network.request<DocRaw>("/document/" + doc.docId, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          document: data,
-          lastUpdated: updated,
-        }),
-      }).then((res) => {
-          //@ts-ignore
-          match(res)
-          .with({ state: "error" }, ({ body }) =>
+      if (contentHasChanged(data)) {
+        setSaving(true);
+        setSavingData(null);
+        setLastSavedContent(data);
+        const updated = lastUpdate();
+        Network.request<DocRaw>("/document/" + doc.docId, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            document: data,
+            lastUpdated: updated,
+          }),
+        })
+          .then((res) => {
             //@ts-ignore
-            match(body)
-            .with({ error: "DocumentUpdatedNotMatch" }, () => {
-              alert("Study have been updated on the server. Refreshing to get that version.");
-              location.reload();
-            })
-            .otherwise(() => setSavingError(JSON.stringify(body)))
-          ).with({ state: "success" }, ({ body }) => {
-            setLastUpdate(body.updated);
-            setSavingError(null);
-            setTimeout(() => setSaving(false), 1000);
+            match(res)
+              .with({ state: "error" }, ({ body }) =>
+                //@ts-ignore
+                match(body)
+                  .with({ error: "DocumentUpdatedNotMatch" }, () => {
+                    alert("Study have been updated on the server. Refreshing to get that version.");
+                    location.reload();
+                  })
+                  .otherwise(() => setSavingError(JSON.stringify(body)))
+              )
+              .with({ state: "success" }, ({ body }) => {
+                setLastUpdate(body.updated);
+                setSavingError(null);
+                setTimeout(() => setSaving(false), 1000);
+              })
+              .exhaustive();
           })
-          .exhaustive();
-      }).catch((err) => {
-        setSaving(false);
-        setTimeout(() => setSaving(false), 1000);
-        setSavingError(err);
-      });
-
+          .catch((err) => {
+            setSaving(false);
+            setTimeout(() => setSaving(false), 1000);
+            setSavingError(err);
+          });
+      }
     });
   };
 
@@ -233,7 +236,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     const currentContent = lastSavedContent();
     return JSON.stringify(newContent) !== JSON.stringify(currentContent);
   };
-
 
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);
