@@ -21,6 +21,7 @@ type StudyTopNavProps = {
   isTopbarOpen: () => boolean;
   setSidebarOpen: (value: boolean) => void;
   saving: () => boolean;
+  setLastUpdate : (u : string) => void;
   savingError: () => string | null;
   doc: DocRaw;
 };
@@ -199,7 +200,14 @@ export function StudyTopNav(props: StudyTopNavProps) {
           name: studyName(),
         }),
       }).then((res) => {
-        console.log(res);
+        match(res)
+          .with({ state: "error" }, ({ body }) =>
+            console.error(body)
+          )
+          .with({ state: "success" }, ({ body }) => {
+            props.setLastUpdate(body.updated);
+          })
+          .exhaustive();
       }).catch((err) => {
         console.error(err);
       });

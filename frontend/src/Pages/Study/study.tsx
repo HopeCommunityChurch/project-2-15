@@ -333,6 +333,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         isTopbarOpen={isTopbarOpen}
         saving={saving}
         savingError={savingError}
+        setLastUpdate={setLastUpdate}
         doc={doc}
       />
       <ErrorOverlay savingError={savingError} />
