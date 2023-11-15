@@ -12,7 +12,7 @@ import { undoItem, redoItem, MenuItem, MenuItemSpec, menuBar } from "prosemirror
 
 import {
   chainCommands,
-  // deleteSelection, //DON'T USE THIS - It deleted section titles, body text, study blocks, and more when selecting across them.
+  deleteSelection,
   joinBackward,
   selectNodeBackward,
   toggleMark,
@@ -181,10 +181,21 @@ const textSchema = new Schema({
           {
             class: classes.chunk,
             level: node.attrs.level,
+            "data-indent-level": node.attrs.level,
           },
           0,
         ];
       },
+      parseDOM: [
+        {
+          tag: `div.${classes.chunk}`,
+          getAttrs(domNode) {
+            const dom = domNode as HTMLElement;
+            const level = dom.getAttribute("data-indent-level");
+            return { level: level ? parseInt(level, 10) : 0 };
+          },
+        },
+      ],
     },
     text: { inline: true },
   },
@@ -260,7 +271,32 @@ const textSchema = new Schema({
     },
     verse: {
       attrs: { book: {}, chapter: {}, verse: {} },
-      toDOM: () => ["span", 0],
+      toDOM: (mark) => {
+        return [
+          "span",
+          {
+            "data-verse-book": mark.attrs.book,
+            "data-verse-chapter": mark.attrs.chapter,
+            "data-verse-verse": mark.attrs.verse,
+          },
+          0,
+        ];
+      },
+      parseDOM: [
+        {
+          tag: "span[data-verse-book][data-verse-chapter][data-verse-verse]",
+          getAttrs: (dom) => {
+            if (dom instanceof HTMLElement) {
+              return {
+                book: dom.getAttribute("data-verse-book"),
+                chapter: dom.getAttribute("data-verse-chapter"),
+                verse: dom.getAttribute("data-verse-verse"),
+              };
+            }
+            return {};
+          },
+        },
+      ],
     },
   },
 });
@@ -970,8 +1006,9 @@ const verseRefWidget = (verse) => () => {
 
 function getDecorations(state: EditorState) {
   const decorations = [];
-  const verses = {};
+  let lastVerseKey = null;
   let sectionIndex = -1;
+
   state.doc.descendants((node, position) => {
     if (node.type.name === "section") {
       sectionIndex++;
@@ -980,26 +1017,31 @@ function getDecorations(state: EditorState) {
     if (node.type.name === "bibleText") return true;
     if (node.type.name === "chunk") return true;
     if (node.type.name !== "text") return false;
+
     const verse = node.marks.find((m) => m.type.name === "verse");
-    if (!verse) return false;
-    const key =
-      sectionIndex + "-" + verse.attrs.book + " " + verse.attrs.chapter + ":" + verse.attrs.verse;
-    if (verses[key]) {
-      return false;
+    if (!verse) return true;
+
+    // Construct a unique key for each verse
+    const currentVerseKey =
+      sectionIndex + "-" + verse.attrs.book + "-" + verse.attrs.chapter + "-" + verse.attrs.verse;
+
+    // Check if we encountered a different verse
+    if (lastVerseKey !== currentVerseKey) {
+      lastVerseKey = currentVerseKey; // Update the last verse key
+
+      // Create decoration for the first occurrence of this verse
+      decorations.push(
+        Decoration.widget(position, verseRefWidget(verse.attrs), {
+          key: currentVerseKey,
+          ignoreSelection: true,
+          side: -1,
+        })
+      );
     }
-    verses[key] = { position, verse: verse.attrs };
+
     return false;
   });
-  Object.keys(verses).forEach((key) => {
-    const { position, verse } = verses[key];
-    decorations.push(
-      Decoration.widget(position, verseRefWidget(verse), {
-        key,
-        ignoreSelection: true,
-        side: -1,
-      })
-    );
-  });
+
   return decorations;
 }
 
@@ -1401,6 +1443,7 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
         doc.nodesBetween(selection.from, selection.to, (node) => {
           if (complexNodeTypes.has(node.type.name)) {
             nodesEncountered.add(node.type.name);
+
             if (lastNodeName && lastNodeName !== node.type.name) {
               spansComplexNodes = true;
             }
@@ -1408,9 +1451,15 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
           }
         });
 
-        if ((nodesEncountered.size > 1 || spansComplexNodes) && isModificationKey(event)) {
+        if (nodesEncountered.size > 1 || spansComplexNodes) {
           event.preventDefault();
           return true;
+        }
+
+        // Check if backspace key is pressed
+        if (event.keyCode === 8) {
+          deleteSelection(view.state, view.dispatch);
+          event.preventDefault();
         }
 
         return false;
@@ -1418,12 +1467,6 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
     },
   },
 });
-
-function isModificationKey(event) {
-  const modifyingKeys = ["Enter", "Backspace", "Delete"];
-  const isCharacterKey = event.key.length === 1 && event.key.match(/\S/);
-  return modifyingKeys.includes(event.key) || isCharacterKey;
-}
 
 interface QuestionMapItem {
   node: Node;
@@ -1453,7 +1496,6 @@ export class P215Editor {
     baseKeymap["Backspace"] = chainCommands(
       deleteQuestionSelection,
       deleteAnswerSelection,
-      // deleteSelection,
       joinBackward,
       selectNodeBackward
     );
@@ -1622,6 +1664,7 @@ export class P215Editor {
     let newSlice = new Slice(Fragment.from(newContent), slice.openStart, slice.openEnd);
     let transaction = view.state.tr.replaceSelection(newSlice);
     view.dispatch(transaction);
+
     return true;
   }
 
