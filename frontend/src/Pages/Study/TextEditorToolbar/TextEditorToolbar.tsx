@@ -475,21 +475,56 @@ function ToolbarGroup4({ editor, operatingSystem }) {
   const [addScriptureText, setAddScriptureText] = createSignal("");
   const [addScriptureErrorMessage, setAddScriptureErrorMessage] = createSignal("");
 
+  const getCurrentSectionHeaderText = async (editor) => {
+    const { state } = editor.view;
+    const { selection } = state;
+    let headerText = "";
+
+    // Traverse up the document structure from the selection to find the section
+    state.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
+      if (node.type.name === "section") {
+        // Find the sectionHeader child of this section
+        node.forEach((childNode) => {
+          if (childNode.type.name === "sectionHeader") {
+            headerText = childNode.textContent;
+          }
+        });
+        return false; // Stop traversing further
+      }
+    });
+
+    const result = await getBiblePassge(headerText);
+    if (result != null) {
+      return headerText;
+    }
+
+    return "";
+  };
+
   const toggleAddScripturePopUp = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = rect.left + window.pageXOffset;
     const y = rect.bottom + window.pageYOffset;
     setAddScripturePopUpPosition({ x: x + rect.width / 2, y: y });
+
     setTimeout(() => {
+      // Toggle the pop-up visibility
       setAddScripturePopUp(!showAddScripturePopUp());
     }, 10);
+
+    setTimeout(async () => {
+      const currentSectionHeader = await getCurrentSectionHeaderText(editor);
+
+      // Set this text into the pop-up's input field
+      setAddScriptureText(currentSectionHeader);
+    }, 0);
 
     setTimeout(() => {
       const inputField = document.getElementById("addScriptureField");
       if (inputField) {
         inputField.focus();
       }
-    }, 10);
+    }, 0);
   };
 
   createEffect(() => {
