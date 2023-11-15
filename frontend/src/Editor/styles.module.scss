@@ -263,12 +263,19 @@ $indentLeftBorderColors: (
     }
   }
 
-  p {
+  .QpopUpTitle {
     margin: 0 0 0 9px;
     transform: translateY(-1px);
     pointer-events: none;
     word-wrap: break-word;
     overflow-wrap: break-word;
+
+    img {
+      opacity: 0.8;
+      max-width: 16px;
+      transform: translateY(2px);
+      margin-right: 6px;
+    }
   }
 
   .closer {
@@ -292,9 +299,25 @@ $indentLeftBorderColors: (
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.3s;
-
+  width: 66%;
   &:hover {
     background-color: #ddeafc;
+  }
+}
+
+.questionPopUpTrash {
+  color: #d10000;
+  white-space: nowrap;
+  background-color: #ffe7e7;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 11px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+  width: 34%;
+  &:hover {
+    background-color: #ffd6d6;
   }
 }
 

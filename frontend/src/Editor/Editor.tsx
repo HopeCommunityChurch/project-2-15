@@ -712,8 +712,17 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
     dragHandle.className = classes.dragHandle;
     dragHandleIcon.src = DragHandleIcon;
     dragHandle.appendChild(dragHandleIcon);
+
     let popUpTitle = mover.appendChild(document.createElement("p"));
     popUpTitle.innerHTML = "Question";
+    popUpTitle.className = classes.QpopUpTitle;
+
+    //add question icon
+    let questionIconImg = document.createElement("img");
+    questionIconImg.src = QuestionIcon;
+
+    popUpTitle.prepend(questionIconImg);
+
     // Add close Icon
     let closer = mover.appendChild(document.createElement("closer"));
     let closeImage = document.createElement("img");
@@ -732,8 +741,18 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
       pop.parentNode.removeChild(pop);
     });
 
+    pop.onkeydown = (event) => {
+      if (event.key === "Escape") {
+        qNode.editor.destroy();
+        qNode.editor = null;
+        pop.parentNode.removeChild(pop);
+      }
+    };
+
     let editorHolder = pop.appendChild(document.createElement("div"));
     editorHolder.className = classes.questionEditorHolder;
+
+    let bottomButtons = pop.appendChild(document.createElement("div"));
 
     //Add "add answer" button
     if (view.editable) {
@@ -753,7 +772,27 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
         view.dispatch(tr2);
       };
 
-      pop.appendChild(addAnswerButton);
+      bottomButtons.appendChild(addAnswerButton);
+    }
+
+    //Add "add trash" button
+    if (view.editable) {
+      const trashButton = document.createElement("button");
+      trashButton.innerText = "Trash";
+      trashButton.className = classes.questionPopUpTrash;
+
+      trashButton.onclick = (e) => {
+        e.preventDefault();
+        // Delete the current question
+        const questionId = qNode.node.attrs.questionId;
+        removeQuestion(questionId, view.state, view.dispatch);
+
+        qNode.editor.destroy();
+        qNode.editor = null;
+        pop.parentNode.removeChild(pop);
+      };
+
+      bottomButtons.appendChild(trashButton);
     }
 
     let dispatchInner = (tr: Transaction) => {
@@ -795,6 +834,11 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
       },
       dispatchTransaction: dispatchInner,
     });
+
+    // Automatically focus the pop-up's editable area
+    setTimeout(() => {
+      qNode.editor.focus();
+    }, 50);
   }
 };
 
@@ -1051,7 +1095,12 @@ const decreaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void)
   return true;
 };
 
-const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+const addQuestion = (
+  state: EditorState,
+  dispatch: (tr: Transaction) => void,
+  questionMap: Dictionary<QuestionMapItem>,
+  view: EditorView
+) => {
   const from = state.selection.from;
   const to = state.selection.to;
   if (dispatch) {
@@ -1089,6 +1138,14 @@ const addQuestion = (state: EditorState, dispatch?: (tr: Transaction) => void) =
     const pos = posOfQuestions + qlength + 1;
     const tr1 = tr.insert(pos, qNode);
     dispatch(tr1);
+
+    // Calculate position for the pop-up based on the cursor's current position
+    const coords = view.coordsAtPos(from);
+    const popUpX = coords.left + window.pageXOffset; // X coordinate
+    const popUpY = coords.bottom + window.pageYOffset; // Y coordinate
+
+    questionPopup(popUpX, popUpY, qId, questionMap, view);
+
     return true;
   }
 };
@@ -1413,7 +1470,7 @@ export class P215Editor {
           "Mod-]": increaseLevel,
           "Shift-Tab": decreaseLevel,
           "Mod-[": decreaseLevel,
-          "Mod-e": addQuestion,
+          "Mod-e": this.addQuestionCommand,
           "Mod-s": addGeneralStudyBlock,
           "Mod-b": toggleMark(textSchema.marks.strong),
           "Mod-i": toggleMark(textSchema.marks.em),
@@ -1429,6 +1486,10 @@ export class P215Editor {
       ],
     });
   }
+
+  addQuestionCommand = (state, dispatch) => {
+    return addQuestion(state, dispatch, this.questionMap, this.view);
+  };
 
   addEditor(editorRoot: HTMLElement) {
     let that = this;
@@ -1570,7 +1631,7 @@ export class P215Editor {
 
   addQuestion() {
     if (this.editable) {
-      addQuestion(this.view.state, this.view.dispatch);
+      addQuestion(this.view.state, this.view.dispatch, this.questionMap, this.view);
       this.view.focus();
     }
   }
