@@ -190,29 +190,31 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
           document: data,
           lastUpdated: updated,
         }),
-      }).then((res) => {
-        //@ts-ignore
-        match(res)
-          .with({ state: "error" }, ({ body }) =>
-            //@ts-ignore
-            match(body)
-              .with({ error: "DocumentUpdatedNotMatch" }, () => {
-                alert("Study have been updated on the server. Refreshing to get that version.");
-                location.reload();
-              })
-              .otherwise(() => setSavingError(JSON.stringify(body)))
-          )
-          .with({ state: "success" }, ({ body }) => {
-            setLastUpdate(body.updated);
-            setSavingError(null);
-            setTimeout(() => setSaving(false), 1000);
-          })
-          .exhaustive();
-      }).catch((err) => {
-        setSaving(false);
-        setTimeout(() => setSaving(false), 1000);
-        setSavingError(err);
-      });
+      })
+        .then((res) => {
+          //@ts-ignore
+          match(res)
+            .with({ state: "error" }, ({ body }) =>
+              //@ts-ignore
+              match(body)
+                .with({ error: "DocumentUpdatedNotMatch" }, () => {
+                  alert("Study have been updated on the server. Refreshing to get that version.");
+                  location.reload();
+                })
+                .otherwise(() => setSavingError(JSON.stringify(body)))
+            )
+            .with({ state: "success" }, ({ body }) => {
+              setLastUpdate(body.updated);
+              setSavingError(null);
+              setTimeout(() => setSaving(false), 1000);
+            })
+            .exhaustive();
+        })
+        .catch((err) => {
+          setSaving(false);
+          setTimeout(() => setSaving(false), 1000);
+          setSavingError(err);
+        });
     });
   };
 
@@ -313,11 +315,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
             <h2>Can't Save</h2>
             Looks like a Jonah situation – we're in the belly of a tech whale. Trying to be 'spat'
             out soon!
-            <a
-              class={classes.bluelink}
-              href="https://forms.gle/koJrP31Vh9TfvPcq7"
-              onClick={() => location.reload()}
-            >
+            <a class={classes.bluelink} onClick={() => location.reload()}>
               Try refreshing the page to fix
             </a>
             <div>
