@@ -26,6 +26,7 @@ import { baseKeymap } from "prosemirror-commands";
 import "./styles.css";
 import * as classes from "./styles.module.scss";
 import QuestionIcon from "../Pages/Study/TextEditorToolbar/Assets/question-icon.svg";
+import AddScriptureIcon from "../Assets/add-scripture.svg";
 
 import DragHandleIcon from "../Assets/drag-handle.svg";
 import CloseXIcon from "../Assets/x.svg";
@@ -1468,6 +1469,61 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
   },
 });
 
+function createPlaceholderDecorations(doc) {
+  const decorations = [];
+
+  doc.descendants((node, pos) => {
+    if (node.type.name === "section") {
+      const regex = /section\(sectionHeader\("([^"]+)"\)/g;
+      let match;
+      while ((match = regex.exec(node)) !== null) {
+        const contentBetweenQuotes = match[1];
+        console.log(contentBetweenQuotes.length);
+
+        const hasBibleText = node.content.content.some((child) => child.type.name === "bibleText");
+
+        if (!hasBibleText) {
+          const placeholderDecoration = Decoration.widget(
+            pos + contentBetweenQuotes.length + 3,
+            createPlaceholderWidget()
+          );
+          decorations.push(placeholderDecoration);
+        }
+      }
+    }
+  });
+
+  console.log(`Total decorations created: ${decorations.length}`);
+  return decorations;
+}
+
+function createPlaceholderWidget() {
+  const placeholderElement = document.createElement("div");
+  placeholderElement.className = classes.bibleTextPlaceholder;
+  placeholderElement.innerHTML = `<em>Place your cursor on this section's title and click the "Add Scripture" button</em> <img src="${AddScriptureIcon}" alt="Add Scripture Icon"> <em>above to add your verses</em>`;
+
+  return placeholderElement;
+}
+
+const bibleTextPlaceholderPlugin = new Plugin({
+  state: {
+    init(_, { doc }) {
+      return DecorationSet.create(doc, createPlaceholderDecorations(doc));
+    },
+    apply(tr, oldState) {
+      if (tr.docChanged) {
+        return DecorationSet.create(tr.doc, createPlaceholderDecorations(tr.doc));
+      }
+      return oldState;
+    },
+  },
+  props: {
+    decorations(state) {
+      return this.getState(state);
+    },
+  },
+});
+
 interface QuestionMapItem {
   node: Node;
   getPos: () => number;
@@ -1524,6 +1580,7 @@ export class P215Editor {
         sectionIdPlugin,
         verseReferencePlugin,
         preventUpdatingMultipleComplexNodesSelectionPlugin,
+        bibleTextPlaceholderPlugin,
         // referencePlugin
       ],
     });

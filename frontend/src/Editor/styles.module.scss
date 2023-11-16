@@ -23,8 +23,8 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -31px;
-  border-bottom: 30px solid #f8fafd;
+  bottom: -21px;
+  border-bottom: 21px solid #f8fafd;
 }
 
 .section h2 {
@@ -187,6 +187,10 @@ $indentLeftBorderColors: (
 
 .question {
   padding: 0px;
+}
+
+.questions .studyBlockHeaderDiv {
+  user-select: none;
 }
 
 .questions h3 {
@@ -415,4 +419,16 @@ questionanswer p {
 [contenteditable] {
   -webkit-user-select: text;
   user-select: text;
+}
+
+.bibleTextPlaceholder {
+  user-select: none;
+  color: rgb(145, 164, 177);
+  margin-top: 5px;
+
+  img {
+    max-width: 15px;
+    margin: 0px 3px;
+    transform: translateY(3px);
+  }
 }
