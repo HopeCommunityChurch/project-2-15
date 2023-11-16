@@ -1369,37 +1369,89 @@ let addVerse = (
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) => {
+  console.log("Starting addVerse function");
+
   if (dispatch) {
-    // Get the current selection
     const selection = state.selection;
-    // Find the parent section node of the current selection
+    console.log("Current selection:", selection);
+
     let sectionNode = null;
     let sectionPos = null;
-    state.doc.nodesBetween(selection.from, selection.to, (node, pos, parent, index) => {
+    state.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
       if (node.type.name === "section") {
         sectionNode = node;
         sectionPos = pos;
+        console.log("Found section node at position:", pos);
       }
     });
 
     if (sectionNode && sectionPos !== null) {
       let posOfStudyBlock = null;
-      // Find the position of the studyBlocks within the current section
-      sectionNode.forEach((childNode, offset, index) => {
+      let posOfSectionHeader = null;
+      let sectionHeaderNode = null;
+      let sectionHeaderSize = 0;
+      sectionNode.forEach((childNode, offset) => {
         if (childNode.type.name === "studyBlocks") {
           posOfStudyBlock = sectionPos + 1 + offset;
+          console.log("Found studyBlocks node at position:", posOfStudyBlock);
+        }
+        if (childNode.type.name === "sectionHeader") {
+          posOfSectionHeader = sectionPos + 1 + offset;
+          sectionHeaderNode = childNode;
+          sectionHeaderSize = childNode.nodeSize;
+          console.log(
+            "Found sectionHeader node at position:",
+            posOfSectionHeader,
+            "with content:",
+            childNode.textContent
+          );
         }
       });
 
+      let tr = state.tr;
+      let headerDiff = 0;
+
+      // Check if the section header is "Untitled"
+      if (
+        sectionHeaderNode &&
+        sectionHeaderNode.textContent === "Untitled" &&
+        posOfSectionHeader !== null
+      ) {
+        console.log("Section Header is 'Untitled', updating to:", verseRef);
+        const newHeader = textSchema.text(verseRef);
+        headerDiff = newHeader.nodeSize - sectionHeaderSize;
+        tr = tr.replaceWith(posOfSectionHeader, posOfSectionHeader + sectionHeaderSize, newHeader);
+        console.log("Replaced section header with verse reference.");
+      } else {
+        console.log("Section Header is not 'Untitled' or not found, no replacement made.");
+      }
+
+      console.log("Passage array for verse text:", passage);
+
+      // Adjust the position of studyBlocks based on the new header size
       if (posOfStudyBlock !== null) {
+        posOfStudyBlock += headerDiff + 1;
+        console.log("Adjusted position of studyBlocks:", posOfStudyBlock);
+
+        console.log("Inserting verse text...");
         const textNode = passage.flatMap(mkVerseNode);
         const chunk = textSchema.nodes.chunk.create(null, textNode);
         const bibleText = textSchema.nodes.bibleText.create({ verses: verseRef }, chunk);
-        const tr = state.tr.insert(posOfStudyBlock, bibleText);
-        dispatch(tr);
-        return true;
+        tr = tr.insert(posOfStudyBlock, bibleText);
+        console.log("Inserted verse text.");
+      } else {
+        console.log("Position of studyBlocks not found, no verse text inserted.");
       }
+
+      // Dispatch the transaction with the adjustments
+      dispatch(tr);
+      console.log("Dispatched transaction.");
+      return true;
+    } else {
+      console.log("Section node or position not found.");
     }
+  } else {
+    console.log("Dispatch function not provided.");
   }
   return false;
 };
