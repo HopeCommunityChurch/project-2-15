@@ -1483,8 +1483,9 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
           return true;
         }
 
-        // Check if backspace key is pressed
-        if (event.keyCode === 8) {
+        // Check if backspace key is pressed and cursor selection is not empty
+        //For some reason, the deleteSelection only works when text is highlighted by the cursor
+        if (event.keyCode === 8 && selection.from !== selection.to) {
           deleteSelection(view.state, view.dispatch);
           event.preventDefault();
         }
