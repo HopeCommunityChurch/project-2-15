@@ -218,13 +218,13 @@ $indentLeftBorderColors: (
   background-color: red;
 }
 
-.referenceTo {
-  background-color: yellow;
+.referenceTo,
+.referenceToPopOpen {
+  background-color: #ffff004d;
 }
 
 .questionRef {
   display: inline;
-  background-color: #ffff004d;
   box-sizing: border-box;
   position: relative;
 }

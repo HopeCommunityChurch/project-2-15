@@ -686,6 +686,12 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
     pop.style.top = initialTop + "px";
     pop.style.visibility = "visible";
 
+    // Add ref highlight class
+    const questionRef = document.querySelector(`[questionid="${qId}"]`);
+    if (questionRef) {
+      questionRef.classList.add(classes.referenceToPopOpen);
+    }
+
     let mover = pop.appendChild(document.createElement("mover"));
 
     const startDrag = (clientX, clientY) => {
@@ -767,6 +773,12 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
     closeImage.src = CloseXIcon;
     closer.appendChild(closeImage);
     closer.onclick = (e) => {
+      //turn off ref highlight
+      const questionRef = document.querySelector(`[questionid="${qId}"]`);
+      if (questionRef) {
+        questionRef.classList.remove(classes.referenceToPopOpen);
+      }
+
       qNode.editor.destroy();
       qNode.editor = null;
       pop.parentNode.removeChild(pop);
@@ -889,7 +901,6 @@ export const questionReferenceMarkView = (mark: Mark, view: EditorView) => {
 
 export const referenceToMarkView = (mark: Mark, view: EditorView) => {
   const mview = document.createElement("span");
-  mview.className = classes.referenceTo;
   const rId = mark.attrs.referenceId;
   mview.setAttribute("referenceId", rId);
   let qselector = 'span[data-type="reference"][referenceId="' + rId + '"]';
@@ -942,8 +953,23 @@ const questionMarkWidget =
   (qId: string, questionMap: Dictionary<QuestionMapItem>) => (view: EditorView) => {
     const elem = document.createElement("div");
     elem.className = classes.questionMark;
-    // elem.innerHTML = "?";
     elem.innerHTML = '<img src="' + QuestionIcon + '" />';
+
+    // Add mouseenter event listener to add a class to questionRef
+    elem.addEventListener("mouseenter", () => {
+      const questionRef = document.querySelector(`[questionid="${qId}"]`);
+      if (questionRef) {
+        questionRef.classList.add(classes.referenceTo);
+      }
+    });
+
+    // Add mouseleave event listener to remove the class from questionRef
+    elem.addEventListener("mouseleave", () => {
+      const questionRef = document.querySelector(`[questionid="${qId}"]`);
+      if (questionRef) {
+        questionRef.classList.remove(classes.referenceTo);
+      }
+    });
 
     elem.onmousedown = (e) => {
       e.preventDefault();
@@ -1478,7 +1504,6 @@ function createPlaceholderDecorations(doc) {
       let match;
       while ((match = regex.exec(node)) !== null) {
         const contentBetweenQuotes = match[1];
-        console.log(contentBetweenQuotes.length);
 
         const hasBibleText = node.content.content.some((child) => child.type.name === "bibleText");
 
@@ -1493,7 +1518,6 @@ function createPlaceholderDecorations(doc) {
     }
   });
 
-  console.log(`Total decorations created: ${decorations.length}`);
   return decorations;
 }
 
