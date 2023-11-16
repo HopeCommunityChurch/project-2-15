@@ -191,6 +191,7 @@ $indentLeftBorderColors: (
 
 .questions .studyBlockHeaderDiv {
   user-select: none;
+  pointer-events: none;
 }
 
 .questions h3 {
@@ -273,6 +274,7 @@ $indentLeftBorderColors: (
     pointer-events: none;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    pointer-events: none;
 
     img {
       opacity: 0.8;
@@ -423,6 +425,7 @@ questionanswer p {
 
 .bibleTextPlaceholder {
   user-select: none;
+  pointer-events: none;
   color: rgb(145, 164, 177);
   margin-top: 5px;
 
