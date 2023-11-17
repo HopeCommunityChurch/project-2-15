@@ -362,19 +362,32 @@ class QuestionsView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
   node: Node;
+  questionCount: number;
   constructor(node: Node, view: EditorView, getPos: () => number) {
     this.node = node;
     this.dom = document.createElement("tr");
     this.dom.className = classes.questions;
+
     const header = document.createElement("td");
     header.setAttribute("contenteditable", "false");
+
     const headerDiv = document.createElement("div");
     headerDiv.setAttribute("contenteditable", "false");
     headerDiv.innerText = "Questions";
     headerDiv.className = classes.studyBlockHeaderDiv;
+
     header.appendChild(headerDiv);
     this.dom.appendChild(header);
+
     this.contentDOM = document.createElement("td");
+
+    if (node.content.size === 0) {
+      const noQuestionsText = document.createElement("div");
+      noQuestionsText.className = classes.noQuestionsText;
+      noQuestionsText.innerHTML = `<em>Questions appear in this section. Insert a question by clicking the "Add Question" button</em> <img src="${QuestionIcon}" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+      this.contentDOM.appendChild(noQuestionsText);
+    }
+
     this.dom.appendChild(this.contentDOM);
   }
   update(node: Node) {
@@ -735,6 +748,9 @@ class CustomEditorView extends EditorView {
   }
 }
 
+const zIndices: { [key: string]: number } = {}; // Object to store z-index values for pop-ups
+let zIndexCounter: number = 17; // Start z-index from 17
+
 const questionPopup = (
   x,
   y,
@@ -777,6 +793,23 @@ const questionPopup = (
     pop.style.left = initialLeft + "px";
     pop.style.top = initialTop + "px";
     pop.style.visibility = "visible";
+
+    // Increase the z-index of the current pop-up
+    if (!zIndices[qId]) {
+      zIndices[qId] = zIndexCounter++;
+    }
+    pop.style.zIndex = zIndices[qId].toString();
+
+    // Set a higher z-index for the focused pop-up, lower for others
+    pop.addEventListener("mousedown", () => {
+      const currentZIndex = zIndices[qId];
+      const highestZIndex = Math.max(...Object.values(zIndices));
+      if (currentZIndex < highestZIndex) {
+        // Increase the z-index only if it's not the highest
+        zIndices[qId] = highestZIndex + 1;
+        pop.style.zIndex = zIndices[qId].toString();
+      }
+    });
 
     // Add ref highlight class
     const questionRef = document.querySelector(`[questionid="${qId}"]`);

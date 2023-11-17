@@ -433,5 +433,19 @@ questionanswer p {
     max-width: 15px;
     margin: 0px 3px;
     transform: translateY(3px);
+    opacity: 0.65;
+  }
+}
+
+.noQuestionsText {
+  user-select: none;
+  pointer-events: none;
+  color: rgb(145, 164, 177);
+
+  img {
+    max-width: 18px;
+    margin: 0px 3px;
+    transform: translateY(3px);
+    opacity: 0.65;
   }
 }
