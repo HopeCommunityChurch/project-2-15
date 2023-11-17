@@ -2,6 +2,10 @@
   height: 100%;
 }
 
+.ProseMirror *::selection {
+  background: #00f3;
+}
+
 .ProseMirror-hideselection *::selection {
   background: transparent;
 }

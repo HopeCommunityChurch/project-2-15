@@ -8,7 +8,7 @@
       },
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-kGCn2iJkbRncTfi+erbBsaVJAOs4HEvBqpcOLEzV73M=",
+        "narHash": "sha256-vd+y530z7cG0CmcwSKxDLAU2qqQFHZiwcmyaVgaS634=",
         "path": "./backend/",
         "type": "path"
       },

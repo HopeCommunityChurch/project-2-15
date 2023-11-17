@@ -1,49 +1,88 @@
-.hamburgerMenuMobile {
-  padding: 16px 16px 16px 16px;
-  cursor: pointer;
-}
-
-.logo {
-  max-height: 40px;
-  margin-right: 10px;
-  cursor: pointer;
-}
-
 .header {
-  grid-row: 1;
-  grid-column: 1;
   position: sticky;
   display: flex;
   align-items: center;
   padding: 0 20px 0 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   background-color: #fff;
-  z-index: 16;
+  z-index: 17;
+  max-width: 100vw;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .hamburgerMenuMobile {
+    padding: 16px 16px 16px 16px;
+    cursor: pointer;
+  }
+
+  .logo {
+    max-height: 40px;
+    margin-right: 10px;
+    cursor: pointer;
+  }
 
   &.collapsed {
     transform: translateY(-52px);
   }
 
-  .studyHeaderText {
-    display: flex;
-    flex-direction: column;
-    margin-right: auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding-right: 16px;
+  .studyHeaderInput {
+    padding: 0;
+    max-width: 100%;
+    white-space: nowrap;
+    cursor: text;
+    border-radius: 5px;
+    font-size: 15px;
+    text-align: left;
 
-    div {
-      display: flex;
-      gap: 10px;
-      color: gray;
-      font-size: 13px;
-      margin-top: -2px;
-    }
-    p {
-      margin: 0px;
-      white-space: nowrap;
-      overflow: hidden;
+    &:not(:focus) {
       text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    &:focus {
+      border: 1px solid #0000004a;
+      padding: 2px;
+      overflow-x: hidden;
+    }
+  }
+
+  p {
+    color: gray;
+    font-size: 13px;
+  }
+
+  .saving {
+    margin-right: auto;
+  }
+  .saving,
+  .saving * {
+    color: grey;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .savingError {
+    color: red;
+  }
+
+  .saveUpdateIcon,
+  .savingUpdateIcon {
+    width: 15px;
+    opacity: 0.5;
+    margin-left: 5px;
+  }
+
+  .savingUpdateIcon {
+    animation: rotateClockwise 1.5s linear infinite;
+  }
+
+  @keyframes rotateClockwise {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
     }
   }
 }
@@ -168,6 +207,10 @@
   justify-content: center;
   align-items: center;
   z-index: 1001; // higher than your dropdown's z-index
+}
+
+.deleteStudyModal {
+  min-height: 10px !important;
 }
 
 .shareModal {
@@ -406,7 +449,7 @@
 
     button {
       width: 100%;
-      padding: 12px;
+      padding: 7px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 16px;
@@ -428,11 +471,4 @@
   textarea {
     resize: none;
   }
-}
-
-.saving {
-  color: grey;
-}
-.savingError {
-  color: red;
 }

@@ -11,12 +11,28 @@
     font-size: 27px;
   }
 
-  a {
+  .trashButton {
     background-color: rgb(255, 229, 229);
     color: rgb(205, 43, 49);
     padding: 5px 12px;
     border-radius: 5px;
     text-decoration: none;
+    cursor: pointer;
+    &:hover {
+      background-color: rgb(247, 208, 208);
+    }
+  }
+
+  .trashButton2 {
+    background-color: #e5f5ff;
+    color: #6c6c6c;
+    padding: 5px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    &:hover {
+      background-color: #cce9fa;
+    }
   }
 }
 

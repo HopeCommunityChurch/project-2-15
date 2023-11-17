@@ -1,4 +1,4 @@
-import Logo from "Assets/p215-full-logo.svg";
+import Logo from "Assets/p215.png";
 import { Button } from "Components/Button/Button";
 import { createSignal, createEffect, Show, onCleanup } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
@@ -144,9 +144,19 @@ export function StudiesTopNav(props: StudiesTopNavProps) {
                   + New Study
                 </Button>
               </li>
-              <li>
+              {/* <li>
                 <a href="/app/account" class={classes.fullWidthLink}>
                   My Account
+                </a>
+              </li> */}
+              <li>
+                <a
+                  href="https://forms.gle/koJrP31Vh9TfvPcq7"
+                  class={classes.fullWidthLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Give Feedback
                 </a>
               </li>
               <li>
@@ -332,7 +342,7 @@ function AddStudy(prop: AddStudyProp) {
 
   function createStudySubmitted(e: Event) {
     e.preventDefault();
-    if ( studyTitleValue().trim() === "" ) {
+    if (studyTitleValue().trim() === "") {
       return;
     }
     apiCreateDocument({
@@ -423,8 +433,18 @@ async function apiCreateDocument(
   });
 }
 
-const blankDoc =
-{"type":"doc","content":[{"type":"section","content":[{"type":"sectionHeader","content":[{"text":"Untitled","type":"text"}]},{"type":"studyBlocks","content":[{"type":"questions"}]}]}]};
+const blankDoc = {
+  type: "doc",
+  content: [
+    {
+      type: "section",
+      content: [
+        { type: "sectionHeader", content: [{ text: "Untitled", type: "text" }] },
+        { type: "studyBlocks", content: [{ type: "questions" }] },
+      ],
+    },
+  ],
+};
 
 const studyBlockItems = [
   {

@@ -24,6 +24,7 @@ import BluePencil from "Assets/blue-pencil.png";
 import CloseXIcon from "Assets/x.svg";
 import SplitScreenIcon from "Assets/split-screen.png";
 import ArrowIcon from "Assets/arrow.svg";
+import CouldntSaveImage from "./couldnt-save-error-image.svg";
 
 // Network functions
 async function getStudy(documentId): Promise<Network.NetworkState<DocRaw>> {
@@ -76,12 +77,17 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   const [savingError, setSavingError] = createSignal<string | null>(null);
 
   const [lastUpdate, setLastUpdate] = createSignal<string>(doc.updated);
+  const [lastSavedContent, setLastSavedContent] = createSignal(doc.document);
+
+  const [activeEditor, setActiveEditor] = createSignal(null);
 
   let editorRoot: HTMLDivElement;
   let editorRootSplitScreen: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor({
     initDoc: doc.document,
     editable: true,
+    activeEditor: activeEditor,
+    setActiveEditor: setActiveEditor,
   });
   // let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
@@ -160,54 +166,80 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     };
   });
 
+  const savingContext = () => {
+    const [savingData, setSavingData] = createSignal(null);
+    const throttledSave = throttle((change) => {
+      setSavingData(change);
+    }, 1000);
+
+    editor.onUpdate((value) => {
+      throttledSave(value);
+    });
+
+    createEffect(() => {
+      const data = savingData();
+      if (saving() === true) return;
+      if (data == null) return;
+      if (!contentHasChanged(data)) return;
+      setSaving(true);
+      setSavingData(null);
+      setLastSavedContent(data);
+      const updated = lastUpdate();
+      Network.request<DocRaw>("/document/" + doc.docId, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          document: data,
+          lastUpdated: updated,
+        }),
+      })
+        .then((res) => {
+          //@ts-ignore
+          match(res)
+            .with({ state: "error" }, ({ body }) =>
+              //@ts-ignore
+              match(body)
+                .with({ error: "DocumentUpdatedNotMatch" }, () => {
+                  alert("Study have been updated on the server. Refreshing to get that version.");
+                  location.reload();
+                })
+                .otherwise(() => setSavingError(JSON.stringify(body)))
+            )
+            .with({ state: "success" }, ({ body }) => {
+              setLastUpdate(body.updated);
+              setSavingError(null);
+              setTimeout(() => setSaving(false), 1000);
+            })
+            .exhaustive();
+        })
+        .catch((err) => {
+          setSaving(false);
+          setTimeout(() => setSaving(false), 1000);
+          setSavingError(err);
+        });
+    });
+  };
+
   onMount(() => {
     editor.addEditor(editorRoot);
+    setActiveEditor(editor);
     const [documentThingy, setDocumentThingy] = createSignal(doc.document);
     // editorSplitScreen.addEditor(editorRootSplitScreen);
     createEffect(() => {
       updateSectionTitles(documentThingy());
     });
-
     editor.onUpdate((value) => {
       setDocumentThingy(value);
-      updateSignal(value);
     });
+    savingContext();
   });
 
-
-  // Helper Functions
-  const updateSignal = throttle((change) => {
-    setSaving(true);
-    const updated = lastUpdate();
-    Network.request<DocRaw>("/document/" + doc.docId, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        document: change,
-        lastUpdated: updated,
-      }),
-    }).then((res) => {
-      setSaving(false);
-      match(res)
-      .with({ state: "error" }, ({ body }) =>
-        match(body)
-        .with( {error: "DocumentUpdatedNotMatch"}, () => {
-          alert("Study have been updated on the server. Refreshing to get that version.");
-          location.reload();
-        }).otherwise( () =>
-          setSavingError(JSON.stringify(body))
-        )
-      ).with({ state: "success" }, ({ body }) => {
-        setLastUpdate(body.updated);
-        setSavingError(null);
-      }).exhaustive()
-    }).catch((err) => {
-      setSaving(false);
-      setSavingError(err)
-    });
-  }, 1000);
+  const contentHasChanged = (newContent) => {
+    const currentContent = lastSavedContent();
+    return JSON.stringify(newContent) !== JSON.stringify(currentContent);
+  };
 
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);
@@ -233,23 +265,25 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   };
 
   const updateSectionTitles = (doc) => {
-    const titlesWithId = doc.content
-      .map((section, index) => {
-        let header = section.content.find((innerSection) => {
-              return innerSection.type === "sectionHeader";
-        });
-        if(header) {
-          return {
-            title: header.content[0].text,
-            id: index,
-          };
-        } else {
-          return {
-            title: "untitled",
-            id: index,
-          };
-        }
-      })
+    const titlesWithId = doc.content.map((section, index) => {
+      let header = section.content.find((innerSection) => {
+        return innerSection.type === "sectionHeader";
+      });
+
+      // Check if header exists and has content property
+      if (header && header.content && header.content.length > 0 && header.content[0].text) {
+        return {
+          title: header.content[0].text,
+          id: index,
+        };
+      } else {
+        return {
+          title: "", // Return empty string if header or its content is null, undefined, or empty
+          id: index,
+        };
+      }
+    });
+
     setSectionTitles(titlesWithId);
   };
 
@@ -277,6 +311,34 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     setDragDisabled(false);
   }
 
+  function ErrorOverlay({ savingError }) {
+    return (
+      <Show when={savingError()}>
+        <div class={classes.errorOverlay}>
+          <div class={classes.errorMessage}>
+            <img src={CouldntSaveImage} />
+            <h2>Can't Save</h2>
+            Looks like a Jonah situation – we're in the belly of a tech whale. Trying to be 'spat'
+            out soon!
+            <a class={classes.bluelink} onClick={() => location.reload()}>
+              Try refreshing the page to fix
+            </a>
+            <div>
+              If this issue persists,{" "}
+              <a
+                href="https://forms.gle/koJrP31Vh9TfvPcq7"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Let us know.
+              </a>
+            </div>
+          </div>
+        </div>
+      </Show>
+    );
+  }
+
   return (
     <div class={classes.wholePageContainer}>
       <StudyTopNav
@@ -285,14 +347,17 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         isTopbarOpen={isTopbarOpen}
         saving={saving}
         savingError={savingError}
+        setLastUpdate={setLastUpdate}
         doc={doc}
       />
+      <ErrorOverlay savingError={savingError} />
       <TextEditorToolbar
         editor={editor}
         isTopbarOpen={isTopbarOpen}
         setTopbarOpen={setTopbarOpen}
         isSplitScreen={isSplitScreen}
         setSplitScreen={setSplitScreen}
+        activeEditor={activeEditor}
       />
       <div
         class={`${classes.pageBody} ${isTopbarOpen() ? "" : classes.collapsed}  ${

@@ -6,18 +6,22 @@ import { A, useNavigate } from "@solidjs/router";
 import { loginState, LoginUser, handleLogout } from "Pages/LoginPage/login";
 import CloseXIcon from "Assets/x.svg";
 import SearchIcon from "Assets/magnifying_glass.svg";
+import SavingIcon from "./saving.svg";
+import SavedIcon from "./saved.svg";
 import HamburgerMenuIcon from "Assets/hamburger-menu-icon.svg";
 
 import * as classes from "./styles.module.scss";
 import { match } from "ts-pattern";
 import useClickOutsideClose from "Hooks/useOutsideClickClose";
 import { DocRaw } from "Types";
+import * as Network from "Utils/Network";
 
 type StudyTopNavProps = {
   isSidebarOpen: () => boolean;
   isTopbarOpen: () => boolean;
   setSidebarOpen: (value: boolean) => void;
   saving: () => boolean;
+  setLastUpdate: (u: string) => void;
   savingError: () => string | null;
   doc: DocRaw;
 };
@@ -62,8 +66,12 @@ export function StudyTopNav(props: StudyTopNavProps) {
 
   const [showDropdown, setShowDropdown] = createSignal(false);
   const [showShareModal, setShowShareModal] = createSignal(false);
+  const [showDeleteStudyModal, setShowDeleteStudyModal] = createSignal(false);
   const [emailInputErrorMsg, setEmailInputErrorMsg] = createSignal("");
   const [emailTags, setEmailTags] = createSignal<string[]>([]);
+  const [isStudyNameEditable, setIsStudyNameEditable] = createSignal(false);
+  const [studyName, setStudyName] = createSignal(props.doc.name);
+  const [previousStudyName, setPreviousStudyName] = createSignal(props.doc.name);
 
   function applyUniqueColorsToElements() {
     // List of colors
@@ -153,6 +161,76 @@ export function StudyTopNav(props: StudyTopNavProps) {
     });
   }
 
+  function handlePaste(event) {
+    event.preventDefault();
+    const clipboardData = (event as any).clipboardData || (window as any).clipboardData;
+    const pastedText = clipboardData.getData("text/plain");
+
+    // Replace all newline characters with a single space
+    const cleanedText = pastedText.replace(/\n/g, " ");
+
+    // Insert the cleaned text at the current selection point
+    const selection = window.getSelection();
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(document.createTextNode(cleanedText));
+
+    // Update the content state with the new content
+    setStudyName(event.target.innerHTML);
+  }
+
+  function submitStudyNameChange(e) {
+    setIsStudyNameEditable(false);
+    // Reset the scroll to show beginning of the title for long names
+    if (e.target instanceof HTMLElement) {
+      e.target.scrollLeft = 0;
+    }
+
+    if (previousStudyName() != studyName()) {
+      setPreviousStudyName(studyName());
+
+      Network.request<DocRaw>("/document/meta/" + props.doc.docId, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: studyName(),
+        }),
+      })
+        .then((res) => {
+          //@ts-ignore
+          match(res)
+            .with({ state: "error" }, ({ body }) => console.error(body))
+            .with({ state: "success" }, ({ body }) => {
+              props.setLastUpdate(body.updated);
+            })
+            .exhaustive();
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+  }
+
+  function handleDeleteStudy() {
+    Network.request("/document/" + props.doc.docId, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    })
+      .then((res) => {
+        console.log(res);
+        nav("/app/studies");
+        setShowDeleteStudyModal(false);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
   return (
     <>
       <header class={`${classes.header} ${props.isTopbarOpen() ? "" : classes.collapsed}`}>
@@ -163,22 +241,54 @@ export function StudyTopNav(props: StudyTopNavProps) {
         />
 
         <img class={classes.logo} src={Logo} onClick={() => nav("/app/studies")} />
-        <div class={classes.studyHeaderText}>
-          <p>
-            {props.doc.name}
+        <p
+          class={classes.studyHeaderInput}
+          contentEditable={isStudyNameEditable()}
+          onClick={(e) => {
+            setIsStudyNameEditable(true);
+            if (e.target instanceof HTMLElement) {
+              e.target.focus();
+            }
+          }}
+          onBlur={submitStudyNameChange}
+          onInput={(e) => {
+            if (e.target instanceof HTMLElement) {
+              setStudyName(e.target.innerText);
+            }
+          }}
+          onPaste={handlePaste}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === "Escape") && e.target instanceof HTMLElement) {
+              e.preventDefault();
+              e.target.blur();
+            }
+          }}
+        >
+          {props.doc.name}
+        </p>
 
-            <Show when={props.savingError() === null}>
-              <span class={classes.saving}>
-                &nbsp; - &nbsp;
-                {props.saving() ? "saving" : "saved"}
-              </span>
-            </Show>
-            <Show when={props.savingError() !== null}>
-              &nbsp; - &nbsp;
-              <span class={classes.savingError}>Error saving</span>
-            </Show>
+        <Show when={props.savingError() === null}>
+          <span class={classes.saving}>
+            |
+            {props.saving() ? (
+              <p>
+                <span>saving</span>
+                <img src={SavingIcon} class={classes.savingUpdateIcon} />
+              </p>
+            ) : (
+              <p>
+                <span>saved</span>
+                <img src={SavedIcon} class={classes.saveUpdateIcon} />
+              </p>
+            )}
+          </span>
+        </Show>
+        <Show when={props.savingError() !== null}>
+          <p>
+            |<span class={classes.savingError}>Error saving</span>
           </p>
-        </div>
+        </Show>
+
         <div>
           {
             // @ts-ignore
@@ -211,6 +321,27 @@ export function StudyTopNav(props: StudyTopNavProps) {
                         <A href="/app/studies" class={classes.fullWidthLink}>
                           Home
                         </A>
+                      </li>
+                      <li>
+                        <span
+                          onClick={(e) => {
+                            setShowDeleteStudyModal(!showDeleteStudyModal());
+                            setShowDropdown(!showDropdown());
+                          }}
+                          class={classes.fullWidthLink}
+                        >
+                          Delete Study
+                        </span>
+                      </li>
+                      <li>
+                        <a
+                          href="https://forms.gle/koJrP31Vh9TfvPcq7"
+                          class={classes.fullWidthLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Give Feedback
+                        </a>
                       </li>
                       <li>
                         <span onClick={logoutClick} class={classes.fullWidthLink}>
@@ -306,6 +437,26 @@ export function StudyTopNav(props: StudyTopNavProps) {
                 ))}
               </Show>
             </form>
+          </div>
+        </div>
+      </Show>
+      <Show when={showDeleteStudyModal()}>
+        <div class={classes.modalBackground} onClick={() => setShowDeleteStudyModal(false)}>
+          <div
+            class={`${classes.shareModal} ${classes.deleteStudyModal}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Are you sure?</h3>
+            <p>
+              "<strong>{studyName()}</strong>" will be moved to the trash. Warning: your study
+              cannot be recovered.
+            </p>
+            <div class={classes.shareBottomButtons}>
+              <button onClick={() => setShowDeleteStudyModal(false)}>Cancel</button>
+              <button type="submit" onClick={handleDeleteStudy}>
+                Yes, delete
+              </button>
+            </div>
           </div>
         </div>
       </Show>

@@ -33,12 +33,25 @@ export function StudiesPage() {
 
 function Studies(currentUser: T.PublicUser) {
   const [result] = createResource([], () => getStudies(), { initialValue: { state: "loading" } });
+  const [isViewingTrash, setIsViewingTrashn] = createSignal(true);
+
   return (
     <>
       <StudiesTopNav currentUser={currentUser} />
       <div class={classes.studiesPage}>
         <div class={classes.pageHeader}>
-          <h1>My Studies</h1>
+          {isViewingTrash() ? (
+            <>
+              <h1>My Studies</h1>
+            </>
+          ) : (
+            <>
+              <h1 style={{ color: "#fd6161" }}>Trashed Studies</h1>
+              <a class={classes.trashButton2} onClick={() => setIsViewingTrashn(!isViewingTrash())}>
+                Go Back
+              </a>
+            </>
+          )}
         </div>
         <table class={classes.tableContainer}>
           <thead>

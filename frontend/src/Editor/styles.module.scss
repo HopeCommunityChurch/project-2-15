@@ -23,8 +23,8 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -31px;
-  border-bottom: 30px solid #f8fafd;
+  bottom: -21px;
+  border-bottom: 21px solid #f8fafd;
 }
 
 .section h2 {
@@ -32,15 +32,18 @@ body {
 }
 
 .questionMark {
-  background-color: #9a9ba6;
-  color: white;
-  border-radius: 0.625em;
-  width: 1.25em;
-  height: 1.25em;
+  width: 1.05em;
   display: inline-block;
   text-align: center;
   cursor: pointer;
-  scale: 0.9;
+  margin-right: 2px;
+  opacity: 0.9;
+  background-color: #fff;
+  margin-right: 0px;
+  img {
+    max-width: 100%;
+    transform: translateY(3px);
+  }
 }
 
 .outerChunk {
@@ -106,7 +109,6 @@ body {
     }
   }
 }
-
 
 .chunk {
   margin: 0px;
@@ -187,6 +189,11 @@ $indentLeftBorderColors: (
   padding: 0px;
 }
 
+.questions .studyBlockHeaderDiv {
+  user-select: none;
+  pointer-events: none;
+}
+
 .questions h3 {
   margin: 0px;
 
@@ -212,13 +219,13 @@ $indentLeftBorderColors: (
   background-color: red;
 }
 
-.referenceTo {
-  background-color: yellow;
+.referenceTo,
+.referenceToPopOpen {
+  background-color: #ffff004d;
 }
 
 .questionRef {
   display: inline;
-  background-color: #ffff004d;
   box-sizing: border-box;
   position: relative;
 }
@@ -233,7 +240,7 @@ $indentLeftBorderColors: (
   border-radius: 10px;
   border: 1.5px solid #eeeeee;
   box-shadow: 0 0 10px #00000029;
-  z-index: 16;
+  z-index: 17;
 }
 
 .questionEditorHolder {
@@ -261,12 +268,20 @@ $indentLeftBorderColors: (
     }
   }
 
-  p {
+  .QpopUpTitle {
     margin: 0 0 0 9px;
     transform: translateY(-1px);
     pointer-events: none;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    pointer-events: none;
+
+    img {
+      opacity: 0.8;
+      max-width: 16px;
+      transform: translateY(2px);
+      margin-right: 6px;
+    }
   }
 
   .closer {
@@ -290,9 +305,25 @@ $indentLeftBorderColors: (
   font-size: 14px;
   font-weight: 500;
   transition: background-color 0.3s;
-
+  width: 66%;
   &:hover {
     background-color: #ddeafc;
+  }
+}
+
+.questionPopUpTrash {
+  color: #d10000;
+  white-space: nowrap;
+  background-color: #ffe7e7;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 11px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+  width: 34%;
+  &:hover {
+    background-color: #ffd6d6;
   }
 }
 
@@ -390,4 +421,31 @@ questionanswer p {
 [contenteditable] {
   -webkit-user-select: text;
   user-select: text;
+}
+
+.bibleTextPlaceholder {
+  user-select: none;
+  pointer-events: none;
+  color: rgb(145, 164, 177);
+  margin-top: 5px;
+
+  img {
+    max-width: 15px;
+    margin: 0px 3px;
+    transform: translateY(3px);
+    opacity: 0.65;
+  }
+}
+
+.noQuestionsText {
+  user-select: none;
+  pointer-events: none;
+  color: rgb(145, 164, 177);
+
+  img {
+    max-width: 18px;
+    margin: 0px 3px;
+    transform: translateY(3px);
+    opacity: 0.65;
+  }
 }
