@@ -30,18 +30,20 @@
     padding: 0;
     max-width: 100%;
     white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
     cursor: text;
     border-radius: 5px;
     font-size: 15px;
     text-align: left;
-  }
 
-  .studyHeaderInput:focus {
-    border: 1px solid #0000004a;
-    padding: 2px;
-    overflow-x: hidden;
+    &:not(:focus) {
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    &:focus {
+      border: 1px solid #0000004a;
+      padding: 2px;
+      overflow-x: hidden;
+    }
   }
 
   p {

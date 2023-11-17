@@ -257,6 +257,12 @@ export function StudyTopNav(props: StudyTopNavProps) {
             }
           }}
           onPaste={handlePaste}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.target instanceof HTMLElement) {
+              e.preventDefault();
+              e.target.blur();
+            }
+          }}
         >
           {props.doc.name}
         </p>
