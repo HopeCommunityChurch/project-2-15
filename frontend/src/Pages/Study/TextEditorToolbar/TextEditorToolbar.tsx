@@ -29,6 +29,7 @@ export function TextEditorToolbar({
   editor,
   isTopbarOpen,
   setTopbarOpen,
+  activeEditor,
   isSplitScreen,
   setSplitScreen,
 }) {
@@ -72,7 +73,7 @@ export function TextEditorToolbar({
             class={classes.toolbarIcon}
             onClick={(e) => {
               e.preventDefault();
-              editor.undo();
+              activeEditor().undo();
             }}
           />{" "}
           <span class={classes.tooltipText}>Undo</span>
@@ -84,17 +85,24 @@ export function TextEditorToolbar({
             class={classes.toolbarIcon}
             onClick={(e) => {
               e.preventDefault();
-              editor.redo();
+              activeEditor().redo();
             }}
           />{" "}
           <span class={classes.tooltipText}>Redo</span>
         </div>
 
         <div class={classes.seperator} />
-        <ToolbarGroup1 editor={editor} operatingSystem={operatingSystem} />
-        <ToolbarGroup3 editor={editor} operatingSystem={operatingSystem} />
-        <ToolbarGroup4 editor={editor} operatingSystem={operatingSystem} />
-        <ClearFormattingSection editor={editor} />
+        <Show when={activeEditor()}>
+          <ToolbarGroup1 activeEditor={activeEditor} operatingSystem={operatingSystem} />
+          <ToolbarGroup3
+            activeEditor={activeEditor}
+            editor={editor}
+            operatingSystem={operatingSystem}
+          />
+          <ToolbarGroup4 activeEditor={activeEditor} operatingSystem={operatingSystem} />
+          <ClearFormattingSection activeEditor={activeEditor} />
+        </Show>
+
         <div class={classes.extendedMenuContainer}>
           <img
             src={VerticalElipsesIcon}
@@ -106,10 +114,16 @@ export function TextEditorToolbar({
           {/* Conditionally show extended toolbar */}
           <Show when={showExtendedToolbar()}>
             <div class={classes.extendedToolbar}>
-              <ToolbarGroup1 editor={editor} operatingSystem={operatingSystem} />
-              <ToolbarGroup3 editor={editor} operatingSystem={operatingSystem} />
-              <ToolbarGroup4 editor={editor} operatingSystem={operatingSystem} />
-              <ClearFormattingSection editor={editor} />
+              <Show when={activeEditor()}>
+                <ToolbarGroup1 activeEditor={activeEditor} operatingSystem={operatingSystem} />
+                <ToolbarGroup3
+                  activeEditor={activeEditor}
+                  editor={editor}
+                  operatingSystem={operatingSystem}
+                />
+                <ToolbarGroup4 activeEditor={activeEditor} operatingSystem={operatingSystem} />
+                <ClearFormattingSection activeEditor={activeEditor} />
+              </Show>
             </div>
           </Show>
         </div>
@@ -125,7 +139,7 @@ export function TextEditorToolbar({
   );
 }
 
-function ClearFormattingSection({ editor }) {
+function ClearFormattingSection({ activeEditor }) {
   return (
     <div class={`${classes.tooltipContainer} ${classes.clearFormattingContainer}`}>
       <img
@@ -133,7 +147,11 @@ function ClearFormattingSection({ editor }) {
         class={`${classes.toolbarIcon} ${classes.clearFormatting}`}
         onClick={(e) => {
           e.preventDefault();
-          editor.clearFormatting();
+          if (activeEditor()) {
+            activeEditor().clearFormatting();
+          } else {
+            console.error("Editor is null");
+          }
         }}
       />
       <span class={classes.tooltipText}>Clear Formatting</span>
@@ -141,7 +159,7 @@ function ClearFormattingSection({ editor }) {
   );
 }
 
-function ToolbarGroup1({ editor, operatingSystem }) {
+function ToolbarGroup1({ activeEditor, operatingSystem }) {
   const [showColorPickerPopup, setShowColorPickerPopup] = createSignal(false);
   const [showHighlightColorPickerPopup, setShowHighlightColorPickerPopup] = createSignal(false);
   const [highlightFillColor, setHighlightFillColor] = createSignal("#54585D");
@@ -149,8 +167,9 @@ function ToolbarGroup1({ editor, operatingSystem }) {
 
   const [colorPickerPosition, setColorPickerPosition] = createSignal({ x: 0, y: 0 });
 
-  editor.onUpdate(() => {
-    editor.getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor);
+  // For some reason, doesn't deteck marks on qNode.editor??
+  activeEditor().onUpdate(() => {
+    activeEditor().getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor);
   });
 
   const [highlightColorPickerPosition, setHighlightColorPickerPosition] = createSignal({
@@ -214,7 +233,7 @@ function ToolbarGroup1({ editor, operatingSystem }) {
           class={classes.toolbarIcon}
           onClick={(e) => {
             e.preventDefault();
-            editor.toggleBold();
+            activeEditor().toggleBold();
           }}
         />{" "}
         <span class={classes.tooltipText}>
@@ -228,7 +247,7 @@ function ToolbarGroup1({ editor, operatingSystem }) {
           class={classes.toolbarIcon}
           onClick={(e) => {
             e.preventDefault();
-            editor.toggleItalic();
+            activeEditor().toggleItalic();
           }}
         />
         <span class={classes.tooltipText}>
@@ -242,7 +261,7 @@ function ToolbarGroup1({ editor, operatingSystem }) {
           class={classes.toolbarIcon}
           onClick={(e) => {
             e.preventDefault();
-            editor.toggleUnderline();
+            activeEditor().toggleUnderline();
           }}
         />{" "}
         <span class={classes.tooltipText}>
@@ -281,56 +300,56 @@ function ToolbarGroup1({ editor, operatingSystem }) {
             class={classes.black}
             onClick={(e) => {
               e.preventDefault();
-              editor.setTextColor("#000");
+              activeEditor().setTextColor("#000");
             }}
           ></div>
           <div
             class={classes.gray}
             onClick={(e) => {
               e.preventDefault();
-              editor.setTextColor("#91A4B1");
+              activeEditor().setTextColor("#91A4B1");
             }}
           ></div>
           <div
             class={classes.brown}
             onClick={(e) => {
               e.preventDefault();
-              editor.setTextColor("#8B4E35");
+              activeEditor().setTextColor("#8B4E35");
             }}
           ></div>
           <div
             class={classes.red}
             onClick={(e) => {
               e.preventDefault();
-              editor.setTextColor("#F13A35");
+              activeEditor().setTextColor("#F13A35");
             }}
           ></div>
           <div
             class={classes.orange}
             onClick={(e) => {
               e.preventDefault();
-              editor.setTextColor("#EB732E");
+              activeEditor().setTextColor("#EB732E");
             }}
           ></div>
           <div
             class={classes.yellow}
             onClick={(e) => {
               e.preventDefault();
-              editor.setTextColor("#F8AC2B");
+              activeEditor().setTextColor("#F8AC2B");
             }}
           ></div>
           <div
             class={classes.green}
             onClick={(e) => {
               e.preventDefault();
-              editor.setTextColor("#00A55B");
+              activeEditor().setTextColor("#00A55B");
             }}
           ></div>
           <div
             class={classes.blue}
             onClick={(e) => {
               e.preventDefault();
-              editor.setTextColor("#2D78ED");
+              activeEditor().setTextColor("#2D78ED");
             }}
           ></div>
         </div>
@@ -365,56 +384,56 @@ function ToolbarGroup1({ editor, operatingSystem }) {
             class={classes.empty}
             onClick={(e) => {
               e.preventDefault();
-              editor.removeHighlightColor();
+              activeEditor().removeHighlightColor();
             }}
           ></div>
           <div
             class={classes.brown}
             onClick={(e) => {
               e.preventDefault();
-              editor.setHighlightColor("#EBDED9");
+              activeEditor().setHighlightColor("#EBDED9");
             }}
           ></div>
           <div
             class={classes.red}
             onClick={(e) => {
               e.preventDefault();
-              editor.setHighlightColor("#FDDAD8");
+              activeEditor().setHighlightColor("#FDDAD8");
             }}
           ></div>
           <div
             class={classes.orange}
             onClick={(e) => {
               e.preventDefault();
-              editor.setHighlightColor("#FCE6D6");
+              activeEditor().setHighlightColor("#FCE6D6");
             }}
           ></div>
           <div
             class={classes.yellow}
             onClick={(e) => {
               e.preventDefault();
-              editor.setHighlightColor("#FDF4D2");
+              activeEditor().setHighlightColor("#FDF4D2");
             }}
           ></div>
           <div
             class={classes.green}
             onClick={(e) => {
               e.preventDefault();
-              editor.setHighlightColor("#D2EFE0");
+              activeEditor().setHighlightColor("#D2EFE0");
             }}
           ></div>
           <div
             class={classes.blue}
             onClick={(e) => {
               e.preventDefault();
-              editor.setHighlightColor("#C6E6FD");
+              activeEditor().setHighlightColor("#C6E6FD");
             }}
           ></div>
           <div
             class={classes.purple}
             onClick={(e) => {
               e.preventDefault();
-              editor.setHighlightColor("#EFDEEC");
+              activeEditor().setHighlightColor("#EFDEEC");
             }}
           ></div>
         </div>
@@ -439,7 +458,19 @@ function ToolbarGroup2({ editor, operatingSystem }) {
     </div>
   );
 }
-function ToolbarGroup3({ editor, operatingSystem }) {
+function ToolbarGroup3({ editor, activeEditor, operatingSystem }) {
+  const [isQuestionPopupEditor, setIsQuestionPopupEditor] = createSignal(false);
+
+  createEffect(() => {
+    try {
+      // Attempt to access the property
+      const test = activeEditor().nodeViews.questionAnswer;
+      setIsQuestionPopupEditor(true); // No error, so it's a question popup editor
+    } catch (error) {
+      setIsQuestionPopupEditor(false); // Error occurred, not a question popup editor
+    }
+  });
+
   let increaseLevel = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -450,30 +481,60 @@ function ToolbarGroup3({ editor, operatingSystem }) {
     e.stopPropagation();
     editor.decreaseLevel();
   };
+
   return (
     <div class={classes.toolbarGroup3}>
       <div class={classes.tooltipContainer}>
-        <img src={OutdentIcon} class={classes.toolbarIcon} onClick={decreaseLevel} />
-        <span class={classes.tooltipText}>
-          Outdent ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+{`[`})
-        </span>
+        {isQuestionPopupEditor() ? (
+          <>
+            <img src={OutdentIcon} class={`${classes.toolbarIcon} ${classes.disabled}`} />
+            <span class={classes.tooltipText}>Can't Outdent in popup</span>
+          </>
+        ) : (
+          <>
+            <img src={OutdentIcon} class={`${classes.toolbarIcon}`} onClick={decreaseLevel} />
+            <span class={classes.tooltipText}>
+              Outdent ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+[`)
+            </span>
+          </>
+        )}
       </div>
       <div class={classes.tooltipContainer}>
-        <img src={IndentIcon} class={classes.toolbarIcon} onClick={increaseLevel} />
-        <span class={classes.tooltipText}>
-          Indent ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+{`]`})
-        </span>
+        {isQuestionPopupEditor() ? (
+          <>
+            <img src={IndentIcon} class={`${classes.toolbarIcon} ${classes.disabled}`} />
+            <span class={classes.tooltipText}>Can't Indent in popup</span>
+          </>
+        ) : (
+          <>
+            <img src={IndentIcon} class={`${classes.toolbarIcon}`} onClick={increaseLevel} />
+            <span class={classes.tooltipText}>
+              Indent ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+{`]`})
+            </span>
+          </>
+        )}
       </div>
       <div class={classes.seperator} />
     </div>
   );
 }
 
-function ToolbarGroup4({ editor, operatingSystem }) {
+function ToolbarGroup4({ activeEditor, operatingSystem }) {
   const [showAddScripturePopUp, setAddScripturePopUp] = createSignal(false);
   const [addScripturePopUpPosition, setAddScripturePopUpPosition] = createSignal({ x: 0, y: 0 });
   const [addScriptureText, setAddScriptureText] = createSignal("");
   const [addScriptureErrorMessage, setAddScriptureErrorMessage] = createSignal("");
+  const [isQuestionPopupEditor, setIsQuestionPopupEditor] = createSignal(false);
+
+  createEffect(() => {
+    try {
+      // Attempt to access the property
+      const test = activeEditor().nodeViews.questionAnswer;
+      setIsQuestionPopupEditor(true); // No error, so it's a question popup editor
+    } catch (error) {
+      setIsQuestionPopupEditor(false); // Error occurred, not a question popup editor
+    }
+  });
 
   const getCurrentSectionHeaderText = async (editor) => {
     const { state } = editor.view;
@@ -513,7 +574,7 @@ function ToolbarGroup4({ editor, operatingSystem }) {
     }, 10);
 
     setTimeout(async () => {
-      const currentSectionHeader = await getCurrentSectionHeaderText(editor);
+      const currentSectionHeader = await getCurrentSectionHeaderText(activeEditor());
 
       // Set this text into the pop-up's input field
       setAddScriptureText(currentSectionHeader);
@@ -559,7 +620,7 @@ function ToolbarGroup4({ editor, operatingSystem }) {
         setAddScriptureErrorMessage("");
         setAddScriptureText("");
         setAddScripturePopUp(false);
-        editor.addVerse(body.canonical, body.passage);
+        activeEditor().addVerse(body.canonical, body.passage);
       })
       .exhaustive();
   };
@@ -567,7 +628,7 @@ function ToolbarGroup4({ editor, operatingSystem }) {
   const addGeneralStudyBlock = (e: Event) => {
     e.preventDefault();
     e.stopPropagation();
-    editor.addGeneralStudyBlock();
+    activeEditor().addGeneralStudyBlock();
   };
 
   return (
@@ -575,22 +636,44 @@ function ToolbarGroup4({ editor, operatingSystem }) {
       {/* <img src={ReferenceIcon} class={classes.toolbarIcon} /> */}
       {/* <img src={RephraseIcon} class={classes.toolbarIcon} /> */}
       <div class={classes.tooltipContainer}>
-        <img
-          src={QuestionIcon}
-          class={classes.toolbarIcon}
-          onClick={(e) => {
-            e.preventDefault();
-            editor.addQuestion();
-          }}
-        />
-        <span class={classes.tooltipText}>
-          Add Question ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+e)
-        </span>
+        {isQuestionPopupEditor() ? (
+          <>
+            <img src={QuestionIcon} class={`${classes.toolbarIcon} ${classes.disabled}`} />
+            <span class={classes.tooltipText}>Can't add question in popup</span>
+          </>
+        ) : (
+          <>
+            <img
+              src={QuestionIcon}
+              class={`${classes.toolbarIcon}`}
+              onClick={(e) => {
+                e.preventDefault();
+                activeEditor().addQuestion();
+              }}
+            />
+            <span class={classes.tooltipText}>
+              Add Question ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+e)
+            </span>
+          </>
+        )}
       </div>
 
       <div class={classes.tooltipContainer}>
-        <img src={AddScripture} class={classes.toolbarIcon} onClick={toggleAddScripturePopUp} />
-        <span class={classes.tooltipText}>Insert Scripture</span>
+        {isQuestionPopupEditor() ? (
+          <>
+            <img src={AddScripture} class={`${classes.toolbarIcon} ${classes.disabled}`} />
+            <span class={classes.tooltipText}>Can't insert scripture in popup</span>
+          </>
+        ) : (
+          <>
+            <img
+              src={AddScripture}
+              class={`${classes.toolbarIcon}`}
+              onClick={toggleAddScripturePopUp}
+            />
+            <span class={classes.tooltipText}>Insert Scripture</span>
+          </>
+        )}
       </div>
       {showAddScripturePopUp() && (
         <div
@@ -627,10 +710,23 @@ function ToolbarGroup4({ editor, operatingSystem }) {
         </div>
       )}
       <div class={classes.tooltipContainer}>
-        <img src={AddStudyBlockIcon} class={classes.toolbarIcon} onClick={addGeneralStudyBlock} />
-        <span class={classes.tooltipText}>
-          Add Study Block ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+s)
-        </span>
+        {isQuestionPopupEditor() ? (
+          <>
+            <img src={AddStudyBlockIcon} class={`${classes.toolbarIcon} ${classes.disabled}`} />
+            <span class={classes.tooltipText}>Can't add study blocks in popup</span>
+          </>
+        ) : (
+          <>
+            <img
+              src={AddStudyBlockIcon}
+              class={`${classes.toolbarIcon}`}
+              onClick={addGeneralStudyBlock}
+            />
+            <span class={classes.tooltipText}>
+              Add Study Block ({operatingSystem() === "Mac" ? "⌘" : "Ctrl"}+s)
+            </span>
+          </>
+        )}
       </div>
       <div class={classes.seperator} />
     </div>

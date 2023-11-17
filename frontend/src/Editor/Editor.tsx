@@ -1,4 +1,15 @@
 import {
+  toggleBold,
+  toggleItalic,
+  toggleUnderline,
+  clearFormatting,
+  setTextColor,
+  setHighlightColor,
+  removeHighlightColor,
+  getCurrentTextAndHighlightColors,
+} from "./editorUtils";
+
+import {
   EditorState,
   Plugin,
   PluginKey,
@@ -650,7 +661,88 @@ export class ChunkCommentView implements NodeView {
   }
 }
 
-const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view: EditorView) => {
+class CustomEditorView extends EditorView {
+  constructor(place, props) {
+    super(place, props);
+  }
+
+  toggleBold() {
+    if (this.editable) {
+      toggleBold(this.state, this.dispatch);
+      this.focus();
+    }
+  }
+
+  toggleItalic() {
+    if (this.editable) {
+      toggleItalic(this.state, this.dispatch);
+      this.focus();
+    }
+  }
+
+  toggleUnderline() {
+    if (this.editable) {
+      toggleUnderline(this.state, this.dispatch);
+      this.focus();
+    }
+  }
+
+  clearFormatting() {
+    if (this.editable) {
+      clearFormatting(this.state, this.dispatch);
+      this.focus();
+    }
+  }
+
+  setTextColor(color: string) {
+    if (this.editable) {
+      setTextColor(this.state, this.dispatch, color);
+      this.focus();
+    }
+  }
+
+  setHighlightColor(color: string) {
+    if (this.editable) {
+      setHighlightColor(this.state, this.dispatch, color);
+      this.focus();
+    }
+  }
+
+  removeHighlightColor() {
+    if (this.editable) {
+      removeHighlightColor(this.state, this.dispatch);
+      this.focus();
+    }
+  }
+
+  getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
+    getCurrentTextAndHighlightColors(this.state, setHighlightFillColor, setTextFillColor);
+    this.focus();
+  }
+
+  increaseLevel() {
+    if (this.editable) {
+      increaseLevel(this.state, this.dispatch);
+      this.focus();
+    }
+  }
+
+  decreaseLevel() {
+    if (this.editable) {
+      decreaseLevel(this.state, this.dispatch);
+      this.focus();
+    }
+  }
+}
+
+const questionPopup = (
+  x,
+  y,
+  qId,
+  questionMap: Dictionary<QuestionMapItem>,
+  view: EditorView,
+  setActiveEditor
+) => {
   let qNode = questionMap[qId];
   if (!qNode.editor) {
     const pop = document.createElement("questionRefPopup");
@@ -792,6 +884,12 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
 
     pop.onkeydown = (event) => {
       if (event.key === "Escape") {
+        //turn off ref highlight
+        const questionRef = document.querySelector(`[questionid="${qId}"]`);
+        if (questionRef) {
+          questionRef.classList.remove(classes.referenceToPopOpen);
+        }
+
         qNode.editor.destroy();
         qNode.editor = null;
         pop.parentNode.removeChild(pop);
@@ -858,8 +956,14 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
         if (outerTr.docChanged) view.dispatch(outerTr);
       }
     };
-    qNode.editor = new EditorView(editorHolder, {
+
+    qNode.editor = new CustomEditorView(editorHolder, {
       editable: () => view.editable,
+      handleDOMEvents: {
+        focus: () => {
+          setActiveEditor(qNode.editor);
+        },
+      },
       state: EditorState.create({
         schema: textSchema,
         doc: qNode.node,
@@ -872,6 +976,9 @@ const questionPopup = (x, y, qId, questionMap: Dictionary<QuestionMapItem>, view
             "Mod-]": increaseLevel,
             "Shift-Tab": decreaseLevel,
             "Mod-[": decreaseLevel,
+            "Mod-b": toggleMark(textSchema.marks.strong),
+            "Mod-i": toggleMark(textSchema.marks.em),
+            "Mod-u": toggleMark(textSchema.marks.underline),
           }),
           keymap(baseKeymap),
         ],
@@ -950,7 +1057,8 @@ let currentChunkPlug = new Plugin({
 });
 
 const questionMarkWidget =
-  (qId: string, questionMap: Dictionary<QuestionMapItem>) => (view: EditorView) => {
+  (qId: string, questionMap: Dictionary<QuestionMapItem>, setActiveEditor) =>
+  (view: EditorView) => {
     const elem = document.createElement("div");
     elem.className = classes.questionMark;
     elem.innerHTML = '<img src="' + QuestionIcon + '" />';
@@ -974,12 +1082,12 @@ const questionMarkWidget =
     elem.onmousedown = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      questionPopup(e.pageX, e.pageY, qId, questionMap, view);
+      questionPopup(e.pageX, e.pageY, qId, questionMap, view, setActiveEditor);
     };
     return elem;
   };
 
-let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
+let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>, setActiveEditor) =>
   new Plugin({
     props: {
       decorations(state: EditorState) {
@@ -1000,7 +1108,7 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>) =>
         Object.keys(questions).forEach((qId) => {
           const loc = questions[qId];
           decorations.push(
-            Decoration.widget(loc, questionMarkWidget(qId, questionMap), {
+            Decoration.widget(loc, questionMarkWidget(qId, questionMap, setActiveEditor), {
               stopEvent: (e: Event) => {
                 return e.type === "click";
               },
@@ -1168,7 +1276,8 @@ const addQuestion = (
   state: EditorState,
   dispatch: (tr: Transaction) => void,
   questionMap: Dictionary<QuestionMapItem>,
-  view: EditorView
+  view: EditorView,
+  setActiveEditor
 ) => {
   const from = state.selection.from;
   const to = state.selection.to;
@@ -1213,7 +1322,7 @@ const addQuestion = (
     const popUpX = coords.left + window.pageXOffset; // X coordinate
     const popUpY = coords.bottom + window.pageYOffset; // Y coordinate
 
-    questionPopup(popUpX, popUpY, qId, questionMap, view);
+    questionPopup(popUpX, popUpY, qId, questionMap, view, setActiveEditor);
 
     return true;
   }
@@ -1369,11 +1478,8 @@ let addVerse = (
   state: EditorState,
   dispatch?: (tr: Transaction) => void
 ) => {
-  console.log("Starting addVerse function");
-
   if (dispatch) {
     const selection = state.selection;
-    console.log("Current selection:", selection);
 
     let sectionNode = null;
     let sectionPos = null;
@@ -1381,7 +1487,6 @@ let addVerse = (
       if (node.type.name === "section") {
         sectionNode = node;
         sectionPos = pos;
-        console.log("Found section node at position:", pos);
       }
     });
 
@@ -1393,18 +1498,11 @@ let addVerse = (
       sectionNode.forEach((childNode, offset) => {
         if (childNode.type.name === "studyBlocks") {
           posOfStudyBlock = sectionPos + 1 + offset;
-          console.log("Found studyBlocks node at position:", posOfStudyBlock);
         }
         if (childNode.type.name === "sectionHeader") {
           posOfSectionHeader = sectionPos + 1 + offset;
           sectionHeaderNode = childNode;
           sectionHeaderSize = childNode.nodeSize;
-          console.log(
-            "Found sectionHeader node at position:",
-            posOfSectionHeader,
-            "with content:",
-            childNode.textContent
-          );
         }
       });
 
@@ -1417,41 +1515,25 @@ let addVerse = (
         sectionHeaderNode.textContent === "Untitled" &&
         posOfSectionHeader !== null
       ) {
-        console.log("Section Header is 'Untitled', updating to:", verseRef);
         const newHeader = textSchema.text(verseRef);
         headerDiff = newHeader.nodeSize - sectionHeaderSize;
         tr = tr.replaceWith(posOfSectionHeader, posOfSectionHeader + sectionHeaderSize, newHeader);
-        console.log("Replaced section header with verse reference.");
-      } else {
-        console.log("Section Header is not 'Untitled' or not found, no replacement made.");
       }
-
-      console.log("Passage array for verse text:", passage);
 
       // Adjust the position of studyBlocks based on the new header size
       if (posOfStudyBlock !== null) {
         posOfStudyBlock += headerDiff + 1;
-        console.log("Adjusted position of studyBlocks:", posOfStudyBlock);
 
-        console.log("Inserting verse text...");
         const textNode = passage.flatMap(mkVerseNode);
         const chunk = textSchema.nodes.chunk.create(null, textNode);
         const bibleText = textSchema.nodes.bibleText.create({ verses: verseRef }, chunk);
         tr = tr.insert(posOfStudyBlock, bibleText);
-        console.log("Inserted verse text.");
-      } else {
-        console.log("Position of studyBlocks not found, no verse text inserted.");
       }
 
       // Dispatch the transaction with the adjustments
       dispatch(tr);
-      console.log("Dispatched transaction.");
       return true;
-    } else {
-      console.log("Section node or position not found.");
     }
-  } else {
-    console.log("Dispatch function not provided.");
   }
   return false;
 };
@@ -1616,12 +1698,17 @@ export class P215Editor {
   view: EditorView;
   questionMap: Dictionary<QuestionMapItem>;
   updateHanlders: Array<(change: any) => void>;
+  activeEditor: any;
+  setActiveEditor: any;
 
-  constructor({ initDoc, editable }) {
+  constructor({ initDoc, editable, activeEditor, setActiveEditor }) {
     this.editable = editable;
     let node = Node.fromJSON(textSchema, initDoc);
     this.updateHanlders = [];
     this.questionMap = {};
+
+    this.activeEditor = activeEditor;
+    this.setActiveEditor = setActiveEditor;
 
     baseKeymap["Backspace"] = chainCommands(
       deleteQuestionSelection,
@@ -1650,7 +1737,7 @@ export class P215Editor {
         }),
         keymap(baseKeymap),
         currentChunkPlug,
-        questionMarkPlugin(this.questionMap),
+        questionMarkPlugin(this.questionMap, this.setActiveEditor),
         sectionIdPlugin,
         verseReferencePlugin,
         preventUpdatingMultipleComplexNodesSelectionPlugin,
@@ -1661,7 +1748,7 @@ export class P215Editor {
   }
 
   addQuestionCommand = (state, dispatch) => {
-    return addQuestion(state, dispatch, this.questionMap, this.view);
+    return addQuestion(state, dispatch, this.questionMap, this.view, this.setActiveEditor);
   };
 
   addEditor(editorRoot: HTMLElement) {
@@ -1670,7 +1757,11 @@ export class P215Editor {
       state: that.state,
       editable: () => that.editable,
       handlePaste: this.handlePaste.bind(this),
-
+      handleDOMEvents: {
+        focus: () => {
+          this.setActiveEditor(this);
+        },
+      },
       nodeViews: {
         studyBlocks(node) {
           return new StudyBlocksView(node);
@@ -1805,7 +1896,13 @@ export class P215Editor {
 
   addQuestion() {
     if (this.editable) {
-      addQuestion(this.view.state, this.view.dispatch, this.questionMap, this.view);
+      addQuestion(
+        this.view.state,
+        this.view.dispatch,
+        this.questionMap,
+        this.view,
+        this.setActiveEditor
+      );
       this.view.focus();
     }
   }
@@ -1842,130 +1939,53 @@ export class P215Editor {
 
   toggleBold() {
     if (this.editable) {
-      const { state, dispatch } = this.view;
-      const markType = state.schema.marks.strong;
-      toggleMark(markType)(state, dispatch);
+      toggleBold(this.view.state, this.view.dispatch);
       this.view.focus();
     }
   }
 
   toggleItalic() {
     if (this.editable) {
-      const { state, dispatch } = this.view;
-      const markType = state.schema.marks.em;
-      toggleMark(markType)(state, dispatch);
+      toggleItalic(this.view.state, this.view.dispatch);
       this.view.focus();
     }
   }
 
   toggleUnderline() {
     if (this.editable) {
-      const { state, dispatch } = this.view;
-      const markType = state.schema.marks.underline;
-      toggleMark(markType)(state, dispatch);
+      toggleUnderline(this.view.state, this.view.dispatch);
       this.view.focus();
     }
   }
 
   setTextColor(color: string) {
     if (this.editable) {
-      const { state, dispatch } = this.view;
-      const { from, to } = state.selection;
-      const markType = state.schema.marks.textColor;
-      const attrs = { color };
-      let tr = state.tr.removeMark(from, to, markType);
-      tr.addMark(from, to, markType.create(attrs));
-      dispatch(tr);
+      setTextColor(this.view.state, this.view.dispatch, color);
       this.view.focus();
     }
   }
 
   setHighlightColor(color: string) {
     if (this.editable) {
-      const { state, dispatch } = this.view;
-      const { from, to } = state.selection;
-      const markType = state.schema.marks.highlightColor;
-      const attrs = { color };
-      let tr = state.tr.removeMark(from, to, markType);
-      tr.addMark(from, to, markType.create(attrs));
-      dispatch(tr);
+      setHighlightColor(this.view.state, this.view.dispatch, color);
       this.view.focus();
-    }
-  }
-
-  getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
-    if (this.editable) {
-      if (!this.view) return;
-
-      const { state } = this.view;
-      const { from } = state.selection;
-
-      const highlightMarkType = state.schema.marks.highlightColor;
-      const textMarkType = state.schema.marks.textColor;
-
-      const marks = state.doc.resolve(from).marks();
-
-      let highlightColorFound = false;
-      let textColorFound = false;
-
-      for (let mark of marks) {
-        if (mark.type === highlightMarkType) {
-          setHighlightFillColor(mark.attrs.color);
-          highlightColorFound = true;
-        }
-
-        if (mark.type === textMarkType) {
-          setTextFillColor(mark.attrs.color);
-          textColorFound = true;
-        }
-
-        if (highlightColorFound && textColorFound) return;
-      }
-
-      if (!highlightColorFound) setHighlightFillColor(null);
-      if (!textColorFound) setTextFillColor(null);
     }
   }
 
   removeHighlightColor() {
     if (this.editable) {
-      const { state, dispatch } = this.view;
-      const { from, to } = state.selection;
-      const markType = state.schema.marks.highlightColor;
-      const tr = state.tr.removeMark(from, to, markType);
-      dispatch(tr);
+      removeHighlightColor(this.view.state, this.view.dispatch);
       this.view.focus();
     }
   }
 
+  getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
+    getCurrentTextAndHighlightColors(this.view.state, setHighlightFillColor, setTextFillColor);
+  }
+
   clearFormatting() {
     if (this.editable) {
-      const { state, dispatch } = this.view;
-      const { tr, schema, selection } = state;
-      const { from, to } = selection;
-
-      const marksToRemove = ["strong", "em", "underline", "textColor", "highlightColor"];
-
-      marksToRemove.forEach((markName) => {
-        const markType = schema.marks[markName];
-        if (markType) {
-          tr.removeMark(from, to, markType);
-        }
-      });
-
-      state.doc.nodesBetween(from, to, (node, pos) => {
-        if (node.type === schema.nodes.section) {
-          return false;
-        }
-        if (node.isTextblock && node.type !== schema.nodes.paragraph) {
-          tr.setNodeMarkup(pos, schema.nodes.paragraph);
-        }
-        return true;
-      });
-
-      if (tr.docChanged) {
-        dispatch(tr);
-      }
+      clearFormatting(this.view.state, this.view.dispatch);
       this.view.focus();
     }
   }

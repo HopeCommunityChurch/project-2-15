@@ -79,11 +79,15 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   const [lastUpdate, setLastUpdate] = createSignal<string>(doc.updated);
   const [lastSavedContent, setLastSavedContent] = createSignal(doc.document);
 
+  const [activeEditor, setActiveEditor] = createSignal(null);
+
   let editorRoot: HTMLDivElement;
   let editorRootSplitScreen: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor({
     initDoc: doc.document,
     editable: true,
+    activeEditor: activeEditor,
+    setActiveEditor: setActiveEditor,
   });
   // let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
@@ -220,6 +224,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   onMount(() => {
     editor.addEditor(editorRoot);
+    setActiveEditor(editor);
     const [documentThingy, setDocumentThingy] = createSignal(doc.document);
     // editorSplitScreen.addEditor(editorRootSplitScreen);
     createEffect(() => {
@@ -352,6 +357,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         setTopbarOpen={setTopbarOpen}
         isSplitScreen={isSplitScreen}
         setSplitScreen={setSplitScreen}
+        activeEditor={activeEditor}
       />
       <div
         class={`${classes.pageBody} ${isTopbarOpen() ? "" : classes.collapsed}  ${
