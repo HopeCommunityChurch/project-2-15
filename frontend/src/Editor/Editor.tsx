@@ -1597,26 +1597,25 @@ const addSection = (state: EditorState, dispatch?: (tr: Transaction) => void) =>
 
 const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   if (dispatch) {
-    // should be the end of the document.
-    const sectionNode: Node = state.selection.$anchor.node(1);
+    // Get the section node where the cursor is currently positioned
+    const sectionNode = state.selection.$anchor.node(1);
     let position = null;
-    state.doc.descendants((node: Node, pos: number) => {
-      if (node.eq(sectionNode)) {
-        return true;
-      }
-      if (node.type.name === "studyBlocks") {
-        position = pos + node.nodeSize - 1;
-        return false;
-      }
-      return false;
-    });
+
+    // Find the position right after the last child of the current section
+    position = state.selection.$anchor.before(1) + sectionNode.content.size;
+
+    // Create the nodes for the new study block
     const header = textSchema.text("Untitled");
     const sbHeader = textSchema.nodes.generalStudyBlockHeader.createChecked(null, header);
     const bodytxt = textSchema.text("my stuff here");
     const bodyp = textSchema.nodes.paragraph.createChecked(null, bodytxt);
     const sbBody = textSchema.nodes.generalStudyBlockBody.create(null, bodyp);
+
+    // Create the study block and insert it at the found position
     const studyBlock = textSchema.nodes.generalStudyBlock.createChecked(null, [sbHeader, sbBody]);
     const tr = state.tr.insert(position, studyBlock);
+
+    // Dispatch the transaction
     dispatch(tr);
     return true;
   }
