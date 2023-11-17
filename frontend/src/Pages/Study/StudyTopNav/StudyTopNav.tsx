@@ -258,7 +258,7 @@ export function StudyTopNav(props: StudyTopNavProps) {
           }}
           onPaste={handlePaste}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && e.target instanceof HTMLElement) {
+            if ((e.key === "Enter" || e.key === "Escape") && e.target instanceof HTMLElement) {
               e.preventDefault();
               e.target.blur();
             }
