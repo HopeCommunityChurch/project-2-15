@@ -32,7 +32,7 @@ import {
 import { undo, redo, history } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
-import { StepMap } from "prosemirror-transform";
+import { StepMap, Step, Transform } from "prosemirror-transform";
 import { baseKeymap } from "prosemirror-commands";
 import "./styles.css";
 import * as classes from "./styles.module.scss";
@@ -1477,6 +1477,11 @@ interface Dictionary<T extends notUndefined = notUndefined> {
   [key: string]: T | undefined;
 }
 
+type RemoteThingy = {
+  receive: (steps: any) => void;
+  send(steps: any);
+};
+
 export class P215Editor {
   state: EditorState;
   editable: boolean;
@@ -1485,9 +1490,11 @@ export class P215Editor {
   updateHanlders: Array<(change: any) => void>;
   activeEditor: any;
   setActiveEditor: any;
+  remoteThings : RemoteThingy;
 
-  constructor({ initDoc, editable, activeEditor, setActiveEditor }) {
+  constructor({ initDoc, editable, activeEditor, setActiveEditor, remoteThings }) {
     this.editable = editable;
+    this.remoteThings = remoteThings;
     let node = Node.fromJSON(textSchema, initDoc);
     this.updateHanlders = [];
     this.questionMap = {};
@@ -1590,9 +1597,19 @@ export class P215Editor {
           this.updateHanlders.forEach((handler) => {
             handler(transaction.doc.toJSON());
           });
+          const steps = transaction.steps.map( st => st.toJSON())
+          this.remoteThings.send(steps);
         }
       },
     });
+
+    this.remoteThings.receive = (stepsRaw: any[]) => {
+      const steps = stepsRaw.map( (st) => Step.fromJSON(textSchema, st))
+      const tr = this.view.state.tr;
+      steps.forEach( st => tr.step(st));
+      this.view.dispatch(tr);
+    }
+
   }
 
   handlePaste(view, event, slice) {
