@@ -159,8 +159,6 @@ export class QuestionView implements NodeView {
     this.questionId = node.attrs.questionId;
     const verseRef = node.attrs.verseRef;
 
-    console.log(node);
-
     if (!questionMap[this.questionId]) {
       this.questionMap = questionMap;
       questionMap[this.questionId] = {
@@ -1584,9 +1582,11 @@ export class P215Editor {
         }
 
         that.view.updateState(newState);
-        this.updateHanlders.forEach((handler) => {
-          handler(transaction.doc.toJSON());
-        });
+        if(transaction.docChanged) {
+          this.updateHanlders.forEach((handler) => {
+            handler(transaction.doc.toJSON());
+          });
+        }
       },
     });
   }
