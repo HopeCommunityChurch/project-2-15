@@ -38,7 +38,11 @@ import "./styles.css";
 import * as classes from "./styles.module.scss";
 import QuestionIcon from "../Pages/Study/TextEditorToolbar/Assets/question-icon.svg";
 import AddScriptureIcon from "../Assets/add-scripture.svg";
-import {questionHighlightPlugin, highlighQuestion, unhighlighQuestion} from "./QuestionHighlightPlugin";
+import {
+  questionHighlightPlugin,
+  highlighQuestion,
+  unhighlighQuestion,
+} from "./QuestionHighlightPlugin";
 
 import DragHandleIcon from "../Assets/drag-handle.svg";
 import CloseXIcon from "../Assets/x.svg";
@@ -171,7 +175,7 @@ export class QuestionView implements NodeView {
     this.dom = document.createElement("questionOuter");
     const qtext = document.createElement("div");
     qtext.setAttribute("contenteditable", "false");
-    qtext.innerText = `${verseRef}:`;
+    qtext.innerText = verseRef ? `${verseRef}:` : "Q:";
     this.dom.appendChild(qtext);
     this.contentDOM = document.createElement("question");
     this.dom.appendChild(this.contentDOM);
@@ -821,7 +825,7 @@ const questionMarkWidget =
     // Add mouseenter event listener to add a class to questionRef
     elem.addEventListener("mouseenter", (e) => {
       e.preventDefault();
-      highlighQuestion(qId, view.state, view.dispatch)
+      highlighQuestion(qId, view.state, view.dispatch);
     });
 
     // Add mouseleave event listener to remove the class from questionRef
@@ -829,7 +833,7 @@ const questionMarkWidget =
       e.preventDefault();
       let qNode = questionMap[qId];
       if (!qNode.editor) {
-        unhighlighQuestion(qId, view.state, view.dispatch)
+        unhighlighQuestion(qId, view.state, view.dispatch);
       }
     });
 
@@ -1582,7 +1586,7 @@ export class P215Editor {
         }
 
         that.view.updateState(newState);
-        if(transaction.docChanged) {
+        if (transaction.docChanged) {
           this.updateHanlders.forEach((handler) => {
             handler(transaction.doc.toJSON());
           });
