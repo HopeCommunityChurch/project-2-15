@@ -812,9 +812,11 @@ const questionPopup = (
     });
 
     // Add ref highlight class
-    const questionRef = document.querySelector(`[questionid="${qId}"]`);
-    if (questionRef) {
-      questionRef.classList.add(classes.referenceToPopOpen);
+    const questionRefs = document.querySelectorAll(`[questionid="${qId}"]`);
+    if (questionRefs.length != 0) {
+      for (const questionRef of questionRefs) {
+        questionRef.classList.add(classes.referenceToPopOpen);
+      }
     }
 
     let mover = pop.appendChild(document.createElement("mover"));
@@ -899,9 +901,11 @@ const questionPopup = (
     closer.appendChild(closeImage);
     closer.onclick = (e) => {
       //turn off ref highlight
-      const questionRef = document.querySelector(`[questionid="${qId}"]`);
-      if (questionRef) {
-        questionRef.classList.remove(classes.referenceToPopOpen);
+      const questionRefs = document.querySelectorAll(`[questionid="${qId}"]`);
+      if (questionRefs.length != 0) {
+        for (const questionRef of questionRefs) {
+          questionRef.classList.remove(classes.referenceToPopOpen);
+        }
       }
 
       qNode.editor.destroy();
@@ -918,9 +922,11 @@ const questionPopup = (
     pop.onkeydown = (event) => {
       if (event.key === "Escape") {
         //turn off ref highlight
-        const questionRef = document.querySelector(`[questionid="${qId}"]`);
-        if (questionRef) {
-          questionRef.classList.remove(classes.referenceToPopOpen);
+        const questionRefs = document.querySelectorAll(`[questionid="${qId}"]`);
+        if (questionRefs.length != 0) {
+          for (const questionRef of questionRefs) {
+            questionRef.classList.remove(classes.referenceToPopOpen);
+          }
         }
 
         qNode.editor.destroy();
@@ -1098,17 +1104,21 @@ const questionMarkWidget =
 
     // Add mouseenter event listener to add a class to questionRef
     elem.addEventListener("mouseenter", () => {
-      const questionRef = document.querySelector(`[questionid="${qId}"]`);
-      if (questionRef) {
-        questionRef.classList.add(classes.referenceTo);
+      const questionRefs = document.querySelectorAll(`[questionid="${qId}"]`);
+      if (questionRefs.length != 0) {
+        for (const questionRef of questionRefs) {
+          questionRef.classList.add(classes.referenceTo);
+        }
       }
     });
 
     // Add mouseleave event listener to remove the class from questionRef
     elem.addEventListener("mouseleave", () => {
-      const questionRef = document.querySelector(`[questionid="${qId}"]`);
-      if (questionRef) {
-        questionRef.classList.remove(classes.referenceTo);
+      const questionRefs = document.querySelectorAll(`[questionid="${qId}"]`);
+      if (questionRefs.length != 0) {
+        for (const questionRef of questionRefs) {
+          questionRef.classList.remove(classes.referenceTo);
+        }
       }
     });
 
