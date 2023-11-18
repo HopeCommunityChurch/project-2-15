@@ -77,7 +77,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
   const [savingError, setSavingError] = createSignal<string | null>(null);
 
   const [lastUpdate, setLastUpdate] = createSignal<string>(doc.updated);
-  const [lastSavedContent, setLastSavedContent] = createSignal(doc.document);
 
   const [activeEditor, setActiveEditor] = createSignal(null);
 
@@ -180,10 +179,8 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       const data = savingData();
       if (saving() === true) return;
       if (data == null) return;
-      if (!contentHasChanged(data)) return;
       setSaving(true);
       setSavingData(null);
-      setLastSavedContent(data);
       const updated = lastUpdate();
       Network.request<DocRaw>("/document/" + doc.docId, {
         method: "PUT",
@@ -236,10 +233,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     savingContext();
   });
 
-  const contentHasChanged = (newContent) => {
-    const currentContent = lastSavedContent();
-    return JSON.stringify(newContent) !== JSON.stringify(currentContent);
-  };
 
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);
