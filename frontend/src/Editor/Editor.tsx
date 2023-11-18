@@ -1599,14 +1599,14 @@ export class P215Editor {
           });
           const steps = transaction.steps.map( st => st.toJSON())
 
-          if (this.remoteThings !== null) {
+          if (this.remoteThings !== null && this.remoteThings.send) {
             this.remoteThings.send(steps);
           }
         }
       },
     });
 
-    if (this.remoteThings !== null) {
+    if (this.remoteThings !== null && this.remoteThings.receive) {
       this.remoteThings.receive = (stepsRaw: any[]) => {
         const steps = stepsRaw.map( (st) => Step.fromJSON(textSchema, st))
         const tr = this.view.state.tr;

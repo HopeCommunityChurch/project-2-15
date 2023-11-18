@@ -1,5 +1,5 @@
 // Libraries and external modules
-import { createEffect, createSignal, onMount, createResource, Show, createMemo } from "solid-js";
+import { createEffect, createSignal, onMount, createResource, Show, onCleanup } from "solid-js";
 import { useParams, useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
 import { match } from "ts-pattern";
@@ -7,9 +7,10 @@ import { dndzone } from "solid-dnd-directive";
 
 // Local imports
 import * as Network from "Utils/Network";
+import * as WS from "../../WebsocketTypes";
 import * as classes from "./styles.module.scss";
 import * as Editor from "Editor/Editor";
-import { PublicUser, DocRaw, GroupStudyRaw } from "../../Types";
+import { PublicUser, DocRaw, GroupStudyRaw, DocMetaRaw } from "Types";
 import { LoginUser, loginState } from "Pages/LoginPage/login";
 import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
 import { TextEditorToolbar } from "./TextEditorToolbar/TextEditorToolbar";
@@ -52,6 +53,7 @@ export function StudyPage() {
     initialValue: { state: "loading" },
   });
 
+
   return (
     <>
       {
@@ -89,32 +91,51 @@ export function StudyPage() {
   );
 }
 
+
 function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupStudyRaw) {
   // State and Variables
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const [isTopbarOpen, setTopbarOpen] = createSignal(true);
   const [isSplitScreen, setSplitScreen] = createSignal(false);
-  const [splitScreenOrientation, setSplitScreenOrientation] = createSignal(true);
   const [sectionEditorMode, setSectionEditorMode] = createSignal(false);
   const [sectionTitles, setSectionTitles] = createSignal([]);
   const [dragDisabled, setDragDisabled] = createSignal(true);
   const [saving, setSaving] = createSignal<boolean>(false);
   const [savingError, setSavingError] = createSignal<string | null>(null);
 
+
+  let websocket = new WebSocket("ws:/" + location.host + "/document/realtime");
+  websocket.onopen = (e) => {
+    console.log('ws open', e);
+    WS.sendMsg(websocket, { tag: "OpenDoc", content: doc.docId})
+  };
+  websocket.onclose = (e) => {
+    console.log('ws close', e);
+  };
+  websocket.onerror = (e) => {
+    console.log('ws error', e);
+  };
+
+  onCleanup( () => {
+    websocket.close();
+  })
+
   const [lastUpdate, setLastUpdate] = createSignal<string>(doc.updated);
 
   const [activeEditor, setActiveEditor] = createSignal(null);
 
   let editorRoot: HTMLDivElement;
-  let editorRootSplitScreen: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor({
     initDoc: doc.document,
     editable: true,
     activeEditor: activeEditor,
     setActiveEditor: setActiveEditor,
-    remoteThings: null,
+    remoteThings: {
+      send: (steps: any) => {
+        WS.sendMsg(websocket, { tag: "Updated", content: steps})
+      }
+    },
   });
-  // let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
   //resizing height on mobile
   onMount(() => {
@@ -295,7 +316,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     editor.addEditor(editorRoot);
     setActiveEditor(editor);
     const [documentThingy, setDocumentThingy] = createSignal(doc.document);
-    // editorSplitScreen.addEditor(editorRootSplitScreen);
     createEffect(() => {
       updateSectionTitles(documentThingy());
     });
@@ -478,38 +498,50 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
           ></div>
         </Show>
         <div
-          class={`${classes.documentAndSplitScreenContainer} ${
-            splitScreenOrientation() ? classes.vertical : classes.horizontal
-          }`}
+          class={`${classes.documentAndSplitScreenContainer} ${ classes.vertical}`}
         >
           <div
             ref={editorRoot}
             class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
           ></div>
           <Show when={isSplitScreen()}>
-            <div ref={editorRootSplitScreen} class={classes.otherUserSplitScreenContainer}>
-              <div class={classes.splitScreenSwitcher}>
-                <img
-                  class={classes.changeSplitScreenOrientation}
-                  src={SplitScreenIcon}
-                  onClick={() => {
-                    setSplitScreenOrientation(!splitScreenOrientation());
-                  }}
-                />
-                <p>
-                  Scott Appleman <img src={ArrowIcon} />
-                </p>
-                <img
-                  class={classes.closeSplitScreen}
-                  src={CloseXIcon}
-                  onClick={() => {
-                    setSplitScreen(false);
-                  }}
-                />
-              </div>
-            </div>
+            <SplitScreen groupStudy={groupStudy} setSplitScreen={setSplitScreen} currentUser={currentUser}/>
           </Show>
         </div>
+      </div>
+    </div>
+  );
+}
+
+type SplitProps = {
+  groupStudy: GroupStudyRaw,
+  setSplitScreen: (arg: boolean) => void;
+  currentUser: PublicUser
+};
+
+function getInitialSplit ( groupStudy: GroupStudyRaw, currentUser: PublicUser) : DocMetaRaw {
+  return groupStudy.docs.find( (doc) => {
+    return null != doc.editors.find( (ed) => ed.userId != currentUser.userId);
+  })
+}
+
+function SplitScreen (props : SplitProps) {
+  let editorRootSplitScreen: HTMLDivElement;
+  const initialDocMeta = getInitialSplit(props.groupStudy, props.currentUser);
+
+  return (
+    <div ref={editorRootSplitScreen} class={classes.otherUserSplitScreenContainer}>
+      <div class={classes.splitScreenSwitcher}>
+        <p>
+          Scott Appleman <img src={ArrowIcon} />
+        </p>
+        <img
+          class={classes.closeSplitScreen}
+          src={CloseXIcon}
+          onClick={() => {
+            props.setSplitScreen(false);
+          }}
+        />
       </div>
     </div>
   );

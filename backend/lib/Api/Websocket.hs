@@ -1,26 +1,27 @@
 module Api.Websocket where
 
 
-import Api.Auth (AuthUser(..))
+import Api.Auth (AuthUser (..))
 import Api.Errors qualified as Errs
-import Types qualified as T
 import Bible.Esv.Parser qualified as ESV
+import Data.Aeson qualified as Aeson
+import Data.Char (toLower)
+import Data.Map qualified as Map
+import Data.UUID (UUID)
+import Data.UUID.V4 qualified as UUID
 import DbHelper (MonadDb)
+import Entity qualified as E
+import Entity.Document qualified as Doc
+import Entity.User qualified as User
 import GHC.Records (HasField)
 import Network.WebSockets (Connection, withPingThread)
 import Network.WebSockets qualified as WS
 import Network.Wreq qualified as Wreq
-import Entity qualified as E
+import Relude (atomicModifyIORef_, drop)
 import Servant
 import Text.Parsec qualified as Parsec
-import Data.Map qualified as Map
-import Data.Aeson qualified as Aeson
+import Types qualified as T
 import WebsocketServant
-import Data.UUID (UUID)
-import Data.UUID.V4 qualified as UUID
-import Entity.Document qualified as Doc
-import Entity.User qualified as User
-import Relude (atomicModifyIORef_)
 
 
 type ConnId = UUID
@@ -45,7 +46,21 @@ data InMsg
   | OpenStudyChat T.GroupStudyId -- Not implemented yet
   | CloseStudyChat T.GroupStudyId -- Not implemented yet
   deriving (Show, Generic)
-  deriving anyclass (FromJSON)
+
+
+lowerFirst :: String -> String
+lowerFirst []     = []
+lowerFirst (x:xs) = toLower x : xs
+
+
+fieldModifier :: Int -> String -> String
+fieldModifier n = lowerFirst . drop n
+
+
+instance FromJSON InMsg where
+  parseJSON =
+    Aeson.genericParseJSON
+      Aeson.defaultOptions { Aeson.constructorTagModifier = fieldModifier 2 }
 
 
 data OutMsg
@@ -56,7 +71,12 @@ data OutMsg
   | OutNotFound
   | OutParseError String
   deriving (Show, Generic)
-  deriving anyclass (ToJSON)
+
+instance ToJSON OutMsg where
+  toJSON =
+    Aeson.genericToJSON
+      Aeson.defaultOptions { Aeson.constructorTagModifier = fieldModifier 3 }
+
 
 sendOut :: MonadIO m => Connection -> OutMsg -> m ()
 sendOut conn msg =
