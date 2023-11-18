@@ -3,13 +3,9 @@ import {
   Plugin,
   PluginKey,
   Transaction,
-  EditorStateConfig,
-  Selection,
-  TextSelection,
 } from "prosemirror-state";
-import { EditorView, NodeView, DecorationSet, Decoration } from "prosemirror-view";
-import { textSchema } from "./textSchema";
-import { Slice, Node, Mark, Fragment } from "prosemirror-model";
+import { DecorationSet, Decoration } from "prosemirror-view";
+import { Node } from "prosemirror-model";
 import * as classes from "./styles.module.scss";
 
 let questionHighlightKey = new PluginKey("questionHighlight");
