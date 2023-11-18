@@ -74,11 +74,11 @@ function getRandomStr(): string {
   return btoa(b.reduce((a, b) => a + b, ""));
 }
 
-const newQuestionNode: () => [string, Node] = () => {
+const newQuestionNode: (verseRef?: string) => [string, Node] = (verseRef = "") => {
   const questionId = getRandomStr();
   const p = textSchema.nodes.paragraph.create();
   const questionText = textSchema.nodes.questionText.create({}, p);
-  const result = textSchema.nodes.question.create({ questionId }, questionText);
+  const result = textSchema.nodes.question.create({ questionId, verseRef }, questionText);
   return [questionId, result];
 };
 
@@ -157,6 +157,9 @@ export class QuestionView implements NodeView {
   ) {
     this.node = node;
     this.questionId = node.attrs.questionId;
+    const verseRef = node.attrs.verseRef;
+
+    console.log(node);
 
     if (!questionMap[this.questionId]) {
       this.questionMap = questionMap;
@@ -170,7 +173,7 @@ export class QuestionView implements NodeView {
     this.dom = document.createElement("questionOuter");
     const qtext = document.createElement("div");
     qtext.setAttribute("contenteditable", "false");
-    qtext.innerText = "Q:";
+    qtext.innerText = `${verseRef}:`;
     this.dom.appendChild(qtext);
     this.contentDOM = document.createElement("question");
     this.dom.appendChild(this.contentDOM);
@@ -1032,8 +1035,35 @@ const addQuestion = (
 ) => {
   const from = state.selection.from;
   const to = state.selection.to;
+  let verseRef = "";
+
+  // Function to extract verse info from a mark
+  const extractVerseInfo = (verseMark) => {
+    return {
+      book: verseMark.attrs.book,
+      chapter: verseMark.attrs.chapter,
+      verse: verseMark.attrs.verse,
+    };
+  };
+
+  let found = false; // Flag to check if a verse mark has been found
+
+  state.doc.nodesBetween(from, to, (node, pos) => {
+    if (found) return false;
+
+    node.marks.forEach((mark) => {
+      if (mark.type.name === "verse" && !found) {
+        const verseInfo = extractVerseInfo(mark);
+        verseRef = `${verseInfo.chapter}:${verseInfo.verse}`;
+        console.log("First Verse Ref:", verseRef);
+        console.log("Finish sending this ref to show in the question view in study block");
+        found = true;
+      }
+    });
+  });
+
   if (dispatch) {
-    const r = newQuestionNode();
+    const r = newQuestionNode(verseRef);
     const qId = r[0];
     const qNode = r[1];
 
