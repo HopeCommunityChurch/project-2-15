@@ -106,7 +106,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
 
   let host = location.host;
   let protocol = (host.includes("local"))? "ws://" : "wss://";
-  let websocket = new WebSocket(protocol + host + "/document/realtime");
+  let websocket = new WebSocket(protocol + host + "/api/document/realtime");
   websocket.onopen = (e) => {
     console.log('ws open', e);
     WS.sendMsg(websocket, { tag: "OpenDoc", content: doc.docId})
