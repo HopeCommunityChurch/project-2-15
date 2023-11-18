@@ -38,6 +38,7 @@ import "./styles.css";
 import * as classes from "./styles.module.scss";
 import QuestionIcon from "../Pages/Study/TextEditorToolbar/Assets/question-icon.svg";
 import AddScriptureIcon from "../Assets/add-scripture.svg";
+import {questionHighlightPlugin, highlighQuestion, unhighlighQuestion} from "./QuestionHighlightPlugin";
 
 import DragHandleIcon from "../Assets/drag-handle.svg";
 import CloseXIcon from "../Assets/x.svg";
@@ -541,12 +542,7 @@ const questionPopup = (
     });
 
     // Add ref highlight class
-    const questionRefs = document.querySelectorAll(`[questionid="${qId}"]`);
-    if (questionRefs.length != 0) {
-      for (const questionRef of questionRefs) {
-        questionRef.classList.add(classes.referenceToPopOpen);
-      }
-    }
+    highlighQuestion(qId, view.state, view.dispatch);
 
     let mover = pop.appendChild(document.createElement("mover"));
 
@@ -630,12 +626,7 @@ const questionPopup = (
     closer.appendChild(closeImage);
     closer.onclick = (e) => {
       //turn off ref highlight
-      const questionRefs = document.querySelectorAll(`[questionid="${qId}"]`);
-      if (questionRefs.length != 0) {
-        for (const questionRef of questionRefs) {
-          questionRef.classList.remove(classes.referenceToPopOpen);
-        }
-      }
+      unhighlighQuestion(qId, view.state, view.dispatch);
 
       qNode.editor.destroy();
       qNode.editor = null;
@@ -651,12 +642,7 @@ const questionPopup = (
     pop.onkeydown = (event) => {
       if (event.key === "Escape") {
         //turn off ref highlight
-        const questionRefs = document.querySelectorAll(`[questionid="${qId}"]`);
-        if (questionRefs.length != 0) {
-          for (const questionRef of questionRefs) {
-            questionRef.classList.remove(classes.referenceToPopOpen);
-          }
-        }
+        unhighlighQuestion(qId, view.state, view.dispatch);
 
         qNode.editor.destroy();
         qNode.editor = null;
@@ -832,23 +818,15 @@ const questionMarkWidget =
     elem.innerHTML = '<img src="' + QuestionIcon + '" />';
 
     // Add mouseenter event listener to add a class to questionRef
-    elem.addEventListener("mouseenter", () => {
-      const questionRefs = document.querySelectorAll(`[questionid="${qId}"]`);
-      if (questionRefs.length != 0) {
-        for (const questionRef of questionRefs) {
-          questionRef.classList.add(classes.referenceTo);
-        }
-      }
+    elem.addEventListener("mouseenter", (e) => {
+      e.preventDefault();
+      highlighQuestion(qId, view.state, view.dispatch)
     });
 
     // Add mouseleave event listener to remove the class from questionRef
-    elem.addEventListener("mouseleave", () => {
-      const questionRefs = document.querySelectorAll(`[questionid="${qId}"]`);
-      if (questionRefs.length != 0) {
-        for (const questionRef of questionRefs) {
-          questionRef.classList.remove(classes.referenceTo);
-        }
-      }
+    elem.addEventListener("mouseleave", (e) => {
+      e.preventDefault();
+      unhighlighQuestion(qId, view.state, view.dispatch)
     });
 
     elem.onmousedown = (e) => {
@@ -881,6 +859,7 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>, setActiveEdi
           const loc = questions[qId];
           decorations.push(
             Decoration.widget(loc, questionMarkWidget(qId, questionMap, setActiveEditor), {
+              key: "qmark" + qId,
               stopEvent: (e: Event) => {
                 return e.type === "click";
               },
@@ -1513,6 +1492,7 @@ export class P215Editor {
         verseReferencePlugin,
         preventUpdatingMultipleComplexNodesSelectionPlugin,
         bibleTextPlaceholderPlugin,
+        questionHighlightPlugin,
         // referencePlugin
       ],
     });
