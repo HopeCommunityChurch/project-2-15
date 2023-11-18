@@ -1598,16 +1598,21 @@ export class P215Editor {
             handler(transaction.doc.toJSON());
           });
           const steps = transaction.steps.map( st => st.toJSON())
-          this.remoteThings.send(steps);
+
+          if (this.remoteThings !== null) {
+            this.remoteThings.send(steps);
+          }
         }
       },
     });
 
-    this.remoteThings.receive = (stepsRaw: any[]) => {
-      const steps = stepsRaw.map( (st) => Step.fromJSON(textSchema, st))
-      const tr = this.view.state.tr;
-      steps.forEach( st => tr.step(st));
-      this.view.dispatch(tr);
+    if (this.remoteThings !== null) {
+      this.remoteThings.receive = (stepsRaw: any[]) => {
+        const steps = stepsRaw.map( (st) => Step.fromJSON(textSchema, st))
+        const tr = this.view.state.tr;
+        steps.forEach( st => tr.step(st));
+        this.view.dispatch(tr);
+      }
     }
 
   }
