@@ -1053,6 +1053,33 @@ const addQuestion = (
 ) => {
   const from = state.selection.from;
   const to = state.selection.to;
+  let verseRef = "";
+
+  // Function to extract verse info from a mark
+  const extractVerseInfo = (verseMark) => {
+    return {
+      book: verseMark.attrs.book,
+      chapter: verseMark.attrs.chapter,
+      verse: verseMark.attrs.verse,
+    };
+  };
+
+  let found = false; // Flag to check if a verse mark has been found
+
+  state.doc.nodesBetween(from, to, (node, pos) => {
+    if (found) return false;
+
+    node.marks.forEach((mark) => {
+      if (mark.type.name === "verse" && !found) {
+        const verseInfo = extractVerseInfo(mark);
+        verseRef = `${verseInfo.book} ${verseInfo.chapter}:${verseInfo.verse}`;
+        console.log("First Verse Ref:", verseRef);
+        console.log("Finish sending this ref to show in the question view in study block");
+        found = true;
+      }
+    });
+  });
+
   if (dispatch) {
     const r = newQuestionNode();
     const qId = r[0];
