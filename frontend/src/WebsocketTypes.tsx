@@ -22,7 +22,9 @@ export type SendMsg =
 
 
 export function sendMsg (ws : WebSocket, msg : SendMsg) {
-  ws.send(JSON.stringify(msg));
+  if(ws.readyState == 1) {
+    ws.send(JSON.stringify(msg));
+  }
 };
 
 
