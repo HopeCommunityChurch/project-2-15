@@ -20,7 +20,7 @@ import {
 } from "prosemirror-state";
 import { EditorView, NodeView, DecorationSet, Decoration } from "prosemirror-view";
 import { undoItem, redoItem, MenuItem, MenuItemSpec, menuBar } from "prosemirror-menu";
-
+import { textSchema } from "./textSchema";
 import {
   chainCommands,
   deleteSelection,
@@ -31,287 +31,17 @@ import {
 
 import { undo, redo, history } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
-import { Slice, Schema, Node, Mark, Fragment } from "prosemirror-model";
+import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { StepMap } from "prosemirror-transform";
 import { baseKeymap } from "prosemirror-commands";
 import "./styles.css";
 import * as classes from "./styles.module.scss";
 import QuestionIcon from "../Pages/Study/TextEditorToolbar/Assets/question-icon.svg";
 import AddScriptureIcon from "../Assets/add-scripture.svg";
+import {questionHighlightPlugin, highlighQuestion, unhighlighQuestion} from "./QuestionHighlightPlugin";
 
 import DragHandleIcon from "../Assets/drag-handle.svg";
 import CloseXIcon from "../Assets/x.svg";
-
-const textSchema = new Schema({
-  nodes: {
-    doc: {
-      content: "section*",
-    },
-    paragraph: {
-      content: "text*",
-      group: "richText",
-      toDOM: () => {
-        return ["p", 0];
-      },
-    },
-    link: {
-      attrs: {
-        href: {},
-        title: { default: null },
-      },
-      inclusive: false,
-      parseDOM: [
-        {
-          tag: "a[href]",
-          getAttrs(dom: any) {
-            return {
-              href: dom.getAttribute("href"),
-              title: dom.getAttribute("title"),
-            };
-          },
-        },
-      ],
-      toDOM(node: any) {
-        const { href, title } = node.attrs;
-        return ["a", { href, title }, 0];
-      },
-    },
-    section: {
-      content: "sectionChild*",
-      isolating: true,
-      defining: true,
-      toDOM(node) {
-        return ["div", { class: classes.section }, 0];
-      },
-    },
-    sectionHeader: {
-      content: "text*",
-      group: "sectionChild",
-      isolating: true,
-      defining: true,
-      toDOM: () => {
-        return ["h2", 0];
-      },
-    },
-    bibleText: {
-      content: "chunk*",
-      group: "sectionChild",
-      isolating: true,
-      defining: true,
-      attrs: { verses: { default: "Genesis 1:1" } },
-      toDOM: () => {
-        return [
-          "div",
-          {
-            class: classes.bibleText,
-          },
-          0,
-        ];
-      },
-    },
-    studyBlocks: {
-      content: "studyElement*",
-      group: "sectionChild",
-      isolating: true,
-      defining: true,
-    },
-    questionDoc: {
-      content: "question",
-    },
-    questions: {
-      content: "question*",
-      group: "studyElement",
-      isolating: true,
-      defining: true,
-    },
-    question: {
-      content: "(questionAnswer | questionText )*",
-      attrs: { questionId: { default: null } },
-      isolating: true,
-      defining: true,
-      draggable: true,
-      toDOM: () => {
-        return ["question", { class: classes.question }, 0];
-      },
-    },
-    generalStudyBlock: {
-      content: "generalStudyBlockChildren*",
-      group: "studyElement",
-      isolating: true,
-      defining: true,
-      toDOM: () => {
-        return ["tr", 0];
-      },
-    },
-    generalStudyBlockHeader: {
-      content: "text*",
-      group: "generalStudyBlockChildren",
-      isolating: true,
-      defining: true,
-    },
-    generalStudyBlockBody: {
-      content: "richText*",
-      group: "generalStudyBlockChildren",
-      isolating: true,
-      defining: true,
-      toDOM: () => {
-        return ["td", 0];
-      },
-    },
-    questionText: {
-      isolating: true,
-      defining: true,
-      content: "richText*",
-      toDOM: () => {
-        return ["questionText", 0];
-      },
-    },
-    questionAnswer: {
-      content: "richText*",
-      draggable: true,
-      toDOM: () => {
-        return ["questionAnswer", 0];
-      },
-    },
-    chunkComment: {
-      content: "text*",
-      inline: true,
-      atom: true,
-      draggable: false,
-      defining: true,
-      selectable: false,
-      attrs: { referenceId: { default: null }, color: { default: "red" } },
-      toDOM: () => ["chunkComment", 0],
-      parseDOM: [{ tag: "chunkComment" }],
-    },
-    chunk: {
-      content: "(chunkComment | text)*",
-      attrs: { level: { default: 0 } },
-      toDOM: (node) => {
-        return [
-          "div",
-          {
-            class: classes.chunk,
-            level: node.attrs.level,
-            "data-indent-level": node.attrs.level,
-          },
-          0,
-        ];
-      },
-      parseDOM: [
-        {
-          tag: `div.${classes.chunk}`,
-          getAttrs(domNode) {
-            const dom = domNode as HTMLElement;
-            const level = dom.getAttribute("data-indent-level");
-            return { level: level ? parseInt(level, 10) : 0 };
-          },
-        },
-      ],
-    },
-    text: { inline: true },
-  },
-  marks: {
-    strong: {
-      parseDOM: [{ tag: "strong" }],
-      toDOM: () => ["strong"],
-    },
-    em: {
-      parseDOM: [{ tag: "em" }],
-      toDOM: () => ["em"],
-    },
-    underline: {
-      parseDOM: [{ tag: "u" }],
-      toDOM: () => ["u"],
-    },
-    textColor: {
-      attrs: { color: {} },
-      inline: true,
-      parseDOM: [
-        {
-          style: "color",
-          getAttrs: (value) => {
-            return { color: value };
-          },
-        },
-      ],
-      toDOM: (mark) => {
-        return ["span", { style: `color: ${mark.attrs.color};` }, 0];
-      },
-    },
-    highlightColor: {
-      attrs: { color: {} },
-      inline: true,
-      parseDOM: [
-        {
-          style: "background-color",
-          getAttrs: (value) => {
-            return { color: value };
-          },
-        },
-      ],
-      toDOM: (mark) => {
-        return ["span", { style: `background-color: ${mark.attrs.color};` }, 0];
-      },
-    },
-    referenceTo: {
-      attrs: { referenceId: {} },
-      excludes: "",
-      toDOM: (mark) => {
-        return [
-          "span",
-          {
-            "data-type": "reference",
-            class: classes.reference,
-            referenceId: mark.attrs.referenceId,
-          },
-          0,
-        ];
-      },
-    },
-    questionReference: {
-      attrs: { questionId: {} },
-      excludes: "",
-      toDOM: (mark) => [
-        "questionRef",
-        {
-          class: classes.questionRef,
-          questionId: mark.attrs.questionId,
-        },
-        0,
-      ],
-    },
-    verse: {
-      attrs: { book: {}, chapter: {}, verse: {} },
-      toDOM: (mark) => {
-        return [
-          "span",
-          {
-            "data-verse-book": mark.attrs.book,
-            "data-verse-chapter": mark.attrs.chapter,
-            "data-verse-verse": mark.attrs.verse,
-          },
-          0,
-        ];
-      },
-      parseDOM: [
-        {
-          tag: "span[data-verse-book][data-verse-chapter][data-verse-verse]",
-          getAttrs: (dom) => {
-            if (dom instanceof HTMLElement) {
-              return {
-                book: dom.getAttribute("data-verse-book"),
-                chapter: dom.getAttribute("data-verse-chapter"),
-                verse: dom.getAttribute("data-verse-verse"),
-              };
-            }
-            return {};
-          },
-        },
-      ],
-    },
-  },
-});
 
 // var blockMap : Dictionary<BlockMapItem> = {};
 
@@ -344,11 +74,11 @@ function getRandomStr(): string {
   return btoa(b.reduce((a, b) => a + b, ""));
 }
 
-const newQuestionNode: () => [string, Node] = () => {
+const newQuestionNode: (verseRef?: string) => [string, Node] = (verseRef = "") => {
   const questionId = getRandomStr();
   const p = textSchema.nodes.paragraph.create();
   const questionText = textSchema.nodes.questionText.create({}, p);
-  const result = textSchema.nodes.question.create({ questionId }, questionText);
+  const result = textSchema.nodes.question.create({ questionId, verseRef }, questionText);
   return [questionId, result];
 };
 
@@ -427,6 +157,7 @@ export class QuestionView implements NodeView {
   ) {
     this.node = node;
     this.questionId = node.attrs.questionId;
+    const verseRef = node.attrs.verseRef;
 
     if (!questionMap[this.questionId]) {
       this.questionMap = questionMap;
@@ -440,7 +171,7 @@ export class QuestionView implements NodeView {
     this.dom = document.createElement("questionOuter");
     const qtext = document.createElement("div");
     qtext.setAttribute("contenteditable", "false");
-    qtext.innerText = "Q:";
+    qtext.innerText = `${verseRef}:`;
     this.dom.appendChild(qtext);
     this.contentDOM = document.createElement("question");
     this.dom.appendChild(this.contentDOM);
@@ -812,10 +543,7 @@ const questionPopup = (
     });
 
     // Add ref highlight class
-    const questionRef = document.querySelector(`[questionid="${qId}"]`);
-    if (questionRef) {
-      questionRef.classList.add(classes.referenceToPopOpen);
-    }
+    highlighQuestion(qId, view.state, view.dispatch);
 
     let mover = pop.appendChild(document.createElement("mover"));
 
@@ -899,10 +627,7 @@ const questionPopup = (
     closer.appendChild(closeImage);
     closer.onclick = (e) => {
       //turn off ref highlight
-      const questionRef = document.querySelector(`[questionid="${qId}"]`);
-      if (questionRef) {
-        questionRef.classList.remove(classes.referenceToPopOpen);
-      }
+      unhighlighQuestion(qId, view.state, view.dispatch);
 
       qNode.editor.destroy();
       qNode.editor = null;
@@ -918,10 +643,7 @@ const questionPopup = (
     pop.onkeydown = (event) => {
       if (event.key === "Escape") {
         //turn off ref highlight
-        const questionRef = document.querySelector(`[questionid="${qId}"]`);
-        if (questionRef) {
-          questionRef.classList.remove(classes.referenceToPopOpen);
-        }
+        unhighlighQuestion(qId, view.state, view.dispatch);
 
         qNode.editor.destroy();
         qNode.editor = null;
@@ -1097,18 +819,17 @@ const questionMarkWidget =
     elem.innerHTML = '<img src="' + QuestionIcon + '" />';
 
     // Add mouseenter event listener to add a class to questionRef
-    elem.addEventListener("mouseenter", () => {
-      const questionRef = document.querySelector(`[questionid="${qId}"]`);
-      if (questionRef) {
-        questionRef.classList.add(classes.referenceTo);
-      }
+    elem.addEventListener("mouseenter", (e) => {
+      e.preventDefault();
+      highlighQuestion(qId, view.state, view.dispatch)
     });
 
     // Add mouseleave event listener to remove the class from questionRef
-    elem.addEventListener("mouseleave", () => {
-      const questionRef = document.querySelector(`[questionid="${qId}"]`);
-      if (questionRef) {
-        questionRef.classList.remove(classes.referenceTo);
+    elem.addEventListener("mouseleave", (e) => {
+      e.preventDefault();
+      let qNode = questionMap[qId];
+      if (!qNode.editor) {
+        unhighlighQuestion(qId, view.state, view.dispatch)
       }
     });
 
@@ -1142,6 +863,7 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>, setActiveEdi
           const loc = questions[qId];
           decorations.push(
             Decoration.widget(loc, questionMarkWidget(qId, questionMap, setActiveEditor), {
+              key: "qmark" + qId,
               stopEvent: (e: Event) => {
                 return e.type === "click";
               },
@@ -1314,8 +1036,35 @@ const addQuestion = (
 ) => {
   const from = state.selection.from;
   const to = state.selection.to;
+  let verseRef = "";
+
+  // Function to extract verse info from a mark
+  const extractVerseInfo = (verseMark) => {
+    return {
+      book: verseMark.attrs.book,
+      chapter: verseMark.attrs.chapter,
+      verse: verseMark.attrs.verse,
+    };
+  };
+
+  let found = false; // Flag to check if a verse mark has been found
+
+  state.doc.nodesBetween(from, to, (node, pos) => {
+    if (found) return false;
+
+    node.marks.forEach((mark) => {
+      if (mark.type.name === "verse" && !found) {
+        const verseInfo = extractVerseInfo(mark);
+        verseRef = `${verseInfo.chapter}:${verseInfo.verse}`;
+        console.log("First Verse Ref:", verseRef);
+        console.log("Finish sending this ref to show in the question view in study block");
+        found = true;
+      }
+    });
+  });
+
   if (dispatch) {
-    const r = newQuestionNode();
+    const r = newQuestionNode(verseRef);
     const qId = r[0];
     const qNode = r[1];
 
@@ -1774,6 +1523,7 @@ export class P215Editor {
         verseReferencePlugin,
         preventUpdatingMultipleComplexNodesSelectionPlugin,
         bibleTextPlaceholderPlugin,
+        questionHighlightPlugin,
         // referencePlugin
       ],
     });
@@ -1832,9 +1582,11 @@ export class P215Editor {
         }
 
         that.view.updateState(newState);
-        this.updateHanlders.forEach((handler) => {
-          handler(transaction.doc.toJSON());
-        });
+        if(transaction.docChanged) {
+          this.updateHanlders.forEach((handler) => {
+            handler(transaction.doc.toJSON());
+          });
+        }
       },
     });
   }

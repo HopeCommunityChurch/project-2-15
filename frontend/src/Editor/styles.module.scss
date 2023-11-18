@@ -330,13 +330,18 @@ $indentLeftBorderColors: (
 questionouter {
   display: grid;
   grid-template-areas: "q qt" "b a";
-  grid-template-columns: 1.4em 1fr;
+  grid-template-columns: auto 1fr;
+  grid-gap: 7px;
   position: relative;
 }
 
 questionouter > div {
   grid-area: q;
-  font-weight: 600;
+  font-weight: 500;
+  background-color: #ddeafc8c;
+  // color: #0057d1;
+  padding: 1px 6px;
+  border-radius: 5px;
 }
 questionouter > button {
   grid-area: a;

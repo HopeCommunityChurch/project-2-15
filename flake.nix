@@ -85,6 +85,12 @@
                   proxy_set_header        X-Forwarded-Proto $scheme;
                   proxy_set_header        X-Forwarded-Host $host;
                   proxy_set_header        X-Forwarded-Server $host;
+                  add_header Last-Modified $date_gmt;
+                  add_header Cache-Control 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+                  if_modified_since off;
+                  expires off;
+                  etag off;
+
                   proxy_pass http://localhost:1234/;
                 }
 
