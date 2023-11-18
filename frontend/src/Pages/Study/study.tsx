@@ -9,7 +9,7 @@ import { dndzone } from "solid-dnd-directive";
 import * as Network from "Utils/Network";
 import * as classes from "./styles.module.scss";
 import * as Editor from "Editor/Editor";
-import { PublicUser, DocRaw } from "../../Types";
+import { PublicUser, DocRaw, GroupStudyRaw } from "../../Types";
 import { LoginUser, loginState } from "Pages/LoginPage/login";
 import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
 import { TextEditorToolbar } from "./TextEditorToolbar/TextEditorToolbar";
@@ -31,14 +31,26 @@ async function getStudy(documentId): Promise<Network.NetworkState<DocRaw>> {
   return Network.request("/document/" + documentId);
 }
 
+async function getGroupStudy(groupStudyId): Promise<Network.NetworkState<GroupStudyRaw>> {
+  return Network.request("/group-study/" + groupStudyId);
+}
+
+
 export function StudyPage() {
   const nav = useNavigate();
   const documentID = useParams().documentID;
   const [result] = createResource([], () => getStudy(documentID), {
     initialValue: { state: "loading" },
   });
-
-  createEffect(() => {});
+  const groupStudyId = () => {
+    return match(result())
+            .with({ state: "success" }, ({body}) => {
+              return body.groupStudyId;
+            }).otherwise( () => null);
+  };
+  const [groupStudyResult] = createResource(groupStudyId, (gsId) => getGroupStudy(gsId), {
+    initialValue: { state: "loading" },
+  });
 
   return (
     <>
@@ -54,7 +66,20 @@ export function StudyPage() {
             match(result())
               .with({ state: "loading" }, () => <></>)
               .with({ state: "error" }, ({ body }) => <>{JSON.stringify(body)}</>)
-              .with({ state: "success" }, ({ body }) => StudyLoggedIn(body, user))
+              .with({ state: "success" }, ({ body }) => {
+                if(body.groupStudyId) {
+                  return match(groupStudyResult())
+                    .with({ state: "loading" }, () => <></>)
+                    .with({ state: "notloaded" }, () => <>not loaded</>)
+                    .with({ state: "error" }, ({ body }) =>
+                      <>{JSON.stringify(body)}</>
+                    ).with({ state: "success" }, ({ body: studyGroup }) => {
+                      return StudyLoggedIn(body, user, studyGroup);
+                    }).exhaustive();
+                } else {
+                  return StudyLoggedIn(body, user, null);
+                }
+               })
               .with({ state: "notloaded" }, () => <>not loaded</>)
               .exhaustive()
           )
@@ -64,7 +89,7 @@ export function StudyPage() {
   );
 }
 
-function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
+function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupStudyRaw) {
   // State and Variables
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const [isTopbarOpen, setTopbarOpen] = createSignal(true);
@@ -220,21 +245,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     });
   };
 
-  onMount(() => {
-    editor.addEditor(editorRoot);
-    setActiveEditor(editor);
-    const [documentThingy, setDocumentThingy] = createSignal(doc.document);
-    // editorSplitScreen.addEditor(editorRootSplitScreen);
-    createEffect(() => {
-      updateSectionTitles(documentThingy());
-    });
-    editor.onUpdate((value) => {
-      setDocumentThingy(value);
-    });
-    savingContext();
-  });
-
-
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);
 
@@ -280,6 +290,21 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
     setSectionTitles(titlesWithId);
   };
+
+  onMount(() => {
+    editor.addEditor(editorRoot);
+    setActiveEditor(editor);
+    const [documentThingy, setDocumentThingy] = createSignal(doc.document);
+    // editorSplitScreen.addEditor(editorRootSplitScreen);
+    createEffect(() => {
+      updateSectionTitles(documentThingy());
+    });
+    editor.onUpdate((value) => {
+      setDocumentThingy(value);
+    });
+    savingContext();
+  });
+
 
   function handleDndEvent(e) {
     const {
@@ -352,6 +377,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         isSplitScreen={isSplitScreen}
         setSplitScreen={setSplitScreen}
         activeEditor={activeEditor}
+        groupStudy={groupStudy}
       />
       <div
         class={`${classes.pageBody} ${isTopbarOpen() ? "" : classes.collapsed}  ${

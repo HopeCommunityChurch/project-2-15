@@ -24,6 +24,17 @@ import * as Editor from "Editor/Editor";
 import { getBiblePassge } from "./validateAndFetchVerses";
 import { match } from "ts-pattern";
 import AddStudyBlockIcon from "../../../Assets/add-study-block-icon.svg";
+import { GroupStudyRaw } from "Types";
+
+type Props = {
+  editor : Editor.P215Editor;
+  isTopbarOpen: () => boolean;
+  setTopbarOpen : (arg : boolean) => void;
+  activeEditor : any
+  isSplitScreen : () => boolean;
+  setSplitScreen : (arg : boolean) => void;
+  groupStudy?: GroupStudyRaw;
+};
 
 export function TextEditorToolbar({
   editor,
@@ -32,7 +43,8 @@ export function TextEditorToolbar({
   activeEditor,
   isSplitScreen,
   setSplitScreen,
-}) {
+  groupStudy,
+} : Props) {
   const [showExtendedToolbar, setShowExtendedToolbar] = createSignal(false);
   const [windowWidth, setWindowWidth] = createSignal(window.innerWidth);
   const [operatingSystem, setOperatingSystem] = createSignal("Unknown");
@@ -100,6 +112,9 @@ export function TextEditorToolbar({
             operatingSystem={operatingSystem}
           />
           <ToolbarGroup4 activeEditor={activeEditor} operatingSystem={operatingSystem} />
+          { (groupStudy == null)? (<></>) :
+              (<ToolbarGroup5 isSplitScreen={isSplitScreen} setSplitScreen={setSplitScreen} />)
+          }
           <ClearFormattingSection activeEditor={activeEditor} />
         </Show>
 
@@ -122,6 +137,9 @@ export function TextEditorToolbar({
                   operatingSystem={operatingSystem}
                 />
                 <ToolbarGroup4 activeEditor={activeEditor} operatingSystem={operatingSystem} />
+                { (groupStudy == null)? (<></>) :
+                    (<ToolbarGroup5 isSplitScreen={isSplitScreen} setSplitScreen={setSplitScreen} />)
+                }
                 <ClearFormattingSection activeEditor={activeEditor} />
               </Show>
             </div>
@@ -733,93 +751,9 @@ function ToolbarGroup4({ activeEditor, operatingSystem }) {
   );
 }
 
-function ToolbarGroup5({ editor, operatingSystem, isSplitScreen, setSplitScreen, windowWidth }) {
-  const [showHyperlinkPopUp, setHyperlinkPopUp] = createSignal(false);
-  const [hyperlinkPopUpPosition, setHyperlinkPopUpPosition] = createSignal({ x: 0, y: 0 });
-  const [hyperlinkText, setHyperlinkText] = createSignal("");
-  const [hyperlinkURL, setHyperlinkURL] = createSignal("");
-
-  const toggleHyperlinkPopUp = (event) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = rect.left + window.pageXOffset;
-    const y = rect.bottom + window.pageYOffset;
-    setHyperlinkPopUpPosition({ x: x + rect.width / 2, y: y });
-    setTimeout(() => {
-      setHyperlinkPopUp(!showHyperlinkPopUp());
-    }, 10);
-  };
-
-  createEffect(() => {
-    const handleClick = (event) => {
-      const popupElement = document.getElementById(classes.hyperlinkPopUp); // Replace with your popup's actual ID
-
-      if (popupElement && !popupElement.contains(event.target)) {
-        // Click is outside the popup
-        if (showHyperlinkPopUp()) {
-          setHyperlinkPopUp(!showHyperlinkPopUp());
-        }
-      }
-    };
-
-    document.addEventListener("click", handleClick);
-
-    return () => {
-      document.removeEventListener("click", handleClick);
-    };
-  });
-
-  const applyHyperlink = (e) => {
-    e.preventDefault();
-    editor.insertLink(hyperlinkURL(), hyperlinkText());
-    setHyperlinkText("");
-    setHyperlinkURL("");
-    setHyperlinkPopUp(false);
-  };
-
+function ToolbarGroup5({ isSplitScreen, setSplitScreen }) {
   return (
     <div class={classes.toolbarGroup5}>
-      <img src={LinkIcon} class={classes.toolbarIcon} onClick={toggleHyperlinkPopUp} />
-      {showHyperlinkPopUp() && (
-        <div
-          class={classes.hyperlinkPopUp}
-          id={classes.hyperlinkPopUp}
-          style={{
-            position: "absolute",
-            left: `${hyperlinkPopUpPosition().x}px`,
-            top: `${hyperlinkPopUpPosition().y - 52}px`,
-            transform: "translate(-50%, 0)",
-          }}
-        >
-          <form>
-            <div class={classes.allInputsContainer}>
-              <div class={classes.labelInputContainer}>
-                <label for="hyperlinkText">Text</label>
-                <input
-                  type="text"
-                  id="hyperlinkText"
-                  placeholder="Link Title..."
-                  value={hyperlinkText()}
-                  onInput={(e) => setHyperlinkText(e.target.value)}
-                />
-              </div>
-              <div class={classes.labelInputContainer}>
-                <label for="hyperlinkURL">URL</label>
-                <input
-                  type="text"
-                  id="hyperlinkURL"
-                  placeholder="https://..."
-                  value={hyperlinkURL()}
-                  onInput={(e) => setHyperlinkURL(e.target.value)}
-                />
-              </div>
-            </div>
-            <div class={classes.applyHyperlinkButton} onClick={applyHyperlink}>
-              Apply
-            </div>
-          </form>
-        </div>
-      )}
-      {/* <img src={CommentIcon} class={classes.toolbarIcon} /> */}
       <img
         src={ParallelViewIcon}
         class={`${classes.toolbarIcon} ${isSplitScreen() ? classes.active : ""}`}
