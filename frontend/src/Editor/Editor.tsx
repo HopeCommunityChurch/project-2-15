@@ -829,7 +829,10 @@ const questionMarkWidget =
     // Add mouseleave event listener to remove the class from questionRef
     elem.addEventListener("mouseleave", (e) => {
       e.preventDefault();
-      unhighlighQuestion(qId, view.state, view.dispatch)
+      let qNode = questionMap[qId];
+      if (!qNode.editor) {
+        unhighlighQuestion(qId, view.state, view.dispatch)
+      }
     });
 
     elem.onmousedown = (e) => {
