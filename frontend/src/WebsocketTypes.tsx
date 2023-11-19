@@ -2,17 +2,17 @@ import * as T from "Types";
 
 export type SendOpenDoc = {
   tag: "OpenDoc",
-  content: T.DocId,
+  contents: T.DocId,
 };
 
 export type SendUpdated = {
   tag: "Updated",
-  content: any,
+  contents: any,
 };
 
 export type SendListenToDoc = {
   tag: "ListenToDoc",
-  content: T.DocId,
+  contents: T.DocId,
 };
 
 export type SendMsg =
@@ -31,12 +31,12 @@ export function sendMsg (ws : WebSocket, msg : SendMsg) {
 
 export type RecDocListenStart = {
   tag: "DocListenStart",
-  content: any,
+  contents: any,
 };
 
 export type RecDocUpdated = {
   tag: "DocUpdated",
-  content: any,
+  contents: any,
 };
 
 export type RecNotFound = {

@@ -20,10 +20,12 @@ import Database.Beam (
   orderBy_,
   runInsert,
   runSelectReturningList,
+  runSelectReturningOne,
   runUpdate,
   select,
   update,
   val_,
+  guard_',
   (<-.),
   (==.),
   (==?.),
@@ -124,6 +126,27 @@ instance E.EntityWithId GetDoc where
   type EntityId GetDoc = T.DocId
   entityId = (.docId)
 
+
+
+getDocInStudyGroup
+  :: MonadDb env m
+  => AuthUser
+  -> T.DocId
+  -> m (Maybe GetDoc)
+getDocInStudyGroup authUser docId =
+  fmap (fmap E.toEntity)
+  $ runBeam
+  $ runSelectReturningOne
+  $ select
+  $ do
+    doc <- E.queryEntityBy @GetDoc Nothing (val_ docId)
+
+    guard_ $ exists_ $ do
+      doc2 <- E.queryEntity @GetDoc (Just authUser)
+      guard_' $ doc2.groupStudyId ==?. doc.groupStudyId
+      pure doc2.docId
+
+    pure doc
 
 
 

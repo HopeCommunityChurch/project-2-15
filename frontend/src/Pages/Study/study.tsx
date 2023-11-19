@@ -107,15 +107,37 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
   let host = location.host;
   let protocol = (host.includes("local"))? "ws://" : "wss://";
   let websocket = new WebSocket(protocol + host + "/api/document/realtime");
+
+  const [initialData, setInitialData] = createSignal<string | null>(null);
+  // a hack to get this to work
+  let receiveFunc : ReceiveFunc = null;
+  let setReceiveFunc = (func : ReceiveFunc) => {
+    receiveFunc = func;
+  };
+
   websocket.onopen = (e) => {
     console.log('ws open', e);
-    WS.sendMsg(websocket, { tag: "OpenDoc", content: doc.docId})
+    WS.sendMsg(websocket, { tag: "OpenDoc", contents: doc.docId})
   };
   websocket.onclose = (e) => {
     console.log('ws close', e);
   };
   websocket.onerror = (e) => {
     console.log('ws error', e);
+  };
+  websocket.onmessage = (msg : MessageEvent<string>) => {
+    const rec = JSON.parse(msg.data) as WS.RecMsg;
+    switch(rec.tag){
+      case "DocListenStart":
+        setInitialData(rec.contents);
+        break;
+      case "DocUpdated":
+        console.log("test");
+        if (receiveFunc) {
+          receiveFunc(rec.contents);
+        }
+        break;
+    }
   };
 
   onCleanup( () => {
@@ -134,7 +156,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     setActiveEditor: setActiveEditor,
     remoteThings: {
       send: (steps: any) => {
-        WS.sendMsg(websocket, { tag: "Updated", content: steps})
+        WS.sendMsg(websocket, { tag: "Updated", contents: steps})
       }
     },
   });
@@ -507,7 +529,14 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
             class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
           ></div>
           <Show when={isSplitScreen()}>
-            <SplitScreen groupStudy={groupStudy} setSplitScreen={setSplitScreen} currentUser={currentUser}/>
+            <SplitScreen
+              groupStudy={groupStudy}
+              setSplitScreen={setSplitScreen}
+              currentUser={currentUser}
+              websocket={websocket}
+              initialData={initialData}
+              setReceiveFunc={setReceiveFunc}
+            />
           </Show>
         </div>
       </div>
@@ -515,10 +544,16 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
   );
 }
 
+
+type ReceiveFunc = (arg:any) => void
+
 type SplitProps = {
   groupStudy: GroupStudyRaw,
   setSplitScreen: (arg: boolean) => void;
-  currentUser: PublicUser
+  currentUser: PublicUser;
+  websocket: WebSocket;
+  initialData : () => any;
+  setReceiveFunc : (arg: ReceiveFunc) => void
 };
 
 function getInitialSplit ( groupStudy: GroupStudyRaw, currentUser: PublicUser) : DocMetaRaw {
@@ -528,11 +563,36 @@ function getInitialSplit ( groupStudy: GroupStudyRaw, currentUser: PublicUser) :
 }
 
 function SplitScreen (props : SplitProps) {
-  let editorRootSplitScreen: HTMLDivElement;
+  let editorRoot: HTMLDivElement;
   const initialDocMeta = getInitialSplit(props.groupStudy, props.currentUser);
 
+  WS.sendMsg(props.websocket, { tag: "ListenToDoc", contents: initialDocMeta.docId})
+
+  createEffect( () => {
+    const initData = props.initialData();
+    if (initData == null) return;
+    const [activeEditor, setActiveEditor] = createSignal(null);
+    // let remoteThing = {
+    //   receive: "use me",
+    // };
+    // props.setreceiveFunc((steps) => {
+    //   console.log(steps);
+    //   remoteThing.receive(steps);
+    // });
+    let editor: Editor.P215Editor = new Editor.P215Editor({
+      initDoc: initData,
+      editable: false,
+      activeEditor: activeEditor,
+      setActiveEditor: setActiveEditor,
+      remoteThings: {
+        setReceive: props.setReceiveFunc,
+      },
+    });
+    editor.addEditor(editorRoot);
+  });
+
   return (
-    <div ref={editorRootSplitScreen} class={classes.otherUserSplitScreenContainer}>
+    <div ref={editorRoot} class={classes.otherUserSplitScreenContainer}>
       <div class={classes.splitScreenSwitcher}>
         <p>
           Scott Appleman <img src={ArrowIcon} />

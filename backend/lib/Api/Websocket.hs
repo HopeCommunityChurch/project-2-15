@@ -40,7 +40,7 @@ mkSubs = newIORef Map.empty
 data InMsg
   = InOpenDoc T.DocId -- Call before you send updates
   | InCloseDoc T.DocId -- Call when done sending updates
-  | InUpdated Aeson.Object -- Updating the doc
+  | InUpdated Aeson.Value -- Updating the doc
   | InListenToDoc T.DocId  -- Call when you want to listen to the updates for a doc
   | InStopListenToDoc T.DocId
   | OpenStudyChat T.GroupStudyId -- Not implemented yet
@@ -48,13 +48,8 @@ data InMsg
   deriving (Show, Generic)
 
 
-lowerFirst :: String -> String
-lowerFirst []     = []
-lowerFirst (x:xs) = toLower x : xs
-
-
 fieldModifier :: Int -> String -> String
-fieldModifier n = lowerFirst . drop n
+fieldModifier n = drop n
 
 
 instance FromJSON InMsg where
@@ -65,7 +60,7 @@ instance FromJSON InMsg where
 
 data OutMsg
   = OutDocClosed T.DocId -- sent when the other person closes the websocket connection
-  | OutDocUpdated Aeson.Object
+  | OutDocUpdated Aeson.Value
   | OutDocListenStart Aeson.Object
   | OutUnauthorized
   | OutNotFound
@@ -78,9 +73,12 @@ instance ToJSON OutMsg where
       Aeson.defaultOptions { Aeson.constructorTagModifier = fieldModifier 3 }
 
 
-sendOut :: MonadIO m => Connection -> OutMsg -> m ()
-sendOut conn msg =
-  liftIO $ WS.sendTextData conn (Aeson.encode msg)
+sendOut :: (MonadUnliftIO m, MonadLogger m) => Connection -> OutMsg -> m ()
+sendOut conn msg = do
+  result <- try $ liftIO $ WS.sendTextData conn (Aeson.encode msg)
+  case result of
+    Left (err :: SomeException) -> logErrorSH err
+    Right _ -> pure ()
 
 data SocketState = MkSocketState
   { openDocument :: Maybe T.DocId
@@ -105,7 +103,8 @@ websocketSever user conn = do
       case Aeson.eitherDecode' str of
         Left err ->
           sendOut conn (OutParseError err)
-        Right (msg :: InMsg) ->
+        Right (msg :: InMsg) -> do
+          logInfoSH msg
           case msg of
             InOpenDoc docId -> handleOpenDoc user conn st docId
             InUpdated obj -> handleUpdated st obj
@@ -119,7 +118,7 @@ handleUpdated
      , HasSubs env
      )
   => IORef SocketState
-  -> Aeson.Object
+  -> Aeson.Value
   -> m ()
 handleUpdated rst obj = do
   st <- readIORef rst
@@ -130,7 +129,7 @@ handleUpdated rst obj = do
     rdSubs <- hoistMaybe (Map.lookup docId subs)
     dsubs <- readIORef rdSubs
     for_ dsubs $ \ conn ->
-      sendOut conn (OutDocUpdated obj)
+      lift $ sendOut conn (OutDocUpdated obj)
 
 
 handleListenToDoc
@@ -143,8 +142,10 @@ handleListenToDoc
   -> T.DocId
   -> m ()
 handleListenToDoc user connId conn docId = do
-  mDoc <- E.getByIdForUser @Doc.GetDoc user docId
+  logInfo $ "user " <> show user.name <> " listening to " <> show docId
+  mDoc <- Doc.getDocInStudyGroup user docId
   for_ mDoc $ \ doc -> do
+    logInfo "found doc"
     rsubs <- asks (.subs)
     subs <- readIORef rsubs
     let mRDSubs = Map.lookup docId subs
@@ -153,6 +154,7 @@ handleListenToDoc user connId conn docId = do
         Nothing -> mkDocSubs docId
         Just rdsubs -> pure rdsubs
     atomicModifyIORef_ rdsubs (Map.insert connId conn)
+    logInfo "test"
     sendOut conn (OutDocListenStart doc.document)
 
 
