@@ -8,7 +8,7 @@ import { DecorationSet, Decoration } from "prosemirror-view";
 import { Node } from "prosemirror-model";
 import * as classes from "./styles.module.scss";
 
-let questionHighlightKey = new PluginKey("questionHighlight");
+let questionHighlightKey = new PluginKey<QuestionId []>("questionHighlight");
 
 type QuestionId = Text
 
@@ -31,7 +31,7 @@ export const questionHighlightPlugin = new Plugin<QuestionId []>({
   },
   props: {
     decorations: (st) => {
-      const qIds : QuestionId[] = questionHighlightKey.getState(st);
+      const qIds = questionHighlightKey.getState(st);
       if(qIds.length === 0) return DecorationSet.empty;
       const decorations = [];
       st.doc.descendants((node: Node, pos: number) => {
