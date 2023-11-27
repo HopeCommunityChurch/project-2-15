@@ -261,15 +261,8 @@ $indentLeftBorderColors: (
   padding: 0px 10px;
   user-select: none;
 
-  .dragHandle {
-    pointer-events: none;
-    img {
-      transform: translateY(-2px);
-    }
-  }
-
   .QpopUpTitle {
-    margin: 0 0 0 9px;
+    margin: 0px;
     transform: translateY(-1px);
     pointer-events: none;
     word-wrap: break-word;
@@ -342,6 +335,7 @@ questionouter > div {
   // color: #0057d1;
   padding: 1px 6px;
   border-radius: 5px;
+  height: fit-content;
 }
 questionouter > button {
   grid-area: a;
