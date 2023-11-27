@@ -44,7 +44,6 @@ import {
   unhighlighQuestion,
 } from "./QuestionHighlightPlugin";
 
-import DragHandleIcon from "../Assets/drag-handle.svg";
 import CloseXIcon from "../Assets/x.svg";
 
 // var blockMap : Dictionary<BlockMapItem> = {};
@@ -605,13 +604,6 @@ const questionPopup = (
       const touch = e.touches[0];
       startDrag(touch.clientX, touch.clientY);
     });
-
-    // Add drag handle
-    let dragHandle = mover.appendChild(document.createElement("drag"));
-    let dragHandleIcon = document.createElement("img");
-    dragHandle.className = classes.dragHandle;
-    dragHandleIcon.src = DragHandleIcon;
-    dragHandle.appendChild(dragHandleIcon);
 
     let popUpTitle = mover.appendChild(document.createElement("p"));
     popUpTitle.innerHTML = "Question";
@@ -1477,7 +1469,7 @@ interface Dictionary<T extends notUndefined = notUndefined> {
   [key: string]: T | undefined;
 }
 
-type RecieveFunc = (steps: any) => void
+type RecieveFunc = (steps: any) => void;
 
 type RemoteThingy = {
   setReceive: (fun: RecieveFunc) => void;
@@ -1492,7 +1484,7 @@ export class P215Editor {
   updateHanlders: Array<(change: any) => void>;
   activeEditor: any;
   setActiveEditor: any;
-  remoteThings : RemoteThingy;
+  remoteThings: RemoteThingy;
 
   constructor({ initDoc, editable, activeEditor, setActiveEditor, remoteThings }) {
     this.editable = editable;
@@ -1600,7 +1592,7 @@ export class P215Editor {
           this.updateHanlders.forEach((handler) => {
             handler(transaction.doc.toJSON());
           });
-          const steps = transaction.steps.map( st => st.toJSON())
+          const steps = transaction.steps.map((st) => st.toJSON());
 
           if (this.remoteThings !== null && this.remoteThings.send) {
             this.remoteThings.send(steps);
@@ -1609,18 +1601,17 @@ export class P215Editor {
       },
     });
 
-    console.log(this.remoteThings)
+    console.log(this.remoteThings);
     if (this.remoteThings != null && this.remoteThings.setReceive != null) {
-      console.log("hello")
-      this.remoteThings.setReceive ((stepsRaw: any[]) => {
-        const steps = stepsRaw.map( (st) => Step.fromJSON(textSchema, st))
+      console.log("hello");
+      this.remoteThings.setReceive((stepsRaw: any[]) => {
+        const steps = stepsRaw.map((st) => Step.fromJSON(textSchema, st));
         const tr = this.view.state.tr;
-        steps.forEach( st => tr.step(st));
+        steps.forEach((st) => tr.step(st));
         this.view.dispatch(tr);
       });
     }
-    console.log(this.remoteThings)
-
+    console.log(this.remoteThings);
   }
 
   handlePaste(view, event, slice) {
