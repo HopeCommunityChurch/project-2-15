@@ -153,6 +153,7 @@ export class QuestionView implements NodeView {
   questionId: string;
   node: Node;
   questionMap: Dictionary<QuestionMapItem>;
+
   constructor(
     questionMap: Dictionary<QuestionMapItem>,
     node: Node,

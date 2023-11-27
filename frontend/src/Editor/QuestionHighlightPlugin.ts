@@ -10,26 +10,29 @@ import * as classes from "./styles.module.scss";
 
 let questionHighlightKey = new PluginKey("questionHighlight");
 
-export const questionHighlightPlugin = new Plugin({
+type QuestionId = Text
+
+export const questionHighlightPlugin = new Plugin<QuestionId []>({
   key: questionHighlightKey,
   state: {
-    init: () => null,
-    apply: (tr, oldState, _, st) => {
+    init: () => [],
+    apply: (tr, st, _, _2) => {
       const meta = tr.getMeta(questionHighlightKey);
-      if (!meta) return oldState;
+      if (!meta) return st;
       const {action, qId} = meta;
       switch (action) {
         case "remove":
-          return null;
+          return st.filter( (id) => id != qId);
         case "add":
-          return qId;
+          st.push(qId);
+          return st;
       }
     }
   },
   props: {
     decorations: (st) => {
-      const qId = questionHighlightKey.getState(st);
-      if(qId == null) return DecorationSet.empty;
+      const qIds : QuestionId[] = questionHighlightKey.getState(st);
+      if(qIds.length === 0) return DecorationSet.empty;
       const decorations = [];
       st.doc.descendants((node: Node, pos: number) => {
         if (node.type.name === "chunk") {
@@ -41,7 +44,9 @@ export const questionHighlightPlugin = new Plugin({
         if (node.type.name === "section") {
           return true;
         }
-        const m = node.marks.find((mark) => mark.attrs.questionId == qId)
+        const m = node.marks.find((mark) => {
+          return qIds.some( (qId) => mark.attrs.questionId == qId);
+        })
         if(m) {
           decorations.push(
             Decoration.inline(pos, pos + node.nodeSize, {
