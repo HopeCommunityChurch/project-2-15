@@ -424,7 +424,7 @@ questionanswer p {
 
 .bibleTextPlaceholder {
   user-select: none;
-  pointer-events: none;
+  // pointer-events: none;
   color: rgb(145, 164, 177);
   margin-top: 5px;
 
@@ -438,7 +438,7 @@ questionanswer p {
 
 .noQuestionsText {
   user-select: none;
-  pointer-events: none;
+  // pointer-events: none;
   color: rgb(145, 164, 177);
 
   img {

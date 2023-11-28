@@ -77,20 +77,19 @@ function getRandomStr(): string {
   return btoa(b.reduce((a, b) => a + b, ""));
 }
 
-function newQuestionNode () : [string, Node] {
+function newQuestionNode(): [string, Node] {
   const questionId = getRandomStr();
   const p = textSchema.nodes.paragraph.create();
   const questionText = textSchema.nodes.questionText.create({}, p);
   const result = textSchema.nodes.question.create({ questionId }, questionText);
   return [questionId, result];
-};
+}
 
 const newQuestionAnswerNode = () => {
   const p = textSchema.nodes.paragraph.create();
   const questionAnswer = textSchema.nodes.questionAnswer.create({}, p);
   return questionAnswer;
 };
-
 
 class QuestionsView implements NodeView {
   dom: HTMLElement;
@@ -130,7 +129,6 @@ class QuestionsView implements NodeView {
   }
 }
 
-
 class GeneralStudyBlockHeader implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
@@ -147,7 +145,6 @@ class GeneralStudyBlockHeader implements NodeView {
     return true;
   }
 }
-
 
 type BibleVerse = {
   book: string;
@@ -176,7 +173,6 @@ function formatBibleReference(verse1: BibleVerse, verse2: BibleVerse): string {
   return `${verse1.chapter}:${verse1.verse}-${verse2.chapter}:${verse2.verse}`;
 }
 
-
 export class QuestionView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
@@ -196,25 +192,22 @@ export class QuestionView implements NodeView {
     let vStart = null;
     let vEnd = null;
 
-    view.state.doc.descendants( (node) => {
+    view.state.doc.descendants((node) => {
       if (node.type.name === "section") return true;
       if (node.type.name === "bibleText") return true;
       if (node.type.name === "chunk") return true;
       if (node.type.name !== "text") return false;
 
-      const isQuestion = node.marks.find((m) =>
-        m.type.name === "questionReference" && m.attrs.questionId === this.questionId
+      const isQuestion = node.marks.find(
+        (m) => m.type.name === "questionReference" && m.attrs.questionId === this.questionId
       );
       if (isQuestion == null) return false;
-      const verse = node.marks.find((m) =>
-        m.type.name === "verse"
-      );
+      const verse = node.marks.find((m) => m.type.name === "verse");
       if (verse == null) return false;
 
-      if(vStart == null) vStart = verse.attrs;
+      if (vStart == null) vStart = verse.attrs;
       vEnd = verse.attrs;
     });
-
 
     if (!questionMap[this.questionId]) {
       this.questionMap = questionMap;
@@ -1000,7 +993,9 @@ let verseReferencePlugin = new Plugin({
       return DecorationSet.create(state.doc, getDecorations(state));
     },
     handleKeyDown(view, event) {
-      if (event.key === "ArrowLeft") {
+      if (event.key === "ArrowUp") {
+        return false; // Return false to indicate that this handler has not handled the event
+      } else if (event.key === "ArrowLeft") {
         // left arrow key
         const { state, dispatch } = view;
         const { selection } = state;
@@ -1014,8 +1009,6 @@ let verseReferencePlugin = new Plugin({
           dispatch(state.tr.setSelection(TextSelection.create(state.tr.doc, selection.from - 1)));
           return true;
         }
-      } else if (event.key === "ArrowUp") {
-        return false; // Return false to indicate that this handler has not handled the event
       }
       return false;
     },
@@ -1451,6 +1444,21 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
     },
   },
 });
+const mkPlaceholderElement = (pos) => (view: EditorView) => {
+  const placeholderElement = document.createElement("div");
+  placeholderElement.className = classes.bibleTextPlaceholder;
+  placeholderElement.innerHTML = `<em>Place your cursor on this section's title and click the "Add Scripture" button</em> <img src="${AddScriptureIcon}" alt="Add Scripture Icon"> <em>above to add your verses</em>`;
+
+  // Add an event listener to the placeholder
+  placeholderElement.onclick = () => {
+    console.log("hi");
+    // Logic to move the cursor to the previous position
+    const transaction = view.state.tr.setSelection(TextSelection.near(view.state.doc.resolve(pos)));
+    view.dispatch(transaction);
+    view.focus();
+  };
+  return placeholderElement;
+};
 
 function createPlaceholderDecorations(doc) {
   const decorations = [];
@@ -1467,7 +1475,7 @@ function createPlaceholderDecorations(doc) {
         if (!hasBibleText) {
           const placeholderDecoration = Decoration.widget(
             pos + contentBetweenQuotes.length + 3,
-            createPlaceholderWidget()
+            mkPlaceholderElement(pos)
           );
           decorations.push(placeholderDecoration);
         }
@@ -1476,14 +1484,6 @@ function createPlaceholderDecorations(doc) {
   });
 
   return decorations;
-}
-
-function createPlaceholderWidget() {
-  const placeholderElement = document.createElement("div");
-  placeholderElement.className = classes.bibleTextPlaceholder;
-  placeholderElement.innerHTML = `<em>Place your cursor on this section's title and click the "Add Scripture" button</em> <img src="${AddScriptureIcon}" alt="Add Scripture Icon"> <em>above to add your verses</em>`;
-
-  return placeholderElement;
 }
 
 const bibleTextPlaceholderPlugin = new Plugin({
