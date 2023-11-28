@@ -91,31 +91,6 @@ const newQuestionAnswerNode = () => {
   return questionAnswer;
 };
 
-type BibleVerse = {
-  book: string;
-  chapter: number;
-  verse: number;
-};
-
-function formatBibleReference(verse1: BibleVerse, verse2: BibleVerse): string {
-  // Check if the books are different
-  if (verse1.book !== verse2.book) {
-    return "Q";
-  }
-
-  // Check if both the chapter and verse are the same
-  if (verse1.chapter === verse2.chapter && verse1.verse === verse2.verse) {
-    return `${verse1.chapter}:${verse1.verse}`;
-  }
-
-  // Check if only the chapters are the same
-  if (verse1.chapter === verse2.chapter) {
-    return `${verse1.chapter}:${verse1.verse}-${verse2.verse}`;
-  }
-
-  // If chapters are different
-  return `${verse1.chapter}:${verse1.verse}-${verse2.chapter}:${verse2.verse}`;
-}
 
 class QuestionsView implements NodeView {
   dom: HTMLElement;
@@ -155,6 +130,7 @@ class QuestionsView implements NodeView {
   }
 }
 
+
 class GeneralStudyBlockHeader implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
@@ -172,6 +148,34 @@ class GeneralStudyBlockHeader implements NodeView {
   }
 }
 
+
+type BibleVerse = {
+  book: string;
+  chapter: number;
+  verse: number;
+};
+
+function formatBibleReference(verse1: BibleVerse, verse2: BibleVerse): string {
+  // Check if the books are different
+  if (verse1.book !== verse2.book) {
+    return "Q";
+  }
+
+  // Check if both the chapter and verse are the same
+  if (verse1.chapter === verse2.chapter && verse1.verse === verse2.verse) {
+    return `${verse1.chapter}:${verse1.verse}`;
+  }
+
+  // Check if only the chapters are the same
+  if (verse1.chapter === verse2.chapter) {
+    return `${verse1.chapter}:${verse1.verse}-${verse2.verse}`;
+  }
+
+  // If chapters are different
+  return `${verse1.chapter}:${verse1.verse}-${verse2.chapter}:${verse2.verse}`;
+}
+
+
 export class QuestionView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
@@ -187,7 +191,29 @@ export class QuestionView implements NodeView {
   ) {
     this.node = node;
     this.questionId = node.attrs.questionId;
-    const verseRef = node.attrs.verseRef;
+
+    let vStart = null;
+    let vEnd = null;
+
+    view.state.doc.descendants( (node) => {
+      if (node.type.name === "section") return true;
+      if (node.type.name === "bibleText") return true;
+      if (node.type.name === "chunk") return true;
+      if (node.type.name !== "text") return false;
+
+      const isQuestion = node.marks.find((m) =>
+        m.type.name === "questionReference" && m.attrs.questionId === this.questionId
+      );
+      if (isQuestion == null) return false;
+      const verse = node.marks.find((m) =>
+        m.type.name === "verse"
+      );
+      if (verse == null) return false;
+
+      if(vStart == null) vStart = verse.attrs;
+      vEnd = verse.attrs;
+    });
+
 
     if (!questionMap[this.questionId]) {
       this.questionMap = questionMap;
@@ -201,7 +227,7 @@ export class QuestionView implements NodeView {
     this.dom = document.createElement("questionOuter");
     const qtext = document.createElement("div");
     qtext.setAttribute("contenteditable", "false");
-    qtext.innerText = verseRef ? `${verseRef}:` : "Q:";
+    qtext.innerText = formatBibleReference(vStart, vEnd);
     this.dom.appendChild(qtext);
     this.contentDOM = document.createElement("question");
     this.dom.appendChild(this.contentDOM);
