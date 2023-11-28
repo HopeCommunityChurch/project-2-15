@@ -873,13 +873,18 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>, setActiveEdi
     },
   });
 
-const verseRefWidget = (verse) => () => {
+const verseRefWidget = (verse) => (view : EditorView) => {
   const elem = document.createElement("span");
+  elem.onclick = (e) => {
+    e.preventDefault();
+    view.focus();
+  };
   elem.ondblclick = (e) => {
     e.preventDefault();
     let book = verse.book.replace(" ", "_").toLowerCase();
     let url = "https://biblehub.com/" + book + "/" + verse.chapter + "-" + verse.verse + ".htm";
     window.open(url, "_blank").focus();
+    view.focus();
   };
   elem.className = classes.verseRef;
   elem.contentEditable = "true";
