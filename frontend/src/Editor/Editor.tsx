@@ -971,7 +971,7 @@ let verseReferencePlugin = new Plugin({
       return DecorationSet.create(state.doc, getDecorations(state));
     },
     handleKeyDown(view, event) {
-      if (event.keyCode === 37) {
+      if (event.key === "ArrowLeft") {
         // left arrow key
         const { state, dispatch } = view;
         const { selection } = state;
