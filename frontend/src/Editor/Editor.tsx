@@ -715,13 +715,15 @@ const questionPopup = (
       addAnswerButton.onclick = (e) => {
         e.preventDefault();
         const qnode = newQuestionAnswerNode();
-        const length = qNode.node.content.size;
-        const pos = qNode.getPos() + length;
-        const tr1 = view.state.tr.insert(pos + 1, qnode);
-        const sel = TextSelection.create(tr1.doc, pos + 3);
-        const tr2 = tr1.setSelection(sel);
+        const doc = qNode.editor.state.doc;
+        const length = doc.content.size;
+        const pos = length;
+        const tr = qNode.editor.state.tr;
+        tr.insert(pos, qnode);
+        const sel = TextSelection.create(tr.doc, pos + 3);
+        tr.setSelection(sel);
 
-        view.dispatch(tr2);
+        qNode.editor.dispatch(tr);
       };
 
       bottomButtons.appendChild(addAnswerButton);
