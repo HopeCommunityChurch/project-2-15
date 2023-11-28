@@ -10,6 +10,10 @@ module Types (
   genCookieToken,
   PasswordResetToken,
   genPasswordResetToken,
+
+  ShareToken,
+  genShareToken,
+
   genToken,
 ) where
 
@@ -90,13 +94,15 @@ type DocId = NewType DocId' UUID
 data CookieToken'
 type CookieToken = NewType CookieToken' Text
 
-validChars :: [Char]
-validChars = ['0'..'9'] <> ['a'..'z'] <> ['A'..'Z'] <> ['_']
-
 
 data PasswordResetToken'
 type PasswordResetToken = NewType PasswordResetToken' Text
 
+data ShareToken'
+type ShareToken = NewType ShareToken' Text
+
+validChars :: [Char]
+validChars = ['0'..'9'] <> ['a'..'z'] <> ['A'..'Z'] <> ['_']
 
 convert :: Word8 -> Text
 convert int =
@@ -122,3 +128,7 @@ genCookieToken = MkNewType <$> genToken 32
 
 genPasswordResetToken :: (MonadIO m) => m PasswordResetToken
 genPasswordResetToken = MkNewType <$> genToken 32
+
+
+genShareToken :: (MonadIO m) => m ShareToken
+genShareToken = MkNewType <$> genToken 32

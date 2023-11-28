@@ -83,6 +83,11 @@
     &.active {
       background-color: #9fc5ff52;
     }
+
+    &.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
   }
 
   .extendedMenuContainer {

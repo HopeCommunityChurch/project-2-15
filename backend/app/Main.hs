@@ -1,5 +1,6 @@
 module Main where
 
+import Api.Websocket qualified as WS
 import Api qualified
 import Data.Aeson qualified as Aeson
 import Data.Generics.Product (HasField' (field'))
@@ -74,6 +75,7 @@ data Env = MkEnv
   , esvToken :: Api.Bible.ESVEnv
   , smtp :: Mail.Smtp
   , url :: Text
+  , subs :: WS.Subs
   }
   deriving (Generic)
 
@@ -85,7 +87,8 @@ secretToEnv MkSecretsFile{db, env, port, esvToken, smtp, url} = do
   dbConn <- liftIO $ Db.createPool (dbToConnectInfo db)
   let esvEnv = Api.Bible.MkESVEnv (encodeUtf8 esvToken)
   let smtp2 = Mail.MkSmtp smtp.host (fromIntegral smtp.port)
-  pure $ MkEnv env port dbConn esvEnv smtp2 url
+  subs <- WS.mkSubs
+  pure $ MkEnv env port dbConn esvEnv smtp2 url subs
 
 
 main :: IO ()
@@ -100,7 +103,7 @@ main = do
       env <- secretToEnv file
       when (env.envType /= Prod) $
         -- pure ()
-        threadDelay (10*1000*1000)
+        threadDelay (2*1000*1000)
       putStrLn "running migration"
       migration (dbToConnectInfo file.db)
       putStrLn "starting on port 3000"

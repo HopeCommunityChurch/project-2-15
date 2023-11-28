@@ -1,5 +1,5 @@
 // Libraries and external modules
-import { createEffect, createSignal, onMount, createResource, Show, createMemo } from "solid-js";
+import { createEffect, createSignal, onMount, createResource, Show, onCleanup } from "solid-js";
 import { useParams, useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
 import { match } from "ts-pattern";
@@ -7,9 +7,10 @@ import { dndzone } from "solid-dnd-directive";
 
 // Local imports
 import * as Network from "Utils/Network";
+import * as WS from "../../WebsocketTypes";
 import * as classes from "./styles.module.scss";
 import * as Editor from "Editor/Editor";
-import { PublicUser, DocRaw } from "../../Types";
+import { PublicUser, DocRaw, GroupStudyRaw, DocMetaRaw } from "Types";
 import { LoginUser, loginState } from "Pages/LoginPage/login";
 import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
 import { TextEditorToolbar } from "./TextEditorToolbar/TextEditorToolbar";
@@ -31,14 +32,27 @@ async function getStudy(documentId): Promise<Network.NetworkState<DocRaw>> {
   return Network.request("/document/" + documentId);
 }
 
+async function getGroupStudy(groupStudyId): Promise<Network.NetworkState<GroupStudyRaw>> {
+  return Network.request("/group-study/" + groupStudyId);
+}
+
+
 export function StudyPage() {
   const nav = useNavigate();
   const documentID = useParams().documentID;
   const [result] = createResource([], () => getStudy(documentID), {
     initialValue: { state: "loading" },
   });
+  const groupStudyId = () => {
+    return match(result())
+            .with({ state: "success" }, ({body}) => {
+              return body.groupStudyId;
+            }).otherwise( () => null);
+  };
+  const [groupStudyResult] = createResource(groupStudyId, (gsId) => getGroupStudy(gsId), {
+    initialValue: { state: "loading" },
+  });
 
-  createEffect(() => {});
 
   return (
     <>
@@ -54,7 +68,20 @@ export function StudyPage() {
             match(result())
               .with({ state: "loading" }, () => <></>)
               .with({ state: "error" }, ({ body }) => <>{JSON.stringify(body)}</>)
-              .with({ state: "success" }, ({ body }) => StudyLoggedIn(body, user))
+              .with({ state: "success" }, ({ body }) => {
+                if(body.groupStudyId) {
+                  return match(groupStudyResult())
+                    .with({ state: "loading" }, () => <></>)
+                    .with({ state: "notloaded" }, () => <>not loaded</>)
+                    .with({ state: "error" }, ({ body }) =>
+                      <>{JSON.stringify(body)}</>
+                    ).with({ state: "success" }, ({ body: studyGroup }) => {
+                      return StudyLoggedIn(body, user, studyGroup);
+                    }).exhaustive();
+                } else {
+                  return StudyLoggedIn(body, user, null);
+                }
+               })
               .with({ state: "notloaded" }, () => <>not loaded</>)
               .exhaustive()
           )
@@ -64,28 +91,75 @@ export function StudyPage() {
   );
 }
 
-function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
+
+function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupStudyRaw) {
   // State and Variables
   const [isSidebarOpen, setSidebarOpen] = createSignal(false);
   const [isTopbarOpen, setTopbarOpen] = createSignal(true);
   const [isSplitScreen, setSplitScreen] = createSignal(false);
-  const [splitScreenOrientation, setSplitScreenOrientation] = createSignal(true);
   const [sectionEditorMode, setSectionEditorMode] = createSignal(false);
   const [sectionTitles, setSectionTitles] = createSignal([]);
   const [dragDisabled, setDragDisabled] = createSignal(true);
   const [saving, setSaving] = createSignal<boolean>(false);
   const [savingError, setSavingError] = createSignal<string | null>(null);
 
+
+  let host = location.host;
+  let protocol = (host.includes("local"))? "ws://" : "wss://";
+  let websocket = new WebSocket(protocol + host + "/api/document/realtime");
+
+  const [initialData, setInitialData] = createSignal<string | null>(null);
+  // a hack to get this to work
+  let receiveFunc : ReceiveFunc = null;
+  let setReceiveFunc = (func : ReceiveFunc) => {
+    receiveFunc = func;
+  };
+
+  websocket.onopen = (e) => {
+    console.log('ws open', e);
+    WS.sendMsg(websocket, { tag: "OpenDoc", contents: doc.docId})
+  };
+  websocket.onclose = (e) => {
+    console.log('ws close', e);
+  };
+  websocket.onerror = (e) => {
+    console.log('ws error', e);
+  };
+  websocket.onmessage = (msg : MessageEvent<string>) => {
+    const rec = JSON.parse(msg.data) as WS.RecMsg;
+    switch(rec.tag){
+      case "DocListenStart":
+        setInitialData(rec.contents);
+        break;
+      case "DocUpdated":
+        console.log("test");
+        if (receiveFunc) {
+          receiveFunc(rec.contents);
+        }
+        break;
+    }
+  };
+
+  onCleanup( () => {
+    websocket.close();
+  })
+
   const [lastUpdate, setLastUpdate] = createSignal<string>(doc.updated);
-  const [lastSavedContent, setLastSavedContent] = createSignal(doc.document);
+
+  const [activeEditor, setActiveEditor] = createSignal(null);
 
   let editorRoot: HTMLDivElement;
-  let editorRootSplitScreen: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor({
     initDoc: doc.document,
     editable: true,
+    activeEditor: activeEditor,
+    setActiveEditor: setActiveEditor,
+    remoteThings: {
+      send: (steps: any) => {
+        WS.sendMsg(websocket, { tag: "Updated", contents: steps})
+      }
+    },
   });
-  // let editorSplitScreen: Editor.P215Editor = new Editor.P215Editor(doc.document);
 
   //resizing height on mobile
   onMount(() => {
@@ -164,8 +238,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
 
   const savingContext = () => {
     const [savingData, setSavingData] = createSignal(null);
-    const throttledSave = throttle( (change) => {
-
+    const throttledSave = throttle((change) => {
       setSavingData(change);
     }, 1000);
 
@@ -173,13 +246,12 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
       throttledSave(value);
     });
 
-    createEffect( () => {
+    createEffect(() => {
       const data = savingData();
-      if(saving() === true) return;
+      if (saving() === true) return;
       if (data == null) return;
       setSaving(true);
       setSavingData(null);
-      setLastSavedContent(data);
       const updated = lastUpdate();
       Network.request<DocRaw>("/document/" + doc.docId, {
         method: "PUT",
@@ -190,50 +262,33 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
           document: data,
           lastUpdated: updated,
         }),
-      }).then((res) => {
+      })
+        .then((res) => {
           //@ts-ignore
           match(res)
-          .with({ state: "error" }, ({ body }) =>
-            //@ts-ignore
-            match(body)
-            .with({ error: "DocumentUpdatedNotMatch" }, () => {
-              alert("Study have been updated on the server. Refreshing to get that version.");
-              location.reload();
+            .with({ state: "error" }, ({ body }) =>
+              //@ts-ignore
+              match(body)
+                .with({ error: "DocumentUpdatedNotMatch" }, () => {
+                  alert("Study have been updated on the server. Refreshing to get that version.");
+                  location.reload();
+                })
+                .otherwise(() => setSavingError(JSON.stringify(body)))
+            )
+            .with({ state: "success" }, ({ body }) => {
+              setLastUpdate(body.updated);
+              setSavingError(null);
+              setTimeout(() => setSaving(false), 1000);
             })
-            .otherwise(() => setSavingError(JSON.stringify(body)))
-          ).with({ state: "success" }, ({ body }) => {
-            setLastUpdate(body.updated);
-            setSavingError(null);
-            setTimeout(() => setSaving(false), 1000);
-          })
-          .exhaustive();
-      }).catch((err) => {
-        setSaving(false);
-        setTimeout(() => setSaving(false), 1000);
-        setSavingError(err);
-      });
-
+            .exhaustive();
+        })
+        .catch((err) => {
+          setSaving(false);
+          setTimeout(() => setSaving(false), 1000);
+          setSavingError(err);
+        });
     });
   };
-
-  onMount(() => {
-    editor.addEditor(editorRoot);
-    const [documentThingy, setDocumentThingy] = createSignal(doc.document);
-    // editorSplitScreen.addEditor(editorRootSplitScreen);
-    createEffect(() => {
-      updateSectionTitles(documentThingy());
-    });
-    editor.onUpdate((value) => {
-      setDocumentThingy(value);
-    });
-    savingContext();
-  });
-
-  const contentHasChanged = (newContent) => {
-    const currentContent = lastSavedContent();
-    return JSON.stringify(newContent) !== JSON.stringify(currentContent);
-  };
-
 
   const handleScrollToSection = (sectionIndex) => {
     const element = document.getElementById(`section-${sectionIndex}`);
@@ -281,6 +336,20 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
     setSectionTitles(titlesWithId);
   };
 
+  onMount(() => {
+    editor.addEditor(editorRoot);
+    setActiveEditor(editor);
+    const [documentThingy, setDocumentThingy] = createSignal(doc.document);
+    createEffect(() => {
+      updateSectionTitles(documentThingy());
+    });
+    editor.onUpdate((value) => {
+      setDocumentThingy(value);
+    });
+    savingContext();
+  });
+
+
   function handleDndEvent(e) {
     const {
       items: newItems,
@@ -314,11 +383,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
             <h2>Can't Save</h2>
             Looks like a Jonah situation – we're in the belly of a tech whale. Trying to be 'spat'
             out soon!
-            <a
-              class={classes.bluelink}
-              href="https://forms.gle/koJrP31Vh9TfvPcq7"
-              onClick={() => location.reload()}
-            >
+            <a class={classes.bluelink} onClick={() => location.reload()}>
               Try refreshing the page to fix
             </a>
             <div>
@@ -355,6 +420,8 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
         setTopbarOpen={setTopbarOpen}
         isSplitScreen={isSplitScreen}
         setSplitScreen={setSplitScreen}
+        activeEditor={activeEditor}
+        groupStudy={groupStudy}
       />
       <div
         class={`${classes.pageBody} ${isTopbarOpen() ? "" : classes.collapsed}  ${
@@ -455,38 +522,88 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser) {
           ></div>
         </Show>
         <div
-          class={`${classes.documentAndSplitScreenContainer} ${
-            splitScreenOrientation() ? classes.vertical : classes.horizontal
-          }`}
+          class={`${classes.documentAndSplitScreenContainer} ${ classes.vertical}`}
         >
           <div
             ref={editorRoot}
             class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
           ></div>
           <Show when={isSplitScreen()}>
-            <div ref={editorRootSplitScreen} class={classes.otherUserSplitScreenContainer}>
-              <div class={classes.splitScreenSwitcher}>
-                <img
-                  class={classes.changeSplitScreenOrientation}
-                  src={SplitScreenIcon}
-                  onClick={() => {
-                    setSplitScreenOrientation(!splitScreenOrientation());
-                  }}
-                />
-                <p>
-                  Scott Appleman <img src={ArrowIcon} />
-                </p>
-                <img
-                  class={classes.closeSplitScreen}
-                  src={CloseXIcon}
-                  onClick={() => {
-                    setSplitScreen(false);
-                  }}
-                />
-              </div>
-            </div>
+            <SplitScreen
+              groupStudy={groupStudy}
+              setSplitScreen={setSplitScreen}
+              currentUser={currentUser}
+              websocket={websocket}
+              initialData={initialData}
+              setReceiveFunc={setReceiveFunc}
+            />
           </Show>
         </div>
+      </div>
+    </div>
+  );
+}
+
+
+type ReceiveFunc = (arg:any) => void
+
+type SplitProps = {
+  groupStudy: GroupStudyRaw,
+  setSplitScreen: (arg: boolean) => void;
+  currentUser: PublicUser;
+  websocket: WebSocket;
+  initialData : () => any;
+  setReceiveFunc : (arg: ReceiveFunc) => void
+};
+
+function getInitialSplit ( groupStudy: GroupStudyRaw, currentUser: PublicUser) : DocMetaRaw {
+  return groupStudy.docs.find( (doc) => {
+    return null != doc.editors.find( (ed) => ed.userId != currentUser.userId);
+  })
+}
+
+function SplitScreen (props : SplitProps) {
+  let editorRoot: HTMLDivElement;
+  const initialDocMeta = getInitialSplit(props.groupStudy, props.currentUser);
+
+  WS.sendMsg(props.websocket, { tag: "ListenToDoc", contents: initialDocMeta.docId})
+
+  createEffect( () => {
+    const initData = props.initialData();
+    if (initData == null) return;
+    const [activeEditor, setActiveEditor] = createSignal(null);
+    // let remoteThing = {
+    //   receive: "use me",
+    // };
+    // props.setreceiveFunc((steps) => {
+    //   console.log(steps);
+    //   remoteThing.receive(steps);
+    // });
+    let editor: Editor.P215Editor = new Editor.P215Editor({
+      initDoc: initData,
+      editable: false,
+      activeEditor: activeEditor,
+      setActiveEditor: setActiveEditor,
+      remoteThings: {
+        setReceive: props.setReceiveFunc,
+      },
+    });
+    editor.addEditor(editorRoot);
+  });
+
+  return (
+    <div ref={editorRoot} class={classes.otherUserSplitScreenContainer}>
+      <div class={classes.splitScreenSwitcher}>
+        <p>
+          Scott Appleman <img src={ArrowIcon} />
+        </p>
+        <img
+          class={classes.closeSplitScreen}
+          src={CloseXIcon}
+          onClick={() => {
+            props.setSplitScreen(false);
+          }}
+        />
       </div>
     </div>
   );

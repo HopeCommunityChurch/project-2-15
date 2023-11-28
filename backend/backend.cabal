@@ -68,6 +68,9 @@ common buildDepends
     servant-lucid,
     template-haskell,
     file-embed,
+    websockets,
+    wai-websockets,
+    resourcet
 
   default-extensions:
     OverloadedStrings,
@@ -123,6 +126,7 @@ library
     Entity.User,
     Entity.AuthUser,
     Entity.GroupStudy,
+    Entity.Shares,
     Entity.Document,
     Api,
     Api.Helpers,
@@ -132,6 +136,7 @@ library
     Api.Errors,
     Api.GroupStudy,
     Api.Document,
+    Api.Websocket,
     Api.Htmx.Studies,
     Password,
     SwaggerHelpers,
@@ -142,6 +147,8 @@ library
     Emails.Base,
     Emails.Welcome,
     Emails.PasswordReset,
+    Emails.ShareGroupStudy,
+    WebsocketServant,
 
   build-depends:
 

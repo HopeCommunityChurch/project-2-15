@@ -1,13 +1,13 @@
 module Api where
 
 import Api.Auth qualified
-import Api.Errors qualified as Errs
-import Api.User qualified
-import Api.GroupStudy qualified
-import Api.Htmx.Studies qualified
 import Api.Bible qualified
-import Types qualified as T
 import Api.Document qualified
+import Api.Errors qualified as Errs
+import Api.GroupStudy qualified
+-- import Api.Htmx.Studies qualified
+import Api.User qualified
+import Api.Websocket qualified
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.OpenApi qualified as OpenApi
@@ -15,6 +15,7 @@ import Data.Typeable (tyConName, typeRep, typeRepTyCon)
 import DbHelper (HasDbConn, MonadDb)
 import Entity.AuthUser (AuthUser)
 import EnvFields (HasEnvType, HasUrl)
+import Mail qualified
 import Network.Wai (Request)
 import Servant
 import Servant.OpenApi (toOpenApi)
@@ -24,7 +25,8 @@ import Servant.Server.Experimental.Auth (
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 import Servant.Swagger.UI.ReDoc qualified as ReDoc
 import SwaggerHelpers (OpenApiTag)
-import Mail qualified
+import Types qualified as T
+
 
 
 type Api'
@@ -36,16 +38,19 @@ type Api'
     :> "group-study" :> Api.GroupStudy.Api
   :<|> OpenApiTag "document" "document stuff"
     :> "document" :> Api.Document.Api
+  :<|> OpenApiTag "websocket" "websocket"
+    :> "document" :> "realtime" :> Api.Websocket.Api
   :<|> OpenApiTag "bible" "bible stuff"
     :> "bible" :> Api.Bible.Api
-  :<|> OpenApiTag "htmx studies" "htmx studies"
-    :> "htmx" :> "studies" :> Api.Htmx.Studies.Api
+  -- :<|> OpenApiTag "htmx studies" "htmx studies"
+  --   :> "htmx" :> "studies" :> Api.Htmx.Studies.Api
 
 
 server'
   :: ( MonadDb env m
      , Mail.HasSmtp env
      , HasUrl env
+     , Api.Websocket.HasSubs env
      )
   => Api.Bible.HasESVEnv env
   => ServerT Api' m
@@ -54,8 +59,9 @@ server'
   :<|> Api.User.server
   :<|> Api.GroupStudy.server
   :<|> Api.Document.server
+  :<|> Api.Websocket.server
   :<|> Api.Bible.server
-  :<|> Api.Htmx.Studies.server
+  -- :<|> Api.Htmx.Studies.server
 
 
 errToJSON :: Errs.SomeApiException -> ServerError
@@ -111,16 +117,16 @@ serverContext env =
 
 type Api
   = Api'
-  -- :<|> SwaggerSchemaUI "swagger-ui" "swagger.json"
-  -- :<|> ReDoc.SwaggerSchemaUI "swagger-ui2" "swagger2.json"
+  :<|> SwaggerSchemaUI "swagger-ui" "swagger.json"
+  :<|> ReDoc.SwaggerSchemaUI "swagger-ui2" "swagger2.json"
 
 
--- openApi :: OpenApi.OpenApi
--- openApi =
---   toOpenApi (Proxy @Api')
---   & OpenApi.info . OpenApi.title   .~ "Project 2:15"
---   & OpenApi.info . OpenApi.version   .~ "0.1"
---   & OpenApi.info . OpenApi.description   ?~ "Yay!"
+openApi :: OpenApi.OpenApi
+openApi =
+  toOpenApi (Proxy @Api')
+  & OpenApi.info . OpenApi.title   .~ "Project 2:15"
+  & OpenApi.info . OpenApi.version   .~ "0.1"
+  & OpenApi.info . OpenApi.description   ?~ "Yay!"
 
 
 server
@@ -129,6 +135,7 @@ server
   => HasUrl env
   => Api.Bible.HasESVEnv env
   => Mail.HasSmtp env
+  => Api.Websocket.HasSubs env
   => env
   -> Server Api
 server env =
@@ -137,5 +144,5 @@ server env =
     (Proxy @MyContext)
     (toHandler env)
     server'
-  -- :<|> swaggerSchemaUIServer openApi
-  -- :<|> ReDoc.redocSchemaUIServer openApi
+  :<|> swaggerSchemaUIServer openApi
+  :<|> ReDoc.redocSchemaUIServer openApi
