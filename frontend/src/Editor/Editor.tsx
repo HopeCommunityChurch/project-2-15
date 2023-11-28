@@ -91,6 +91,32 @@ const newQuestionAnswerNode = () => {
   return questionAnswer;
 };
 
+type BibleVerse = {
+  book: string;
+  chapter: number;
+  verse: number;
+};
+
+function formatBibleReference(verse1: BibleVerse, verse2: BibleVerse): string {
+  // Check if the books are different
+  if (verse1.book !== verse2.book) {
+    return "Q";
+  }
+
+  // Check if both the chapter and verse are the same
+  if (verse1.chapter === verse2.chapter && verse1.verse === verse2.verse) {
+    return `${verse1.chapter}:${verse1.verse}`;
+  }
+
+  // Check if only the chapters are the same
+  if (verse1.chapter === verse2.chapter) {
+    return `${verse1.chapter}:${verse1.verse}-${verse2.verse}`;
+  }
+
+  // If chapters are different
+  return `${verse1.chapter}:${verse1.verse}-${verse2.chapter}:${verse2.verse}`;
+}
+
 class QuestionsView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
