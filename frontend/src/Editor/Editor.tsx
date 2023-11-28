@@ -899,10 +899,12 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>, setActiveEdi
     },
   });
 
-const verseRefWidget = (verse) => (view : EditorView) => {
+const verseRefWidget = (verse, position) => (view: EditorView) => {
   const elem = document.createElement("span");
   elem.onclick = (e) => {
     e.preventDefault();
+    const transaction = view.state.tr.setSelection(TextSelection.create(view.state.doc, position));
+    view.dispatch(transaction);
     view.focus();
   };
   elem.ondblclick = (e) => {
@@ -949,7 +951,7 @@ function getDecorations(state: EditorState) {
 
       // Create decoration for the first occurrence of this verse
       decorations.push(
-        Decoration.widget(position, verseRefWidget(verse.attrs), {
+        Decoration.widget(position, verseRefWidget(verse.attrs, position), {
           key: currentVerseKey,
           ignoreSelection: true,
           side: -1,
