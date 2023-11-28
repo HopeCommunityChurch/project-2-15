@@ -732,7 +732,7 @@ const questionPopup = (
     //Add "add trash" button
     if (view.editable) {
       const trashButton = document.createElement("button");
-      trashButton.innerText = "Trash";
+      trashButton.innerText = "Delete";
       trashButton.className = classes.questionPopUpTrash;
 
       trashButton.onclick = (e) => {
@@ -1014,6 +1014,8 @@ let verseReferencePlugin = new Plugin({
           dispatch(state.tr.setSelection(TextSelection.create(state.tr.doc, selection.from - 1)));
           return true;
         }
+      } else if (event.key === "ArrowUp") {
+        return false; // Return false to indicate that this handler has not handled the event
       }
       return false;
     },
