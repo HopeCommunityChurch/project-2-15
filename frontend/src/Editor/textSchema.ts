@@ -85,7 +85,7 @@ export const textSchema = new Schema({
     },
     question: {
       content: "(questionAnswer | questionText )*",
-      attrs: { questionId: { default: null }, verseRef: { default: null } },
+      attrs: { questionId: { default: null } },
       isolating: true,
       defining: true,
       draggable: true,

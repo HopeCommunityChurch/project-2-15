@@ -77,11 +77,11 @@ function getRandomStr(): string {
   return btoa(b.reduce((a, b) => a + b, ""));
 }
 
-const newQuestionNode: (verseRef?: string) => [string, Node] = (verseRef = "") => {
+function newQuestionNode () : [string, Node] {
   const questionId = getRandomStr();
   const p = textSchema.nodes.paragraph.create();
   const questionText = textSchema.nodes.questionText.create({}, p);
-  const result = textSchema.nodes.question.create({ questionId, verseRef }, questionText);
+  const result = textSchema.nodes.question.create({ questionId }, questionText);
   return [questionId, result];
 };
 
@@ -157,6 +157,7 @@ type BibleVerse = {
 
 function formatBibleReference(verse1: BibleVerse, verse2: BibleVerse): string {
   // Check if the books are different
+  if (verse1 == null || verse2 == null) return "Q";
   if (verse1.book !== verse2.book) {
     return "Q";
   }
@@ -1092,7 +1093,6 @@ const addQuestion = (
 ) => {
   const from = state.selection.from;
   const to = state.selection.to;
-  let verseRef = "";
 
   // Function to extract verse info from a mark
   const extractVerseInfo = (verseMark) => {
@@ -1103,24 +1103,8 @@ const addQuestion = (
     };
   };
 
-  let found = false; // Flag to check if a verse mark has been found
-
-  state.doc.nodesBetween(from, to, (node, pos) => {
-    if (found) return false;
-
-    node.marks.forEach((mark) => {
-      if (mark.type.name === "verse" && !found) {
-        const verseInfo = extractVerseInfo(mark);
-        verseRef = `${verseInfo.chapter}:${verseInfo.verse}`;
-        console.log("First Verse Ref:", verseRef);
-        console.log("Finish sending this ref to show in the question view in study block");
-        found = true;
-      }
-    });
-  });
-
   if (dispatch) {
-    const r = newQuestionNode(verseRef);
+    const r = newQuestionNode();
     const qId = r[0];
     const qNode = r[1];
 
