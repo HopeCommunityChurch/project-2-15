@@ -67,45 +67,61 @@ body {
   cursor: pointer;
 }
 
-.studyBlocks {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
+.studyBlocksContainer {
+  position: relative;
 
-  td {
-    border: 1px solid #c0c0c0;
-    padding: 10px;
-    vertical-align: top;
+  .studyBlockEditPencil {
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    z-index: 2;
+    max-width: 28px;
+    transform: translate(13px, -9px);
+    box-shadow: 0 0 4px #00000049;
+    border-radius: 50%;
   }
 
-  p {
-    margin: 0px;
-  }
+  .studyBlocks {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
 
-  td:first-child {
-    background-color: #f0f0f0;
-    border-radius: 0px;
-    font-weight: 700;
-    color: #050020cf;
-    width: 200px;
-    z-index: 1;
-  }
-
-  .studyBlockHeaderDiv {
-    position: sticky;
-    top: 7px;
-  }
-
-  @media (max-width: 750px) {
-    tr {
-      display: flex;
-      flex-direction: column;
+    td {
+      border: 1px solid #c0c0c0;
+      padding: 10px;
+      vertical-align: top;
     }
+
+    p {
+      margin: 0px;
+    }
+
     td:first-child {
-      width: auto;
-      margin-top: 10px;
+      background-color: #f0f0f0;
+      border-radius: 0px;
+      font-weight: 700;
+      color: #050020cf;
+      width: 200px;
+      z-index: 1;
+    }
+
+    .studyBlockHeaderDiv {
       position: sticky;
-      top: 0px;
+      top: 7px;
+    }
+
+    @media (max-width: 750px) {
+      tr {
+        display: flex;
+        flex-direction: column;
+      }
+      td:first-child {
+        width: auto;
+        margin-top: 10px;
+        position: sticky;
+        top: 0px;
+      }
     }
   }
 }

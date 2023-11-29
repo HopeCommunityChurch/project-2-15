@@ -38,6 +38,7 @@ import "./styles.css";
 import * as classes from "./styles.module.scss";
 import QuestionIcon from "../Pages/Study/TextEditorToolbar/Assets/question-icon.svg";
 import AddScriptureIcon from "../Assets/add-scripture.svg";
+import GrayPencilCircle from "../Assets/gray-pencil-in-circle.svg";
 import {
   questionHighlightPlugin,
   highlighQuestion,
@@ -45,6 +46,7 @@ import {
 } from "./QuestionHighlightPlugin";
 
 import CloseXIcon from "../Assets/x.svg";
+import { v4 as uuidv4 } from "uuid";
 
 // var blockMap : Dictionary<BlockMapItem> = {};
 
@@ -61,13 +63,69 @@ class SectionView implements NodeView {
   }
 }
 
+function extractAllStudyBlocksAndQuestions(node: Node, allStudyBlocks: Node[] = []) {
+  // Iterate over the children of the node
+  node.forEach((childNode) => {
+    // Check if the child node is of the desired type
+    if (childNode.type.name === "generalStudyBlock" || childNode.type.name === "questions") {
+      allStudyBlocks.push(childNode);
+    } else {
+      // Recursively search in the child node
+      extractAllStudyBlocksAndQuestions(childNode, allStudyBlocks);
+    }
+  });
+
+  return allStudyBlocks;
+}
+
 class StudyBlocksView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
-  constructor(node: Node) {
-    this.dom = document.createElement("table");
-    this.dom.className = classes.studyBlocks;
-    this.contentDOM = this.dom;
+  constructor(
+    node: Node,
+    view: EditorView,
+    getPos: () => number,
+    selectedStudyBlockArea,
+    setSelectedStudyBlockArea
+  ) {
+    // Create a container div
+    this.dom = document.createElement("div");
+    this.dom.className = classes.studyBlocksContainer;
+
+    // Create the table
+    const table = document.createElement("table");
+    table.className = classes.studyBlocks;
+
+    // Find the section node that contains this position
+    let sectionNode = null;
+    let sectionPos = null;
+    view.state.doc.nodesBetween(getPos(), getPos(), (node, pos) => {
+      if (node.type.name === "section") {
+        sectionNode = node;
+        sectionPos = pos;
+        return false; // Stop iterating further
+      }
+    });
+
+    let combinedStudyBlocks = extractAllStudyBlocksAndQuestions(sectionNode);
+
+    // Create and configure the Pencil icon
+    const questionIcon = new Image();
+    questionIcon.src = GrayPencilCircle;
+    questionIcon.className = classes.studyBlockEditPencil;
+
+    // if (selectedStudyBlockArea()) console.log(selectedStudyBlockArea());
+    questionIcon.addEventListener("click", () => {
+      // Update the signal with the combined study blocks and the current position
+      setSelectedStudyBlockArea({ studyBlocks: combinedStudyBlocks, position: getPos() });
+    });
+
+    // Position the Question icon at the top right of the table
+    this.dom.appendChild(questionIcon);
+
+    // Set the table as the main content
+    this.contentDOM = table;
+    this.dom.appendChild(table);
   }
 }
 
@@ -1397,8 +1455,13 @@ const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transaction) =
     const bodyp = textSchema.nodes.paragraph.createChecked(null, bodytxt);
     const sbBody = textSchema.nodes.generalStudyBlockBody.create(null, bodyp);
 
+    const newStudyBlockId = uuidv4();
+
     // Create the study block and insert it at the found position
-    const studyBlock = textSchema.nodes.generalStudyBlock.createChecked(null, [sbHeader, sbBody]);
+    const studyBlock = textSchema.nodes.generalStudyBlock.createChecked(
+      { id: newStudyBlockId }, // Assign the generated ID
+      [sbHeader, sbBody]
+    );
     const tr = state.tr.insert(position, studyBlock);
 
     // Dispatch the transaction
@@ -1532,9 +1595,19 @@ export class P215Editor {
   updateHanlders: Array<(change: any) => void>;
   activeEditor: any;
   setActiveEditor: any;
+  selectedStudyBlockArea: any;
+  setSelectedStudyBlockArea: any;
   remoteThings: RemoteThingy;
 
-  constructor({ initDoc, editable, activeEditor, setActiveEditor, remoteThings }) {
+  constructor({
+    initDoc,
+    editable,
+    activeEditor,
+    setActiveEditor,
+    remoteThings,
+    selectedStudyBlockArea,
+    setSelectedStudyBlockArea,
+  }) {
     this.editable = editable;
     this.remoteThings = remoteThings;
     let node = Node.fromJSON(textSchema, initDoc);
@@ -1543,6 +1616,8 @@ export class P215Editor {
 
     this.activeEditor = activeEditor;
     this.setActiveEditor = setActiveEditor;
+    this.selectedStudyBlockArea = selectedStudyBlockArea;
+    this.setSelectedStudyBlockArea = setSelectedStudyBlockArea;
 
     baseKeymap["Backspace"] = chainCommands(
       deleteQuestionSelection,
@@ -1599,8 +1674,14 @@ export class P215Editor {
         },
       },
       nodeViews: {
-        studyBlocks(node) {
-          return new StudyBlocksView(node);
+        studyBlocks(node, view, getPos) {
+          return new StudyBlocksView(
+            node,
+            view,
+            getPos,
+            that.selectedStudyBlockArea,
+            that.setSelectedStudyBlockArea
+          );
         },
         questions(node, view, getPos) {
           return new QuestionsView(node, view, getPos);

@@ -36,7 +36,6 @@ async function getGroupStudy(groupStudyId): Promise<Network.NetworkState<GroupSt
   return Network.request("/group-study/" + groupStudyId);
 }
 
-
 export function StudyPage() {
   const nav = useNavigate();
   const documentID = useParams().documentID;
@@ -44,15 +43,16 @@ export function StudyPage() {
     initialValue: { state: "loading" },
   });
   const groupStudyId = () => {
+    //@ts-ignore
     return match(result())
-            .with({ state: "success" }, ({body}) => {
-              return body.groupStudyId;
-            }).otherwise( () => null);
+      .with({ state: "success" }, ({ body }) => {
+        return body.groupStudyId;
+      })
+      .otherwise(() => null);
   };
   const [groupStudyResult] = createResource(groupStudyId, (gsId) => getGroupStudy(gsId), {
     initialValue: { state: "loading" },
   });
-
 
   return (
     <>
@@ -69,19 +69,20 @@ export function StudyPage() {
               .with({ state: "loading" }, () => <></>)
               .with({ state: "error" }, ({ body }) => <>{JSON.stringify(body)}</>)
               .with({ state: "success" }, ({ body }) => {
-                if(body.groupStudyId) {
+                if (body.groupStudyId) {
+                  //@ts-ignore
                   return match(groupStudyResult())
                     .with({ state: "loading" }, () => <></>)
                     .with({ state: "notloaded" }, () => <>not loaded</>)
-                    .with({ state: "error" }, ({ body }) =>
-                      <>{JSON.stringify(body)}</>
-                    ).with({ state: "success" }, ({ body: studyGroup }) => {
+                    .with({ state: "error" }, ({ body }) => <>{JSON.stringify(body)}</>)
+                    .with({ state: "success" }, ({ body: studyGroup }) => {
                       return StudyLoggedIn(body, user, studyGroup);
-                    }).exhaustive();
+                    })
+                    .exhaustive();
                 } else {
                   return StudyLoggedIn(body, user, null);
                 }
-               })
+              })
               .with({ state: "notloaded" }, () => <>not loaded</>)
               .exhaustive()
           )
@@ -90,7 +91,6 @@ export function StudyPage() {
     </>
   );
 }
-
 
 function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupStudyRaw) {
   // State and Variables
@@ -102,32 +102,35 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
   const [dragDisabled, setDragDisabled] = createSignal(true);
   const [saving, setSaving] = createSignal<boolean>(false);
   const [savingError, setSavingError] = createSignal<string | null>(null);
-
+  const [selectedStudyBlockArea, setSelectedStudyBlockArea] = createSignal<{
+    studyBlocks: Node[];
+    position: number;
+  } | null>(null);
 
   let host = location.host;
-  let protocol = (host.includes("local"))? "ws://" : "wss://";
+  let protocol = host.includes("local") ? "ws://" : "wss://";
   let websocket = new WebSocket(protocol + host + "/api/document/realtime");
 
   const [initialData, setInitialData] = createSignal<string | null>(null);
   // a hack to get this to work
-  let receiveFunc : ReceiveFunc = null;
-  let setReceiveFunc = (func : ReceiveFunc) => {
+  let receiveFunc: ReceiveFunc = null;
+  let setReceiveFunc = (func: ReceiveFunc) => {
     receiveFunc = func;
   };
 
   websocket.onopen = (e) => {
-    console.log('ws open', e);
-    WS.sendMsg(websocket, { tag: "OpenDoc", contents: doc.docId})
+    console.log("ws open", e);
+    WS.sendMsg(websocket, { tag: "OpenDoc", contents: doc.docId });
   };
   websocket.onclose = (e) => {
-    console.log('ws close', e);
+    console.log("ws close", e);
   };
   websocket.onerror = (e) => {
-    console.log('ws error', e);
+    console.log("ws error", e);
   };
-  websocket.onmessage = (msg : MessageEvent<string>) => {
+  websocket.onmessage = (msg: MessageEvent<string>) => {
     const rec = JSON.parse(msg.data) as WS.RecMsg;
-    switch(rec.tag){
+    switch (rec.tag) {
       case "DocListenStart":
         setInitialData(rec.contents);
         break;
@@ -140,9 +143,9 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     }
   };
 
-  onCleanup( () => {
+  onCleanup(() => {
     websocket.close();
-  })
+  });
 
   const [lastUpdate, setLastUpdate] = createSignal<string>(doc.updated);
 
@@ -154,10 +157,12 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     editable: true,
     activeEditor: activeEditor,
     setActiveEditor: setActiveEditor,
+    selectedStudyBlockArea: selectedStudyBlockArea,
+    setSelectedStudyBlockArea: setSelectedStudyBlockArea,
     remoteThings: {
       send: (steps: any) => {
-        WS.sendMsg(websocket, { tag: "Updated", contents: steps})
-      }
+        WS.sendMsg(websocket, { tag: "Updated", contents: steps });
+      },
     },
   });
 
@@ -349,7 +354,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     savingContext();
   });
 
-
   function handleDndEvent(e) {
     const {
       items: newItems,
@@ -400,6 +404,27 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
         </div>
       </Show>
     );
+  }
+
+  function extractContentFromNodes(nodes: any[]): string[] {
+    const extractedContent: string[] = [];
+
+    nodes.forEach((node) => {
+      if (node.type.name === "generalStudyBlock") {
+        // Extract "George" from the studyBlockData
+        const headerContent = JSON.parse(JSON.stringify(node)).content.find(
+          (node) => node.type === "generalStudyBlockHeader"
+        );
+        const extractedText = headerContent?.content[0]?.text || "";
+        extractedContent.push(extractedText);
+      }
+
+      if (node.type.name === "questions") {
+        extractedContent.push("Questions");
+      }
+    });
+
+    return extractedContent;
   }
 
   return (
@@ -521,9 +546,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
             }}
           ></div>
         </Show>
-        <div
-          class={`${classes.documentAndSplitScreenContainer} ${ classes.vertical}`}
-        >
+        <div class={`${classes.documentAndSplitScreenContainer} ${classes.vertical}`}>
           <div
             ref={editorRoot}
             class={`${classes.documentBody} ${isSidebarOpen() ? classes.sidenavOpen : ""}`}
@@ -540,35 +563,54 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
           </Show>
         </div>
       </div>
+      <Show when={selectedStudyBlockArea() !== null}>
+        <div class={classes.modalBackground} onClick={() => setSelectedStudyBlockArea(null)}>
+          <div class={classes.editStudyBlockModal} onClick={(e) => e.stopPropagation()}>
+            <h3>Edit Study Block</h3>
+            {selectedStudyBlockArea()?.studyBlocks?.map((block, index) => (
+              <p>{extractContentFromNodes([block])}</p>
+            ))}
+
+            <div class={classes.bottomButtons}>
+              <button onClick={() => setSelectedStudyBlockArea(null)}>Cancel</button>
+              <button
+                type="submit"
+                // onClick={handleDeleteStudy}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </Show>
     </div>
   );
 }
 
-
-type ReceiveFunc = (arg:any) => void
+type ReceiveFunc = (arg: any) => void;
 
 type SplitProps = {
-  groupStudy: GroupStudyRaw,
+  groupStudy: GroupStudyRaw;
   setSplitScreen: (arg: boolean) => void;
   currentUser: PublicUser;
   websocket: WebSocket;
-  initialData : () => any;
-  setReceiveFunc : (arg: ReceiveFunc) => void
+  initialData: () => any;
+  setReceiveFunc: (arg: ReceiveFunc) => void;
 };
 
-function getInitialSplit ( groupStudy: GroupStudyRaw, currentUser: PublicUser) : DocMetaRaw {
-  return groupStudy.docs.find( (doc) => {
-    return null != doc.editors.find( (ed) => ed.userId != currentUser.userId);
-  })
+function getInitialSplit(groupStudy: GroupStudyRaw, currentUser: PublicUser): DocMetaRaw {
+  return groupStudy.docs.find((doc) => {
+    return null != doc.editors.find((ed) => ed.userId != currentUser.userId);
+  });
 }
 
-function SplitScreen (props : SplitProps) {
+function SplitScreen(props: SplitProps) {
   let editorRoot: HTMLDivElement;
   const initialDocMeta = getInitialSplit(props.groupStudy, props.currentUser);
 
-  WS.sendMsg(props.websocket, { tag: "ListenToDoc", contents: initialDocMeta.docId})
+  WS.sendMsg(props.websocket, { tag: "ListenToDoc", contents: initialDocMeta.docId });
 
-  createEffect( () => {
+  createEffect(() => {
     const initData = props.initialData();
     if (initData == null) return;
     const [activeEditor, setActiveEditor] = createSignal(null);
@@ -584,6 +626,8 @@ function SplitScreen (props : SplitProps) {
       editable: false,
       activeEditor: activeEditor,
       setActiveEditor: setActiveEditor,
+      selectedStudyBlockArea: null,
+      setSelectedStudyBlockArea: null,
       remoteThings: {
         setReceive: props.setReceiveFunc,
       },
