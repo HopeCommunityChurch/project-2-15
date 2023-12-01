@@ -166,10 +166,11 @@ class QuestionsView implements NodeView {
     headerDiv.setAttribute("contenteditable", "false");
     headerDiv.innerText = "Questions";
     headerDiv.className = classes.studyBlockHeaderDiv;
+
     headerDiv.onclick = () => {
       // Logic to move the cursor to the previous position
       const transaction = view.state.tr.setSelection(
-        TextSelection.near(view.state.doc.resolve(getPos() - 2))
+        TextSelection.near(view.state.doc.resolve(getPos() - 3))
       );
       view.dispatch(transaction);
       view.focus();
@@ -187,7 +188,7 @@ class QuestionsView implements NodeView {
       noQuestionsText.onclick = () => {
         // Logic to move the cursor to the previous position
         const transaction = view.state.tr.setSelection(
-          TextSelection.near(view.state.doc.resolve(getPos() - 2))
+          TextSelection.near(view.state.doc.resolve(getPos() - 3))
         );
         view.dispatch(transaction);
         view.focus();
