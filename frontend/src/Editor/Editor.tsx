@@ -166,7 +166,14 @@ class QuestionsView implements NodeView {
     headerDiv.setAttribute("contenteditable", "false");
     headerDiv.innerText = "Questions";
     headerDiv.className = classes.studyBlockHeaderDiv;
-
+    headerDiv.onclick = () => {
+      // Logic to move the cursor to the previous position
+      const transaction = view.state.tr.setSelection(
+        TextSelection.near(view.state.doc.resolve(getPos() - 2))
+      );
+      view.dispatch(transaction);
+      view.focus();
+    };
     header.appendChild(headerDiv);
     this.dom.appendChild(header);
 
@@ -175,7 +182,17 @@ class QuestionsView implements NodeView {
     if (node.content.size === 0) {
       const noQuestionsText = document.createElement("div");
       noQuestionsText.className = classes.noQuestionsText;
-      noQuestionsText.innerHTML = `<em>Questions appear in this section. Insert a question by clicking the "Add Question" button</em> <img src="${QuestionIcon}" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+      noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${QuestionIcon}" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+
+      noQuestionsText.onclick = () => {
+        // Logic to move the cursor to the previous position
+        const transaction = view.state.tr.setSelection(
+          TextSelection.near(view.state.doc.resolve(getPos() - 2))
+        );
+        view.dispatch(transaction);
+        view.focus();
+      };
+
       this.contentDOM.appendChild(noQuestionsText);
     }
 
@@ -1510,11 +1527,9 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
 const mkPlaceholderElement = (pos) => (view: EditorView) => {
   const placeholderElement = document.createElement("div");
   placeholderElement.className = classes.bibleTextPlaceholder;
-  placeholderElement.innerHTML = `<em>Place your cursor on this section's title and click the "Add Scripture" button</em> <img src="${AddScriptureIcon}" alt="Add Scripture Icon"> <em>above to add your verses</em>`;
+  placeholderElement.innerHTML = `<em>Place your cursor in this section and click the "Add Scripture" button</em> <img src="${AddScriptureIcon}" alt="Add Scripture Icon"> <em>above to add your verses here</em>`;
 
-  // Add an event listener to the placeholder
   placeholderElement.onclick = () => {
-    console.log("hi");
     // Logic to move the cursor to the previous position
     const transaction = view.state.tr.setSelection(TextSelection.near(view.state.doc.resolve(pos)));
     view.dispatch(transaction);
@@ -1528,6 +1543,14 @@ function createPlaceholderDecorations(doc) {
 
   doc.descendants((node, pos) => {
     if (node.type.name === "section") {
+      let headerLength = 0;
+      node.forEach((childNode) => {
+        if (childNode.type.name === "sectionHeader") {
+          headerLength = childNode.content.size;
+          return;
+        }
+      });
+
       const regex = /section\(sectionHeader\("([^"]+)"\)/g;
       let match;
       while ((match = regex.exec(node)) !== null) {
@@ -1538,7 +1561,7 @@ function createPlaceholderDecorations(doc) {
         if (!hasBibleText) {
           const placeholderDecoration = Decoration.widget(
             pos + contentBetweenQuotes.length + 3,
-            mkPlaceholderElement(pos)
+            mkPlaceholderElement(pos + headerLength + 2)
           );
           decorations.push(placeholderDecoration);
         }
