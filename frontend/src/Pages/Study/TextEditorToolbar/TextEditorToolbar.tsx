@@ -27,12 +27,12 @@ import AddStudyBlockIcon from "../../../Assets/add-study-block-icon.svg";
 import { GroupStudyRaw } from "Types";
 
 type Props = {
-  editor : Editor.P215Editor;
+  editor: Editor.P215Editor;
   isTopbarOpen: () => boolean;
-  setTopbarOpen : (arg : boolean) => void;
-  activeEditor : any
-  isSplitScreen : () => boolean;
-  setSplitScreen : (arg : boolean) => void;
+  setTopbarOpen: (arg: boolean) => void;
+  activeEditor: any;
+  isSplitScreen: () => boolean;
+  setSplitScreen: (arg: boolean) => void;
   groupStudy?: GroupStudyRaw;
 };
 
@@ -44,7 +44,7 @@ export function TextEditorToolbar({
   isSplitScreen,
   setSplitScreen,
   groupStudy,
-} : Props) {
+}: Props) {
   const [showExtendedToolbar, setShowExtendedToolbar] = createSignal(false);
   const [windowWidth, setWindowWidth] = createSignal(window.innerWidth);
   const [operatingSystem, setOperatingSystem] = createSignal("Unknown");
@@ -112,9 +112,11 @@ export function TextEditorToolbar({
             operatingSystem={operatingSystem}
           />
           <ToolbarGroup4 activeEditor={activeEditor} operatingSystem={operatingSystem} />
-          { (groupStudy == null)? (<></>) :
-              (<ToolbarGroup5 isSplitScreen={isSplitScreen} setSplitScreen={setSplitScreen} />)
-          }
+          {groupStudy == null ? (
+            <></>
+          ) : (
+            <ToolbarGroup5 isSplitScreen={isSplitScreen} setSplitScreen={setSplitScreen} />
+          )}
           <ClearFormattingSection activeEditor={activeEditor} />
         </Show>
 
@@ -137,9 +139,11 @@ export function TextEditorToolbar({
                   operatingSystem={operatingSystem}
                 />
                 <ToolbarGroup4 activeEditor={activeEditor} operatingSystem={operatingSystem} />
-                { (groupStudy == null)? (<></>) :
-                    (<ToolbarGroup5 isSplitScreen={isSplitScreen} setSplitScreen={setSplitScreen} />)
-                }
+                {groupStudy == null ? (
+                  <></>
+                ) : (
+                  <ToolbarGroup5 isSplitScreen={isSplitScreen} setSplitScreen={setSplitScreen} />
+                )}
                 <ClearFormattingSection activeEditor={activeEditor} />
               </Show>
             </div>
@@ -587,6 +591,8 @@ function ToolbarGroup4({ activeEditor, operatingSystem }) {
     setAddScripturePopUpPosition({ x: x + rect.width / 2, y: y });
 
     setTimeout(() => {
+      setAddScriptureText("");
+
       // Toggle the pop-up visibility
       setAddScripturePopUp(!showAddScripturePopUp());
     }, 10);
@@ -596,6 +602,16 @@ function ToolbarGroup4({ activeEditor, operatingSystem }) {
 
       // Set this text into the pop-up's input field
       setAddScriptureText(currentSectionHeader);
+      setTimeout(() => {
+        const inputField = document.getElementById("addScriptureField") as HTMLInputElement | null;
+        if (inputField) {
+          inputField.focus();
+          // Check if there is any text in the input field
+          if (inputField.value.length > 0) {
+            inputField.select();
+          }
+        }
+      }, 10);
     }, 0);
 
     setTimeout(() => {
@@ -603,12 +619,12 @@ function ToolbarGroup4({ activeEditor, operatingSystem }) {
       if (inputField) {
         inputField.focus();
       }
-    }, 0);
+    }, 10);
   };
 
   createEffect(() => {
     const handleClick = (event) => {
-      const popupElement = document.getElementById(classes.hyperlinkPopUp); // Replace with your popup's actual ID
+      const popupElement = document.getElementById(classes.hyperlinkPopUp);
 
       if (popupElement && !popupElement.contains(event.target)) {
         // Click is outside the popup
