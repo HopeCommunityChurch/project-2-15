@@ -1,5 +1,5 @@
 // Libraries and external modules
-import { createEffect, createSignal, onMount, createResource, Show, onCleanup } from "solid-js";
+import { createEffect, createSignal, onMount, createResource, Show, onCleanup, from } from "solid-js";
 import { useParams, useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
 import { match } from "ts-pattern";
@@ -111,10 +111,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
 
   const [initialData, setInitialData] = createSignal<string | null>(null);
   // a hack to get this to work
-  let receiveFunc: ReceiveFunc = null;
-  let setReceiveFunc = (func: ReceiveFunc) => {
-    receiveFunc = func;
-  };
 
   const nav = useNavigate();
   const websocket = new WS.MyWebsocket();
@@ -128,6 +124,9 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
   });
   websocket.addEventListener("closed", () => {
     setSavingError("websocket connect closed");
+  });
+  websocket.addEventListener("DocListenStart", (e : WS.DocListenStartEvent) => {
+    setInitialData(e.document);
   });
 
 
@@ -514,7 +513,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
               currentUser={currentUser}
               websocket={websocket}
               initialData={initialData}
-              setReceiveFunc={setReceiveFunc}
             />
           </Show>
         </div>
@@ -543,36 +541,12 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
   );
 }
 
-// function setupWebsocket (ws : WebsocketRef, docId : T.DocId) {
-//   let websocket = new WebSocket(protocol + host + "/api/document/realtime");
-//   ws.ws = websocket
-//   websocket.onopen = (e) => {
-//     console.log("ws open", e);
-//     WS.sendMsg(websocket, { tag: "OpenDoc", contents: docId });
-//   };
-//   websocket.onclose = (e) => {
-//     console.log("ws close", e);
-//     alert("lost websocket connection. \nRefreshing to try to make it again");
-//     location.reload();
-//   };
-//   websocket.onerror = (e) => {
-//     console.log("ws error", e);
-//     alert(`Error with connection: \n ${e} \n \nRefreshing to try to make it again`);
-//     location.reload();
-//   };
-//   websocket.onmessage = (msg: MessageEvent<string>) => {
-//   };
-// }
-
-type ReceiveFunc = (arg: any) => void;
-
 type SplitProps = {
   groupStudy: GroupStudyRaw;
   setSplitScreen: (arg: boolean) => void;
   currentUser: PublicUser;
   websocket: WS.MyWebsocket;
   initialData: () => any;
-  setReceiveFunc: (arg: ReceiveFunc) => void;
 };
 
 function getInitialSplit(groupStudy: GroupStudyRaw, currentUser: PublicUser): DocMetaRaw {
@@ -591,13 +565,6 @@ function SplitScreen(props: SplitProps) {
     const initData = props.initialData();
     if (initData == null) return;
     const [activeEditor, setActiveEditor] = createSignal(null);
-    // let remoteThing = {
-    //   receive: "use me",
-    // };
-    // props.setreceiveFunc((steps) => {
-    //   console.log(steps);
-    //   remoteThing.receive(steps);
-    // });
     let editor: Editor.P215Editor = new Editor.P215Editor({
       initDoc: initData,
       editable: false,
@@ -605,9 +572,10 @@ function SplitScreen(props: SplitProps) {
       setActiveEditor: setActiveEditor,
       selectedStudyBlockArea: null,
       setSelectedStudyBlockArea: null,
-      remoteThings: {
-        setReceive: props.setReceiveFunc,
-      },
+      remoteThings: null,
+    });
+    props.websocket.addEventListener("DocUpdated", (e : WS.DocUpdatedEvent) => {
+      editor.dispatchSteps(e.update);
     });
     editor.addEditor(editorRoot);
   });

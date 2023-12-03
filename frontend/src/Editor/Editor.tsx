@@ -1604,10 +1604,7 @@ interface Dictionary<T extends notUndefined = notUndefined> {
   [key: string]: T | undefined;
 }
 
-type RecieveFunc = (steps: any) => void;
-
 type RemoteThingy = {
-  setReceive: (fun: RecieveFunc) => void;
   send(steps: any);
 };
 
@@ -1754,17 +1751,13 @@ export class P215Editor {
       },
     });
 
-    console.log(this.remoteThings);
-    if (this.remoteThings != null && this.remoteThings.setReceive != null) {
-      console.log("hello");
-      this.remoteThings.setReceive((stepsRaw: any[]) => {
-        const steps = stepsRaw.map((st) => Step.fromJSON(textSchema, st));
-        const tr = this.view.state.tr;
-        steps.forEach((st) => tr.step(st));
-        this.view.dispatch(tr);
-      });
-    }
-    console.log(this.remoteThings);
+  }
+
+  dispatchSteps (stepsRaw : any[]) {
+    const steps = stepsRaw.map((st) => Step.fromJSON(textSchema, st));
+    const tr = this.view.state.tr;
+    steps.forEach((st) => tr.step(st));
+    this.view.dispatch(tr);
   }
 
   handlePaste(view, event, slice) {
