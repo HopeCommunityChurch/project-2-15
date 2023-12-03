@@ -789,7 +789,7 @@ const questionPopup = (
         const pos = length;
         const tr = qNode.editor.state.tr;
         tr.insert(pos, qnode);
-        const sel = TextSelection.create(tr.doc, pos + 3);
+        const sel = TextSelection.create(tr.doc, pos + 2);
         tr.setSelection(sel);
 
         qNode.editor.dispatch(tr);
