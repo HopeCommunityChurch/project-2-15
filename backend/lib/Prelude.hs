@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Prelude
   ( module Relude.Base
@@ -64,6 +65,7 @@ import Control.Monad.Logger.CallStack (
   logWarnSH,
   runStdoutLoggingT,
  )
+import Control.Monad.Logger.Prefix (LogPrefixT)
 import Data.Aeson (FromJSON, ToJSON)
 import Data.OpenApi (ToSchema)
 import Data.Time (Day (..), LocalTime (..), UTCTime (..))
@@ -102,3 +104,8 @@ getCurrentTime = liftIO Time.getCurrentTime
 
 unwrap :: (Wrapped a) => a -> Unwrapped a
 unwrap = view _Wrapped'
+
+instance MonadIO m => MonadFail (LogPrefixT m) where
+  fail :: MonadIO m => String -> LogPrefixT m a
+  fail = liftIO . fail
+

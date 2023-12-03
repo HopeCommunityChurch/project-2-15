@@ -104,9 +104,19 @@ export type SimpleNetworkState<t> =
   | NetworkSuccess<t>
   | NetworkError
 
-export async function request<t>(url : string, opts = {})
+export async function request<t>(url : string, opts:any = {})
   : Promise<SimpleNetworkState<t>> {
+  let timeout = null;
+  if(opts.signal == null) {
+    const timeoutTime = 8000;
+    const controller = new AbortController();
+    timeout = setTimeout( () => controller.abort(), timeoutTime);
+    opts.signal = controller.signal;
+  }
   const response = await fetch(baseUrl + url, opts);
+  if (timeout != null) {
+    clearTimeout(timeout);
+  }
   const status = response.status;
   if (status == 204) {
     return {

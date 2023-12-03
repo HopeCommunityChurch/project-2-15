@@ -1,5 +1,6 @@
 import * as classes from "./styles.module.scss";
 import { Schema } from "prosemirror-model";
+import { v4 as uuidv4 } from "uuid";
 
 export const textSchema = new Schema({
   nodes: {
@@ -98,9 +99,26 @@ export const textSchema = new Schema({
       group: "studyElement",
       isolating: true,
       defining: true,
-      toDOM: () => {
-        return ["tr", 0];
+      attrs: {
+        id: { default: "" }, // Empty string as default
       },
+      toDOM: (node) => {
+        // If id is empty, generate a new one
+        const id = node.attrs.id || uuidv4();
+        return ["tr", { "data-id": id }, 0];
+      },
+      parseDOM: [
+        {
+          tag: "tr[data-id]",
+          getAttrs: (domNode) => {
+            if (domNode instanceof HTMLElement) {
+              // Use existing id
+              return { id: domNode.getAttribute("data-id") };
+            }
+            return {};
+          },
+        },
+      ],
     },
     generalStudyBlockHeader: {
       content: "text*",
