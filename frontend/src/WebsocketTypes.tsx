@@ -109,6 +109,13 @@ export class DocOpenedEvent extends Event {
   }
 }
 
+export class ClosedEvent extends Event {
+  constructor() {
+    super("closed");
+  }
+}
+
+
 
 
 export class MyWebsocket extends EventTarget {
@@ -144,7 +151,8 @@ export class MyWebsocket extends EventTarget {
     };
 
     this.ws.onclose = (e) => {
-      this.dispatchEvent(e);
+      let event = new ClosedEvent();
+      this.dispatchEvent(event);
       setTimeout( () => {
         this.ws = null;
         this.connect();
