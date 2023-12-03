@@ -153,10 +153,12 @@ export class MyWebsocket extends EventTarget {
     this.ws.onclose = (e) => {
       let event = new ClosedEvent();
       this.dispatchEvent(event);
-      setTimeout( () => {
-        this.ws = null;
-        this.connect();
-      }, 1000); // wait 1 second before trying to connect again.
+      if(!e.wasClean){
+        setTimeout( () => {
+          this.ws = null;
+          this.connect();
+        }, 1000); // wait 1 second before trying to connect again.
+      }
     }
 
     this.ws.onmessage = (msg : MessageEvent<string>) => {
@@ -189,6 +191,7 @@ export class MyWebsocket extends EventTarget {
   close () {
     if(this.ws != null) {
       if(this.ws.readyState == 1) {
+        console.log("closing websocket");
         this.ws.close();
       }
     }

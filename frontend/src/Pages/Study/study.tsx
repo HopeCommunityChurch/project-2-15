@@ -109,8 +109,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
   } | null>(null);
 
 
-  const [ws, setWS] = createSignal<WebSocket>(null);
-
   const [initialData, setInitialData] = createSignal<string | null>(null);
   // a hack to get this to work
   let receiveFunc: ReceiveFunc = null;
