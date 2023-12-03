@@ -128,7 +128,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     alert(`Someone else opened the same document. \nGoing back to the studies page to make sure you don't both override eachother.`);
     location.href = "/app/studies";
   });
-  websocket.addEventListener("close", () => {
+  websocket.addEventListener("closed", () => {
     setSavingError("websocket connect closed");
   });
 
