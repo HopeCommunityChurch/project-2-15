@@ -11,6 +11,7 @@ import * as WS from "../../WebsocketTypes";
 import * as classes from "./styles.module.scss";
 import * as Editor from "Editor/Editor";
 import { PublicUser, DocRaw, GroupStudyRaw, DocMetaRaw } from "Types";
+import * as T from "Types";
 import { LoginUser, loginState } from "Pages/LoginPage/login";
 import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
 import { TextEditorToolbar } from "./TextEditorToolbar/TextEditorToolbar";
@@ -107,9 +108,8 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     position: number;
   } | null>(null);
 
-  let host = location.host;
-  let protocol = host.includes("local") ? "ws://" : "wss://";
-  let websocket = new WebSocket(protocol + host + "/api/document/realtime");
+
+  const [ws, setWS] = createSignal<WebSocket>(null);
 
   const [initialData, setInitialData] = createSignal<string | null>(null);
   // a hack to get this to work
@@ -118,36 +118,24 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     receiveFunc = func;
   };
 
-  websocket.onopen = (e) => {
-    console.log("ws open", e);
-    WS.sendMsg(websocket, { tag: "OpenDoc", contents: doc.docId });
-  };
-  websocket.onclose = (e) => {
-    console.log("ws close", e);
-  };
-  websocket.onerror = (e) => {
-    console.log("ws error", e);
-  };
-  websocket.onmessage = (msg: MessageEvent<string>) => {
-    const rec = JSON.parse(msg.data) as WS.RecMsg;
-    switch (rec.tag) {
-      case "DocListenStart":
-        setInitialData(rec.contents);
-        break;
-      case "DocUpdated":
-        console.log("test");
-        if (receiveFunc) {
-          receiveFunc(rec.contents);
-        }
-        break;
-    }
-  };
+  const nav = useNavigate();
+  const websocket = new WS.MyWebsocket();
+  websocket.connect();
+  websocket.addEventListener("open", () => {
+    websocket.openDoc(doc.docId);
+  });
+  websocket.addEventListener("DocOpened", () => {
+    alert(`Someone else opened the same document. \nGoing back to the studies page to make sure you don't both override eachother.`);
+    location.href = "/app/studies";
+  });
+  websocket.addEventListener("close", () => {
+    setSavingError("websocket connect closed");
+  });
+
 
   onCleanup(() => {
     websocket.close();
   });
-
-  const [lastUpdate, setLastUpdate] = createSignal<string>(doc.updated);
 
   const [activeEditor, setActiveEditor] = createSignal(null);
 
@@ -161,7 +149,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     setSelectedStudyBlockArea: setSelectedStudyBlockArea,
     remoteThings: {
       send: (steps: any) => {
-        WS.sendMsg(websocket, { tag: "Updated", contents: steps });
+        websocket.send({ tag: "Updated", contents: steps });
       },
     },
   });
@@ -251,47 +239,18 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
       throttledSave(value);
     });
 
+    websocket.addEventListener("DocSaved", () => {
+      setSavingError(null);
+      setTimeout(() => setSaving(false), 1000);
+    });
+
     createEffect(() => {
       const data = savingData();
       if (saving() === true) return;
       if (data == null) return;
       setSaving(true);
       setSavingData(null);
-      const updated = lastUpdate();
-      Network.request<DocRaw>("/document/" + doc.docId, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          document: data,
-          lastUpdated: updated,
-        }),
-      })
-        .then((res) => {
-          //@ts-ignore
-          match(res)
-            .with({ state: "error" }, ({ body }) =>
-              //@ts-ignore
-              match(body)
-                .with({ error: "DocumentUpdatedNotMatch" }, () => {
-                  alert("Study have been updated on the server. Refreshing to get that version.");
-                  location.reload();
-                })
-                .otherwise(() => setSavingError(JSON.stringify(body)))
-            )
-            .with({ state: "success" }, ({ body }) => {
-              setLastUpdate(body.updated);
-              setSavingError(null);
-              setTimeout(() => setSaving(false), 1000);
-            })
-            .exhaustive();
-        })
-        .catch((err) => {
-          setSaving(false);
-          setTimeout(() => setSaving(false), 1000);
-          setSavingError(err);
-        });
+      websocket.send({ tag: "SaveDoc", contents: data });
     });
   };
 
@@ -435,7 +394,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
         isTopbarOpen={isTopbarOpen}
         saving={saving}
         savingError={savingError}
-        setLastUpdate={setLastUpdate}
         doc={doc}
       />
       <ErrorOverlay savingError={savingError} />
@@ -587,13 +545,34 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
   );
 }
 
+// function setupWebsocket (ws : WebsocketRef, docId : T.DocId) {
+//   let websocket = new WebSocket(protocol + host + "/api/document/realtime");
+//   ws.ws = websocket
+//   websocket.onopen = (e) => {
+//     console.log("ws open", e);
+//     WS.sendMsg(websocket, { tag: "OpenDoc", contents: docId });
+//   };
+//   websocket.onclose = (e) => {
+//     console.log("ws close", e);
+//     alert("lost websocket connection. \nRefreshing to try to make it again");
+//     location.reload();
+//   };
+//   websocket.onerror = (e) => {
+//     console.log("ws error", e);
+//     alert(`Error with connection: \n ${e} \n \nRefreshing to try to make it again`);
+//     location.reload();
+//   };
+//   websocket.onmessage = (msg: MessageEvent<string>) => {
+//   };
+// }
+
 type ReceiveFunc = (arg: any) => void;
 
 type SplitProps = {
   groupStudy: GroupStudyRaw;
   setSplitScreen: (arg: boolean) => void;
   currentUser: PublicUser;
-  websocket: WebSocket;
+  websocket: WS.MyWebsocket;
   initialData: () => any;
   setReceiveFunc: (arg: ReceiveFunc) => void;
 };
@@ -608,7 +587,7 @@ function SplitScreen(props: SplitProps) {
   let editorRoot: HTMLDivElement;
   const initialDocMeta = getInitialSplit(props.groupStudy, props.currentUser);
 
-  WS.sendMsg(props.websocket, { tag: "ListenToDoc", contents: initialDocMeta.docId });
+  props.websocket.send({ tag: "ListenToDoc", contents: initialDocMeta.docId });
 
   createEffect(() => {
     const initData = props.initialData();

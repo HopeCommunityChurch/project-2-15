@@ -43,6 +43,7 @@ common buildDepends
     servant,
     servant-server,
     monad-logger,
+    monad-logger-prefix,
     uuid,
     hashable,
     time,
