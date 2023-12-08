@@ -40,8 +40,10 @@ export const otherCursorPlugin = new Plugin<Selection>({
       const selection = otherCursorKey.getState(st);
       if(selection == null) return DecorationSet.empty;
       const {head, anchor} = selection;
+      const p1 = (anchor <= head)? anchor : head;
+      const p2 = (anchor <= head)? head : anchor;
       const decorations = [
-        Decoration.inline(anchor, head, {
+        Decoration.inline(p1, p2, {
           class: classes.otherSelection
         }),
         Decoration.widget(head, makeWidget),
