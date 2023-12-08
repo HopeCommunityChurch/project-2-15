@@ -44,6 +44,10 @@ import {
   highlighQuestion,
   unhighlighQuestion,
 } from "./QuestionHighlightPlugin";
+import {
+  otherCursorPlugin,
+  setSelection,
+} from "./OtherCursorPlugin";
 
 import CloseXIcon from "../Assets/x.svg";
 import { v4 as uuidv4 } from "uuid";
@@ -1608,6 +1612,16 @@ type RemoteThingy = {
   send(steps: any);
 };
 
+type SectionDiff = {
+  head: number;
+  anchor: number;
+};
+
+type TransactionDiff = {
+  steps: any[];
+  selection: SectionDiff;
+}
+
 export class P215Editor {
   state: EditorState;
   editable: boolean;
@@ -1673,6 +1687,7 @@ export class P215Editor {
         preventUpdatingMultipleComplexNodesSelectionPlugin,
         bibleTextPlaceholderPlugin,
         questionHighlightPlugin,
+        otherCursorPlugin,
         // referencePlugin
       ],
     });
@@ -1729,35 +1744,40 @@ export class P215Editor {
       },
       dispatchTransaction: (transaction) => {
         let newState = that.view.state.apply(transaction);
-
-        // Check if the last section is deleted
-        if (newState.doc.childCount === 0) {
-          const newSection = newSectionNode();
-          const tr = newState.tr.insert(0, newSection);
-          newState = newState.apply(tr);
-        }
-
         that.view.updateState(newState);
+
+        let steps = null;
         if (transaction.docChanged) {
           this.updateHanlders.forEach((handler) => {
             handler(transaction.doc.toJSON());
           });
-          const steps = transaction.steps.map((st) => st.toJSON());
+          steps = transaction.steps.map((st) => st.toJSON());
+        }
 
-          if (this.remoteThings !== null && this.remoteThings.send) {
-            this.remoteThings.send(steps);
-          }
+        const head = newState.selection.head;
+        const anchor = newState.selection.anchor;
+        if (this.remoteThings !== null && this.remoteThings.send) {
+          this.remoteThings.send({
+            step: steps,
+            selection: {
+              anchor: anchor,
+              head: head,
+            },
+          });
         }
       },
     });
-
   }
 
-  dispatchSteps (stepsRaw : any[]) {
-    const steps = stepsRaw.map((st) => Step.fromJSON(textSchema, st));
-    const tr = this.view.state.tr;
-    steps.forEach((st) => tr.step(st));
-    this.view.dispatch(tr);
+  dispatchSteps (changeDiff : TransactionDiff) {
+    console.log(changeDiff.selection);
+    if (changeDiff.steps != null) {
+      const steps = changeDiff.steps.map((st) => Step.fromJSON(textSchema, st));
+      const tr = this.view.state.tr;
+      steps.forEach((st) => tr.step(st));
+      this.view.dispatch(tr);
+    }
+    setSelection(changeDiff.selection, this.view.state, this.view.dispatch);
   }
 
   handlePaste(view, event, slice) {
