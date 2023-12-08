@@ -1,5 +1,13 @@
 // Libraries and external modules
-import { createEffect, createSignal, onMount, createResource, Show, onCleanup, from } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  onMount,
+  createResource,
+  Show,
+  onCleanup,
+  from,
+} from "solid-js";
 import { useParams, useNavigate } from "@solidjs/router";
 import { throttle } from "@solid-primitives/scheduled";
 import { match } from "ts-pattern";
@@ -108,7 +116,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     position: number;
   } | null>(null);
 
-
   const [initialData, setInitialData] = createSignal<string | null>(null);
   // a hack to get this to work
 
@@ -119,16 +126,17 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     websocket.openDoc(doc.docId);
   });
   websocket.addEventListener("DocOpened", () => {
-    alert(`Someone else opened the same document. \nGoing back to the studies page to make sure you don't both override eachother.`);
+    alert(
+      `Someone else opened the same document. \nGoing back to the studies page to make sure you don't both override eachother.`
+    );
     location.href = "/app/studies";
   });
   websocket.addEventListener("closed", () => {
     setSavingError("websocket connect closed");
   });
-  websocket.addEventListener("DocListenStart", (e : WS.DocListenStartEvent) => {
+  websocket.addEventListener("DocListenStart", (e: WS.DocListenStartEvent) => {
     setInitialData(e.document);
   });
-
 
   onCleanup(() => {
     websocket.close();
@@ -340,7 +348,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
         <div class={classes.errorOverlay}>
           <div class={classes.errorMessage}>
             <img src={CouldntSaveImage} />
-            <h2>Can't Save</h2>
+            <h2>Need a Refresh</h2>
             Looks like a Jonah situation – we're in the belly of a tech whale. Trying to be 'spat'
             out soon!
             <a class={classes.bluelink} onClick={() => location.reload()}>
@@ -574,7 +582,7 @@ function SplitScreen(props: SplitProps) {
       setSelectedStudyBlockArea: null,
       remoteThings: null,
     });
-    props.websocket.addEventListener("DocUpdated", (e : WS.DocUpdatedEvent) => {
+    props.websocket.addEventListener("DocUpdated", (e: WS.DocUpdatedEvent) => {
       editor.dispatchSteps(e.update);
     });
     editor.addEditor(editorRoot);
