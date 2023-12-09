@@ -1698,7 +1698,6 @@ export class P215Editor {
   };
 
   addEditor(editorRoot: HTMLElement) {
-    console.log(editorRoot);
     let that = this;
     this.view = new EditorView(editorRoot, {
       state: that.state,
@@ -1758,7 +1757,7 @@ export class P215Editor {
         const anchor = newState.selection.anchor;
         if (this.remoteThings !== null && this.remoteThings.send) {
           this.remoteThings.send({
-            step: steps,
+            steps: steps,
             selection: {
               anchor: anchor,
               head: head,
@@ -1770,7 +1769,6 @@ export class P215Editor {
   }
 
   dispatchSteps (changeDiff : TransactionDiff) {
-    console.log(changeDiff.selection);
     if (changeDiff.steps != null) {
       const steps = changeDiff.steps.map((st) => Step.fromJSON(textSchema, st));
       const tr = this.view.state.tr;
