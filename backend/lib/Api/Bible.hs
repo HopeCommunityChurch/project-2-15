@@ -8,6 +8,7 @@ import Network.Wreq qualified as Wreq
 import GHC.Records (HasField)
 import Text.Parsec qualified as Parsec
 import Bible.Esv.Parser qualified as ESV
+import Data.Text qualified as T
 
 
 newtype ESVEnv = MkESVEnv ByteString
@@ -89,7 +90,7 @@ getVerses _ query = do
                     bibleRef.verses.chapterStart
                     bibleRef.verses.verseStart
       let epassages =
-            Parsec.runParser ESV.passagesParser state "" (fold result.passages)
+            Parsec.runParser ESV.passagesParser state "" (foldMap (T.replace "\n" " ") result.passages)
       case epassages of
         Left err -> Errs.throwApi $ ParseError (show err)
         Right passages ->
