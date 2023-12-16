@@ -44,10 +44,7 @@ import {
   highlighQuestion,
   unhighlighQuestion,
 } from "./QuestionHighlightPlugin";
-import {
-  otherCursorPlugin,
-  setSelection,
-} from "./OtherCursorPlugin";
+import { otherCursorPlugin, setSelection } from "./OtherCursorPlugin";
 
 import CloseXIcon from "../Assets/x.svg";
 import { v4 as uuidv4 } from "uuid";
@@ -1421,7 +1418,7 @@ let addVerse = (
 
       // Adjust the position of studyBlocks based on the new header size
       if (posOfStudyBlock !== null) {
-        posOfStudyBlock += headerDiff + 1;
+        posOfStudyBlock += headerDiff;
 
         const textNode = passage.flatMap(mkVerseNode);
         const chunk = textSchema.nodes.chunk.create(null, textNode);
@@ -1620,7 +1617,7 @@ type SectionDiff = {
 type TransactionDiff = {
   steps: any[];
   selection: SectionDiff;
-}
+};
 
 export class P215Editor {
   state: EditorState;
@@ -1768,7 +1765,7 @@ export class P215Editor {
     });
   }
 
-  dispatchSteps (changeDiff : TransactionDiff) {
+  dispatchSteps(changeDiff: TransactionDiff) {
     if (changeDiff.steps != null) {
       const steps = changeDiff.steps.map((st) => Step.fromJSON(textSchema, st));
       const tr = this.view.state.tr;
