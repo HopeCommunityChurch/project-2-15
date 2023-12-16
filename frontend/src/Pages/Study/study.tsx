@@ -115,6 +115,9 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     studyBlocks: Node[];
     position: number;
   } | null>(null);
+  const [editableStudyBlocks, setEditableStudyBlocks] = createSignal<EditableStudyBlocks[] | null>(
+    null
+  );
 
   const [initialData, setInitialData] = createSignal<string | null>(null);
   // a hack to get this to work
@@ -370,26 +373,69 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     );
   }
 
-  function extractContentFromNodes(nodes: any[]): string[] {
-    const extractedContent: string[] = [];
+  interface EditableStudyBlocks {
+    title: string;
+    bodyText: string;
+    id: string;
+  }
+
+  function extractContentFromNodes(nodes: any[]): EditableStudyBlocks[] {
+    const extractedContent: EditableStudyBlocks[] = [];
 
     nodes.forEach((node) => {
       if (node.type.name === "generalStudyBlock") {
-        // Extract "George" from the studyBlockData
+        // Extract the title from the studyBlockData
         const headerContent = JSON.parse(JSON.stringify(node)).content.find(
           (node) => node.type === "generalStudyBlockHeader"
         );
-        const extractedText = headerContent?.content[0]?.text || "";
-        extractedContent.push(extractedText);
+        const extractedTitle = headerContent?.content[0]?.text || "";
+
+        let extractedDescription = JSON.parse(JSON.stringify(node))
+          .content.find((item) => item.type === "generalStudyBlockBody")
+          .content.map((item) => {
+            if (item.content) {
+              return item.content
+                .filter((contentItem) => contentItem.type === "text" && contentItem.text)
+                .map((contentItem) => contentItem.text)
+                .join(" ");
+            }
+            return "";
+          })
+          .join(" ")
+          .trim();
+
+        extractedContent.push({
+          title: extractedTitle,
+          bodyText: extractedDescription,
+          id: node.attrs.id,
+        });
       }
 
       if (node.type.name === "questions") {
-        extractedContent.push("Questions");
+        extractedContent.push({ title: "Questions", bodyText: "", id: "Questions" });
       }
     });
-
+    setEditableStudyBlocks(extractedContent);
     return extractedContent;
   }
+
+  const moveItemUp = (index) => {
+    // if (index === 0) return; // First item cannot move up
+    // const newItems = [...selectedStudyItems()];
+    // const temp = newItems[index];
+    // newItems[index] = newItems[index - 1];
+    // newItems[index - 1] = temp;
+    // setSelectedStudyItems(newItems);
+  };
+
+  const moveItemDown = (index) => {
+    // if (index === selectedStudyItems().length - 1) return; // Last item cannot move down
+    // const newItems = [...selectedStudyItems()];
+    // const temp = newItems[index];
+    // newItems[index] = newItems[index + 1];
+    // newItems[index + 1] = temp;
+    // setSelectedStudyItems(newItems);
+  };
 
   return (
     <div class={classes.wholePageContainer}>
@@ -526,22 +572,74 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
         </div>
       </div>
       <Show when={selectedStudyBlockArea() !== null}>
-        <div class={classes.modalBackground} onClick={() => setSelectedStudyBlockArea(null)}>
+        <div
+          class={classes.modalBackground}
+          onClick={() => {
+            setSelectedStudyBlockArea(null);
+            setEditableStudyBlocks(null);
+          }}
+        >
           <div class={classes.editStudyBlockModal} onClick={(e) => e.stopPropagation()}>
             <h3>Edit Study Block</h3>
-            {selectedStudyBlockArea()?.studyBlocks?.map((block, index) => (
-              <p>{extractContentFromNodes([block])}</p>
-            ))}
+            <button type="submit" class={classes.saveButton}>
+              Save
+            </button>
 
-            <div class={classes.bottomButtons}>
-              <button onClick={() => setSelectedStudyBlockArea(null)}>Cancel</button>
-              <button
-                type="submit"
-                // onClick={handleDeleteStudy}
-              >
-                Save
-              </button>
-            </div>
+            <img
+              src={CloseXIcon}
+              alt="Close Modal"
+              class={classes.closeModalIcon}
+              onClick={() => {
+                setSelectedStudyBlockArea(null);
+                setEditableStudyBlocks(null);
+              }}
+            />
+            <table class={classes.editableStudyBlocksTable}>
+              <tbody>
+                {selectedStudyBlockArea()?.studyBlocks?.map((block, index) => (
+                  <tr class={classes.editableStudyBlock}>
+                    <td class={classes.studyBlockGrayBackground}>
+                      <div class={classes.upAndDownArrows}>
+                        <img
+                          class={classes.arrowUp}
+                          src={ArrowIcon}
+                          onClick={() => moveItemUp(index)}
+                        />
+                        <img
+                          src={ArrowIcon}
+                          class={classes.arrowDown}
+                          onClick={() => moveItemDown(index)}
+                        />
+                      </div>
+                      <div class={classes.studyBlockTitleAndDescription}>
+                        <input
+                          class={classes.studyBlockTitle}
+                          type="text"
+                          placeholder="Add title..."
+                          value={extractContentFromNodes([block])[0]?.title || ""}
+                        />
+                        <input
+                          class={classes.studyBlockDescription}
+                          type="text"
+                          placeholder="Add description..."
+                        />
+                      </div>
+                    </td>
+                    <td class={classes.studyBlockContentPreview}>
+                      <p>{extractContentFromNodes([block])[0]?.bodyText || ""}</p>
+                    </td>
+                    <td class={classes.studyBlockDeleteBlock}>
+                      <img
+                        src={GrayTrashIcon}
+                        onClick={async (e) => {
+                          console.log("delete");
+                        }}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </Show>

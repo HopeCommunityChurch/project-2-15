@@ -503,14 +503,14 @@
 .editStudyBlockModal {
   width: 90%;
   position: relative;
-  max-width: 520px;
+  max-width: 800px;
   background-color: #fff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   max-height: 93vh;
-  min-height: 50vh;
+  // min-height: 50vh;
 
   h3 {
     margin-top: 0px;
@@ -519,6 +519,21 @@
     padding-right: 39px;
   }
 
+  .saveButton {
+    position: absolute;
+    top: 20px;
+    right: 59px;
+    padding: 7px 17px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-bottom: 5px;
+
+    background-color: #0057d1;
+    color: white;
+    border: none;
+  }
   .closeModalIcon {
     cursor: pointer;
     position: absolute;
@@ -527,29 +542,88 @@
     max-width: 20px;
     padding: 10px;
   }
-  .bottomButtons {
-    display: flex;
-    gap: 10px;
 
-    button {
-      width: 100%;
-      padding: 7px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s ease;
-      margin-bottom: 5px;
-    }
-    button[type="submit"] {
-      background-color: #0057d1;
-      color: white;
-      border: none;
-    }
+  .editableStudyBlocksTable {
+    border-collapse: collapse;
 
-    button:not([type="submit"]) {
-      background-color: #eef5ff;
-      color: #0057d1;
-      border: 2px solid #9fc5ff;
+    .editableStudyBlock {
+      font-size: 15px;
+
+      &:not(:first-child) {
+        border-top: none;
+      }
+
+      td {
+        padding: 10px;
+      }
+      .upAndDownArrows {
+        display: flex;
+        flex-direction: column;
+        margin-left: -10px;
+        img {
+          align-self: flex-start;
+          max-width: 18px;
+          padding: 7px 10px;
+          opacity: 50%;
+          &:hover {
+            background-color: #00000024;
+            border-radius: 5px;
+          }
+        }
+        .arrowUp {
+          transform: rotate(180deg);
+          cursor: pointer;
+        }
+
+        .arrowDown {
+          cursor: pointer;
+        }
+      }
+      .studyBlockGrayBackground {
+        border: 1px solid #b8b8b8;
+        background-color: #eeeeee;
+        display: flex;
+        align-items: center;
+        width: 300px;
+      }
+      .studyBlockTitleAndDescription {
+        display: flex;
+        flex-direction: column;
+
+        .studyBlockTitle,
+        .studyBlockDescription {
+          border: none;
+          outline: none;
+          background: none;
+        }
+        .studyBlockTitle {
+          font-size: 15px;
+          color: #050020cf;
+          font-weight: 700;
+        }
+        .studyBlockDescription {
+          color: #5e5e5ecf;
+          font-size: 14px;
+        }
+      }
+      .studyBlockContentPreview {
+        p {
+          margin: 0px;
+        }
+      }
+
+      .studyBlockDeleteBlock {
+        width: 1%;
+
+        img {
+          padding: 10px;
+          border-radius: 7px;
+          cursor: pointer;
+          &:hover {
+            background-color: #eee;
+          }
+        }
+      }
     }
   }
 }

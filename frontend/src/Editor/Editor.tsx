@@ -97,19 +97,6 @@ class StudyBlocksView implements NodeView {
     const table = document.createElement("table");
     table.className = classes.studyBlocks;
 
-    // Find the section node that contains this position
-    let sectionNode = null;
-    let sectionPos = null;
-    view.state.doc.nodesBetween(getPos(), getPos(), (node, pos) => {
-      if (node.type.name === "section") {
-        sectionNode = node;
-        sectionPos = pos;
-        return false; // Stop iterating further
-      }
-    });
-
-    let combinedStudyBlocks = extractAllStudyBlocksAndQuestions(sectionNode);
-
     // Create and configure the Pencil icon
     const questionIcon = new Image();
     questionIcon.src = GrayPencilCircle;
@@ -117,6 +104,19 @@ class StudyBlocksView implements NodeView {
 
     // if (selectedStudyBlockArea()) console.log(selectedStudyBlockArea());
     questionIcon.addEventListener("click", () => {
+      // Find the section node that contains this position
+      let sectionNode = null;
+      let sectionPos = null;
+      view.state.doc.nodesBetween(getPos(), getPos(), (node, pos) => {
+        if (node.type.name === "section") {
+          sectionNode = node;
+          sectionPos = pos;
+          return false; // Stop iterating further
+        }
+      });
+
+      let combinedStudyBlocks = extractAllStudyBlocksAndQuestions(sectionNode);
+
       // Update the signal with the combined study blocks and the current position
       setSelectedStudyBlockArea({ studyBlocks: combinedStudyBlocks, position: getPos() });
     });
@@ -1418,7 +1418,7 @@ let addVerse = (
 
       // Adjust the position of studyBlocks based on the new header size
       if (posOfStudyBlock !== null) {
-        posOfStudyBlock += headerDiff;
+        posOfStudyBlock += headerDiff + 1;
 
         const textNode = passage.flatMap(mkVerseNode);
         const chunk = textSchema.nodes.chunk.create(null, textNode);
