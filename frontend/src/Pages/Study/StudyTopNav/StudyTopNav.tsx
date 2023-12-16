@@ -201,8 +201,7 @@ export function StudyTopNav(props: StudyTopNavProps) {
           //@ts-ignore
           match(res)
             .with({ state: "error" }, ({ body }) => console.error(body))
-            .with({ state: "success" }, ({ body }) => {
-            })
+            .with({ state: "success" }, ({ body }) => {})
             .exhaustive();
         })
         .catch((err) => {

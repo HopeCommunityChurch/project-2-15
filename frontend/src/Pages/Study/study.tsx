@@ -377,6 +377,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     title: string;
     bodyText: string;
     id: string;
+    required: boolean;
   }
 
   function extractContentFromNodes(nodes: any[]): EditableStudyBlocks[] {
@@ -408,14 +409,20 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
           title: extractedTitle,
           bodyText: extractedDescription,
           id: node.attrs.id,
+          required: false,
         });
       }
 
       if (node.type.name === "questions") {
-        extractedContent.push({ title: "Questions", bodyText: "", id: "Questions" });
+        extractedContent.push({
+          title: "Questions",
+          bodyText: "",
+          id: "Questions",
+          required: true,
+        });
       }
     });
-    setEditableStudyBlocks(extractedContent);
+    setEditableStudyBlocks((prevBlocks) => [...(prevBlocks || []), ...extractedContent]);
     return extractedContent;
   }
 
@@ -436,6 +443,46 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     // newItems[index + 1] = temp;
     // setSelectedStudyItems(newItems);
   };
+
+  function updateJsonTitles(json1, json2) {
+    // Loop through each element in json1
+    json1.forEach((item) => {
+      // Skip elements with ID "Questions"
+      if (item.id !== "Questions") {
+        // Loop through json2 to find matching ID and update title
+        json2.forEach((section) => {
+          section.content.forEach((content) => {
+            if (content.type === "studyBlocks") {
+              content.content.forEach((block) => {
+                if (block.attrs && block.attrs.id === item.id) {
+                  const headerBlock = block.content.find(
+                    (c) => c.type === "generalStudyBlockHeader"
+                  );
+                  if (headerBlock && headerBlock.content[0]) {
+                    headerBlock.content[0].text = item.title;
+                  } else {
+                  }
+                }
+              });
+            }
+          });
+        });
+      } else {
+      }
+    });
+
+    return json2;
+  }
+
+  //This is version 1 with only updating titles - no reorder, descriptions, etc.
+  function saveUpdatedStudyBlock() {
+    const updatedJson2 = updateJsonTitles(editableStudyBlocks(), doc.document.content);
+    console.log(JSON.stringify(updatedJson2));
+
+    // Jonny: How can I just save the whole `updatedJson2` JSON object in place of doc.document.content?
+    // I got it so search the document for a matching study block and replace the edited title with the one in the document
+    // Now I just need to save it and I can't figure it out...
+  }
 
   return (
     <div class={classes.wholePageContainer}>
@@ -581,7 +628,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
         >
           <div class={classes.editStudyBlockModal} onClick={(e) => e.stopPropagation()}>
             <h3>Edit Study Block</h3>
-            <button type="submit" class={classes.saveButton}>
+            <button type="submit" class={classes.saveButton} onClick={saveUpdatedStudyBlock}>
               Save
             </button>
 
@@ -596,48 +643,63 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
             />
             <table class={classes.editableStudyBlocksTable}>
               <tbody>
-                {selectedStudyBlockArea()?.studyBlocks?.map((block, index) => (
-                  <tr class={classes.editableStudyBlock}>
-                    <td class={classes.studyBlockGrayBackground}>
-                      <div class={classes.upAndDownArrows}>
+                {selectedStudyBlockArea()?.studyBlocks?.map((block, index) => {
+                  const blockContent = extractContentFromNodes([block])[0];
+
+                  return (
+                    <tr class={classes.editableStudyBlock}>
+                      <td class={classes.studyBlockGrayBackground}>
+                        <div class={classes.upAndDownArrows}>
+                          <img
+                            class={classes.arrowUp}
+                            src={ArrowIcon}
+                            onClick={() => moveItemUp(index)}
+                          />
+                          <img
+                            src={ArrowIcon}
+                            class={classes.arrowDown}
+                            onClick={() => moveItemDown(index)}
+                          />
+                        </div>
+                        <div class={classes.studyBlockTitleAndDescription}>
+                          <input
+                            class={classes.studyBlockTitle}
+                            type="text"
+                            placeholder="Add title..."
+                            value={blockContent.title || ""}
+                            onChange={(e) => {
+                              setEditableStudyBlocks((prevBlocks) => {
+                                if (!prevBlocks) return null;
+
+                                return prevBlocks.map((block) =>
+                                  block.id === blockContent.id
+                                    ? { ...block, title: e.target.value }
+                                    : block
+                                );
+                              });
+                            }}
+                          />
+                          <input
+                            class={classes.studyBlockDescription}
+                            type="text"
+                            placeholder="Add description..."
+                          />
+                        </div>
+                      </td>
+                      <td class={classes.studyBlockContentPreview}>
+                        <p>{blockContent.bodyText || ""}</p>
+                      </td>
+                      <td class={classes.studyBlockDeleteBlock}>
                         <img
-                          class={classes.arrowUp}
-                          src={ArrowIcon}
-                          onClick={() => moveItemUp(index)}
+                          src={GrayTrashIcon}
+                          onClick={async (e) => {
+                            console.log("delete");
+                          }}
                         />
-                        <img
-                          src={ArrowIcon}
-                          class={classes.arrowDown}
-                          onClick={() => moveItemDown(index)}
-                        />
-                      </div>
-                      <div class={classes.studyBlockTitleAndDescription}>
-                        <input
-                          class={classes.studyBlockTitle}
-                          type="text"
-                          placeholder="Add title..."
-                          value={extractContentFromNodes([block])[0]?.title || ""}
-                        />
-                        <input
-                          class={classes.studyBlockDescription}
-                          type="text"
-                          placeholder="Add description..."
-                        />
-                      </div>
-                    </td>
-                    <td class={classes.studyBlockContentPreview}>
-                      <p>{extractContentFromNodes([block])[0]?.bodyText || ""}</p>
-                    </td>
-                    <td class={classes.studyBlockDeleteBlock}>
-                      <img
-                        src={GrayTrashIcon}
-                        onClick={async (e) => {
-                          console.log("delete");
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
