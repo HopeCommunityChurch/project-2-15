@@ -1639,6 +1639,22 @@ type TransactionDiff = {
   selection: SectionDiff;
 };
 
+function cleanupExtraStudyBlocks (initDoc : any) : any {
+  const newArray = initDoc.content.map( (section) => {
+    return {
+      type: "section",
+      content: section.content.filter((node) =>
+        !(node.type == "studyBlocks" && !node.hasOwnProperty("content"))
+      )
+    }
+  });
+  const result = {
+    type: "doc",
+    content: newArray,
+  }
+  return result;
+}
+
 export class P215Editor {
   state: EditorState;
   editable: boolean;
@@ -1662,7 +1678,7 @@ export class P215Editor {
   }) {
     this.editable = editable;
     this.remoteThings = remoteThings;
-    let node = Node.fromJSON(textSchema, initDoc);
+    let node = Node.fromJSON(textSchema, cleanupExtraStudyBlocks(initDoc));
     this.updateHanlders = [];
     this.questionMap = {};
 
