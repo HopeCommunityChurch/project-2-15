@@ -66,14 +66,14 @@ data DbConn
 
 
 createPool :: ConnectInfo -> IO DbConn
-createPool connInfo =
-  DbPool
-  <$> Pool.createPool
-    (Db.connect connInfo)
-    Db.close
-    1
-    timeout
-    11
+createPool connInfo = do
+  config <- Pool.setNumStripes (Just 1) <$> Pool.mkDefaultPoolConfig
+              (Db.connect connInfo)
+              Db.close
+              timeout
+              11
+  pool <- Pool.newPool config
+  pure $ DbPool pool
   where
     timeout = 30
 

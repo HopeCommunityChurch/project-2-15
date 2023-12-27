@@ -23,6 +23,9 @@ import Prelude hiding (get)
 import UnliftIO.Concurrent (threadDelay)
 import Api.Bible qualified
 import Mail qualified
+import Web.Scotty.Trans qualified as Scotty
+import Network.Wai.Handler.Warp (Port)
+import Api.Htmx.Login qualified as Login
 
 
 data DbInfo = MkDbInfo
@@ -107,12 +110,33 @@ main = do
       putStrLn "running migration"
       migration (dbToConnectInfo file.db)
       putStrLn "starting on port 3000"
-      run (fromMaybe 3000 env.port)
-        (logMiddle env.envType
-           (serveWithContext
-              (Proxy @Api.Api)
-              (Api.serverContext env)
-              (Api.server env)))
+      mapConcurrently_ identity
+        [ run (fromMaybe 3000 env.port)
+            (logMiddle env.envType
+               (serveWithContext
+                  (Proxy @Api.Api)
+                  (Api.serverContext env)
+                  (Api.server env)))
+        , scottyServer
+        ]
+
+scottyT
+  :: MonadUnliftIO m
+  => Port
+  -> Scotty.ScottyT LText m ()
+  -> m ()
+scottyT port action =
+  withRunInIO $ \ runInIO ->
+    Scotty.scottyT port runInIO action
+
+
+scottyServer
+  :: ( MonadUnliftIO m
+     )
+  => m ()
+scottyServer = scottyT 3001 $ do
+  Scotty.middleware logStdout
+  Scotty.get "/login" Login.getLogin
 
 
 migrationOptions :: Mig.MigrationOptions

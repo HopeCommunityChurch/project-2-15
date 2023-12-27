@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-23.05";
+    nixpkgs.url = "github:nixos/nixpkgs/release-23.11";
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake";
   };
@@ -42,6 +42,11 @@
               check = false;
             };
             unliftio-pool = {
+              haddock = true;
+            };
+            monad-logger-prefix = {
+              broken = false;
+              jailbreak = true;
               haddock = true;
             };
             lens-datetime = {

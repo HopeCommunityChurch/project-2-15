@@ -28,6 +28,7 @@ common buildDepends
     unordered-containers,
     relude,
     unliftio,
+    ginger,
     unliftio-pool,
     lens,
     generic-lens,
@@ -71,7 +72,9 @@ common buildDepends
     file-embed,
     websockets,
     wai-websockets,
-    resourcet
+    resourcet,
+    scotty,
+    directory,
 
   default-extensions:
     OverloadedStrings,
@@ -139,6 +142,8 @@ library
     Api.Document,
     Api.Websocket,
     Api.Htmx.Studies,
+    Api.Htmx.Login,
+    Api.Htmx.Ginger,
     Password,
     SwaggerHelpers,
     Orphans,
@@ -163,7 +168,6 @@ executable backend
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       backend,
-      scotty,
 
   hs-source-dirs:   app
   default-language: GHC2021
