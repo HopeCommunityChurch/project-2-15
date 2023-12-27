@@ -51,18 +51,6 @@ import { v4 as uuidv4 } from "uuid";
 
 // var blockMap : Dictionary<BlockMapItem> = {};
 
-class SectionView implements NodeView {
-  dom: HTMLElement;
-  contentDOM: HTMLElement;
-  constructor(node: Node, sectionIndex: number) {
-    this.dom = document.createElement("div");
-    this.dom.className = classes.section;
-    // this.dom.id = `section-${sectionIndex}`;
-    this.contentDOM = document.createElement("div");
-    this.contentDOM.className = classes.content;
-    this.dom.appendChild(this.contentDOM);
-  }
-}
 
 function extractAllStudyBlocksAndQuestions(node: Node, allStudyBlocks: Node[] = []) {
   // Iterate over the children of the node
@@ -1425,10 +1413,10 @@ let addVerse = (
       let sectionHeaderSize = 0;
       sectionNode.forEach((childNode, offset) => {
         if (childNode.type.name === "studyBlocks") {
-          posOfStudyBlock = sectionPos + 1 + offset;
+          posOfStudyBlock = sectionPos + offset;
         }
         if (childNode.type.name === "sectionHeader") {
-          posOfSectionHeader = sectionPos + 1 + offset;
+          posOfSectionHeader = sectionPos + offset;
           sectionHeaderNode = childNode;
           sectionHeaderSize = childNode.nodeSize;
         }
