@@ -130,6 +130,27 @@ class StudyBlocksView implements NodeView {
   }
 }
 
+class BibleTextView implements NodeView {
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+
+  constructor(
+    node: Node,
+  ) {
+    this.dom = document.createElement("div");
+    this.dom.className = classes.bibleText;
+
+    const header = document.createElement("h3");
+    header.innerText = node.attrs.verses;
+    this.dom.appendChild(header);
+
+    const body = document.createElement("div");
+    this.contentDOM = body;
+    this.dom.appendChild(body);
+  }
+}
+
+
 function getRandomStr(): string {
   const arrayb = new Uint8Array(10);
   let b = self.crypto.getRandomValues(arrayb);
@@ -911,28 +932,6 @@ const nodeIsChunk = (node: Node) => {
   if (node.type.name != "chunk") return false;
 };
 
-let currentChunkPlug = new Plugin({
-  props: {
-    decorations(state: EditorState) {
-      const selection = state.selection;
-      const decorations = [];
-
-      if (!selection.empty) return null;
-
-      state.doc.nodesBetween(selection.from, selection.to, (node, position) => {
-        const result = nodeIsChunk(node);
-        if (result === true) return true;
-        if (result === false) return false;
-        decorations.push(
-          Decoration.node(position, position + node.nodeSize, { class: classes.selected })
-        );
-      });
-
-      return DecorationSet.create(state.doc, decorations);
-    },
-  },
-});
-
 const questionMarkWidget =
   (qId: string, questionMap: Dictionary<QuestionMapItem>, setActiveEditor) =>
   (view: EditorView) => {
@@ -997,6 +996,39 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>, setActiveEdi
       },
     },
   });
+
+let hideOnlyOneBibleTextPlugin = new Plugin({
+  props: {
+    decorations(state: EditorState) {
+      const decorations = [];
+      const questions = {};
+      state.doc.forEach( (section, offset) => {
+        let count = 0;
+        section.forEach( (node) => {
+          if (node.type.name === "bibleText") count++;
+        });
+        if (count > 1) {
+          decorations.push(
+            Decoration.node(offset, offset + section.nodeSize, {
+              class: classes.showBibleTextHeader,
+            })
+          );
+        } else {
+          decorations.push(
+            Decoration.node(offset, offset + section.nodeSize, {
+              class: classes.hideBibleTextHeader,
+            })
+          );
+        }
+      });
+
+      return DecorationSet.create(state.doc, decorations);
+    },
+  },
+});
+
+
+
 
 const verseRefWidget = (verse, position) => (view: EditorView) => {
   const elem = document.createElement("span");
@@ -1677,7 +1709,6 @@ export class P215Editor {
           "Mod-u": toggleMark(textSchema.marks.underline),
         }),
         keymap(baseKeymap),
-        currentChunkPlug,
         questionMarkPlugin(this.questionMap, this.setActiveEditor),
         sectionIdPlugin,
         verseReferencePlugin,
@@ -1685,7 +1716,8 @@ export class P215Editor {
         bibleTextPlaceholderPlugin,
         questionHighlightPlugin,
         otherCursorPlugin,
-        // referencePlugin
+        hideOnlyOneBibleTextPlugin,
+        // referencePlugin,
       ],
     });
   }
@@ -1706,6 +1738,9 @@ export class P215Editor {
         },
       },
       nodeViews: {
+        bibleText(node) {
+          return new BibleTextView(node);
+        },
         studyBlocks(node, view, getPos) {
           return new StudyBlocksView(
             node,

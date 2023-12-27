@@ -187,14 +187,23 @@ $indentLeftBorderColors: (
   box-shadow: black 0px 0px 3px;
 }
 
-.selected {
-  // border: 1px solid #00f4;
-  border-radius: 3px;
-}
-
 .bibleText {
   padding: 0px;
   margin-bottom: 10px;
+}
+
+.bibleText h3 {
+  margin: 0px;
+  font-size: 20px;
+  user-select: none;
+}
+
+.hideBibleTextHeader .bibleText h3 {
+  display: none;
+}
+
+.showBibleTextHeader .bibleText h3 {
+  display: block;
 }
 
 .content {

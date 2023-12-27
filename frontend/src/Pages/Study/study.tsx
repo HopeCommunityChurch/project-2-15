@@ -22,7 +22,7 @@ import { PublicUser, DocRaw, GroupStudyRaw, DocMetaRaw } from "Types";
 import * as T from "Types";
 import { LoginUser, loginState } from "Pages/LoginPage/login";
 import { StudyTopNav } from "./StudyTopNav/StudyTopNav";
-import { StudyBlockEditor } from "./StudyBlockEditor/StudyBlockEditor";
+import { StudyBlockEditor } from "./StudyBlockEditor/studyBlockEditor";
 import { TextEditorToolbar } from "./TextEditorToolbar/TextEditorToolbar";
 
 // Icons
