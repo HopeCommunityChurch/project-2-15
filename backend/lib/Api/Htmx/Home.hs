@@ -1,4 +1,4 @@
-module Api.Htmx.Login where
+module Api.Htmx.Home where
 
 import Prelude hiding ((**))
 import Text.Ginger
@@ -8,19 +8,15 @@ import Web.Scotty.Trans hiding (scottyT)
 import Data.HashMap.Strict qualified as HMap
 
 
-
-
 sampleContext :: HashMap Text Text
-sampleContext = fromList [("name", "Alice")]
+sampleContext = fromList []
 
-getLogin
-  :: ( MonadIO m
-     , MonadLogger m
-     )
+getHome
+  :: (MonadIO m, MonadLogger m)
   => ScottyError e
   => ActionT e m ()
-getLogin = do
-  result <- readFromTemplates "login.html"
+getHome = do
+  result <- readFromTemplates "home.html"
   case result of
     Right template -> do
       let content = makeContextHtml (toGVal . flip HMap.lookup sampleContext)

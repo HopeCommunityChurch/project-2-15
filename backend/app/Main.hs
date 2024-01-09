@@ -26,6 +26,7 @@ import Mail qualified
 import Web.Scotty.Trans qualified as Scotty
 import Network.Wai.Handler.Warp (Port)
 import Api.Htmx.Login qualified as Login
+import Api.Htmx.Home qualified as Home
 
 
 data DbInfo = MkDbInfo
@@ -117,7 +118,7 @@ main = do
                   (Proxy @Api.Api)
                   (Api.serverContext env)
                   (Api.server env)))
-        , scottyServer
+        , runStdoutLoggingT scottyServer
         ]
 
 scottyT
@@ -132,11 +133,13 @@ scottyT port action =
 
 scottyServer
   :: ( MonadUnliftIO m
+     , MonadLogger m
      )
   => m ()
 scottyServer = scottyT 3001 $ do
   Scotty.middleware logStdout
   Scotty.get "/login" Login.getLogin
+  Scotty.get "/" Home.getHome
 
 
 migrationOptions :: Mig.MigrationOptions

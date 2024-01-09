@@ -143,6 +143,7 @@ library
     Api.Websocket,
     Api.Htmx.Studies,
     Api.Htmx.Login,
+    Api.Htmx.Home,
     Api.Htmx.Ginger,
     Password,
     SwaggerHelpers,

@@ -7,7 +7,9 @@ import System.Directory (doesFileExist)
 
 
 readFromTemplates
-  :: MonadIO m
+  :: ( MonadIO m
+     , MonadLogger m
+     )
   => SourceName
   -> m (Either ParserError (Template SourcePos))
 readFromTemplates sn = do
@@ -19,7 +21,9 @@ templatesFolder = "./templates/"
 
 
 getFileFromTemplatesFolder
-  :: MonadIO m
+  :: ( MonadIO m
+     , MonadLogger m
+     )
   => SourceName
   -> m (Maybe Source)
 getFileFromTemplatesFolder sn = do
@@ -27,7 +31,9 @@ getFileFromTemplatesFolder sn = do
   ex <- liftIO $ doesFileExist path
   if ex
     then Just <$> readFile path
-    else pure Nothing
+    else do
+      logError $ "Can't find file: " <> toText path
+      pure Nothing
 
 
 -- urlBase :: Text

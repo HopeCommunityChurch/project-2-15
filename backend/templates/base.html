@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1" name="viewport" />
+  <title>Project 2:15</title>
+  <link rel="icon" href="/favicon.c2499351.ico" type="image/x-icon" />
+  <style media="screen" type="text/css">
+    {% include "styles.css" %}
+  </style>
+  <script>
+    function toggleNav() {
+      const nav = document.getElementById("mobileNav");
+      if(nav.open) {
+        nav.close();
+      } else {
+        nav.show();
+      }
+    }
+  </script>
+</head>
+<body>
+  {% block content %}
+  {% endblock %}
+</body>
+</html>
+
