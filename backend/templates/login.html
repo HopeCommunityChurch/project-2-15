@@ -1,57 +1,66 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="Wn6-0a_gridContainer">
+<div id="loginContent">
 
-    <div class="Wn6-0a_leftColumn">
-       <div class="Wn6-0a_innerLeftColumn">
-          <a link="" href="/app/" class="active" aria-current="page">
-            <img alt="Logo" src="https://p215.church/p215.1b0f8d17.png">
-          </a>
-          <h1>Log In</h1>
-          <p>
-            Please enter your login credentials below to start using the admin console.
-          </p>
-          <form>
-             <label for="email">Email</label>
-             <input type="email" id="email" placeholder="example@example.com">
+  <div class="leftColumn">
+     <div class="innerLeftColumn">
+        <a link="" href="/app/" aria-current="page">
+          <img alt="Logo" src="https://p215.church/p215.1b0f8d17.png">
+        </a>
+        <h1>Log In</h1>
+        <p>
+          Please enter your login credentials below to start using the admin console.
+        </p>
+        <form >
+           <label for="email">Email</label>
+           <input type="email" id="email" placeholder="example@example.com">
 
-             <label for="password">Password</label>
-             <input id="password" type="password">
+           <label for="password">Password</label>
+           <input id="password" type="password">
 
-             <div class="Wn6-0a_formGroup">
-                <div>
-                  <label class="Wn6-0a_checkboxContainer">
-                    View Password
-                    <input type="checkbox" id="viewPassword">
-                    <span class="Wn6-0a_checkmark">
-                    </span>
-                  </label>
-                </div>
-                <a link="" href="/app/resetpassword" class="inactive">
-                  Forgot Password?
-                </a>
-             </div>
-             <p class="Wn6-0a_dontHaveAccount">
-               Don't have an account?
-               <a link="" href="/app/signup" class="inactive">
-                 Sign up
-               </a>
-             </p>
-             <button type="submit">Log In</button>
-          </form>
-       </div>
+           <div class="formGroup">
+              <div>
+                <label class="checkboxContainer">
+                  <input type="checkbox" class="custom" id="viewPassword" onchange="togglePassword()" />
+                  View Password
+                </label>
+              </div>
+              <a link="" href="/app/resetpassword">
+                Forgot Password?
+              </a>
+           </div>
+           <p class="dontHaveAccount">
+             Don't have an account?
+             <a link="" href="/app/signup">
+               Sign up
+             </a>
+           </p>
+           <button class="blue" type="submit">Log In</button>
+        </form>
+     </div>
+  </div>
+
+  <div class="rightColumn">
+    <div class="centeredDiv">
+       <h2>Making Bible Study Simpler than Ever!</h2>
+       <p>
+         Take the complexity out of Bible study and delve deeper
+         into the Word with others
+       </p>
+       <img src="https://p215.church/laptop-mockup.ce89d1ea.png">
     </div>
+  </div>
 
-    <div class="Wn6-0a_rightColumn">
-      <div class="Wn6-0a_centeredDiv">
-         <h2>Making Bible Study Simpler than Ever!</h2>
-         <p>
-           Take the complexity out of Bible study and delve deeper
-           into the Word with others
-         </p>
-         <img src="https://p215.church/laptop-mockup.ce89d1ea.png">
-      </div>
-    </div>
+  <script>
+    function togglePassword() {
+      const ps = document.getElementById("password");
+      if(ps.type === "password") {
+        ps.type = "input";
+      } else {
+        ps.type = "password";
+      }
+    }
+  </script>
 
-   </div>
+ </div>
 {% endblock %}

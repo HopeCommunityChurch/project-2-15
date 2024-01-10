@@ -2,7 +2,6 @@ body {
   position: relative;
   font-size: 15px;
   margin: 0px;
-  body: 0px;
 }
 
 * {
@@ -30,6 +29,7 @@ button {
   padding: 5px 13px;
   font-size: 14px;
   font-weight: 600;
+  transition: background-color .3s;
 }
 
 button.lightBlue {
@@ -38,9 +38,50 @@ button.lightBlue {
   border: 2px solid var(--blue-50);
 }
 
+button.lightBlue:hover {
+  background-color: var(--blue-50);
+}
+
 button.blue {
   color: white;
   background-color: var(--blue-100);
+}
+
+button.blue:hover {
+  background-color: #1888ff;
+}
+
+input[type="checkbox"].custom {
+  appearance: none;
+  border-radius: 4px;
+  width: 18px;
+  height: 18px;
+  position: relative;
+  display: inline-block;
+  color: #666;
+  cursor: pointer;
+  background-color: rgb(238, 238, 238);
+  vertical-align: middle;
+}
+
+label:hover input[type="checkbox"].custom:not(:checked) {
+  background-color: #ccc;
+}
+
+input[type="checkbox"].custom:checked {
+  background-color: #0057d1;
+}
+
+input[type="checkbox"].custom:checked::before {
+  content: "";
+  position: absolute;
+  border: 2px solid #fff;
+  border-width: 0 2px 2px 0;
+  width: 4px;
+  height: 9px;
+  top: 2px;
+  left: 6px;
+  transform: rotate(45deg);
 }
 
 h1 {
@@ -69,7 +110,7 @@ h3 {
   top: 0px;
 }
 
-#mainContent {
+#homeContent {
   margin-top: 30px;
 }
 
@@ -186,7 +227,7 @@ h3 {
 }
 
 
-#mainContent .section1 {
+#homeContent .section1 {
   grid-gap: 20px;
   grid-template-columns: 4fr 3fr;
   max-width: 1300px;
@@ -195,16 +236,16 @@ h3 {
   display: grid;
 }
 
-#mainContent .section1 .leftText h1 {
+#homeContent .section1 .leftText h1 {
   margin-bottom: 0;
   font-weight: 600;
 }
 
-#mainContent .section1 .leftText .description {
+#homeContent .section1 .leftText .description {
   font-size: 1.35em;
 }
 
-#mainContent .section1 .leftText .blueRoundedContainer {
+#homeContent .section1 .leftText .blueRoundedContainer {
   color: #fff;
   background: linear-gradient(40deg, #0057d1 0% 56%, #7ca8e7 100%);
   border-bottom-right-radius: 25px;
@@ -220,21 +261,152 @@ h3 {
   padding-left: 10px;
 }
 
-#mainContent .section1 .rightImage {
+#homeContent .section1 .rightImage {
   self-align: center;
 }
 
-#mainContent .section1 .rightImage img {
+#homeContent .section1 .rightImage img {
   max-width: 100%;
 }
 
 @media screen and (max-width: 1350px) {
-  #mainContent .section1 {
+  #homeContent .section1 {
     grid-template-columns: 1fr;
     max-width: 800px;
     padding: 0 25px;
   }
-  #mainContent .section1 .rightImage {
+  #homeContent .section1 .rightImage {
+    display: none;
+  }
+}
+
+#loginContent {
+  grid-template-columns: 450px 1fr;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  overflow: hidden;
+}
+
+#loginContent .leftColumn {
+  background-color: #f9f9fb;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  display: flex;
+}
+
+#loginContent .innerLeftColumn {
+  width: 85%;
+  max-width: 350px;
+}
+
+#loginContent .leftColumn a {
+  color: #0057d1;
+  text-decoration: none;
+}
+#loginContent .leftColumn img {
+  max-width: 200px;
+  margin-bottom: 20px;
+}
+
+#loginContent .leftColumn h1 {
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+#loginContent .leftColumn p {
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#loginContent .leftColumn form {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+}
+
+#loginContent .leftColumn label {
+  color: #666;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+#loginContent .leftColumn input[type="email"],
+#loginContent .leftColumn input[type="input"],
+#loginContent .leftColumn input[type="password"] {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  padding: 12px;
+  font-size: 14px;
+}
+
+#loginContent .leftColumn .formGroup {
+  color: #666;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+  font-size: 14px;
+  display: flex;
+}
+
+#loginContent .leftColumn .dontHaveAccount {
+  margin-left: auto;
+}
+
+#loginContent .leftColumn button {
+  padding: 12px;
+}
+
+#loginContent .rightColumn {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  background: linear-gradient(135deg, #0d7ae7 0%, #1fa5ff 58%)
+  , url("https://dev.p215.church/background-blue-circles.24972d13.png") 50%/cover no-repeat;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#loginContent .rightColumn .centeredDiv {
+  text-align: center;
+  width: 80%;
+  padding: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  color: white;
+}
+
+#loginContent .rightColumn .centeredDiv h2 {
+  max-width: 600px;
+  margin: auto auto 20px;
+  font-size: 40px;
+}
+
+#loginContent .rightColumn .centeredDiv p {
+  max-width: 500px;
+  margin: auto;
+  font-size: 18px;
+}
+
+#loginContent .rightColumn .centeredDiv img {
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  #loginContent {
+    grid-template-columns: 1fr;
+  }
+  #loginContent .rightColumn {
     display: none;
   }
 }
