@@ -122,7 +122,7 @@
                       installPhase = ''
                         mkdir -p $out/
                         mkdir -p $out/templates
-                        cp -r ${templatesPath} $out/templates/
+                        cp -r ${templatesPath}/* $out/templates/
                         cp -r ${backend}/bin/backend $out/
                       '';
                     };
