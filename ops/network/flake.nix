@@ -110,13 +110,29 @@
         systemd.services.backend =
           let backend = inputs.backend.packages.x86_64-linux.backend;
               migrationPath = ../../backend/migrations;
+              templatesPath = ../../backend/templates;
+              pkgs = import nixpkgs {};
+              backend-drv = pkgs.stdenv.mkDerivation {
+                      name = "backend-drv";
+                      src = ./.;
+                      buildInputs = [
+                        backend
+                        templatesPath
+                      ];
+                      installPhase = ''
+                        mkdir -p $out/
+                        mkdir -p $out/templates
+                        cp -r ${templatesPath} $out/templates/
+                        cp -r ${backend}/bin/backend $out/
+                      '';
+                    };
           in
             { description = "p215 backend";
               after = [ "network.target" ];
               wantedBy = [ "multi-user.target" ];
               serviceConfig = {
-                WorkingDirectory = "${backend}/bin/";
-                ExecStart = "${backend}/bin/backend +RTS -M1G -T";
+                WorkingDirectory = "${backend-drv}/";
+                ExecStart = "${{backend-drv}}/backend +RTS -M1G -T";
                 Restart = "always";
                 RestartSec = 3;
                 LimitNOFILE = 65536;
