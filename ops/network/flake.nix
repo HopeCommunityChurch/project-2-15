@@ -132,7 +132,7 @@
               wantedBy = [ "multi-user.target" ];
               serviceConfig = {
                 WorkingDirectory = "${backend-drv}/";
-                ExecStart = "${{backend-drv}}/backend +RTS -M1G -T";
+                ExecStart = "${backend-drv}/backend +RTS -M1G -T";
                 Restart = "always";
                 RestartSec = 3;
                 LimitNOFILE = 65536;
