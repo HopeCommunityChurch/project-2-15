@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="uuid-20808657-97fe-4b85-93e5-9ab5ba145a57" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+  <defs>
+    <style>
+      .uuid-78528f8a-92b9-46a7-971d-a4e5e87ee333 {
+        fill: #3b3e3d;
+        stroke-width: 0px;
+      }
+    </style>
+  </defs>
+  <rect id="uuid-e6cbb83e-ba26-43c2-8841-a9abbeb11f08" data-name="Rectangle 8156" class="uuid-78528f8a-92b9-46a7-971d-a4e5e87ee333" x=".5556" y="25.5556" width="28.8889" height="4.4444"/>
+  <rect id="uuid-0d67ce45-26e6-47fc-bce1-5de7ea54eeaa" data-name="Rectangle 8157" class="uuid-78528f8a-92b9-46a7-971d-a4e5e87ee333" x="12.7778" y="16.6667" width="16.6667" height="4.4444"/>
+  <rect id="uuid-ae179b36-bb0b-481f-b8a3-028dfe8202c9" data-name="Rectangle 8157" class="uuid-78528f8a-92b9-46a7-971d-a4e5e87ee333" x="12.7778" y="8.3081" width="16.6667" height="4.4444"/>
+  <rect id="uuid-ea71e469-ffd1-465e-ae0e-ab7d337295d9" data-name="Rectangle 8159" class="uuid-78528f8a-92b9-46a7-971d-a4e5e87ee333" x=".5556" width="28.8889" height="4.4444"/>
+  <polygon class="uuid-78528f8a-92b9-46a7-971d-a4e5e87ee333" points="7.2924 8.3081 7.2924 21.1111 .5556 14.3743 7.2924 8.3081"/>
+</svg>

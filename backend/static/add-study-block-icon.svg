@@ -1,0 +1,14 @@
+<svg id="add-study-block-icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24.292" height="23.292" viewBox="0 0 24.292 23.292">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_9011" data-name="Rectangle 9011" width="24.292" height="23.292" fill="#54585d"/>
+    </clipPath>
+  </defs>
+  <path id="Path_7882" data-name="Path 7882" d="M89.035,9.378V26.632l5.044-4.685V5.238Z" transform="translate(-69.787 -4.105)" fill="#54585d"/>
+  <path id="Path_7883" data-name="Path 7883" d="M10.9,0,5.31,3.97H22.272L27.108,0Z" transform="translate(-4.162 0)" fill="#54585d"/>
+  <g id="Group_10362" data-name="Group 10362">
+    <g id="Group_10361" data-name="Group 10361" clip-path="url(#clip-path)">
+      <path id="Path_7884" data-name="Path 7884" d="M17.518,26.361H0V43.955H17.518ZM14.131,36H10.124v4.007a1.086,1.086,0,1,1-2.172,0V36H3.946a1.086,1.086,0,0,1,0-2.172H7.952V29.824a1.086,1.086,0,0,1,2.172,0V33.83h4.007a1.086,1.086,0,1,1,0,2.172" transform="translate(0 -20.662)" fill="#54585d"/>
+    </g>
+  </g>
+</svg>

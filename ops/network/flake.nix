@@ -111,6 +111,7 @@
           let backend = inputs.backend.packages.x86_64-linux.backend;
               migrationPath = ../../backend/migrations;
               templatesPath = ../../backend/templates;
+              staticPath = ../../backend/static;
               pkgs = import nixpkgs {};
               backend-drv = pkgs.stdenv.mkDerivation {
                       name = "backend-drv";
@@ -123,6 +124,7 @@
                         mkdir -p $out/
                         mkdir -p $out/templates
                         cp -r ${templatesPath}/* $out/templates/
+                        cp -r ${staticPath}/* $out/static/
                         cp -r ${backend}/bin/backend $out/
                       '';
                     };
