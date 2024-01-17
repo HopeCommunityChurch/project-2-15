@@ -37,6 +37,7 @@ import           Test.QuickCheck.Instances            ()
 import           Text.Show                            (Show(..))
 
 import           Control.Lens                         (iso)
+import Web.Scotty.Trans (Parsable(..))
 
 -- $setup
 -- The code examples in this module require GHC's `OverloadedStrings`
@@ -77,6 +78,10 @@ comparePassword = runPassword
 
 instance Show Password where
   show _ = "**********"
+
+instance Parsable Password where
+  parseParam txt =
+    pure $ passwordFromText (toStrict txt)
 
 instance FromJSON Password where
   parseJSON (String str) =

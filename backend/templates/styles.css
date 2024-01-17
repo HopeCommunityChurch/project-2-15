@@ -402,6 +402,10 @@ h3 {
   width: 100%;
 }
 
+.errorText {
+  color: red;
+}
+
 @media (max-width: 1200px) {
   #loginContent {
     grid-template-columns: 1fr;

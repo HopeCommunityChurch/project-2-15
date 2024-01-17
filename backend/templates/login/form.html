@@ -1,0 +1,30 @@
+<form hx-post="{{base}}/login" hx-target="this" hx-swap="outerHTML" >
+  <label for="email">Email</label>
+  <input required type="email" name="email" value="{{email}}" placeholder="example@example.com">
+
+  <label for="password">Password</label>
+  <input required id="password" value="{{password}}" type="password" name="password" >
+
+  <div class="formGroup">
+    <div>
+      <label class="checkboxContainer">
+        <input type="checkbox" class="custom" id="viewPassword" onchange="togglePassword()" />
+        View Password
+      </label>
+    </div>
+    <a link="" href="{{base}}/resetpassword">
+       Forgot Password?
+     </a>
+  </div>
+  <p class="dontHaveAccount">
+    Don't have an account?
+    <a link="" href="{{base}}/signup">
+      Sign up
+    </a>
+  </p>
+  {% if wasCorrect == 'False' %}
+  <div class="errorText"> Email or password incorrect</div>
+  {% endif %}
+  <button class="blue" type="submit">Log In</button>
+</form>
+

@@ -9,7 +9,7 @@ import Data.HashMap.Strict qualified as HMap
 
 
 sampleContext :: HashMap Text Text
-sampleContext = fromList []
+sampleContext = fromList [("base", "/htmx")]
 
 getHome
   :: (MonadIO m, MonadLogger m)

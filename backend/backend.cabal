@@ -39,6 +39,7 @@ common buildDepends
     wai,
     wai-extra,
     wai-logger,
+    wai-middleware-static,
     openapi3,
     servant-openapi3,
     servant,
@@ -75,6 +76,8 @@ common buildDepends
     resourcet,
     scotty,
     directory,
+    http-types,
+
 
   default-extensions:
     OverloadedStrings,

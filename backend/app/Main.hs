@@ -11,6 +11,17 @@ import DbHelper qualified as Db
 import EnvFields (EnvType (..))
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp (run)
+import Network.Wai.Middleware.Static qualified as Static
+import Network.Wai.Middleware.Static (
+  addBase,
+  hasPrefix,
+  CachingStrategy(..),
+  cacheContainer,
+  initCaching,
+  defaultOptions,
+  unsafeStaticPolicyWithOptions,
+  noDots,
+ )
 import Network.Wai.Middleware.RequestLogger (
   logStdout,
   logStdoutDev,
@@ -27,6 +38,7 @@ import Web.Scotty.Trans qualified as Scotty
 import Network.Wai.Handler.Warp (Port)
 import Api.Htmx.Login qualified as Login
 import Api.Htmx.Home qualified as Home
+import Data.List qualified as List
 
 
 data DbInfo = MkDbInfo
@@ -118,7 +130,7 @@ main = do
                   (Proxy @Api.Api)
                   (Api.serverContext env)
                   (Api.server env)))
-        , runStdoutLoggingT scottyServer
+        , runReaderT (runStdoutLoggingT scottyServer) env
         ]
 
 scottyT
@@ -134,12 +146,19 @@ scottyT port action =
 scottyServer
   :: ( MonadUnliftIO m
      , MonadLogger m
+     , Db.MonadDb env m
      )
   => m ()
-scottyServer = scottyT 3001 $ do
-  Scotty.middleware logStdout
-  Scotty.get "/login" Login.getLogin
-  Scotty.get "/" Home.getHome
+scottyServer = do
+  caching <- liftIO $ initCaching PublicStaticCaching
+  scottyT 3001 $ do
+    Scotty.middleware logStdout
+    let options = defaultOptions { cacheContainer = caching }
+    let policy = Static.noDots <> Static.hasPrefix "/static/" <> Static.policy (Just . List.drop 1)
+    Scotty.middleware (unsafeStaticPolicyWithOptions options policy)
+    Scotty.get "/login" Login.getLogin
+    Scotty.post "/login" Login.login
+    Scotty.get "/" Home.getHome
 
 
 migrationOptions :: Mig.MigrationOptions

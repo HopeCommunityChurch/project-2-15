@@ -11,32 +11,7 @@
         <p>
           Please enter your login credentials below to start using the admin console.
         </p>
-        <form >
-           <label for="email">Email</label>
-           <input type="email" id="email" placeholder="example@example.com">
-
-           <label for="password">Password</label>
-           <input id="password" type="password">
-
-           <div class="formGroup">
-              <div>
-                <label class="checkboxContainer">
-                  <input type="checkbox" class="custom" id="viewPassword" onchange="togglePassword()" />
-                  View Password
-                </label>
-              </div>
-              <a link="" href="/app/resetpassword">
-                Forgot Password?
-              </a>
-           </div>
-           <p class="dontHaveAccount">
-             Don't have an account?
-             <a link="" href="/app/signup">
-               Sign up
-             </a>
-           </p>
-           <button class="blue" type="submit">Log In</button>
-        </form>
+        {% include "login/form.html" %}
      </div>
   </div>
 

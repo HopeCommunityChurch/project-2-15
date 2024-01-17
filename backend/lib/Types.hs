@@ -35,12 +35,14 @@ import Data.ByteString qualified as BS
 import Data.List ((!!))
 import Data.Text qualified as T
 import Servant.API (FromHttpApiData)
+import Web.Scotty.Trans (Parsable)
 
 newtype NewType p a = MkNewType a
   deriving (Generic)
   deriving newtype
     ( Show
     , Read
+    , Parsable
     , Hashable
     , Eq
     , Ord
