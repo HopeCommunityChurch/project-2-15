@@ -38,6 +38,7 @@ import Web.Scotty.Trans qualified as Scotty
 import Network.Wai.Handler.Warp (Port)
 import Api.Htmx.Login qualified as Login
 import Api.Htmx.Home qualified as Home
+import Api.Htmx.NotFound qualified as NotFound
 import Data.List qualified as List
 
 
@@ -159,6 +160,7 @@ scottyServer = do
     Scotty.get "/login" Login.getLogin
     Scotty.post "/login" Login.login
     Scotty.get "/" Home.getHome
+    Scotty.notFound NotFound.getHome
 
 
 migrationOptions :: Mig.MigrationOptions

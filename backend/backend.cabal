@@ -147,6 +147,7 @@ library
     Api.Htmx.Studies,
     Api.Htmx.Login,
     Api.Htmx.Home,
+    Api.Htmx.NotFound,
     Api.Htmx.Ginger,
     Password,
     SwaggerHelpers,

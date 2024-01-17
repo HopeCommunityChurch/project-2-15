@@ -86,11 +86,17 @@ input[type="checkbox"].custom:checked::before {
 
 h1 {
   font-size: clamp(2.5rem, 6vw + 1rem, 4rem);
+  margin: 0px;
+}
+
+h2 {
+  margin: 0px;
 }
 
 h3 {
   font-size: 1.8em;
   font-weight: bold;
+  margin: 0px;
 }
 
 #home-grid {
@@ -413,4 +419,70 @@ h3 {
   #loginContent .rightColumn {
     display: none;
   }
+}
+
+#notFoundContent {
+  background-color: #f5f5f5;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  display: flex;
+}
+
+#notFoundContent .container {
+  gap: 40px;
+  width: 95%;
+  max-width: 800px;
+  margin: auto;
+  display: flex;
+}
+
+@media (max-width: 750px) {
+  #notFoundContent .container {
+    flex-direction: column;
+    padding: 0 20px;
+  }
+}
+
+#notFoundContent h1 {
+  color: #2c2c2c;
+  font-size: 72px;
+  font-weight: 700;
+  margin: 0px;
+}
+
+#notFoundContent h2 {
+  color: #7a7a7a;
+  font-size: 24px;
+}
+
+#notFoundContent .returnHome {
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+#notFoundContent img {
+  width: 100%;
+  max-width: 300px;
+}
+
+#notFoundContent .block {
+  margin-top: 20px;
+}
+
+#notFoundContent .block p {
+  color: #5a5a5a;
+  font-size: 18px;
+}
+
+#notFoundContent menu {
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+}
+
+#notFoundContent menu li {
+  color: #5a5a5a;
+  font-size: 18px;
+  margin-right: 10px;
 }
