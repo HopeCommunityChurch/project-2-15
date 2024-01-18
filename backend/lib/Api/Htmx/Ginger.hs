@@ -4,6 +4,8 @@ import Prelude hiding ((**))
 import Text.Ginger
 import Relude (readFile)
 import System.Directory (doesFileExist)
+import Data.Default (def)
+import Data.HashMap.Strict qualified as HMap
 
 
 readFromTemplates
@@ -36,17 +38,16 @@ getFileFromTemplatesFolder sn = do
       pure Nothing
 
 
--- urlBase :: Text
--- urlBase = "/api/htmx"
+baseUrl :: IsString s => s
+baseUrl = "/htmx"
+
+baseContext :: HashMap Text (GVal m)
+baseContext = fromList [("base", baseUrl)]
 
 
--- type Url = Text
-
--- jsFileBs :: ByteString
--- jsFileBs =
---   $(makeRelativeToLocationPredicate (const True) "LocalTime.js" >>= embedFile)
-
-
+gvalHelper :: HashMap Text (GVal m) -> Text -> GVal m
+gvalHelper ctx varName =
+  fromMaybe def $ HMap.lookup varName ctx
 
 
 

@@ -3,13 +3,9 @@ module Api.Htmx.NotFound where
 import Prelude hiding ((**))
 import Text.Ginger
 import Text.Ginger.Html (htmlSource)
-import Api.Htmx.Ginger (readFromTemplates)
+import Api.Htmx.Ginger (readFromTemplates, baseContext, gvalHelper)
 import Web.Scotty.Trans hiding (scottyT)
-import Data.HashMap.Strict qualified as HMap
 
-
-sampleContext :: HashMap Text Text
-sampleContext = fromList [("base", "/htmx")]
 
 getHome
   :: (MonadIO m, MonadLogger m)
@@ -19,7 +15,7 @@ getHome = do
   result <- readFromTemplates "notFound.html"
   case result of
     Right template -> do
-      let content = makeContextHtml (toGVal . flip HMap.lookup sampleContext)
+      let content = makeContextHtml (gvalHelper baseContext)
       let h = runGinger content template
       html $ toLazy (htmlSource h)
     Left err -> html (show err)

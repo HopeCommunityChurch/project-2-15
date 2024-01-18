@@ -3,23 +3,24 @@ module Api.Htmx.Home where
 import Prelude hiding ((**))
 import Text.Ginger
 import Text.Ginger.Html (htmlSource)
-import Api.Htmx.Ginger (readFromTemplates)
+import Api.Htmx.Ginger (readFromTemplates, baseContext, gvalHelper)
 import Web.Scotty.Trans hiding (scottyT)
-import Data.HashMap.Strict qualified as HMap
+import Api.Htmx.AuthHelper (getUser)
+import DbHelper (MonadDb)
 
 
-sampleContext :: HashMap Text Text
-sampleContext = fromList [("base", "/htmx")]
 
 getHome
-  :: (MonadIO m, MonadLogger m)
+  :: (MonadDb env m, MonadLogger m)
   => ScottyError e
   => ActionT e m ()
 getHome = do
+  user <- getUser
+  logInfoSH user
   result <- readFromTemplates "home.html"
   case result of
     Right template -> do
-      let content = makeContextHtml (toGVal . flip HMap.lookup sampleContext)
+      let content = makeContextHtml (gvalHelper baseContext)
       let h = runGinger content template
       html $ toLazy (htmlSource h)
     Left err -> html (show err)

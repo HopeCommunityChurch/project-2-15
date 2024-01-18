@@ -5,6 +5,7 @@ module Api.Auth (
   server,
   authCookie,
   setCookie',
+  lookupSession,
   AuthUser (..),
   authCookieToken
 ) where

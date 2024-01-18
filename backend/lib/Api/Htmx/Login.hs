@@ -1,7 +1,7 @@
 module Api.Htmx.Login where
 
 import Api.Auth (setCookie')
-import Api.Htmx.Ginger (readFromTemplates)
+import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
 import Data.CaseInsensitive (original)
 import Data.HashMap.Strict qualified as HMap
 import Database qualified as Db
@@ -32,11 +32,6 @@ import Prelude hiding ((**))
 
 
 
-base :: Text
-base = "/htmx"
-
-sampleContext :: HashMap Text Text
-sampleContext = fromList [("base", base)]
 
 getLogin
   :: ( MonadIO m
@@ -48,7 +43,7 @@ getLogin = do
   result <- readFromTemplates "login.html"
   case result of
     Right template -> do
-      let content = makeContextHtml (toGVal . flip HMap.lookup sampleContext)
+      let content = makeContextHtml (gvalHelper baseContext)
       let h = runGinger content template
       html $ toLazy (htmlSource h)
     Left err -> html (show err)
@@ -82,12 +77,12 @@ loginForm email password = do
   result <- readFromTemplates "login/form.html"
   case result of
     Right template -> do
-      let context = sampleContext
-                    & HMap.insert "email" (original (unwrap email))
-                    & HMap.insert "password" password
+      let context = baseContext
+                    & HMap.insert "email" (toGVal (original (unwrap email)))
+                    & HMap.insert "password" (toGVal password)
                     & HMap.insert "wasCorrect" "False"
       logInfoSH context
-      let content = makeContextHtml (toGVal . flip HMap.lookup context)
+      let content = makeContextHtml (gvalHelper context)
       let h = runGinger content template
       html $ toLazy (htmlSource h)
     Left err -> html (show err)
@@ -107,7 +102,7 @@ login = do
     Just (userId, hash) -> do
       if comparePassword (passwordFromText password) hash
         then do
-          setHeader "HX-Redirect" (toLazy (base <> "/"))
+          setHeader "HX-Redirect" (toLazy (baseUrl <> "/studies"))
           cookie <- lift $ setCookie' userId
           let cookieTxt = toLazy (decodeUtf8 (Cookie.renderSetCookieBS cookie))
           setHeader "Set-Cookie" cookieTxt

@@ -48,7 +48,7 @@ button.blue {
 }
 
 button.blue:hover {
-  background-color: #1888ff;
+  background-color: var(--blue-75);
 }
 
 input[type="checkbox"].custom {
@@ -186,6 +186,7 @@ h3 {
 #header .menu li a {
   color: #000;
   text-decoration: none;
+  vertical-align: middle;
 }
 
 #header .buttons a {
@@ -203,8 +204,22 @@ h3 {
   transform: scale(.6);
 }
 
+#header .profileButton {
+  color: #333;
+  cursor: pointer;
+  background-color: #eee;
+  border-radius: 50%;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: 16px;
+  display: flex;
+  position: relative;
+}
+
 #mobileNav {
-  z-index: 2;
+  z-index: 1000;
   margin-right: 0px;
   position: fixed;
   background-color: #fff;
@@ -231,9 +246,6 @@ h3 {
 
 @media screen and (min-width: 764px) {
   #header .hamburger {
-    display: none;
-  }
-  #header .mobileNav {
     display: none;
   }
 }
@@ -490,4 +502,43 @@ h3 {
   color: #5a5a5a;
   font-size: 18px;
   margin-right: 10px;
+}
+
+
+#profileNav {
+  z-index: 1000;
+  margin-right: 10px;
+  position: fixed;
+  background-color: #fff;
+  border-radius: 10px;
+  border:none;
+  box-shadow: 0 2px 4px #0003;
+  padding: 14px 0;
+}
+
+#profileNav menu {
+  flex-direction: column;
+  list-style: none;
+  display: flex;
+  margin: 0px;
+  padding: 0px;
+}
+
+#profileNav menu li {
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+}
+
+#profileNav menu li a {
+  color: #6c6c6c;
+  text-decoration: none;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 8px 26px;
+}
+
+#profileNav menu li a:hover {
+  background-color: #f6f6f6;
 }

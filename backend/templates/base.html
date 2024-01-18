@@ -13,12 +13,20 @@
     {% include "styles.css" %}
   </style>
   <script>
-    function toggleNav() {
-      const nav = document.getElementById("mobileNav");
+    function toggleDialog(qs) {
+      const nav = document.querySelector(qs);
       if(nav.open) {
         nav.close();
       } else {
         nav.show();
+      }
+    }
+    function toggleModal(qs) {
+      const nav = document.querySelector(qs);
+      if(nav.open) {
+        nav.close();
+      } else {
+        nav.showModal();
       }
     }
   </script>

@@ -77,6 +77,7 @@ common buildDepends
     scotty,
     directory,
     http-types,
+    data-default,
 
 
   default-extensions:
@@ -149,6 +150,8 @@ library
     Api.Htmx.Home,
     Api.Htmx.NotFound,
     Api.Htmx.Ginger,
+    Api.Htmx.AuthHelper,
+    Api.Htmx.Server,
     Password,
     SwaggerHelpers,
     Orphans,
