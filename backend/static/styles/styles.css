@@ -241,10 +241,13 @@ h3 {
   #header .hamburger {
     display: none;
   }
+  .mobileShow {
+    display: none !important;
+  }
 }
 
 @media screen and (max-width: 765px) {
-  #header .mobileHidden {
+  .mobileHidden {
     display: none !important;
   }
 }
@@ -551,6 +554,7 @@ h3 {
   cursor: pointer;
   padding: 0;
   display: flex;
+  justify-content: center;
 }
 
 #profileNav menu li a {

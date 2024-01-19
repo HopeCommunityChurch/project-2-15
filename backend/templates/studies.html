@@ -19,7 +19,7 @@
       </a>
     </li>
     <li>
-      <button class="blue" onclick="toggleModal('#newStudy')">
+      <button class="blue mobileHidden" onclick="toggleModal('#newStudy')">
         + New Study
       </button>
     </li>
@@ -34,6 +34,11 @@
 
 <dialog id="profileNav">
   <menu>
+    <li class="mobileShow" style="padding-bottom: 5px;">
+      <button class="blue" onclick="toggleModal('#newStudy')">
+        + New Study
+      </button>
+    </li>
     <li>
       <a href="https://forms.gle/koJrP31Vh9TfvPcq7" target="_blank">
         Give Feedback
