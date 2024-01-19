@@ -35,12 +35,17 @@
               && event.clientX <= rect.left + rect.width);
           if (!isInDialog) {
             dialog.close();
-            dialog.removeEventListener('click', clickFunc);
           }
         };
+        const closeFunc = () => {
+          dialog.removeEventListener('click', clickFunc);
+          dialog.removeEventListener('close', closeFunc);
+        };
+        dialog.addEventListener('close', closeFunc) ;
         dialog.addEventListener('click', clickFunc);
       }
     }
+
   </script>
 </head>
 <body>
