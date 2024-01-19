@@ -1,8 +1,9 @@
 module Api.Htmx.Studies where
 
-import Data.Aeson qualified as Aeson
 import Api.Auth (setCookie')
+import Api.Htmx.AuthHelper (AuthUser)
 import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
+import Data.Aeson qualified as Aeson
 import Data.CaseInsensitive (original)
 import Data.HashMap.Strict qualified as HMap
 import Database qualified as Db
@@ -22,6 +23,7 @@ import Database.Beam (
   (>=.),
  )
 import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
+import Entity.Document qualified as Doc
 import Network.HTTP.Types.Status (status200)
 import Password (NewPassword, Password, PasswordHash, comparePassword, passwordFromText)
 import Text.Ginger
@@ -30,24 +32,25 @@ import Types qualified as T
 import Web.Cookie qualified as Cookie
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
-import Api.Htmx.AuthHelper (AuthUser)
 
 
 
 
 getStudies
-  :: ( MonadIO m
+  :: ( MonadDb env m
      , MonadLogger m
      )
   => ScottyError e
   => AuthUser
   -> ActionT e m ()
 getStudies user = do
+  docs <- lift $ Doc.getAllDocs user
   result <- readFromTemplates "studies.html"
   case result of
     Right template -> do
       let context = baseContext
                     & HMap.insert "user" (toGVal (Aeson.toJSON user))
+                    & HMap.insert "studies" (toGVal (Aeson.toJSON docs))
       let content = makeContextHtml (gvalHelper context)
       let h = runGinger content template
       html $ toLazy (htmlSource h)

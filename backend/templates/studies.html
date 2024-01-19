@@ -47,24 +47,35 @@
 
 <div id="studiesContent">
   <h1>My Studies</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Study Title</th>
-        <th>Group Study</th>
-        <th>Last Opened By Me</th>
-      </tr>
-    </thead>
-    <tbody>
-      <a href="{{base}}/study/uuid">
-        <tr>
-          <td>Test</td>
-          <td>test 2</td>
-          <td>test 3</td>
-        </tr>
+  <div class="table3">
+    <header>
+      Study Title
+    </header>
+    <header>
+      Group Study
+    </header>
+    <header>
+      Last Opened By Me
+    </header>
+    {% for study in studies %}
+      <a href="{{base}}/study/{{study.docId}}">
+        <div>
+          {{study.name}}
+        </div>
+        <div class="shareWith">
+          {% if study.groupStudyName %}
+            {{study.groupStudyName}}
+          {% else %}
+            Independent
+          {% endif %}
+        </div>
+        <div>
+          {{dateformat(study.updated, "%B %e, %Y")}}
+        </div>
       </a>
-    </tbody>
-  </table>
+    {% endfor %}
+  </div>
+
 </div>
 
 {% endblock %}
