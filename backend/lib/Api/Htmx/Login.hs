@@ -1,28 +1,22 @@
 module Api.Htmx.Login where
 
-import Api.Auth (setCookie', deleteCookie)
+import Api.Auth (deleteCookie, setCookie')
 import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
 import Data.CaseInsensitive (original)
 import Data.HashMap.Strict qualified as HMap
+import Data.List qualified as L
 import Database qualified as Db
 import Database.Beam (
   all_,
   guard_,
-  insert,
-  insertValues,
-  runInsert,
   runSelectReturningOne,
-  runUpdate,
   select,
-  update,
   val_,
-  (<-.),
   (==.),
-  (>=.),
  )
-import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
+import DbHelper (MonadDb, runBeam)
 import Network.HTTP.Types.Status (status200, status302)
-import Password (NewPassword, Password, PasswordHash, comparePassword, passwordFromText)
+import Password (PasswordHash, comparePassword, passwordFromText)
 import Text.Ginger
 import Text.Ginger.Html (htmlSource)
 import Types qualified as T
@@ -41,9 +35,12 @@ getLogin
   => ActionT e m ()
 getLogin = do
   result <- readFromTemplates "login.html"
+  mRedirect <- L.lookup "redirect" <$> params
   case result of
     Right template -> do
-      let content = makeContextHtml (gvalHelper baseContext)
+      let context = baseContext
+                    & HMap.insert "redirect" (toGVal mRedirect)
+      let content = makeContextHtml (gvalHelper context)
       let h = runGinger content template
       html $ toLazy (htmlSource h)
     Left err -> html (show err)
@@ -97,12 +94,16 @@ login
 login = do
   email <- param "email"
   password <- param "password"
+  mRedirect <- L.lookup "redirect" <$> params
   mHash <- lift $ getPasswordHash email
   case mHash of
     Just (userId, hash) -> do
       if comparePassword (passwordFromText password) hash
         then do
-          setHeader "HX-Redirect" (toLazy (baseUrl <> "/studies"))
+          let url = case mRedirect of
+                      Just re -> re
+                      Nothing  -> baseUrl <> "/studies"
+          setHeader "HX-Redirect" url
           cookie <- lift $ setCookie' userId
           let cookieTxt = toLazy (decodeUtf8 (Cookie.renderSetCookieBS cookie))
           setHeader "Set-Cookie" cookieTxt

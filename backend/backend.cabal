@@ -80,6 +80,7 @@ common buildDepends
     data-default,
     mime-types,
     filepath,
+    uri-encode,
 
 
 

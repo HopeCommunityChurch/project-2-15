@@ -13,6 +13,8 @@ import Web.Cookie qualified as Cookie
 import Data.List qualified as List
 import Api.Htmx.Ginger (baseUrl)
 import Network.HTTP.Types.Status (status204, status302)
+import Network.URI.Encode (encodeText)
+import Network.Wai qualified as Wai
 
 
 
@@ -46,9 +48,11 @@ getUserWithRedirect = do
       let url = baseUrl <> "/login"
       if isJust mIsHTMX
         then do
-          setHeader "HX-Redirect" (toLazy url)
+          Just currentUrl <- header "HX-Current-Url"
+          setHeader "HX-Redirect" (toLazy (url <> "?redirect=" <> encodeText (toStrict currentUrl)))
           raiseStatus status204 (stringError "redirect")
         else do
-          setHeader "Location" (toLazy url)
+          req <- request
+          let path :: Text = baseUrl <> decodeUtf8 (Wai.rawPathInfo req)
+          setHeader "Location" (toLazy (url <> "?redirect=" <> encodeText path))
           raiseStatus status302 (stringError "redirect")
-
