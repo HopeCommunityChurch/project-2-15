@@ -22,6 +22,7 @@ import Network.Wai.Middleware.Static (
 import Network.Wai.Middleware.Static qualified as Static
 import Web.Scotty.Trans qualified as Scotty
 import Api.Htmx.AuthHelper (getUser, getUserWithRedirect)
+import Api.Htmx.Ginger (baseUrl)
 
 
 scottyT
@@ -53,7 +54,11 @@ scottyServer = do
     let options = Static.defaultOptions { cacheContainer = caching }
     let policy = Static.noDots <> Static.hasPrefix "/static/" <> Static.policy (Just . List.drop 1)
     Scotty.middleware (unsafeStaticPolicyWithOptions options policy)
-    Scotty.get "/login" Login.getLogin
+    Scotty.get "/login" $ do
+      mUser <- getUser
+      case mUser of
+        Nothing -> Login.getLogin
+        Just _ -> Scotty.redirect $ baseUrl <> "/studies"
     Scotty.post "/login" Login.login
     Scotty.get "/signout" Login.signout
     Scotty.get "/studies" $ do
