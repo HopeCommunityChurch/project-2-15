@@ -24,8 +24,8 @@
   </menu>
 
   <div class="buttons">
-    <button class="profileButton" onclick="toggleDialog('#profileNav')">
-      JO
+    <button class="profileButton" onclick="toggleModal('#profileNav')">
+      {{user.nameShort}}
     </button>
   </div>
 </header>
@@ -45,34 +45,26 @@
   </menu>
 </dialog>
 
-<div id="homeContent">
-  <div class="section1">
-    <div class="leftText">
-      <h1>Making Bible <br>Study Simple!</h1>
-      <p class="description">
-        Take the complexity out of Bible study and delve deeper into the Word with others
-      </p>
-      <div class="blueRoundedContainer">
-        <div>
-          <h3>Intuitive Study Tools</h3>
-          <p>Unlock the treasures of God’s word</p>
-        </div>
-        <div>
-          <a href="{{base}}/signup">
-            <button class="buttonContainer">
-              BEGIN YOUR JOURNEY
-              <img src="/arrow-icon.f6457c48.svg?1704758697116">
-            </button>
-          </a>
-        </div>
-      </div>
-    </div>
-    <div class="rightImage">
-      <img src="/book-face-girl.7444da22.jpg?1704758697116">
-    </div>
-  </div>
-
-
+<div id="studiesContent">
+  <h1>My Studies</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Study Title</th>
+        <th>Group Study</th>
+        <th>Last Opened By Me</th>
+      </tr>
+    </thead>
+    <tbody>
+      <a href="{{base}}/study/uuid">
+        <tr>
+          <td>Test</td>
+          <td>test 2</td>
+          <td>test 3</td>
+        </tr>
+      </a>
+    </tbody>
+  </table>
 </div>
 
 {% endblock %}

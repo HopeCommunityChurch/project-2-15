@@ -1,5 +1,6 @@
 module Api.Htmx.Studies where
 
+import Data.Aeson qualified as Aeson
 import Api.Auth (setCookie')
 import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
 import Data.CaseInsensitive (original)
@@ -45,7 +46,9 @@ getStudies user = do
   result <- readFromTemplates "studies.html"
   case result of
     Right template -> do
-      let content = makeContextHtml (gvalHelper baseContext)
+      let context = baseContext
+                    & HMap.insert "user" (toGVal (Aeson.toJSON user))
+      let content = makeContextHtml (gvalHelper context)
       let h = runGinger content template
       html $ toLazy (htmlSource h)
     Left err -> html (show err)

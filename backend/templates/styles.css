@@ -504,9 +504,12 @@ h3 {
   margin-right: 10px;
 }
 
+#profileNav::backdrop {
+}
 
 #profileNav {
   z-index: 1000;
+  margin-top: 50px;
   margin-right: 10px;
   position: fixed;
   background-color: #fff;
@@ -541,4 +544,41 @@ h3 {
 
 #profileNav menu li a:hover {
   background-color: #f6f6f6;
+}
+
+#studiesContent {
+  width: 95%;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+#studiesContent h1 {
+  font-size: 27px;
+}
+
+#studiesContent table {
+  color: #1d1e21;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  width: 100%;
+}
+
+#studiesContent th {
+  text-align: left;
+}
+
+#studiesContent tbody tr {
+  cursor: pointer;
+  border-radius: 9px;
+  transition: background-color .3s;
+  box-shadow: 0 4px 7px 1px #00000012;
+}
+
+#studiesContent tbody tr:hover {
+  background-color: #eef5ff;
+  border-radius: 9px;
+}
+
+#studiesContent tbody tr td {
+  padding: 10px;
 }

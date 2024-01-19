@@ -22,11 +22,24 @@
       }
     }
     function toggleModal(qs) {
-      const nav = document.querySelector(qs);
-      if(nav.open) {
-        nav.close();
+      const dialog = document.querySelector(qs);
+      if(dialog.open) {
+        dialog.close();
       } else {
-        nav.showModal();
+        dialog.showModal();
+        const clickFunc = (ev) => {
+          var rect = dialog.getBoundingClientRect();
+          var isInDialog =
+            (rect.top <= event.clientY
+              && event.clientY <= rect.top + rect.height
+              && rect.left <= event.clientX
+              && event.clientX <= rect.left + rect.width);
+          if (!isInDialog) {
+            dialog.close();
+            dialog.removeEventListener('click', clickFunc);
+          }
+        };
+        dialog.addEventListener('click', clickFunc);
       }
     }
   </script>

@@ -12,12 +12,14 @@ import Database.Beam (
  )
 import Entity qualified as E
 import Types qualified as T
+import Data.Text qualified as T
 
 
 data AuthUser = MkAuthUser
   { userId :: T.UserId
   , email :: T.Email
   , name :: Text
+  , nameShort :: Text
   , isElder :: Bool
   , churchId :: T.ChurchId
   }
@@ -46,6 +48,7 @@ instance E.Entity AuthUser where
       userId
       email
       name
+      (T.toUpper (T.take 2 name))
       isElder
       churchId
 
