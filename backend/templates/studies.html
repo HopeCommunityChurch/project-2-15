@@ -19,7 +19,9 @@
       </a>
     </li>
     <li>
-      <button class="blue">+ New Study</button>
+      <button class="blue" onclick="toggleModal('#newStudy')">
+        + New Study
+      </button>
     </li>
   </menu>
 
@@ -77,5 +79,21 @@
   </div>
 
 </div>
+
+<dialog id="newStudy">
+  <h3>Create New Study</h3>
+  <img alt="Close Modal" src="https://dev.p215.church/x.05b097ba.svg" class="closeModalIcon" onclick="toggleModal('#newStudy')">
+  <form>
+    <label for="studyTitle">Title</label>
+    <input type="text" required name="studyTitle" placeholder="New Title...">
+    <p class="fieldDescription">
+      Ex: "<em>Romans January 2024 Study</em>"
+      or "<em>Wednesday Night Colossians Study</em>"
+    </p>
+    <button type="submit" class="blue">
+      Create
+    </button>
+  </form>
+</dialog>
 
 {% endblock %}
