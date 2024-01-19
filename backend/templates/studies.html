@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <header id="header">
-  <img src="/P215.ff715267.png?1704758697116" class="logo">
+  <img src="{{base}}/static/img/p215.png" class="logo">
   <menu class="menu">
     <li class="mobileHidden">
       <a href="https://experiencethehope.com/teaching" target="_blank">
@@ -82,7 +82,7 @@
 
 <dialog id="newStudy">
   <h3>Create New Study</h3>
-  <img alt="Close Modal" src="https://dev.p215.church/x.05b097ba.svg" class="closeModalIcon" onclick="toggleModal('#newStudy')">
+  <img alt="Close Modal" src="{{base}}/static/img/x.svg" class="closeModalIcon" onclick="toggleModal('#newStudy')">
   <form>
     <label for="studyTitle">Title</label>
     <input type="text" required name="studyTitle" placeholder="New Title...">
