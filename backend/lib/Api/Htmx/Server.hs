@@ -21,7 +21,7 @@ import Network.Wai.Middleware.Static (
  )
 import Network.Wai.Middleware.Static qualified as Static
 import Web.Scotty.Trans qualified as Scotty
-import Api.Htmx.AuthHelper (AuthUser, getUserWithRedirect)
+import Api.Htmx.AuthHelper (getUser, getUserWithRedirect)
 
 
 scottyT
@@ -59,5 +59,9 @@ scottyServer = do
     Scotty.get "/studies" $ do
       user <- getUserWithRedirect
       Studies.getStudies user
-    Scotty.get "/" Home.getHome
+    Scotty.get "/" $ do
+      mUser <- getUser
+      case mUser of
+        Nothing -> Home.getHome
+        Just user -> Studies.getStudies user
     Scotty.notFound NotFound.getHome
