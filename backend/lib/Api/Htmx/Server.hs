@@ -55,6 +55,7 @@ scottyServer = do
     Scotty.middleware (unsafeStaticPolicyWithOptions options policy)
     Scotty.get "/login" Login.getLogin
     Scotty.post "/login" Login.login
+    Scotty.get "/signout" Login.signout
     Scotty.get "/studies" $ do
       user <- getUserWithRedirect
       Studies.getStudies user

@@ -5,6 +5,7 @@ module Api.Auth (
   server,
   authCookie,
   setCookie',
+  deleteCookie,
   lookupSession,
   AuthUser (..),
   authCookieToken
@@ -245,26 +246,31 @@ setCookie userId = do
   pure $ addHeader setCookie' ()
 
 
-setCookieDelete
-  :: MonadDb env m
-  => m (CookieHeader ())
-setCookieDelete = do
+deleteCookie :: MonadDb env m => m Cookie.SetCookie
+deleteCookie = do
   envType <- asks (.envType)
   now <- getCurrentTime
   let shouldBeSeure =
         case envType of
           Dev "local" -> False
           _ -> True
-  let setCookie' = Cookie.defaultSetCookie
-                  { Cookie.setCookieName = "p215-auth"
-                  , Cookie.setCookieValue = "deleted"
-                  , Cookie.setCookieExpires = Just now
-                  , Cookie.setCookieHttpOnly = True
-                  , Cookie.setCookieSecure = shouldBeSeure
-                  , Cookie.setCookieSameSite = Just Cookie.sameSiteStrict
-                  , Cookie.setCookiePath = Just "/"
-                  }
-  pure $ addHeader setCookie' ()
+  pure $ Cookie.defaultSetCookie
+    { Cookie.setCookieName = "p215-auth"
+    , Cookie.setCookieValue = "deleted"
+    , Cookie.setCookieExpires = Just now
+    , Cookie.setCookieHttpOnly = True
+    , Cookie.setCookieSecure = shouldBeSeure
+    , Cookie.setCookieSameSite = Just Cookie.sameSiteStrict
+    , Cookie.setCookiePath = Just "/"
+    }
+
+
+setCookieDelete
+  :: MonadDb env m
+  => m (CookieHeader ())
+setCookieDelete = do
+  dCookie <- deleteCookie
+  pure $ addHeader dCookie ()
 
 
 passwordLogin

@@ -1,6 +1,6 @@
 module Api.Htmx.Login where
 
-import Api.Auth (setCookie')
+import Api.Auth (setCookie', deleteCookie)
 import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
 import Data.CaseInsensitive (original)
 import Data.HashMap.Strict qualified as HMap
@@ -21,7 +21,7 @@ import Database.Beam (
   (>=.),
  )
 import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
-import Network.HTTP.Types.Status (status200)
+import Network.HTTP.Types.Status (status200, status302)
 import Password (NewPassword, Password, PasswordHash, comparePassword, passwordFromText)
 import Text.Ginger
 import Text.Ginger.Html (htmlSource)
@@ -110,3 +110,17 @@ login = do
 
         else loginForm email password
     _ -> loginForm email password
+
+
+signout
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => ScottyError e
+  => ActionT e m ()
+signout = do
+  setHeader "Location" (toLazy (baseUrl <> "/"))
+  cookie <- lift deleteCookie
+  let cookieTxt = toLazy (decodeUtf8 (Cookie.renderSetCookieBS cookie))
+  setHeader "Set-Cookie" cookieTxt
+  status status302
