@@ -78,6 +78,9 @@ common buildDepends
     directory,
     http-types,
     data-default,
+    mime-types,
+    filepath,
+
 
 
   default-extensions:

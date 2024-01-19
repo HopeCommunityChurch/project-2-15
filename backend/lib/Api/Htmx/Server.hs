@@ -51,9 +51,11 @@ scottyServer = do
   env <- ask
   scottyT 3001 $ do
     Scotty.middleware (logMiddle env.envType)
+
     let options = Static.defaultOptions { cacheContainer = caching }
-    let policy = Static.noDots <> Static.hasPrefix "/static/" <> Static.policy (Just . List.drop 1)
+    let policy = Static.noDots <> Static.hasPrefix "static/"
     Scotty.middleware (unsafeStaticPolicyWithOptions options policy)
+
     Scotty.get "/login" $ do
       mUser <- getUser
       case mUser of
