@@ -237,6 +237,18 @@ h3 {
   position: relative;
 }
 
+@media screen and (min-width: 765px) {
+  #header .hamburger {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 765px) {
+  #header .mobileHidden {
+    display: none !important;
+  }
+}
+
 #mobileNav {
   z-index: 1000;
   margin-right: 0px;
@@ -263,20 +275,6 @@ h3 {
   text-decoration: none;
 }
 
-@media screen and (min-width: 764px) {
-  #header .hamburger {
-    display: none;
-  }
-}
-
-@media screen and (max-width: 765px) {
-  #header .menu {
-    display: none;
-  }
-  #header .buttons {
-    display: none;
-  }
-}
 
 
 #homeContent .section1 {
