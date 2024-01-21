@@ -1632,8 +1632,6 @@ export class P215Editor {
     }
   }
 
-
-
   getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
     getCurrentTextAndHighlightColors(this.view.state, setHighlightFillColor, setTextFillColor);
   }

@@ -188,9 +188,9 @@ function ToolbarGroup1({ editor, operatingSystem } : ToolbarGroup1Props ) {
   const [colorPickerPosition, setColorPickerPosition] = createSignal({ x: 0, y: 0 });
 
   // For some reason, doesn't deteck marks on qNode.editor??
-  // activeEditor().onUpdate(() => {
-  //   activeEditor().getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor);
-  // });
+  editor.onUpdate(() => {
+    editor.getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor);
+  });
 
   const [highlightColorPickerPosition, setHighlightColorPickerPosition] = createSignal({
     x: 0,
