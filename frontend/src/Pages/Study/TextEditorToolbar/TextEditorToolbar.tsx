@@ -25,12 +25,16 @@ import { getBiblePassge } from "./validateAndFetchVerses";
 import { match } from "ts-pattern";
 import AddStudyBlockIcon from "../../../Assets/add-study-block-icon.svg";
 import { GroupStudyRaw } from "Types";
+import { undo, redo, history } from "prosemirror-history";
+
+
+import * as EActions from "Editor/editorUtils";
+
 
 type Props = {
   editor: Editor.P215Editor;
   isTopbarOpen: () => boolean;
   setTopbarOpen: (arg: boolean) => void;
-  activeEditor: any;
   isSplitScreen: () => boolean;
   setSplitScreen: (arg: boolean) => void;
   groupStudy?: GroupStudyRaw;
@@ -40,7 +44,6 @@ export function TextEditorToolbar({
   editor,
   isTopbarOpen,
   setTopbarOpen,
-  activeEditor,
   isSplitScreen,
   setSplitScreen,
   groupStudy,
@@ -85,7 +88,7 @@ export function TextEditorToolbar({
             class={classes.toolbarIcon}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().undo();
+              editor.applyDispatch(undo)
             }}
           />{" "}
           <span class={classes.tooltipText}>Undo</span>
@@ -97,28 +100,25 @@ export function TextEditorToolbar({
             class={classes.toolbarIcon}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().redo();
+              editor.applyDispatch(redo)
             }}
           />{" "}
           <span class={classes.tooltipText}>Redo</span>
         </div>
 
         <div class={classes.seperator} />
-        <Show when={activeEditor()}>
-          <ToolbarGroup1 activeEditor={activeEditor} operatingSystem={operatingSystem} />
-          <ToolbarGroup3
-            activeEditor={activeEditor}
-            editor={editor}
-            operatingSystem={operatingSystem}
-          />
-          <ToolbarGroup4 activeEditor={activeEditor} operatingSystem={operatingSystem} />
-          {groupStudy == null ? (
-            <></>
-          ) : (
-            <ToolbarGroup5 isSplitScreen={isSplitScreen} setSplitScreen={setSplitScreen} />
-          )}
-          <ClearFormattingSection activeEditor={activeEditor} />
-        </Show>
+        <ToolbarGroup1 editor={editor} operatingSystem={operatingSystem} />
+        <ToolbarGroup3
+          editor={editor}
+          operatingSystem={operatingSystem}
+        />
+        <ToolbarGroup4 editor={editor} operatingSystem={operatingSystem} />
+        {groupStudy == null ? (
+          <></>
+        ) : (
+          <ToolbarGroup5 isSplitScreen={isSplitScreen} setSplitScreen={setSplitScreen} />
+        )}
+        <ClearFormattingSection editor={editor} operatingSystem={operatingSystem} />
 
         <div class={classes.extendedMenuContainer}>
           <img
@@ -131,21 +131,18 @@ export function TextEditorToolbar({
           {/* Conditionally show extended toolbar */}
           <Show when={showExtendedToolbar()}>
             <div class={classes.extendedToolbar}>
-              <Show when={activeEditor()}>
-                <ToolbarGroup1 activeEditor={activeEditor} operatingSystem={operatingSystem} />
-                <ToolbarGroup3
-                  activeEditor={activeEditor}
-                  editor={editor}
-                  operatingSystem={operatingSystem}
-                />
-                <ToolbarGroup4 activeEditor={activeEditor} operatingSystem={operatingSystem} />
-                {groupStudy == null ? (
-                  <></>
-                ) : (
-                  <ToolbarGroup5 isSplitScreen={isSplitScreen} setSplitScreen={setSplitScreen} />
-                )}
-                <ClearFormattingSection activeEditor={activeEditor} />
-              </Show>
+            <ToolbarGroup1 editor={editor} operatingSystem={operatingSystem} />
+            <ToolbarGroup3
+              editor={editor}
+              operatingSystem={operatingSystem}
+            />
+            <ToolbarGroup4 editor={editor} operatingSystem={operatingSystem} />
+            {groupStudy == null ? (
+              <></>
+            ) : (
+              <ToolbarGroup5 isSplitScreen={isSplitScreen} setSplitScreen={setSplitScreen} />
+            )}
+            <ClearFormattingSection editor={editor} operatingSystem={operatingSystem} />
             </div>
           </Show>
         </div>
@@ -161,7 +158,7 @@ export function TextEditorToolbar({
   );
 }
 
-function ClearFormattingSection({ activeEditor }) {
+function ClearFormattingSection({ editor } : ToolbarGroup1Props) {
   return (
     <div class={`${classes.tooltipContainer} ${classes.clearFormattingContainer}`}>
       <img
@@ -169,11 +166,7 @@ function ClearFormattingSection({ activeEditor }) {
         class={`${classes.toolbarIcon} ${classes.clearFormatting}`}
         onClick={(e) => {
           e.preventDefault();
-          if (activeEditor()) {
-            activeEditor().clearFormatting();
-          } else {
-            console.error("Editor is null");
-          }
+          editor.applyDispatch(EActions.clearFormatting);
         }}
       />
       <span class={classes.tooltipText}>Clear Formatting</span>
@@ -181,7 +174,12 @@ function ClearFormattingSection({ activeEditor }) {
   );
 }
 
-function ToolbarGroup1({ activeEditor, operatingSystem }) {
+type ToolbarGroup1Props = {
+  editor: Editor.P215Editor;
+  operatingSystem : () => String;
+};
+
+function ToolbarGroup1({ editor, operatingSystem } : ToolbarGroup1Props ) {
   const [showColorPickerPopup, setShowColorPickerPopup] = createSignal(false);
   const [showHighlightColorPickerPopup, setShowHighlightColorPickerPopup] = createSignal(false);
   const [highlightFillColor, setHighlightFillColor] = createSignal("#54585D");
@@ -190,9 +188,9 @@ function ToolbarGroup1({ activeEditor, operatingSystem }) {
   const [colorPickerPosition, setColorPickerPosition] = createSignal({ x: 0, y: 0 });
 
   // For some reason, doesn't deteck marks on qNode.editor??
-  activeEditor().onUpdate(() => {
-    activeEditor().getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor);
-  });
+  // activeEditor().onUpdate(() => {
+  //   activeEditor().getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor);
+  // });
 
   const [highlightColorPickerPosition, setHighlightColorPickerPosition] = createSignal({
     x: 0,
@@ -255,7 +253,7 @@ function ToolbarGroup1({ activeEditor, operatingSystem }) {
           class={classes.toolbarIcon}
           onClick={(e) => {
             e.preventDefault();
-            activeEditor().toggleBold();
+            editor.applyDispatch(EActions.toggleBold)
           }}
         />{" "}
         <span class={classes.tooltipText}>
@@ -269,7 +267,7 @@ function ToolbarGroup1({ activeEditor, operatingSystem }) {
           class={classes.toolbarIcon}
           onClick={(e) => {
             e.preventDefault();
-            activeEditor().toggleItalic();
+            editor.applyDispatch(EActions.toggleItalic);
           }}
         />
         <span class={classes.tooltipText}>
@@ -283,7 +281,7 @@ function ToolbarGroup1({ activeEditor, operatingSystem }) {
           class={classes.toolbarIcon}
           onClick={(e) => {
             e.preventDefault();
-            activeEditor().toggleUnderline();
+            editor.applyDispatch(EActions.toggleUnderline);
           }}
         />{" "}
         <span class={classes.tooltipText}>
@@ -322,56 +320,56 @@ function ToolbarGroup1({ activeEditor, operatingSystem }) {
             class={classes.black}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setTextColor("#000");
+              editor.applyDispatch(EActions.setTextColor("#000"))
             }}
           ></div>
           <div
             class={classes.gray}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setTextColor("#91A4B1");
+              editor.applyDispatch(EActions.setTextColor("#91A4B1"))
             }}
           ></div>
           <div
             class={classes.brown}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setTextColor("#8B4E35");
+              editor.applyDispatch(EActions.setTextColor("#8B4E35"))
             }}
           ></div>
           <div
             class={classes.red}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setTextColor("#F13A35");
+              editor.applyDispatch(EActions.setTextColor("#F13A35"))
             }}
           ></div>
           <div
             class={classes.orange}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setTextColor("#EB732E");
+              editor.applyDispatch(EActions.setTextColor("#EB732E"))
             }}
           ></div>
           <div
             class={classes.yellow}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setTextColor("#F8AC2B");
+              editor.applyDispatch(EActions.setTextColor("#F8AC2B"))
             }}
           ></div>
           <div
             class={classes.green}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setTextColor("#00A55B");
+              editor.applyDispatch(EActions.setTextColor("#00A55B"))
             }}
           ></div>
           <div
             class={classes.blue}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setTextColor("#2D78ED");
+              editor.applyDispatch(EActions.setTextColor("#2D78ED"))
             }}
           ></div>
         </div>
@@ -406,56 +404,56 @@ function ToolbarGroup1({ activeEditor, operatingSystem }) {
             class={classes.empty}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().removeHighlightColor();
+              editor.applyDispatch(EActions.removeHighlightColor)
             }}
           ></div>
           <div
             class={classes.brown}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setHighlightColor("#EBDED9");
+              editor.applyDispatch(EActions.setHighlightColor("#EBDED9"))
             }}
           ></div>
           <div
             class={classes.red}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setHighlightColor("#FDDAD8");
+              editor.applyDispatch(EActions.setHighlightColor("#FDDAD8"))
             }}
           ></div>
           <div
             class={classes.orange}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setHighlightColor("#FCE6D6");
+              editor.applyDispatch(EActions.setHighlightColor("#FCE6D6"))
             }}
           ></div>
           <div
             class={classes.yellow}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setHighlightColor("#FDF4D2");
+              editor.applyDispatch(EActions.setHighlightColor("#FDF4D2"))
             }}
           ></div>
           <div
             class={classes.green}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setHighlightColor("#D2EFE0");
+              editor.applyDispatch(EActions.setHighlightColor("#D2EFE0"))
             }}
           ></div>
           <div
             class={classes.blue}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setHighlightColor("#C6E6FD");
+              editor.applyDispatch(EActions.setHighlightColor("#C6E6FD"))
             }}
           ></div>
           <div
             class={classes.purple}
             onClick={(e) => {
               e.preventDefault();
-              activeEditor().setHighlightColor("#EFDEEC");
+              editor.applyDispatch(EActions.setHighlightColor("#EFDEEC"))
             }}
           ></div>
         </div>
@@ -480,16 +478,16 @@ function ToolbarGroup2({ editor, operatingSystem }) {
     </div>
   );
 }
-function ToolbarGroup3({ editor, activeEditor, operatingSystem }) {
+function ToolbarGroup3({ editor, operatingSystem } : ToolbarGroup1Props) {
   const [isQuestionPopupEditor, setIsQuestionPopupEditor] = createSignal(false);
 
   createEffect(() => {
     try {
       // Attempt to access the property
-      const test = activeEditor().nodeViews.questionAnswer;
-      setIsQuestionPopupEditor(true); // No error, so it's a question popup editor
+      // const test = activeEditor().nodeViews.questionAnswer;
+      // setIsQuestionPopupEditor(true); // No error, so it's a question popup editor
     } catch (error) {
-      setIsQuestionPopupEditor(false); // Error occurred, not a question popup editor
+      // setIsQuestionPopupEditor(false); // Error occurred, not a question popup editor
     }
   });
 
@@ -541,7 +539,7 @@ function ToolbarGroup3({ editor, activeEditor, operatingSystem }) {
   );
 }
 
-function ToolbarGroup4({ activeEditor, operatingSystem }) {
+function ToolbarGroup4({ editor, operatingSystem } : ToolbarGroup1Props) {
   const [showAddScripturePopUp, setAddScripturePopUp] = createSignal(false);
   const [addScripturePopUpPosition, setAddScripturePopUpPosition] = createSignal({ x: 0, y: 0 });
   const [addScriptureText, setAddScriptureText] = createSignal("");
@@ -549,13 +547,13 @@ function ToolbarGroup4({ activeEditor, operatingSystem }) {
   const [isQuestionPopupEditor, setIsQuestionPopupEditor] = createSignal(false);
 
   createEffect(() => {
-    try {
-      // Attempt to access the property
-      const test = activeEditor().nodeViews.questionAnswer;
-      setIsQuestionPopupEditor(true); // No error, so it's a question popup editor
-    } catch (error) {
-      setIsQuestionPopupEditor(false); // Error occurred, not a question popup editor
-    }
+    // try {
+    //   // Attempt to access the property
+    //   const test = activeEditor().nodeViews.questionAnswer;
+    //   setIsQuestionPopupEditor(true); // No error, so it's a question popup editor
+    // } catch (error) {
+    //   setIsQuestionPopupEditor(false); // Error occurred, not a question popup editor
+    // }
   });
 
   const getCurrentSectionHeaderText = async (editor) => {
@@ -598,7 +596,7 @@ function ToolbarGroup4({ activeEditor, operatingSystem }) {
     }, 10);
 
     setTimeout(async () => {
-      const currentSectionHeader = await getCurrentSectionHeaderText(activeEditor());
+      const currentSectionHeader = await getCurrentSectionHeaderText(editor);
 
       // Set this text into the pop-up's input field
       setAddScriptureText(currentSectionHeader);
@@ -654,7 +652,7 @@ function ToolbarGroup4({ activeEditor, operatingSystem }) {
         setAddScriptureErrorMessage("");
         setAddScriptureText("");
         setAddScripturePopUp(false);
-        activeEditor().addVerse(body.canonical, body.passage);
+        editor.applyDispatch(EActions.addVerse(body.canonical, body.passage));
       })
       .exhaustive();
   };
@@ -662,7 +660,7 @@ function ToolbarGroup4({ activeEditor, operatingSystem }) {
   const addGeneralStudyBlock = (e: Event) => {
     e.preventDefault();
     e.stopPropagation();
-    activeEditor().addGeneralStudyBlock();
+    editor.applyDispatch(EActions.addGeneralStudyBlock);
   };
 
   return (
@@ -682,7 +680,7 @@ function ToolbarGroup4({ activeEditor, operatingSystem }) {
               class={`${classes.toolbarIcon}`}
               onClick={(e) => {
                 e.preventDefault();
-                activeEditor().addQuestion();
+                editor.addQuestion();
               }}
             />
             <span class={classes.tooltipText}>

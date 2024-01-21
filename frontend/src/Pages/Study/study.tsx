@@ -143,14 +143,10 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
     websocket.close();
   });
 
-  const [activeEditor, setActiveEditor] = createSignal(null);
-
   let editorRoot: HTMLDivElement;
   let editor: Editor.P215Editor = new Editor.P215Editor({
     initDoc: doc.document,
     editable: true,
-    activeEditor: activeEditor,
-    setActiveEditor: setActiveEditor,
     selectedStudyBlockArea: selectedStudyBlockArea,
     setSelectedStudyBlockArea: setSelectedStudyBlockArea,
     remoteThings: {
@@ -308,7 +304,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
 
   onMount(() => {
     editor.addEditor(editorRoot);
-    setActiveEditor(editor);
     const [documentThingy, setDocumentThingy] = createSignal(doc.document);
     createEffect(() => {
       updateSectionTitles(documentThingy());
@@ -395,7 +390,6 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
         setTopbarOpen={setTopbarOpen}
         isSplitScreen={isSplitScreen}
         setSplitScreen={setSplitScreen}
-        activeEditor={activeEditor}
         groupStudy={groupStudy}
       />
       <div
@@ -543,12 +537,9 @@ function SplitScreen(props: SplitProps) {
   createEffect(() => {
     const initData = props.initialData();
     if (initData == null) return;
-    const [activeEditor, setActiveEditor] = createSignal(null);
     let editor: Editor.P215Editor = new Editor.P215Editor({
       initDoc: initData,
       editable: false,
-      activeEditor: activeEditor,
-      setActiveEditor: setActiveEditor,
       selectedStudyBlockArea: null,
       setSelectedStudyBlockArea: null,
       remoteThings: null,
