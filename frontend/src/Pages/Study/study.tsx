@@ -36,6 +36,7 @@ import CloseXIcon from "Assets/x.svg";
 import SplitScreenIcon from "Assets/split-screen.png";
 import ArrowIcon from "Assets/arrow.svg";
 import CouldntSaveImage from "./couldnt-save-error-image.svg";
+import * as EActions from "Editor/editorUtils";
 
 // Network functions
 async function getStudy(documentId): Promise<Network.NetworkState<DocRaw>> {
@@ -276,7 +277,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
   };
 
   const addNewSection = () => {
-    editor.addSection();
+    editor.applyDispatch(EActions.addSection);
   };
 
   const updateSectionTitles = (doc) => {
@@ -325,7 +326,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
       const finalIdx = newItems.findIndex((item) => item.id === id);
       console.log(`Moved from index ${id} to ${finalIdx}`);
 
-      editor.moveSection(id, finalIdx);
+      editor.applyDispatch(EActions.moveSection(id, finalIdx));
       //TODO Jonny: add function to push update to editor
     }
 
@@ -462,7 +463,7 @@ function StudyLoggedIn(doc: DocRaw, currentUser: PublicUser, groupStudy?: GroupS
                       src={GrayTrashIcon}
                       onClick={async (e) => {
                         e.stopPropagation();
-                        editor.deleteSection(index);
+                        editor.applyDispatch(EActions.deleteSection(index));
                       }}
                       class={classes.deleteSectionIcon}
                     />

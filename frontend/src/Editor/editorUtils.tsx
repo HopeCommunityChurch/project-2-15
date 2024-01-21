@@ -7,17 +7,17 @@ import { v4 as uuidv4 } from "uuid";
 
 export const toggleBold = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   const markType = state.schema.marks.strong;
-  toggleMark(markType)(state, dispatch);
+  return toggleMark(markType)(state, dispatch);
 };
 
 export const toggleItalic = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   const markType = state.schema.marks.em;
-  toggleMark(markType)(state, dispatch);
+  return toggleMark(markType)(state, dispatch);
 };
 
 export const toggleUnderline = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   const markType = state.schema.marks.underline;
-  toggleMark(markType)(state, dispatch);
+  return toggleMark(markType)(state, dispatch);
 };
 
 export const clearFormatting = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
@@ -220,3 +220,165 @@ export const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transac
     return true;
   }
 };
+
+const nodeIsChunk = (node: Node) => {
+  if (node.type.name === "section") return true;
+  if (node.type.name === "bibleText") return true;
+  if (node.type.name != "chunk") return false;
+};
+
+
+export const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  let from = state.selection.from;
+  let to = state.selection.to;
+  let toTransform = [];
+  // Why is this stupid?
+  state.doc.nodesBetween(from, to, (node, pos) => {
+    const result = nodeIsChunk(node);
+    if (result === true) return true;
+    if (result === false) return false;
+    toTransform.push({ pos, node });
+    return false;
+  });
+  if (toTransform.length == 0) return false;
+  let type = textSchema.nodes.chunk;
+  if (dispatch)
+    dispatch(
+      toTransform.reduce((pre, { pos, node }) => {
+        return pre.setNodeMarkup(pos, type, { level: node.attrs.level + 1 }, null);
+      }, state.tr)
+    );
+  return true;
+};
+
+export const decreaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  let type = textSchema.nodes.chunk;
+  let from = state.selection.from;
+  let to = state.selection.to;
+  let toTransform = [];
+  // Why is this stupid?
+  state.doc.nodesBetween(from, to, (node, pos) => {
+    const result = nodeIsChunk(node);
+    if (result === true) return true;
+    if (result === false) return false;
+    toTransform.push({ pos, node });
+    return false;
+  });
+  if (toTransform.length == 0) return false;
+  let nextState = toTransform.reduce((pre, { pos, node }) => {
+    let level = node.attrs.level;
+    let nextLevel = level != 0 ? level - 1 : level;
+    return pre.setNodeMarkup(pos, type, { level: nextLevel }, null);
+  }, state.tr);
+  if (dispatch) dispatch(nextState);
+  return true;
+};
+
+
+function newSectionNode(): Node {
+  const header = textSchema.text("Untitled");
+  const children = [textSchema.nodes.sectionHeader.create(null, header)];
+  // crSection.bibleSections.map(newBibleText).forEach( (bs) => children.push(bs));
+  const questions = textSchema.nodes.questions.createChecked();
+  const studyBlock = textSchema.nodes.studyBlocks.createChecked(null, questions);
+  children.push(studyBlock);
+  const section = textSchema.nodes.section.createChecked(null, children);
+  return section;
+}
+
+export const addSection = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  if (dispatch) {
+    const node = newSectionNode();
+    // should be the end of the document.
+    const pos = state.doc.nodeSize - 2;
+    const tr = state.tr.insert(pos, node);
+    dispatch(tr);
+    return true;
+  }
+};
+
+export const moveSection = (
+  originalIndex: number,
+  newIndex: number,
+) => (
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+) => {
+  if (dispatch) {
+    let originalPos: number = null;
+    let originalNode: Node = null;
+    let index = 0;
+    state.doc.descendants((node: Node, pos: number) => {
+      if (node.type.name === "section") {
+        if (index == originalIndex) {
+          originalPos = pos;
+          originalNode = node;
+        }
+        index++;
+        return false;
+      }
+      return false;
+    });
+    let tr = state.tr.deleteRange(originalPos, originalPos + originalNode.nodeSize);
+
+    let newPos = null;
+    index = 0;
+    let lastNode = null;
+    let lastPos = null;
+    tr.doc.descendants((node: Node, pos: number) => {
+      if (node.type.name === "section") {
+        lastNode = node;
+        lastPos = pos;
+        if (index == newIndex) {
+          newPos = pos;
+        }
+        index++;
+        return false;
+      }
+      return false;
+    });
+
+    if (newPos === null) {
+      newPos = lastPos + lastNode.nodeSize;
+    }
+
+    tr.insert(newPos, originalNode);
+
+    dispatch(tr);
+    return true;
+  }
+}
+
+export const deleteSection = (
+  sectionIndex : number
+) => (
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+) => {
+
+  if(dispatch) {
+    let sectionPositions: number[] = [];
+    state.doc.descendants((node, pos) => {
+      if (node.type.name === "section") {
+        sectionPositions.push(pos);
+      }
+    });
+
+    if (sectionIndex >= sectionPositions.length) {
+      console.error("Invalid section index");
+      return;
+    }
+
+    const sectionPos = sectionPositions[sectionIndex];
+    const sectionNode = state.doc.nodeAt(sectionPos);
+
+    if (!sectionNode) {
+      console.error("Couldn't find section node");
+      return;
+    }
+
+    // Deleting the section
+    const tr = state.tr.delete(sectionPos, sectionPos + sectionNode.nodeSize);
+    dispatch(tr);
+  }
+}

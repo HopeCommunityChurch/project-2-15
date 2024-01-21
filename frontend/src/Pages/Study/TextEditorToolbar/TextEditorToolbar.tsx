@@ -494,12 +494,12 @@ function ToolbarGroup3({ editor, operatingSystem } : ToolbarGroup1Props) {
   let increaseLevel = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    editor.increaseLevel();
+    editor.applyDispatch(EActions.increaseLevel);
   };
   let decreaseLevel = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    editor.decreaseLevel();
+    editor.applyDispatch(EActions.decreaseLevel);
   };
 
   return (

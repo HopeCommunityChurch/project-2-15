@@ -1,12 +1,10 @@
 import {
-  toggleBold,
-  toggleItalic,
-  toggleUnderline,
-  clearFormatting,
-  setTextColor,
-  setHighlightColor,
-  removeHighlightColor,
   getCurrentTextAndHighlightColors,
+  increaseLevel,
+  toggleBold,
+  toggleUnderline,
+  toggleItalic,
+  decreaseLevel,
   addGeneralStudyBlock,
 } from "./editorUtils";
 
@@ -547,53 +545,11 @@ class CustomEditorView extends EditorView {
     super(place, props);
   }
 
-  toggleBold() {
-    if (this.editable) {
-      toggleBold(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
-  toggleItalic() {
-    if (this.editable) {
-      toggleItalic(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
-  toggleUnderline() {
-    if (this.editable) {
-      toggleUnderline(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
-  clearFormatting() {
-    if (this.editable) {
-      clearFormatting(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
-
   getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
     getCurrentTextAndHighlightColors(this.state, setHighlightFillColor, setTextFillColor);
     this.focus();
   }
 
-  increaseLevel() {
-    if (this.editable) {
-      increaseLevel(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
-  decreaseLevel() {
-    if (this.editable) {
-      decreaseLevel(this.state, this.dispatch);
-      this.focus();
-    }
-  }
 }
 
 const zIndices: { [key: string]: number } = {}; // Object to store z-index values for pop-ups
@@ -843,9 +799,9 @@ const questionPopup = (
             "Mod-]": increaseLevel,
             "Shift-Tab": decreaseLevel,
             "Mod-[": decreaseLevel,
-            "Mod-b": toggleMark(textSchema.marks.strong),
-            "Mod-i": toggleMark(textSchema.marks.em),
-            "Mod-u": toggleMark(textSchema.marks.underline),
+            "Mod-b": toggleBold,
+            "Mod-i": toggleItalic,
+            "Mod-u": toggleUnderline,
           }),
           keymap(baseKeymap),
         ],
@@ -893,12 +849,6 @@ export const referenceToMarkView = (mark: Mark, view: EditorView) => {
     // })
   };
   return { dom: mview };
-};
-
-const nodeIsChunk = (node: Node) => {
-  if (node.type.name === "section") return true;
-  if (node.type.name === "bibleText") return true;
-  if (node.type.name != "chunk") return false;
 };
 
 const questionMarkWidget = (
@@ -1118,51 +1068,6 @@ let sectionIdPlugin = new Plugin({
   },
 });
 
-const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-  let from = state.selection.from;
-  let to = state.selection.to;
-  let toTransform = [];
-  // Why is this stupid?
-  state.doc.nodesBetween(from, to, (node, pos) => {
-    const result = nodeIsChunk(node);
-    if (result === true) return true;
-    if (result === false) return false;
-    toTransform.push({ pos, node });
-    return false;
-  });
-  if (toTransform.length == 0) return false;
-  let type = textSchema.nodes.chunk;
-  if (dispatch)
-    dispatch(
-      toTransform.reduce((pre, { pos, node }) => {
-        return pre.setNodeMarkup(pos, type, { level: node.attrs.level + 1 }, null);
-      }, state.tr)
-    );
-  return true;
-};
-
-const decreaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-  let type = textSchema.nodes.chunk;
-  let from = state.selection.from;
-  let to = state.selection.to;
-  let toTransform = [];
-  // Why is this stupid?
-  state.doc.nodesBetween(from, to, (node, pos) => {
-    const result = nodeIsChunk(node);
-    if (result === true) return true;
-    if (result === false) return false;
-    toTransform.push({ pos, node });
-    return false;
-  });
-  if (toTransform.length == 0) return false;
-  let nextState = toTransform.reduce((pre, { pos, node }) => {
-    let level = node.attrs.level;
-    let nextLevel = level != 0 ? level - 1 : level;
-    return pre.setNodeMarkup(pos, type, { level: nextLevel }, null);
-  }, state.tr);
-  if (dispatch) dispatch(nextState);
-  return true;
-};
 
 const addQuestion = (
   state: EditorState,
@@ -1307,162 +1212,7 @@ function removeQuestion(
   }
 }
 
-function moveSection(
-  originalIndex: number,
-  newIndex: number,
-  state: EditorState,
-  dispatch?: (tr: Transaction) => void
-) {
-  if (dispatch) {
-    let originalPos: number = null;
-    let originalNode: Node = null;
-    let index = 0;
-    state.doc.descendants((node: Node, pos: number) => {
-      if (node.type.name === "section") {
-        if (index == originalIndex) {
-          originalPos = pos;
-          originalNode = node;
-        }
-        index++;
-        return false;
-      }
-      return false;
-    });
-    let tr = state.tr.deleteRange(originalPos, originalPos + originalNode.nodeSize);
 
-    let newPos = null;
-    index = 0;
-    let lastNode = null;
-    let lastPos = null;
-    tr.doc.descendants((node: Node, pos: number) => {
-      if (node.type.name === "section") {
-        lastNode = node;
-        lastPos = pos;
-        if (index == newIndex) {
-          newPos = pos;
-        }
-        index++;
-        return false;
-      }
-      return false;
-    });
-
-    if (newPos === null) {
-      newPos = lastPos + lastNode.nodeSize;
-    }
-
-    tr.insert(newPos, originalNode);
-
-    dispatch(tr);
-    return true;
-  }
-}
-
-export type AddVerse = {
-  book: string;
-  chapter: number;
-  verse: number;
-  passage: string;
-};
-
-function mkVerseNode(verse: AddVerse): Node[] {
-  const vMark = textSchema.marks.verse.create({
-    book: verse.book,
-    chapter: verse.chapter,
-    verse: verse.verse,
-  });
-  return [textSchema.text(verse.passage, [vMark]), textSchema.text(" ")];
-}
-
-let addVerse = (
-  verseRef: string,
-  passage: Array<AddVerse>,
-  state: EditorState,
-  dispatch?: (tr: Transaction) => void
-) => {
-  if (dispatch) {
-    const selection = state.selection;
-
-    let sectionNode = null;
-    let sectionPos = null;
-    state.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
-      if (node.type.name === "section") {
-        sectionNode = node;
-        sectionPos = pos;
-      }
-    });
-
-    if (sectionNode && sectionPos !== null) {
-      let posOfStudyBlock = null;
-      let posOfSectionHeader = null;
-      let sectionHeaderNode = null;
-      let sectionHeaderSize = 0;
-      sectionNode.forEach((childNode, offset) => {
-        if (childNode.type.name === "studyBlocks") {
-          posOfStudyBlock = sectionPos + offset;
-        }
-        if (childNode.type.name === "sectionHeader") {
-          posOfSectionHeader = sectionPos + offset;
-          sectionHeaderNode = childNode;
-          sectionHeaderSize = childNode.nodeSize;
-        }
-      });
-
-      let tr = state.tr;
-      let headerDiff = 0;
-
-      // Check if the section header is "Untitled"
-      if (
-        sectionHeaderNode &&
-        sectionHeaderNode.textContent === "Untitled" &&
-        posOfSectionHeader !== null
-      ) {
-        const newHeader = textSchema.text(verseRef);
-        headerDiff = newHeader.nodeSize - sectionHeaderSize;
-        tr = tr.replaceWith(posOfSectionHeader, posOfSectionHeader + sectionHeaderSize, newHeader);
-      }
-
-      // Adjust the position of studyBlocks based on the new header size
-      if (posOfStudyBlock !== null) {
-        posOfStudyBlock += headerDiff + 1;
-
-        const textNode = passage.flatMap(mkVerseNode);
-        const chunk = textSchema.nodes.chunk.create(null, textNode);
-        const bibleText = textSchema.nodes.bibleText.create({ verses: verseRef }, chunk);
-        tr = tr.insert(posOfStudyBlock, bibleText);
-      }
-
-      // Dispatch the transaction with the adjustments
-      dispatch(tr);
-      return true;
-    }
-  }
-  return false;
-};
-
-function newSectionNode(): Node {
-  const header = textSchema.text("Untitled");
-  const children = [textSchema.nodes.sectionHeader.create(null, header)];
-  // crSection.bibleSections.map(newBibleText).forEach( (bs) => children.push(bs));
-  const questions = textSchema.nodes.questions.createChecked();
-  const studyBlock = textSchema.nodes.studyBlocks.createChecked(null, questions);
-  children.push(studyBlock);
-  const section = textSchema.nodes.section.createChecked(null, children);
-  return section;
-}
-
-const addSection = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-  const from = state.selection.from;
-  const to = state.selection.to;
-  if (dispatch) {
-    const node = newSectionNode();
-    // should be the end of the document.
-    const pos = state.doc.nodeSize - 2;
-    const tr = state.tr.insert(pos, node);
-    dispatch(tr);
-    return true;
-  }
-};
 
 
 const complexNodeTypes = new Set(["bibleText", "sectionHeader", "studyBlocks"]);
@@ -1880,130 +1630,12 @@ export class P215Editor {
     }
   }
 
-  increaseLevel() {
-    if (this.editable) {
-      increaseLevel(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
 
-  decreaseLevel() {
-    if (this.editable) {
-      decreaseLevel(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  undo() {
-    if (this.editable) {
-      const { state, dispatch } = this.view;
-      undo(state, dispatch);
-      this.view.focus();
-    }
-  }
-
-  redo() {
-    if (this.editable) {
-      const { state, dispatch } = this.view;
-      redo(state, dispatch);
-      this.view.focus();
-    }
-  }
-
-  toggleBold() {
-    if (this.editable) {
-      toggleBold(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  toggleItalic() {
-    if (this.editable) {
-      toggleItalic(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  toggleUnderline() {
-    if (this.editable) {
-      toggleUnderline(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
 
   getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
     getCurrentTextAndHighlightColors(this.view.state, setHighlightFillColor, setTextFillColor);
   }
 
-  clearFormatting() {
-    if (this.editable) {
-      clearFormatting(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  addSection() {
-    if (this.editable) {
-      addSection(this.view.state, this.view.dispatch);
-    }
-  }
-
-  addVerse(verseRef: string, passage: Array<AddVerse>) {
-    if (this.editable) {
-      addVerse(verseRef, passage, this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  insertLink(url: string, title: string = "") {
-    if (this.editable) {
-      const { state, dispatch } = this.view;
-      const { tr, selection } = state;
-      const link = state.schema.marks.link.create({ href: url, title });
-      tr.addMark(selection.from, selection.to, link);
-      dispatch(tr);
-    }
-  }
-
-  moveSection(oldIndex: number, newIndex: number) {
-    if (this.editable) {
-      moveSection(oldIndex, newIndex, this.view.state, this.view.dispatch);
-    }
-  }
-
-  deleteSection(sectionIndex: number) {
-    if (this.editable) {
-      let sectionPositions: number[] = [];
-      this.view.state.doc.descendants((node, pos) => {
-        if (node.type.name === "section") {
-          sectionPositions.push(pos);
-        }
-      });
-
-      if (sectionIndex >= sectionPositions.length) {
-        console.error("Invalid section index");
-        return;
-      }
-
-      const sectionPos = sectionPositions[sectionIndex];
-      const sectionNode = this.view.state.doc.nodeAt(sectionPos);
-
-      if (!sectionNode) {
-        console.error("Couldn't find section node");
-        return;
-      }
-
-      // Deleting the section
-      const tr = this.view.state.tr.delete(sectionPos, sectionPos + sectionNode.nodeSize);
-      this.view.dispatch(tr);
-    }
-  }
-
-  addGeneralStudyBlock() {
-    if (this.editable) {
-      addGeneralStudyBlock(this.view.state, this.view.dispatch);
-    }
-  }
 
   onUpdate(f: (change: any) => void) {
     if (this.editable) {
