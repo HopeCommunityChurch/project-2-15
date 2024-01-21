@@ -1417,7 +1417,7 @@ export class P215Editor {
           "Mod-u": toggleMark(textSchema.marks.underline),
         }),
         keymap(baseKeymap),
-        questionMarkPlugin(this.questionMap, this.setCurrentEditor),
+        questionMarkPlugin(this.questionMap, (view) => this.currentEditor = view),
         sectionIdPlugin,
         verseReferencePlugin,
         preventUpdatingMultipleComplexNodesSelectionPlugin,
@@ -1430,12 +1430,14 @@ export class P215Editor {
     });
   }
 
-  setCurrentEditor (view : EditorView) {
-    this.currentEditor = view;
-  }
-
   addQuestionCommand = (state, dispatch) => {
-    return addQuestion(state, dispatch, this.questionMap, this.view, this.setCurrentEditor);
+    return addQuestion(
+            state,
+            dispatch,
+            this.questionMap,
+            this.view,
+            (view) => this.currentEditor = view
+          );
   };
 
   addEditor(editorRoot: HTMLElement) {
@@ -1446,7 +1448,7 @@ export class P215Editor {
       handlePaste: this.handlePaste.bind(this),
       handleDOMEvents: {
         focus: () => {
-          this.setCurrentEditor(this.view);
+          this.currentEditor = this.view;
         },
       },
       nodeViews: {
@@ -1624,7 +1626,7 @@ export class P215Editor {
         this.view.dispatch,
         this.questionMap,
         this.view,
-        this.setCurrentEditor
+        (view) => this.currentEditor = view
       );
       this.view.focus();
     }
