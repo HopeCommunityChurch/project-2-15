@@ -39,6 +39,11 @@ type RecDocListenStart = {
 
 type RecDocOpened = {
   tag: "DocOpened",
+  contents: any,
+};
+
+type RecDocOpenedOther = {
+  tag: "DocOpenedOther",
 };
 
 
@@ -68,6 +73,7 @@ type RecMsg =
   | RecDocListenStart
   | RecDocUpdated
   | RecDocSaved
+  | RecDocOpenedOther
   | RecDocOpened
   | RecNotFound
   | RecUnauthorized
@@ -104,8 +110,17 @@ export class DocUpdatedEvent extends Event {
 }
 
 export class DocOpenedEvent extends Event {
-  constructor() {
+  doc : any
+  constructor(doc : any) {
     super("DocOpened");
+    this.doc = doc;
+  }
+}
+
+
+export class DocOpenedOtherEvent extends Event {
+  constructor() {
+    super("DocOpenedOther");
   }
 }
 
@@ -180,7 +195,12 @@ export class MyWebsocket extends EventTarget {
           break;
         }
         case "DocOpened": {
-          let event = new DocOpenedEvent();
+          let event = new DocOpenedEvent(rec.contents);
+          this.dispatchEvent(event);
+          break;
+        }
+        case "DocOpenedOther": {
+          let event = new DocOpenedOtherEvent();
           this.dispatchEvent(event);
           break;
         }

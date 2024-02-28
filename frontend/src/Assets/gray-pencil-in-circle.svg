@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-  <g id="button.edit" transform="translate(-352.981 -389.981)">
-    <rect id="Rectangle_7" data-name="Rectangle 7" width="40" height="40" rx="20" transform="translate(352.981 389.981)" fill="#ebebeb"/>
-    <g id="Group_6504" data-name="Group 6504">
-      <path id="edit-2" d="M13.693,2.817a2.2,2.2,0,0,1,3.118,3.118L6.287,16.459,2,17.628l1.169-4.287Z" transform="translate(363.252 400.081)" fill="none" stroke="#3f464d" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
-      <path id="Path_4828" data-name="Path 4828" d="M377.946,407.993l-3.265-3.1" fill="none" stroke="#3f464d" stroke-width="2"/>
-    </g>
-  </g>
-</svg>

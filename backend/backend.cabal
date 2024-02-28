@@ -150,6 +150,7 @@ library
     Api.Document,
     Api.Websocket,
     Api.Htmx.Studies,
+    Api.Htmx.Study,
     Api.Htmx.Login,
     Api.Htmx.Home,
     Api.Htmx.NotFound,

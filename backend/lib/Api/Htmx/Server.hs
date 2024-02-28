@@ -1,9 +1,12 @@
 module Api.Htmx.Server where
 
+import Api.Htmx.AuthHelper (getUser, getUserWithRedirect)
+import Api.Htmx.Ginger (baseUrl)
 import Api.Htmx.Home qualified as Home
 import Api.Htmx.Login qualified as Login
-import Api.Htmx.Studies qualified as Studies
 import Api.Htmx.NotFound qualified as NotFound
+import Api.Htmx.Studies qualified as Studies
+import Api.Htmx.Study qualified as Study
 import Data.List qualified as List
 import DbHelper qualified as Db
 import EnvFields (EnvType (..))
@@ -21,8 +24,6 @@ import Network.Wai.Middleware.Static (
  )
 import Network.Wai.Middleware.Static qualified as Static
 import Web.Scotty.Trans qualified as Scotty
-import Api.Htmx.AuthHelper (getUser, getUserWithRedirect)
-import Api.Htmx.Ginger (baseUrl)
 
 
 scottyT
@@ -66,6 +67,9 @@ scottyServer = do
     Scotty.get "/studies" $ do
       user <- getUserWithRedirect
       Studies.getStudies user
+    Scotty.get "/study/:{documentId}" $ do
+      user <- getUserWithRedirect
+      Study.getStudy user
     Scotty.get "/" $ do
       mUser <- getUser
       case mUser of

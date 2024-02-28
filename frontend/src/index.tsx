@@ -1,65 +1,36 @@
-import { render } from "solid-js/web";
-import { createSignal, createEffect, onMount } from "solid-js";
-import * as classes from "./styles.module.scss";
-import { Routes, Route, Router } from "@solidjs/router";
 
-import { LandingHomePage } from "./Pages/LandingHomePage/LandingHomePage";
-import { LoginPage } from "./Pages/LoginPage/login";
-import { SignUpPage } from "./Pages/SignUpPage/signup";
-import { ResetPasswordPage } from "./Pages/ResetPasswordPage/resetpassword";
-import { ResetPasswordTokenPage } from "./Pages/ResetPasswordToken/resetpassword";
-import { StudiesPage } from "./Pages/Studies/studies";
-import { StudyPage } from "./Pages/Study/study";
-import { AdminArea } from "./Pages/AdminArea/AdminArea";
-import { MyAccountPage } from "./Pages/MyAccountPage/MyAccountPage";
-import { Four04 } from "./Pages/Four04/Four04";
-import { updateLoginState } from "./Pages/LoginPage/login";
+import * as EActions from "./Editor/editorUtils"
+import * as Editor from "./Editor/Editor"
+import * as WS from "./WebsocketTypes"
+import * as T from "./Types"
 
-export function App() {
-  return (
-    <div class={classes.global}>
-      <Routes>
-        <Route path={["/", "/app"]} component={LandingHomePage} />
-        <Route path={"/app/login"} component={LoginPage} />
-        <Route path={"/app/resetpassword"} component={ResetPasswordPage} />
-        <Route path={"/app/reset_token"} component={ResetPasswordTokenPage} />
-        <Route path={"/app/signup"} component={SignUpPage} />
-        <Route path={"/app/studies"} component={StudiesPage} />
-        <Route path={"/app/admin"} component={AdminArea} />
-        <Route path={"/app/account"} component={MyAccountPage} />
-        <Route path={"/app/study/:documentID"} component={StudyPage} />
-        <Route path="*" component={Four04} />
-      </Routes>
-    </div>
-  );
-}
+console.log("hello world");
 
-updateLoginState().then(() => {
-  render(
-    () => (
-      <Router>
-        <App></App>
-      </Router>
-    ),
-    document.getElementById("root")
-  );
+const pathparts = window.location.pathname.split("/");
+const docId = pathparts[pathparts.length - 1] as T.DocId;
+
+const ws = new WS.MyWebsocket();
+ws.connect();
+
+ws.addEventListener("open", () => {
+  ws.openDoc(docId);
 });
 
-setInterval(() => {
-  const script = document.getElementById("js-source") as HTMLScriptElement;
-  if (script) {
-    let src = script.src;
-    fetch(src, {
-      method: "HEAD",
-    }).then((response) => {
-      let status = response.status;
-      if (status === 200) {
-        return;
-      }
-      if (status == 404) {
-        alert("New version of p215 found. To ensure nothing breaks forcing an update.");
-        location.reload();
-      }
-    });
-  }
-}, 60_000);
+ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
+  const editor = new Editor.P215Editor({
+    initDoc: e.doc,
+    editable: true,
+    remoteThings: {
+      send: (steps: any) => {
+        ws.send({ tag: "Updated", contents: steps });
+      },
+    },
+  });
+  window.editor = editor;
+  console.log(EActions);
+  window.editorActions = EActions;
+  const editorLocation = document.getElementById("editorHolder");
+  editor.addEditor(editorLocation);
+});
+
+

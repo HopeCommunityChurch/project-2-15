@@ -68,7 +68,8 @@ instance FromJSON InMsg where
 
 data OutMsg
   = OutDocUpdated Aeson.Value
-  | OutDocOpened -- when the doc is opened on another device, you should close your document
+  | OutDocOpened Aeson.Value
+  | OutDocOpenedOther -- when the doc is opened on another device, you should close your document
   | OutDocListenStart Aeson.Object
   | OutDocSaved
   | OutUnauthorized
@@ -270,6 +271,7 @@ handleOpenDoc user (conn, connId) rst docId = do
       else do
         rsubs <- asks (.subs)
         atomicWriteIORef rst (st { openDocument = Just docId })
+        sendOut conn (OutDocOpened (Aeson.Object doc.document))
         subs <- readIORef rsubs
         let mdocSt = Map.lookup docId subs
         case mdocSt of
@@ -284,7 +286,7 @@ handleOpenDoc user (conn, connId) rst docId = do
                 logDebug "Doc not previously open"
               Just (openConn, _) -> do
                 logDebug "Telling someone to close"
-                sendOut openConn OutDocOpened
+                sendOut openConn OutDocOpenedOther
             atomicWriteIORef docSt.openedBy (Just (conn, connId))
 
 

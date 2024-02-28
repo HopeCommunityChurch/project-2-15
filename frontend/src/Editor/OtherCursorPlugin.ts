@@ -5,7 +5,6 @@ import {
   Transaction,
 } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
-import * as classes from "./styles.module.scss";
 
 type Selection = {
   head: number;
@@ -16,10 +15,10 @@ let otherCursorKey = new PluginKey<Selection>("OtherCursor");
 
 function makeWidget () {
   const elem = document.createElement("div");
-  elem.className = classes.otherCursorHolder;
+  elem.className = "otherCursorHolder";
 
   const cursor = document.createElement("div");
-  cursor.className = classes.otherCursor;
+  cursor.className = "otherCursor";
   elem.appendChild(cursor)
   return elem;
 }
@@ -44,7 +43,7 @@ export const otherCursorPlugin = new Plugin<Selection>({
       const p2 = (anchor <= head)? head : anchor;
       const decorations = [
         Decoration.inline(p1, p2, {
-          class: classes.otherSelection
+          class: "otherSelection"
         }),
         Decoration.widget(head, makeWidget),
       ];

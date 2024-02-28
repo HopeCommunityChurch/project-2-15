@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1" name="viewport" />
+  <title>Project 2:15</title>
+  <link rel="icon" href="{{base}}/static/favicon.ico" type="image/x-icon" />
+  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+    {% if env.tag == "Dev" %}
+      <script src="http://localhost:1234/index.js"></script>
+    {% else %}
+      <script src="{{base}}/index.js"></script>
+    {% endif %}
+
+  <link rel="stylesheet" href="{{base}}/static/styles/styles.css">
+  <script>
+    function toggleDialog(qs) {
+      const nav = document.querySelector(qs);
+      if(nav.open) {
+        nav.close();
+      } else {
+        nav.show();
+      }
+    }
+    function toggleModal(qs) {
+      const dialog = document.querySelector(qs);
+      if(dialog.open) {
+        dialog.close();
+      } else {
+        dialog.showModal();
+        const clickFunc = (ev) => {
+          var rect = dialog.getBoundingClientRect();
+          var isInDialog =
+            (rect.top <= event.clientY
+              && event.clientY <= rect.top + rect.height
+              && rect.left <= event.clientX
+              && event.clientX <= rect.left + rect.width);
+          if (!isInDialog) {
+            dialog.close();
+          }
+        };
+        const closeFunc = () => {
+          dialog.removeEventListener('click', clickFunc);
+          dialog.removeEventListener('close', closeFunc);
+        };
+        dialog.addEventListener('close', closeFunc) ;
+        dialog.addEventListener('click', clickFunc);
+      }
+    }
+
+  </script>
+</head>
+<body>
+  <header id="header">
+  </header>
+  <dialog id="profileNav">
+    <menu>
+      <li class="mobileShow" style="padding-bottom: 5px;">
+        <button class="blue" onclick="toggleModal('#newStudy')">
+          + New Study
+        </button>
+      </li>
+      <li>
+        <a href="https://forms.gle/koJrP31Vh9TfvPcq7" target="_blank">
+          Give Feedback
+        </a>
+      </li>
+      <li>
+        <a href="{{base}}/signout">
+          Sign Out
+        </a>
+      </li>
+    </menu>
+  </dialog>
+  <header id="editorToolbar">
+    <button title="Undo" onclick="alert('undo')">
+      <img src="{{base}}/static/img/undo-icon.svg"/>
+    </button>
+    <button title="Redo" onclick="alert('redo')">
+      <img src="{{base}}/static/img/redo-icon.svg"/>
+    </button>
+
+    <div class="seperator">&nbsp;</div>
+
+    <button title="Bold ({{modkey}} + b)" onclick="alert('Bold')">
+      <img src="{{base}}/static/img/bold-icon.svg"/>
+    </button>
+    <button title="Italic ({{modkey}} + i)" onclick="alert('italic')">
+      <img src="{{base}}/static/img/italic-icon.svg"/>
+    </button>
+    <button title="Underline ({{modkey}} + u)" onclick="alert('underline')">
+      <img src="{{base}}/static/img/underline-icon.svg"/>
+    </button>
+    <button title="Text Color" onclick="alert('text color')">
+      <img src="{{base}}/static/img/underline-icon.svg"/>
+    </button>
+    <button title="Highlight Color" onclick="alert('text color')">
+      <img src="{{base}}/static/img/underline-icon.svg"/>
+    </button>
+
+    <div class="seperator">&nbsp;</div>
+
+    <button title="Outdent ({{modkey}} + [)" onclick="alert('text color')">
+      <img src="{{base}}/static/img/outdent-icon.svg"/>
+    </button>
+    <button title="Indent ({{modkey}} + ])" onclick="alert('text color')">
+      <img src="{{base}}/static/img/indent-icon.svg"/>
+    </button>
+
+    <div class="seperator">&nbsp;</div>
+
+    <button title="Add Question ({{modkey}} + e)" onclick="alert('text color')">
+      <img src="{{base}}/static/img/question-icon.svg"/>
+    </button>
+    <button title="Insert Scripture" onclick="alert('text color')">
+      <img src="{{base}}/static/img/add-scripture.svg"/>
+    </button>
+    <button title="Add Study Block ({{modkey}} + s)" onclick="alert('text color')">
+      <img src="{{base}}/static/img/add-study-block-icon.svg"/>
+    </button>
+
+    <div class="seperator">&nbsp;</div>
+    <button title="Clear Formatting" onclick="alert('text color')">
+      <img src="{{base}}/static/img/clear-formatting-icon.svg"/>
+    </button>
+
+  </header>
+
+  <div id="editorHolder">
+  </div>
+</body>
+</html>
+
+

@@ -1,4 +1,3 @@
-import * as classes from "./styles.module.scss";
 import { Schema } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";
 
@@ -41,7 +40,7 @@ export const textSchema = new Schema({
       isolating: true,
       defining: true,
       toDOM(node) {
-        return ["div", { class: classes.section }, 0];
+        return ["div", { class: "section" }, 0];
       },
     },
     sectionHeader: {
@@ -63,7 +62,7 @@ export const textSchema = new Schema({
         return [
           "div",
           {
-            class: classes.bibleText,
+            class: "bibleText",
           },
           0,
         ];
@@ -91,7 +90,7 @@ export const textSchema = new Schema({
       defining: true,
       draggable: true,
       toDOM: () => {
-        return ["question", { class: classes.question }, 0];
+        return ["question", { class: "question" }, 0];
       },
     },
     generalStudyBlock: {
@@ -168,7 +167,7 @@ export const textSchema = new Schema({
         return [
           "div",
           {
-            class: classes.chunk,
+            class: "chunk",
             level: node.attrs.level,
             "data-indent-level": node.attrs.level,
           },
@@ -177,7 +176,7 @@ export const textSchema = new Schema({
       },
       parseDOM: [
         {
-          tag: `div.${classes.chunk}`,
+          tag: `div.chunk`,
           getAttrs(domNode) {
             const dom = domNode as HTMLElement;
             const level = dom.getAttribute("data-indent-level");
@@ -239,7 +238,7 @@ export const textSchema = new Schema({
           "span",
           {
             "data-type": "reference",
-            class: classes.reference,
+            class: "reference",
             referenceId: mark.attrs.referenceId,
           },
           0,
@@ -252,7 +251,7 @@ export const textSchema = new Schema({
       toDOM: (mark) => [
         "questionRef",
         {
-          class: classes.questionRef,
+          class: "questionRef",
           questionId: mark.attrs.questionId,
         },
         0,

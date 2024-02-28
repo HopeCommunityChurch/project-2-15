@@ -33,11 +33,9 @@ import { keymap } from "prosemirror-keymap";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { StepMap, Step, Transform } from "prosemirror-transform";
 import { baseKeymap } from "prosemirror-commands";
-import "./styles.css";
-import * as classes from "./styles.module.scss";
-import QuestionIcon from "../Pages/Study/TextEditorToolbar/Assets/question-icon.svg";
-import AddScriptureIcon from "../Assets/add-scripture.svg";
-import GrayPencilCircle from "../Assets/gray-pencil-in-circle.svg";
+// import QuestionIcon from "../Pages/Study/TextEditorToolbar/Assets/question-icon.svg";
+// import AddScriptureIcon from "../Assets/add-scripture.svg";
+// import GrayPencilCircle from "../Assets/gray-pencil-in-circle.svg";
 import {
   questionHighlightPlugin,
   highlighQuestion,
@@ -45,7 +43,7 @@ import {
 } from "./QuestionHighlightPlugin";
 import { otherCursorPlugin, setSelection } from "./OtherCursorPlugin";
 
-import CloseXIcon from "../Assets/x.svg";
+// import CloseXIcon from "../Assets/x.svg";
 import { v4 as uuidv4 } from "uuid";
 
 // var blockMap : Dictionary<BlockMapItem> = {};
@@ -73,23 +71,20 @@ class StudyBlocksView implements NodeView {
     node: Node,
     view: EditorView,
     getPos: () => number,
-    selectedStudyBlockArea,
-    setSelectedStudyBlockArea
   ) {
     // Create a container div
     this.dom = document.createElement("div");
-    this.dom.className = classes.studyBlocksContainer;
+    this.dom.className = "studyBlocksContainer";
 
     // Create the table
     const table = document.createElement("table");
-    table.className = classes.studyBlocks;
+    table.className = "studyBlocks";
 
     // Create and configure the Pencil icon
     const questionIcon = new Image();
-    questionIcon.src = GrayPencilCircle;
-    questionIcon.className = classes.studyBlockEditPencil;
+    // questionIcon.src = GrayPencilCircle;
+    questionIcon.className = "studyBlockEditPencil";
 
-    // if (selectedStudyBlockArea()) console.log(selectedStudyBlockArea());
     questionIcon.addEventListener("click", () => {
       // Find the section node that contains this position
       let sectionNode = null;
@@ -105,7 +100,7 @@ class StudyBlocksView implements NodeView {
       let combinedStudyBlocks = extractAllStudyBlocksAndQuestions(sectionNode);
 
       // Update the signal with the combined study blocks and the current position
-      setSelectedStudyBlockArea({ studyBlocks: combinedStudyBlocks, position: getPos() });
+      // setSelectedStudyBlockArea({ studyBlocks: combinedStudyBlocks, position: getPos() });
     });
 
     // Position the Question icon at the top right of the table
@@ -125,7 +120,7 @@ class BibleTextView implements NodeView {
     node: Node,
   ) {
     this.dom = document.createElement("div");
-    this.dom.className = classes.bibleText;
+    this.dom.className = "bibleText";
 
     const header = document.createElement("h3");
     header.innerText = node.attrs.verses;
@@ -166,7 +161,7 @@ class QuestionsView implements NodeView {
   constructor(node: Node, view: EditorView, getPos: () => number) {
     this.node = node;
     this.dom = document.createElement("tr");
-    this.dom.className = classes.questions;
+    this.dom.className = "questions";
 
     const header = document.createElement("td");
     header.setAttribute("contenteditable", "false");
@@ -174,7 +169,7 @@ class QuestionsView implements NodeView {
     const headerDiv = document.createElement("div");
     headerDiv.setAttribute("contenteditable", "false");
     headerDiv.innerText = "Questions";
-    headerDiv.className = classes.studyBlockHeaderDiv;
+    headerDiv.className = "studyBlockHeaderDiv";
 
     headerDiv.onclick = () => {
       // Logic to move the cursor to the previous position
@@ -191,8 +186,8 @@ class QuestionsView implements NodeView {
 
     if (node.content.size === 0) {
       const noQuestionsText = document.createElement("div");
-      noQuestionsText.className = classes.noQuestionsText;
-      noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${QuestionIcon}" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+      noQuestionsText.className = "noQuestionsText";
+      // noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${QuestionIcon}" alt="Add Question Icon"> <em>in the toolbar above</em>`;
 
       noQuestionsText.onclick = () => {
         // Logic to move the cursor to the previous position
@@ -222,7 +217,7 @@ class GeneralStudyBlockHeader implements NodeView {
     this.node = node;
     this.dom = document.createElement("td");
     this.contentDOM = document.createElement("div");
-    this.contentDOM.className = classes.studyBlockHeaderDiv;
+    this.contentDOM.className = "studyBlockHeaderDiv";
     this.dom.appendChild(this.contentDOM);
   }
   update(node: Node) {
@@ -324,7 +319,7 @@ export class QuestionView implements NodeView {
         view.dispatch(tr2);
       };
       addAnswer.innerText = "+ Answer";
-      addAnswer.className = classes.addAnswer;
+      addAnswer.className = "addAnswer";
       this.dom.appendChild(addAnswer);
     }
 
@@ -335,7 +330,7 @@ export class QuestionView implements NodeView {
     //   delete this.questionMap[this.questionId];
     // };
     // deleteQuestion.innerText = "delete question";
-    // deleteQuestion.className = classes.deleteQuestion;
+    // deleteQuestion.className = "deleteQuestion";
     // this.dom.appendChild(deleteQuestion);
   }
 
@@ -388,9 +383,9 @@ export class ChunkView implements NodeView {
 
   constructor(node: Node, view: EditorView, getPos: () => number) {
     this.dom = document.createElement("p");
-    this.dom.className = classes.outerChunk;
+    this.dom.className = "outerChunk";
     this.contentDOM = document.createElement("p");
-    this.contentDOM.className = classes.chunk;
+    this.contentDOM.className = "chunk";
     this.contentDOM.setAttribute("level", node.attrs.level);
     this.dom.appendChild(this.contentDOM);
 
@@ -402,7 +397,7 @@ export class ChunkView implements NodeView {
     //   e.preventDefault();
     //   let widget = Decoration.widget(getPos()+1, () => {
     //     const but = document.createElement("div");
-    //     but.className = classes.chunkButton;
+    //     but.className = "chunkButton";
     //     but.onclick = () => {
     //       const chunkCom = textSchema.nodes.chunkComment.create({
     //         content: Fragment.empty,
@@ -445,7 +440,7 @@ export class ChunkCommentView implements NodeView {
     this.outerView = view;
     this.node = node;
     this.dom = document.createElement("chunkComment");
-    this.dom.className = classes.chunkButton;
+    this.dom.className = "chunkButton";
     this.popup = null;
     this.dom.onclick = (e) => {
       if (!this.popup) this.open();
@@ -489,7 +484,7 @@ export class ChunkCommentView implements NodeView {
   open() {
     let pop = this.dom.appendChild(document.createElement("div"));
     this.popup = pop;
-    pop.className = classes.chunkCommentPopup;
+    pop.className = "chunkCommentPopup";
 
     let closeBut = pop.appendChild(document.createElement("button"));
     closeBut.innerText = "Close";
@@ -566,7 +561,7 @@ const questionPopup = (
   let qNode = questionMap[qId];
   if (!qNode.editor) {
     const pop = document.createElement("questionRefPopup");
-    pop.className = classes.questionRefPopup;
+    pop.className = "questionRefPopup";
 
     // Initially position it off-screen so it doesn't flicker
     pop.style.position = "absolute";
@@ -574,7 +569,8 @@ const questionPopup = (
     pop.style.top = "-9999px";
 
     // Add it to the body so it renders and we can measure it
-    document.body.appendChild(pop);
+    const p215EditorHolder = document.getElementById("editorHolder");
+    p215EditorHolder.appendChild(pop);
 
     // Now measure it
     const rect = pop.getBoundingClientRect();
@@ -677,19 +673,19 @@ const questionPopup = (
 
     let popUpTitle = mover.appendChild(document.createElement("p"));
     popUpTitle.innerHTML = "Question";
-    popUpTitle.className = classes.QpopUpTitle;
+    popUpTitle.className = "QpopUpTitle";
 
     //add question icon
     let questionIconImg = document.createElement("img");
-    questionIconImg.src = QuestionIcon;
+    // questionIconImg.src = QuestionIcon;
 
     popUpTitle.prepend(questionIconImg);
 
     // Add close Icon
     let closer = mover.appendChild(document.createElement("closer"));
     let closeImage = document.createElement("img");
-    closer.className = classes.closer;
-    closeImage.src = CloseXIcon;
+    closer.className = "closer";
+    // closeImage.src = CloseXIcon;
     closer.appendChild(closeImage);
     closer.onclick = (e) => {
       //turn off ref highlight
@@ -718,7 +714,7 @@ const questionPopup = (
     };
 
     let editorHolder = pop.appendChild(document.createElement("div"));
-    editorHolder.className = classes.questionEditorHolder;
+    editorHolder.className = "questionEditorHolder";
 
     let bottomButtons = pop.appendChild(document.createElement("div"));
 
@@ -726,7 +722,7 @@ const questionPopup = (
     if (view.editable) {
       const addAnswerButton = document.createElement("button");
       addAnswerButton.innerText = "+ Answer";
-      addAnswerButton.className = classes.questionPopUpAddAnswer;
+      addAnswerButton.className = "questionPopUpAddAnswer";
 
       addAnswerButton.onclick = (e) => {
         e.preventDefault();
@@ -749,7 +745,7 @@ const questionPopup = (
     if (view.editable) {
       const trashButton = document.createElement("button");
       trashButton.innerText = "Delete";
-      trashButton.className = classes.questionPopUpTrash;
+      trashButton.className = "questionPopUpTrash";
 
       trashButton.onclick = (e) => {
         e.preventDefault();
@@ -823,7 +819,7 @@ const questionPopup = (
 
 export const questionReferenceMarkView = (mark: Mark, view: EditorView) => {
   const mview = document.createElement("questionRef");
-  mview.className = classes.questionRef;
+  mview.className = "questionRef";
   const qId = mark.attrs.questionId;
   mview.setAttribute("questionId", qId);
   return { dom: mview };
@@ -838,14 +834,14 @@ export const referenceToMarkView = (mark: Mark, view: EditorView) => {
     // e.preventDefault();
     // var references = document.querySelectorAll(qselector);
     // references.forEach( (r) => {
-    //   r.classList.add(classes.referenceTo);
+    //   r.classList.add("referenceTo");
     // })
   };
   mview.onmouseleave = (e) => {
     e.preventDefault();
     // var references = document.querySelectorAll(qselector);
     // references.forEach( (r) => {
-    //   r.classList.remove(classes.referenceTo);
+    //   r.classList.remove("referenceTo");
     // })
   };
   return { dom: mview };
@@ -857,8 +853,8 @@ const questionMarkWidget = (
   setCurrentEditor : (view : EditorView) => void
 ) => (view: EditorView) => {
   const elem = document.createElement("div");
-  elem.className = classes.questionMark;
-  elem.innerHTML = '<img src="' + QuestionIcon + '" />';
+  elem.className = "questionMark";
+  // elem.innerHTML = '<img src="' + QuestionIcon + '" />';
 
   // Add mouseenter event listener to add a class to questionRef
   elem.addEventListener("mouseenter", (e) => {
@@ -934,13 +930,13 @@ let hideOnlyOneBibleTextPlugin = new Plugin({
         if (count > 1) {
           decorations.push(
             Decoration.node(offset, offset + section.nodeSize, {
-              class: classes.showBibleTextHeader,
+              class: "showBibleTextHeader",
             })
           );
         } else {
           decorations.push(
             Decoration.node(offset, offset + section.nodeSize, {
-              class: classes.hideBibleTextHeader,
+              class: "hideBibleTextHeader",
             })
           );
         }
@@ -969,7 +965,7 @@ const verseRefWidget = (verse, position) => (view: EditorView) => {
     window.open(url, "_blank").focus();
     view.focus();
   };
-  elem.className = classes.verseRef;
+  elem.className = "verseRef";
   elem.contentEditable = "true";
   if (verse.verse === 1) {
     elem.innerHTML = verse.chapter + ":" + verse.verse;
@@ -1254,8 +1250,8 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
 });
 const mkPlaceholderElement = (pos) => (view: EditorView) => {
   const placeholderElement = document.createElement("div");
-  placeholderElement.className = classes.bibleTextPlaceholder;
-  placeholderElement.innerHTML = `<em>Place your cursor in this section and click the "Add Scripture" button</em> <img src="${AddScriptureIcon}" alt="Add Scripture Icon"> <em>above to add your verses here</em>`;
+  placeholderElement.className = "bibleTextPlaceholder";
+  // placeholderElement.innerHTML = `<em>Place your cursor in this section and click the "Add Scripture" button</em> <img src="${AddScriptureIcon}" alt="Add Scripture Icon"> <em>above to add your verses here</em>`;
 
   placeholderElement.onclick = () => {
     // Logic to move the cursor to the previous position
@@ -1369,8 +1365,6 @@ export class P215Editor {
   view: EditorView;
   questionMap: Dictionary<QuestionMapItem>;
   updateHanlders: Array<(change: any) => void>;
-  selectedStudyBlockArea: any;
-  setSelectedStudyBlockArea: any;
   remoteThings: RemoteThingy;
 
   currentEditor : EditorView;
@@ -1379,17 +1373,12 @@ export class P215Editor {
     initDoc,
     editable,
     remoteThings,
-    selectedStudyBlockArea,
-    setSelectedStudyBlockArea,
   }) {
     this.editable = editable;
     this.remoteThings = remoteThings;
     let node = Node.fromJSON(textSchema, cleanupExtraStudyBlocks(initDoc));
     this.updateHanlders = [];
     this.questionMap = {};
-
-    this.selectedStudyBlockArea = selectedStudyBlockArea;
-    this.setSelectedStudyBlockArea = setSelectedStudyBlockArea;
 
     baseKeymap["Backspace"] = chainCommands(
       deleteQuestionSelection,
@@ -1460,8 +1449,6 @@ export class P215Editor {
             node,
             view,
             getPos,
-            that.selectedStudyBlockArea,
-            that.setSelectedStudyBlockArea
           );
         },
         questions(node, view, getPos) {
