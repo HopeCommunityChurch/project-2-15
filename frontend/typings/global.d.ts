@@ -15,3 +15,9 @@ declare var process : {
     [key: string] : string;
   }
 }
+
+declare interface Window {
+  editor: any;
+  editorAction: any;
+  base: string;
+}

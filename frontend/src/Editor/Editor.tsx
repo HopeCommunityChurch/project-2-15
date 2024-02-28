@@ -33,9 +33,7 @@ import { keymap } from "prosemirror-keymap";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { StepMap, Step, Transform } from "prosemirror-transform";
 import { baseKeymap } from "prosemirror-commands";
-// import QuestionIcon from "../Pages/Study/TextEditorToolbar/Assets/question-icon.svg";
 // import AddScriptureIcon from "../Assets/add-scripture.svg";
-// import GrayPencilCircle from "../Assets/gray-pencil-in-circle.svg";
 import {
   questionHighlightPlugin,
   highlighQuestion,
@@ -82,7 +80,7 @@ class StudyBlocksView implements NodeView {
 
     // Create and configure the Pencil icon
     const questionIcon = new Image();
-    // questionIcon.src = GrayPencilCircle;
+    questionIcon.src = window.base + "/static/img/gray-pencil-in-circle.svg";
     questionIcon.className = "studyBlockEditPencil";
 
     questionIcon.addEventListener("click", () => {
@@ -187,7 +185,7 @@ class QuestionsView implements NodeView {
     if (node.content.size === 0) {
       const noQuestionsText = document.createElement("div");
       noQuestionsText.className = "noQuestionsText";
-      // noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${QuestionIcon}" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+      noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
 
       noQuestionsText.onclick = () => {
         // Logic to move the cursor to the previous position
@@ -677,7 +675,7 @@ const questionPopup = (
 
     //add question icon
     let questionIconImg = document.createElement("img");
-    // questionIconImg.src = QuestionIcon;
+    questionIconImg.src = window.base + "/static/img/question-icon.svg";
 
     popUpTitle.prepend(questionIconImg);
 
@@ -854,7 +852,7 @@ const questionMarkWidget = (
 ) => (view: EditorView) => {
   const elem = document.createElement("div");
   elem.className = "questionMark";
-  // elem.innerHTML = '<img src="' + QuestionIcon + '" />';
+  elem.innerHTML = `<img src='${window.base}/static/img/question-icon.svg'/>`;
 
   // Add mouseenter event listener to add a class to questionRef
   elem.addEventListener("mouseenter", (e) => {
@@ -1248,10 +1246,17 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
     },
   },
 });
+
 const mkPlaceholderElement = (pos) => (view: EditorView) => {
   const placeholderElement = document.createElement("div");
   placeholderElement.className = "bibleTextPlaceholder";
-  // placeholderElement.innerHTML = `<em>Place your cursor in this section and click the "Add Scripture" button</em> <img src="${AddScriptureIcon}" alt="Add Scripture Icon"> <em>above to add your verses here</em>`;
+  placeholderElement.innerHTML = `
+    <em>
+      Place your cursor in this section and click the "Add Scripture" button
+    </em>
+    <img src="${window.base}/static/img/add-scripture.svg" alt="Add Scripture Icon">
+    <em>above to add your verses here</em>
+  `;
 
   placeholderElement.onclick = () => {
     // Logic to move the cursor to the previous position
