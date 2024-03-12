@@ -4,6 +4,11 @@ import { Schema } from "prosemirror-model";
 import { textSchema } from "./textSchema";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";
+import * as phistory from "prosemirror-history";
+
+
+export const undo = phistory.undo;
+export const redo = phistory.redo;
 
 export const toggleBold = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   const markType = state.schema.marks.strong;

@@ -1628,6 +1628,26 @@ export class P215Editor {
     getCurrentTextAndHighlightColors(this.view.state, setHighlightFillColor, setTextFillColor);
   }
 
+  getCurrentVerse() {
+    const { state } = this.view;
+    const { selection } = state;
+    let headerText = "";
+
+    // Traverse up the document structure from the selection to find the section
+    state.doc.nodesBetween(selection.from, selection.to, (node) => {
+      if (node.type.name === "section") {
+        // Find the sectionHeader child of this section
+        node.forEach((childNode) => {
+          if (childNode.type.name === "sectionHeader") {
+            headerText = childNode.textContent;
+          }
+        });
+        return false; // Stop traversing further
+      }
+    });
+
+    return headerText;
+  }
 
   onUpdate(f: (change: any) => void) {
     if (this.editable) {

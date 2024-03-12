@@ -4,7 +4,6 @@ import * as Editor from "./Editor/Editor"
 import * as WS from "./WebsocketTypes"
 import * as T from "./Types"
 
-console.log("hello world");
 
 const pathparts = window.location.pathname.split("/");
 const docId = pathparts[pathparts.length - 1] as T.DocId;
@@ -27,10 +26,10 @@ ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
     },
   });
   window.editor = editor;
-  console.log(EActions);
   window.editorActions = EActions;
   const editorLocation = document.getElementById("editorHolder");
   editor.addEditor(editorLocation);
 });
+
 
 

@@ -137,7 +137,7 @@ h3 {
 
 #header {
   box-sizing: border-box;
-  z-index: 999;
+  z-index: 15;
   background-color: #fff;
   align-items: center;
   width: 100%;
@@ -670,57 +670,68 @@ h3 {
   padding: 0 7px;
   display: flex;
   position: sticky;
+  top: 52px;
+
+  .tooltipContainer {
+    cursor: pointer;
+    display: inline flex;
+    position: relative;
+    margin-top: 0 !important;
+  }
+
+  button {
+    cursor: pointer;
+    border-radius: 7px;
+    padding: 9px 6px;
+    background: none;
+    display: flex;
+  }
+
+  button img {
+    min-height: 16px;
+    max-height: 16px;
+  }
+
+  .seperator {
+    background-color: #00000017;
+    width: 1.5px;
+    min-width: 1.5px;
+    height: 70%;
+    margin: 0 5px;
+  }
+
+  .tooltipContainer:hover .tooltipText {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: .3s;
+  }
+
+  .tooltipText {
+    opacity: 0;
+    visibility: hidden;
+    color: #f4f4f4;
+    white-space: nowrap;
+    pointer-events: none;
+    background-color: #4f4f4f;
+    border-radius: 23px;
+    padding: 5px 11px;
+    font-size: 12px;
+    transition: opacity .3s,visibility .3s;
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translate(-50%);
+  }
+
 }
 
-#editorToolbar .tooltipContainer {
-  cursor: pointer;
-  display: inline flex;
-  position: relative;
-  margin-top: 0 !important;
-}
-
-#editorToolbar button {
-  cursor: pointer;
-  border-radius: 7px;
-  padding: 9px 6px;
-  background: none;
-  display: flex;
-}
-
-#editorToolbar button img {
-  min-height: 16px;
-  max-height: 16px;
-}
-
-#editorToolbar .seperator {
-  background-color: #00000017;
-  width: 1.5px;
-  min-width: 1.5px;
-  height: 70%;
-  margin: 0 5px;
-}
-
-#editorToolbar .tooltipContainer:hover .tooltipText {
-  opacity: 1;
-  visibility: visible;
-  transition-delay: .3s;
-}
-
-#editorToolbar .tooltipText {
-  opacity: 0;
-  visibility: hidden;
-  color: #f4f4f4;
-  white-space: nowrap;
-  pointer-events: none;
-  background-color: #4f4f4f;
-  border-radius: 23px;
-  padding: 5px 11px;
-  font-size: 12px;
-  transition: opacity .3s,visibility .3s;
-  position: absolute;
-  bottom: -35px;
-  left: 50%;
-  transform: translate(-50%);
+dialog.popup {
+  border: none;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 6px #0000001a;
+  z-index: 1;
 }
 
 .ProseMirror {

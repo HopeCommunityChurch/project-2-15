@@ -18,6 +18,6 @@ declare var process : {
 
 declare interface Window {
   editor: any;
-  editorAction: any;
+  editorActions: any;
   base: string;
 }

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com"  >
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""  >
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"  >
 
-  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1" name="viewport" />
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1" name="viewport"  >
   <title>Project 2:15</title>
-  <link rel="icon" href="{{base}}/static/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="{{base}}/static/favicon.ico" type="image/x-icon"  >
   <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
     {% if env.tag == "Dev" %}
       <script src="http://localhost:1234/index.js"></script>
@@ -53,6 +53,46 @@
 
     window.base = "{{base}}";
 
+    function openInsertScripture() {
+      const header = editor.getCurrentVerse();
+      document.querySelector("#addScripture").value = header;
+      toggleModal('#addScripturePopup');
+    }
+
+    function undoClick() {
+      console.log(this);
+      window.editor.applyDispatch(window.editorActions.undo);
+    }
+
+    function redoClick() {
+      window.editor.applyDispatch(window.editorActions.redo);
+    }
+
+    function boldClick() {
+      window.editor.applyDispatch(window.editorActions.toggleBold);
+    }
+
+    function italicClick() {
+      window.editor.applyDispatch(window.editorActions.toggleItalic);
+    }
+
+    function underlineClick() {
+      window.editor.applyDispatch(window.editorActions.toggleUnderline);
+    }
+
+    function underlineClick() {
+      window.editor.applyDispatch(window.editorActions.toggleUnderline);
+    }
+
+    function indentClick() {
+      window.editor.applyDispatch(window.editorActions.increaseLevel);
+    }
+
+    function outdentClick() {
+      window.editor.applyDispatch(window.editorActions.decreaseLevel);
+    }
+
+
   </script>
 </head>
 <body>
@@ -78,58 +118,69 @@
     </menu>
   </dialog>
   <header id="editorToolbar">
-    <button title="Undo" onclick="alert('undo')">
-      <img src="{{base}}/static/img/undo-icon.svg"/>
+
+    <button title="Undo" onclick="undoClick()">
+      <img src="{{base}}/static/img/undo-icon.svg" >
     </button>
-    <button title="Redo" onclick="alert('redo')">
-      <img src="{{base}}/static/img/redo-icon.svg"/>
+    <button title="Redo" onclick="redoClick()">
+      <img src="{{base}}/static/img/redo-icon.svg" >
     </button>
 
     <div class="seperator">&nbsp;</div>
 
-    <button title="Bold ({{modkey}} + b)" onclick="alert('Bold')">
-      <img src="{{base}}/static/img/bold-icon.svg"/>
+    <button title="Bold ({{modkey}} + b)" onclick="boldClick()">
+      <img src="{{base}}/static/img/bold-icon.svg" >
     </button>
-    <button title="Italic ({{modkey}} + i)" onclick="alert('italic')">
-      <img src="{{base}}/static/img/italic-icon.svg"/>
+    <button title="Italic ({{modkey}} + i)" onclick="italicClick()">
+      <img src="{{base}}/static/img/italic-icon.svg" >
     </button>
-    <button title="Underline ({{modkey}} + u)" onclick="alert('underline')">
-      <img src="{{base}}/static/img/underline-icon.svg"/>
+    <button title="Underline ({{modkey}} + u)" onclick="underlineClick()">
+      <img src="{{base}}/static/img/underline-icon.svg" >
     </button>
     <button title="Text Color" onclick="alert('text color')">
-      <img src="{{base}}/static/img/underline-icon.svg"/>
+      <img src="{{base}}/static/img/underline-icon.svg" >
     </button>
     <button title="Highlight Color" onclick="alert('text color')">
-      <img src="{{base}}/static/img/underline-icon.svg"/>
+      <img src="{{base}}/static/img/underline-icon.svg" >
     </button>
 
     <div class="seperator">&nbsp;</div>
 
-    <button title="Outdent ({{modkey}} + [)" onclick="alert('text color')">
-      <img src="{{base}}/static/img/outdent-icon.svg"/>
+    <button title="Outdent ({{modkey}} + [)" onclick="outdentClick()">
+      <img src="{{base}}/static/img/outdent-icon.svg" >
     </button>
-    <button title="Indent ({{modkey}} + ])" onclick="alert('text color')">
-      <img src="{{base}}/static/img/indent-icon.svg"/>
+    <button title="Indent ({{modkey}} + ])" onclick="indentClick()">
+      <img src="{{base}}/static/img/indent-icon.svg" >
     </button>
 
     <div class="seperator">&nbsp;</div>
 
     <button title="Add Question ({{modkey}} + e)" onclick="alert('text color')">
-      <img src="{{base}}/static/img/question-icon.svg"/>
+      <img src="{{base}}/static/img/question-icon.svg" >
     </button>
-    <button title="Insert Scripture" onclick="alert('text color')">
-      <img src="{{base}}/static/img/add-scripture.svg"/>
+    <button title="Insert Scripture" onclick="openInsertScripture()">
+      <img src="{{base}}/static/img/add-scripture.svg" >
     </button>
     <button title="Add Study Block ({{modkey}} + s)" onclick="alert('text color')">
-      <img src="{{base}}/static/img/add-study-block-icon.svg"/>
+      <img src="{{base}}/static/img/add-study-block-icon.svg" >
     </button>
 
     <div class="seperator">&nbsp;</div>
-    <button title="Clear Formatting" onclick="alert('text color')">
-      <img src="{{base}}/static/img/clear-formatting-icon.svg"/>
+    <button title="Clear Formatting" onclick="alert('clear formatting')">
+      <img src="{{base}}/static/img/clear-formatting-icon.svg" >
     </button>
 
   </header>
+
+  <dialog class="popup" id="addScripturePopup">
+    <form>
+      <label for="addScripture">Ref:</label>
+      <input id="addScripture" autofocus >
+      <button class="lightBlue" type="submit">
+        Insert
+      </button>
+    </form>
+  </dialog>
 
   <div id="editorHolder">
   </div>
