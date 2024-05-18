@@ -3,6 +3,8 @@ import * as EActions from "./Editor/editorUtils"
 import * as Editor from "./Editor/Editor"
 import * as WS from "./WebsocketTypes"
 import * as T from "./Types"
+import {} from "./PreviewScripture"
+import {} from "./SidebarSections"
 
 
 const pathparts = window.location.pathname.split("/");
@@ -21,7 +23,7 @@ ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
     editable: true,
     remoteThings: {
       send: (steps: any) => {
-        ws.send({ tag: "Updated", contents: steps });
+        // ws.send({ tag: "Updated", contents: steps });
       },
     },
   });
@@ -29,6 +31,9 @@ ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
   window.editorActions = EActions;
   const editorLocation = document.getElementById("editorHolder");
   editor.addEditor(editorLocation);
+  let event = new Editor.EditorAttached(editor);
+
+  document.dispatchEvent(event);
 });
 
 

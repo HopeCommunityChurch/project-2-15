@@ -200,6 +200,9 @@ export const textSchema = new Schema({
       parseDOM: [{ tag: "u" }],
       toDOM: () => ["u"],
     },
+    userText: {
+      toDOM: () => ["span"],
+    },
     textColor: {
       attrs: { color: {} },
       inline: true,

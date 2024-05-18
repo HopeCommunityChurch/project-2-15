@@ -9,11 +9,6 @@
   <title>Project 2:15</title>
   <link rel="icon" href="{{base}}/static/favicon.ico" type="image/x-icon"  >
   <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
-    {% if env.tag == "Dev" %}
-      <script src="http://localhost:1234/index.js"></script>
-    {% else %}
-      <script src="{{base}}/index.js"></script>
-    {% endif %}
 
   <link rel="stylesheet" href="{{base}}/static/styles/styles.css">
   <script>
@@ -57,6 +52,7 @@
       const header = editor.getCurrentVerse();
       document.querySelector("#addScripture").value = header;
       toggleModal('#addScripturePopup');
+      document.getElementById("previewScripture").style.display = "none";
     }
 
     function undoClick() {
@@ -91,6 +87,7 @@
     function outdentClick() {
       window.editor.applyDispatch(window.editorActions.decreaseLevel);
     }
+
 
 
   </script>
@@ -173,17 +170,38 @@
   </header>
 
   <dialog class="popup" id="addScripturePopup">
-    <form>
+    <form onsubmit="previewScripture(event)" >
       <label for="addScripture">Ref:</label>
       <input id="addScripture" autofocus >
       <button class="lightBlue" type="submit">
-        Insert
+        Preview
       </button>
+      <div id="previewScripture">
+        <header>
+        </header>
+        <section>
+        </section>
+        <button class="blue" type="submit" id="addScriptureButton">
+          Insert
+        </button>
+      </div>
     </form>
   </dialog>
 
-  <div id="editorHolder">
+  <div id="studyContent">
+    <div id="leftSidebar">
+      <div id="sectionContainer" >
+      </div>
+    </div>
+    <div id="editorHolder">
+    </div>
   </div>
+
+{% if env.tag == "Dev" %}
+  <script src="http://localhost:1234/index.js"></script>
+{% else %}
+  <script src="{{base}}/index.js"></script>
+{% endif %}
 </body>
 </html>
 

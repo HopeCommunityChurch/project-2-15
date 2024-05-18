@@ -1055,6 +1055,7 @@ img.ProseMirror-separator {
 
 #editorHolder {
   .section {
+    scroll-margin-top: 6rem;
     margin: 0px;
     padding-bottom: 10px;
     padding: 26px 20px 40px 20px;
@@ -1553,3 +1554,30 @@ img.ProseMirror-separator {
   }
 }
 
+#addScripturePopup {
+  max-width: 70%;
+  #previewScripture {
+    display: none;
+  }
+
+  .verseNum {
+    font-size: x-small;
+    vertical-align: super;
+    padding-right: 3px;
+    color: grey;
+  }
+}
+
+
+#studyContent {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  #leftSidebar {
+    position: relative;
+    #sectionContainer {
+      position: sticky;
+      top: 6rem;
+
+    }
+  }
+}

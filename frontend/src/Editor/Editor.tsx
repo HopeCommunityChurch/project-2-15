@@ -1369,7 +1369,7 @@ export class P215Editor {
   editable: boolean;
   view: EditorView;
   questionMap: Dictionary<QuestionMapItem>;
-  updateHanlders: Array<(change: any) => void>;
+  updateHanlders: Array<(change: Node) => void>;
   remoteThings: RemoteThingy;
 
   currentEditor : EditorView;
@@ -1486,7 +1486,11 @@ export class P215Editor {
         let steps = null;
         if (transaction.docChanged) {
           this.updateHanlders.forEach((handler) => {
-            handler(transaction.doc.toJSON());
+            try {
+              handler(transaction.doc);
+            } catch(e) {
+              console.error(e);
+            }
           });
           steps = transaction.steps.map((st) => st.toJSON());
         }
@@ -1649,9 +1653,26 @@ export class P215Editor {
     return headerText;
   }
 
-  onUpdate(f: (change: any) => void) {
+  onUpdate(f: (change: Node) => void) {
     if (this.editable) {
       this.updateHanlders.push(f);
     }
   }
+
+  scrollTo (index : number) : void {
+    const elem = document.getElementById(`section-${index}`);
+    if (elem) {
+      elem.scrollIntoView({behavior: "smooth"});
+    }
+  }
 }
+
+
+export class EditorAttached extends Event {
+  editor : P215Editor
+  constructor(editor : P215Editor) {
+    super("editorAttached");
+    this.editor = editor;
+  }
+}
+

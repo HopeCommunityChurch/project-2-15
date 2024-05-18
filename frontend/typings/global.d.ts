@@ -20,4 +20,5 @@ declare interface Window {
   editor: any;
   editorActions: any;
   base: string;
+  previewScripture: any;
 }
