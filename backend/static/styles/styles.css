@@ -1575,8 +1575,20 @@ img.ProseMirror-separator {
   #leftSidebar {
     position: relative;
     #sectionContainer {
+      box-sizing: border-box;
       position: sticky;
       top: 6rem;
+      text-overflow: ellipsis;
+      color: #757575;
+      overflow: hidden;
+
+      .section {
+        padding: 5px 20px;
+        cursor: pointer;
+        &:hover {
+          background-color: #e9e9e9;
+        }
+      }
 
     }
   }

@@ -42,6 +42,7 @@ function initialSetup(editor : Editor.P215Editor, container: HTMLElement, doc : 
 
 function createSectionHeader(editor : Editor.P215Editor, index : number) {
   const section = document.createElement("div");
+  section.className = "section";
   section.addEventListener("click", () => {
     editor.scrollTo(index);
   });
