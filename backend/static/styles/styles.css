@@ -135,6 +135,41 @@ h3 {
 #home-grid {
 }
 
+
+
+#footer {
+  background-color: #fbfbfb;
+  margin-top: 70px;
+  padding: 40px 0;
+  menu {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 0;
+    font-size: 18px;
+    line-height: 1.6;
+    list-style: none;
+    li {
+      padding: 0 15px;
+      display: inline-block;
+
+      a {
+        color: inherit;
+        opacity: .8;
+        text-decoration: none;
+      }
+    }
+  }
+
+  .copyright {
+    text-align: center;
+    color: #aaa;
+    margin-top: 15px;
+    font-size: 13px;
+  }
+
+}
+
 #header {
   box-sizing: border-box;
   z-index: 15;
@@ -147,100 +182,108 @@ h3 {
   position: sticky;
   box-shadow: 0 2px 4px #0003;
   top: 0px;
+  .logo {
+    max-height: 40px;
+  }
+
+  .menu {
+    margin-left: auto;
+    list-style: none;
+    display: flex;
+
+    li {
+      margin-left: 20px;
+      display: flex;
+      a {
+        color: #000;
+        text-decoration: none;
+        margin: auto;
+      }
+    }
+  }
+
+  .buttons {
+    a {
+      text-decoration: none;
+    }
+    button {
+      margin-left: 15px;
+    }
+  }
+
+  .hamburger {
+    cursor: pointer;
+    margin-left: auto;
+    padding-left: 10px;
+    transform: scale(.6);
+    @media screen and (min-width: 765px) {
+      display: none;
+    }
+  }
+
+  .profileButton {
+    color: #333;
+    cursor: pointer;
+    background-color: #eee;
+    border-radius: 50%;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    margin-left: 16px;
+    display: flex;
+    position: relative;
+  }
+
+  #studyName {
+    padding-left: 10px;
+    box-sizing: border-box;
+  }
+
+  .divider {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .saveThing {
+    color: gray;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    display: flex;
+
+    img {
+      color: gray;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      display: flex;
+      opacity: .5;
+      width: 15px;
+      margin-left: 5px;
+    }
+  }
+
+  #saving {
+    display: none;
+    img {
+    animation: rotateClockwise 1.5s linear infinite;
+    }
+  }
+
 }
 
-#homeContent {
-  margin-top: 30px;
+@keyframes rotateClockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-#footer {
-  background-color: #fbfbfb;
-  margin-top: 70px;
-  padding: 40px 0;
-}
-
-#footer menu {
-  text-align: center;
-  margin-top: 0;
-  margin-bottom: 0;
-  padding: 0;
-  font-size: 18px;
-  line-height: 1.6;
-  list-style: none;
-}
-
-#footer menu li {
-  padding: 0 15px;
-  display: inline-block;
-}
-
-#footer menu li a {
-  color: inherit;
-  opacity: .8;
-  text-decoration: none;
-}
-
-#footer .copyright {
-  text-align: center;
-  color: #aaa;
-  margin-top: 15px;
-  font-size: 13px;
-}
-
-#header .logo {
-  max-height: 40px;
-}
-
-#header .menu {
-  margin-left: auto;
-  list-style: none;
-  display: flex;
-}
-
-#header .menu li {
-  margin-left: 20px;
-  display: flex;
-}
-
-#header .menu li a {
-  color: #000;
-  text-decoration: none;
-  margin: auto;
-}
-
-#header .buttons a {
-  text-decoration: none;
-}
-
-#header .buttons button {
-  margin-left: 15px;
-}
-
-#header .hamburger {
-  cursor: pointer;
-  margin-left: auto;
-  padding-left: 10px;
-  transform: scale(.6);
-}
-
-#header .profileButton {
-  color: #333;
-  cursor: pointer;
-  background-color: #eee;
-  border-radius: 50%;
-  justify-content: center;
-  align-items: center;
-  width: 40px;
-  height: 40px;
-  margin-left: 16px;
-  display: flex;
-  position: relative;
-}
 
 @media screen and (min-width: 765px) {
-  #header .hamburger {
-    display: none;
-  }
   .mobileShow {
     display: none !important;
   }
@@ -280,34 +323,54 @@ h3 {
 }
 
 
+#homeContent {
+  margin-top: 30px;
+  .section1 {
+    grid-gap: 20px;
+    grid-template-columns: 4fr 3fr;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 50px;
+    display: grid;
+    @media screen and (max-width: 1350px) {
+      grid-template-columns: 1fr;
+      max-width: 800px;
+      padding: 0 25px;
+    }
 
-#homeContent .section1 {
-  grid-gap: 20px;
-  grid-template-columns: 4fr 3fr;
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 0 50px;
-  display: grid;
-}
+    .leftText {
+      h1 {
+        margin-bottom: 0;
+        font-weight: 600;
+      }
+      .description {
+        font-size: 1.35em;
+      }
+      .blueRoundedContainer {
+        color: #fff;
+        background: linear-gradient(40deg, #0057d1 0% 56%, #7ca8e7 100%);
+        border-bottom-right-radius: 25px;
+        border-bottom-left-radius: 25px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 30px;
+        display: flex;
+      }
+    }
 
-#homeContent .section1 .leftText h1 {
-  margin-bottom: 0;
-  font-weight: 600;
-}
+    .rightImage {
+      self-align: center;
+      @media screen and (max-width: 1350px) {
+        display: none;
+      }
+      img {
+        max-width: 100%;
+      }
+    }
 
-#homeContent .section1 .leftText .description {
-  font-size: 1.35em;
-}
+  }
 
-#homeContent .section1 .leftText .blueRoundedContainer {
-  color: #fff;
-  background: linear-gradient(40deg, #0057d1 0% 56%, #7ca8e7 100%);
-  border-bottom-right-radius: 25px;
-  border-bottom-left-radius: 25px;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 30px;
-  display: flex;
+
 }
 
 .buttonContainer img {
@@ -315,24 +378,6 @@ h3 {
   padding-left: 10px;
 }
 
-#homeContent .section1 .rightImage {
-  self-align: center;
-}
-
-#homeContent .section1 .rightImage img {
-  max-width: 100%;
-}
-
-@media screen and (max-width: 1350px) {
-  #homeContent .section1 {
-    grid-template-columns: 1fr;
-    max-width: 800px;
-    padding: 0 25px;
-  }
-  #homeContent .section1 .rightImage {
-    display: none;
-  }
-}
 
 #loginContent {
   grid-template-columns: 450px 1fr;
@@ -341,21 +386,21 @@ h3 {
   padding: 0;
   display: grid;
   overflow: hidden;
+  .leftColumn {
+    background-color: #f9f9fb;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    display: flex;
+  }
+  .innerLeftColumn {
+    width: 85%;
+    max-width: 350px;
+  }
+
 }
 
-#loginContent .leftColumn {
-  background-color: #f9f9fb;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  display: flex;
-}
-
-#loginContent .innerLeftColumn {
-  width: 85%;
-  max-width: 350px;
-}
 
 #loginContent .leftColumn a {
   color: #0057d1;

@@ -93,8 +93,21 @@
   </script>
 </head>
 <body>
+
   <header id="header">
-    <img class="logo" src="{{base}}/static/img/p215-circle.svg" />
+    <a class="logo" href="{{base}}/">
+      <img class="logo" src="{{base}}/static/img/p215-circle.svg" >
+    </a>
+    <p id="studyName">
+      {{docname}}
+    </p>
+    <p class="divider">|</p>
+    <p id="saved" class="saveThing">
+      saved <img src="{{base}}/static/img/saved.svg" >
+    </p>
+    <p id="saving" class="saveThing">
+      saving <img src="{{base}}/static/img/saving.svg" >
+    </p>
   </header>
 
   <dialog id="profileNav">
