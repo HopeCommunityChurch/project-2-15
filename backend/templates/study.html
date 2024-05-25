@@ -108,6 +108,10 @@
       window.editor.applyDispatch(window.editorActions.setHighlightColor(color));
     }
 
+    function clearFormatClick() {
+      window.editor.applyDispatch(window.editorActions.clearFormatting);
+    }
+
     function toggleTextColor(target, event) {
       const sel = document.getElementById(target);
       const isOpen = sel.classList.contains("display");
@@ -252,7 +256,7 @@
     </button>
 
     <div class="seperator">&nbsp;</div>
-    <button class="toolbarButton" title="Clear Formatting" onclick="alert('clear formatting')">
+    <button class="toolbarButton" title="Clear Formatting" onclick="clearFormatClick()">
       <img src="{{base}}/static/img/clear-formatting-icon.svg" >
     </button>
 
