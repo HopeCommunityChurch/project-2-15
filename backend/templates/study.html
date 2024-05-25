@@ -159,6 +159,12 @@
     <p id="saving" class="saveThing">
       saving <img src="{{base}}/static/img/saving.svg" >
     </p>
+    <menu class="menu"></menu>
+    <div class="buttons">
+      <button class="profileButton" onclick="toggleModal('#profileNav')">
+        {{user.nameShort}}
+      </button>
+    </div>
   </header>
 
   <dialog id="profileNav">
@@ -167,6 +173,16 @@
         <button class="blue" onclick="toggleModal('#newStudy')">
           + New Study
         </button>
+      </li>
+      <li>
+        <a href="{{base}}/">
+          Home
+        </a>
+      </li>
+      <li>
+        <a onclick="toggleModal('#confirmDelete')">
+          Delete Study
+        </a>
       </li>
       <li>
         <a href="https://forms.gle/koJrP31Vh9TfvPcq7" target="_blank">
@@ -180,6 +196,20 @@
       </li>
     </menu>
   </dialog>
+
+  <dialog id="confirmDelete">
+    <h3>Are you sure?</h3>
+    <p>Are you sure you want to delete your study?</p>
+    <div>
+      <button class="lightBlue" onclick="toggleModal('#confirmDelete')">
+        Cancel
+      </button>
+      <button class="blue">
+        Yes, delete
+      </button>
+    </div>
+  </dialog>
+
 
   <header id="editorToolbar">
 
