@@ -1660,10 +1660,29 @@ export class P215Editor {
   }
 
   scrollTo (index : number) : void {
+    const state = this.view.state;
+    let position = null;
+    state.doc.descendants( (_1, pos, _2, i) => {
+      if (i === index) {
+        position = pos;
+      }
+      return false;
+    });
+
+    if (position == null) {
+      return;
+    }
+
+    const selection = new TextSelection(this.view.state.doc.resolve(position+2));
+    const tr = state.tr.setSelection(selection)
+    this.view.dispatch(tr);
+
+
     const elem = document.getElementById(`section-${index}`);
     if (elem) {
       elem.scrollIntoView({behavior: "smooth"});
     }
+    this.view.focus();
   }
 }
 
