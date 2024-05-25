@@ -724,7 +724,7 @@ h3 {
     margin-top: 0 !important;
   }
 
-  button {
+  .toolbarButton {
     cursor: pointer;
     border-radius: 7px;
     padding: 9px 6px;
@@ -732,7 +732,7 @@ h3 {
     display: flex;
   }
 
-  button img {
+  .toolbarButton img {
     min-height: 16px;
     max-height: 16px;
   }
@@ -766,6 +766,30 @@ h3 {
     bottom: -35px;
     left: 50%;
     transform: translate(-50%);
+  }
+
+  .popupContainer {
+    position: relative;
+    overflow: visible;
+    .popup.display {
+      display: grid;
+    }
+    .popup {
+      position: absolute;
+      grid-gap: 8px;
+      display: none;
+      background-color: #fff;
+      border-radius: 8px;
+      grid-template-columns: repeat(4,1fr);
+      padding: 10px;
+      box-shadow: 0 4px 6px #0000001a;
+      transform: translateX(-50%) translateX(15px);
+      border: none;
+      button {
+        width: 27px;
+        height: 27px;
+      }
+    }
   }
 
 }
