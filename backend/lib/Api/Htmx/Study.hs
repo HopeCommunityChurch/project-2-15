@@ -1,8 +1,9 @@
 module Api.Htmx.Study where
 
 import Api.Auth (setCookie')
-import Api.Htmx.AuthHelper (AuthUser)
+import Api.Htmx.AuthHelper (AuthUser(..))
 import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
+import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.CaseInsensitive (original)
 import Data.HashMap.Strict qualified as HMap
@@ -36,6 +37,7 @@ import Web.Cookie qualified as Cookie
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
 import Api.Htmx.NotFound qualified as NotFound
+import Data.UUID as UUID
 
 
 data SystemType = Linux | Mac | Windows | Unknown
@@ -89,3 +91,44 @@ getStudy user = do
           let h = runGinger content template
           html $ toLazy (htmlSource h)
         Left err -> html (show err)
+
+unsafeAsObject :: Aeson.Value -> Aeson.Object
+unsafeAsObject (Aeson.Object o) = o
+unsafeAsObject _ = error "not an object"
+
+
+emptyStudy :: Aeson.Object
+emptyStudy = unsafeAsObject $ Aeson.object
+  [ "type" .= ("doc" :: Text)
+  , "content" .=
+    [ Aeson.object
+      [ "type" .= ("section" :: Text)
+      , "content" .=
+        [ Aeson.object
+          [ "type" .= ("sectionHeader" :: Text)
+          , "content" .= [ Aeson.object [ "text" .= ("Untitled" :: Text), "type" .= ("text" :: Text)]]
+          ]
+        , Aeson.object
+          [ "type" .= ("studyBlocks" :: Text)
+          , "content" .= [ Aeson.object [ "type" .= ("questions" :: Text)]]
+          ]
+        ]
+      ]
+    ]
+  ]
+
+
+createStudy
+  :: ( MonadDb env m
+     , ScottyError e
+     )
+  => AuthUser
+  -> ActionT e m ()
+createStudy user = do
+  title <- param "studyTitle"
+  let crDoc = Doc.CrDoc Nothing title emptyStudy user.userId
+  docId <- lift $ Doc.crDocument crDoc
+  let url = baseUrl <> "/study/" <> UUID.toText (unwrap docId)
+  setHeader "HX-Redirect" (toLazy url)
+  status status200
+

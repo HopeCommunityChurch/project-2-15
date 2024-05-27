@@ -1,7 +1,7 @@
 module Api.Htmx.AuthHelper (
   getUser,
   getUserWithRedirect,
-  Auth.AuthUser,
+  Auth.AuthUser(..),
 ) where
 
 import Prelude hiding ((**))

@@ -88,7 +88,7 @@
 <dialog id="newStudy">
   <h3>Create New Study</h3>
   <img alt="Close Modal" src="{{base}}/static/img/x.svg" class="closeModalIcon" onclick="toggleModal('#newStudy')">
-  <form>
+  <form hx-post="{{base}}/study">
     <label for="studyTitle">Title</label>
     <input type="text" required name="studyTitle" placeholder="New Title...">
     <p class="fieldDescription">

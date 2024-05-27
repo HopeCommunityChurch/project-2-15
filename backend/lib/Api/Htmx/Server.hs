@@ -67,6 +67,9 @@ scottyServer = do
     Scotty.get "/studies" $ do
       user <- getUserWithRedirect
       Studies.getStudies user
+    Scotty.post "/study" $ do
+      user <- getUserWithRedirect
+      Study.createStudy user
     Scotty.get "/study/:documentId" $ do
       user <- getUserWithRedirect
       Study.getStudy user
