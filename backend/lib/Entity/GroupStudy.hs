@@ -5,10 +5,7 @@ import Database qualified as Db
 import Database.Beam (
   Beamable,
   C,
-  Nullable,
   all_,
-  orderBy_,
-  desc_,
   default_,
   exists_,
   guard_,
@@ -16,7 +13,6 @@ import Database.Beam (
   insert,
   insertExpressions,
   insertValues,
-  limit_,
   runInsert,
   val_,
   (==.),
@@ -28,7 +24,6 @@ import DbHelper (MonadDb, asJust_, jsonArraryOf, jsonBuildObject, runBeam)
 import Entity qualified as E
 import Entity.AuthUser
 import Entity.User
-import LateralLeftJoin
 import Types qualified as T
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -103,7 +98,6 @@ data GetGroupStudy = MkGetGroupStudy
   , studyTemplateId :: Maybe T.StudyTemplateId
   , name :: Text
   , docs :: List GetDocMeta
-  , lastUpdate :: Maybe T.UserId
   , owners :: List GetUser
   }
   deriving (Generic, Show)
@@ -116,7 +110,6 @@ instance E.Entity GetGroupStudy where
     , studyTemplateId :: C f (Maybe T.StudyTemplateId)
     , name :: C f Text
     , docs :: C f (PgJSONB (Vector GetDocMeta'))
-    , lastUpdated :: C f (Maybe T.UserId)
     , owners :: C f (PgJSONB (Vector GetUser'))
     }
     deriving anyclass (Beamable)
@@ -130,7 +123,6 @@ instance E.Entity GetGroupStudy where
       studyTemplateId
       name
       (fmap E.toEntity (toList (Db.unPgJSONB docs)))
-      lastUpdated
       (fmap E.toEntity (toList (Db.unPgJSONB owners)))
 
   queryEntity mAuthUser = do
@@ -156,31 +148,12 @@ instance E.Entity GetGroupStudy where
                     doc <- E.queryEntityBy @GetDocMeta Nothing study.groupStudyId
                     pure $ jsonBuildObject doc
 
-
-    lastUpdated <- lateralLeft_ study
-                    $ \ _ ->
-                      limit_ 1
-                      $ orderBy_ (desc_ . (.updated) . fst)
-                      $ do
-                      doc <- all_ Db.db.document
-                      groupStudyId <- asJust_ doc.groupStudyId
-                      guard_ $ unsafeBreakScope study.groupStudyId ==. groupStudyId
-
-                      owners' <- all_ Db.db.groupStudyOwner
-                      guard_ $ owners'.groupStudyId ==. unsafeBreakScope study.groupStudyId
-
-                      docEditor <- all_ Db.db.documentEditor
-                      guard_ $ doc.docId ==. docEditor.docId
-                      guard_ $ owners'.userId ==. docEditor.userId
-                      pure (doc, owners')
-
     pure $
       MkDbGetGroupStudy
         study.groupStudyId
         study.studyTemplateId
         study.name
         docs
-        (snd lastUpdated).userId
         owners
 
 unsafeBreakScope :: BQ.QGenExpr ctx be s a -> BQ.QGenExpr ctx be s2 a

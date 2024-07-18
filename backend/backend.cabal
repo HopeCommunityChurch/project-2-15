@@ -170,7 +170,6 @@ library
     Emails.PasswordReset,
     Emails.ShareGroupStudy,
     WebsocketServant,
-    LateralLeftJoin,
 
   build-depends:
 

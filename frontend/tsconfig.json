@@ -5,7 +5,6 @@
     "target": "ESNext",
     "module": "CommonJS",
     "jsx": "preserve",
-    "jsxImportSource": "solid-js",
     "esModuleInterop": true,
     "noEmit": true,
     "allowJs": true,
