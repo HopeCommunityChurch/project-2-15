@@ -140,6 +140,10 @@
       }
     }
 
+    function addSectionClick () {
+      window.editor.applyDispatch(window.editorActions.addSection);
+    }
+
 
   </script>
 </head>
@@ -150,7 +154,7 @@
       <img class="logo" src="{{base}}/static/img/p215-circle.svg" >
     </a>
     <p id="studyName">
-      {{docname}}
+      {{doc.name}}
     </p>
     <p class="divider">|</p>
     <p id="saved" class="saveThing">
@@ -204,12 +208,11 @@
       <button class="lightBlue" onclick="toggleModal('#confirmDelete')">
         Cancel
       </button>
-      <button class="blue">
+      <button class="blue" hx-delete="{{base}}/study/{{doc.docId}}">
         Yes, delete
       </button>
     </div>
   </dialog>
-
 
   <header id="editorToolbar">
 
@@ -313,7 +316,12 @@
 
   <div id="studyContent">
     <div id="leftSidebar">
-      <div id="sectionContainer" >
+      <div class="container">
+        <div id="sectionContainer" >
+        </div>
+        <div id="bottom">
+          <button onclick="addSectionClick()">Add Section</button>
+        </div>
       </div>
     </div>
     <div id="editorHolder">

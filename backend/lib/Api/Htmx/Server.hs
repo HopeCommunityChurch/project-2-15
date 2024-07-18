@@ -64,18 +64,25 @@ scottyServer = do
         Just _ -> Scotty.redirect $ baseUrl <> "/studies"
     Scotty.post "/login" Login.login
     Scotty.get "/signout" Login.signout
+
     Scotty.get "/studies" $ do
       user <- getUserWithRedirect
       Studies.getStudies user
+
     Scotty.post "/study" $ do
       user <- getUserWithRedirect
       Study.createStudy user
     Scotty.get "/study/:documentId" $ do
       user <- getUserWithRedirect
       Study.getStudy user
+    Scotty.delete "/study/:documentId" $ do
+      user <- getUserWithRedirect
+      Study.deleteStudy user
+
     Scotty.get "/" $ do
       mUser <- getUser
       case mUser of
         Nothing -> Home.getHome
         Just user -> Studies.getStudies user
+
     Scotty.notFound NotFound.getHome

@@ -81,6 +81,7 @@ common buildDepends
     mime-types,
     filepath,
     uri-encode,
+    free,
 
 
 
@@ -154,6 +155,7 @@ library
     Api.Htmx.Login,
     Api.Htmx.Home,
     Api.Htmx.NotFound,
+    Api.Htmx.NotAuthorized,
     Api.Htmx.Ginger,
     Api.Htmx.AuthHelper,
     Api.Htmx.Server,
@@ -168,6 +170,7 @@ library
     Emails.PasswordReset,
     Emails.ShareGroupStudy,
     WebsocketServant,
+    LateralLeftJoin,
 
   build-depends:
 

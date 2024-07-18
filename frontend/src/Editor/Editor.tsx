@@ -1675,13 +1675,14 @@ export class P215Editor {
 
     const selection = new TextSelection(this.view.state.doc.resolve(position+2));
     const tr = state.tr.setSelection(selection)
+    tr.scrollIntoView();
     this.view.dispatch(tr);
 
 
-    const elem = document.getElementById(`section-${index}`);
-    if (elem) {
-      elem.scrollIntoView({behavior: "smooth"});
-    }
+    // const elem = document.getElementById(`section-${index}`);
+    // if (elem) {
+    //   elem.scrollIntoView({behavior: "smooth"});
+    // }
     this.view.focus();
   }
 }

@@ -1,4 +1,4 @@
-import { EditorState, Transaction } from "prosemirror-state";
+import { EditorState, Transaction, TextSelection } from "prosemirror-state";
 import { toggleMark } from "prosemirror-commands";
 import { Schema } from "prosemirror-model";
 import { textSchema } from "./textSchema";
@@ -291,16 +291,27 @@ function newSectionNode(): Node {
   return section;
 }
 
+
 export const addSection = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
   if (dispatch) {
     const node = newSectionNode();
     // should be the end of the document.
     const pos = state.doc.nodeSize - 2;
+
     const tr = state.tr.insert(pos, node);
+
+    const selection = new TextSelection(
+      tr.doc.resolve(pos),
+      tr.doc.resolve(pos+10)
+    );
+    tr.setSelection(selection)
+    tr.scrollIntoView();
+
     dispatch(tr);
     return true;
   }
 };
+
 
 export const moveSection = (
   originalIndex: number,

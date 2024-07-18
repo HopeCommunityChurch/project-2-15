@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div id="notFoundContent">
+  <div class="container">
+    <div>
+      <h1 class="header">404</h1>
+      <h2 class="subheader">Error: no page found</h2>
+      <div class="returnHome">
+        <a href="{{base}}/" class="homeButton">
+          <button class="blue">Return to Home</button>
+        </a>
+      </div>
+      <img src="{{base}}/static/img/meme.png" class="image" >
+    </div>
+    <div>
+      <div class="block">
+        <h3>Popular Links:</h3>
+        <menu>
+          <li><a href="https://experiencethehope.com/teaching" target="_blank">Teachings</a></li>
+          <li><a href="https://experiencethehope.com/equipping" target="_blank">Equipping</a></li>
+          <li><a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">Messaging</a></li>
+        </menu>
+      </div>
+      <div class="block">
+        <h3>Contact Us:</h3>
+        <p>If you believe this is an error, please <a href="mailto:support@example.com">contact us</a>.</p>
+      </div>
+      <div class="block">
+        <h3>Found an issue?</h3>
+        <p>Help us improve by reporting the broken link <a href="{{base}}/feedback">here</a>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

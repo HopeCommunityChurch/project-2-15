@@ -1657,12 +1657,14 @@ img.ProseMirror-separator {
 #studyContent {
   display: grid;
   grid-template-columns: 300px 1fr;
+  position: relative;
   #leftSidebar {
-    position: relative;
-    #sectionContainer {
-      box-sizing: border-box;
+    .container {
       position: sticky;
       top: 6rem;
+    }
+    #sectionContainer {
+      box-sizing: border-box;
       text-overflow: ellipsis;
       color: #757575;
       overflow: hidden;
@@ -1676,6 +1678,10 @@ img.ProseMirror-separator {
         }
       }
 
+    }
+    #bottom {
+      display: grid;
+      padding: 20px;
     }
   }
 }

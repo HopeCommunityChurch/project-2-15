@@ -1,4 +1,4 @@
-module Api.Htmx.NotFound where
+module Api.Htmx.NotAuthorized where
 
 import Prelude hiding ((**))
 import Text.Ginger
@@ -12,7 +12,7 @@ getHome
   => ScottyError e
   => ActionT e m a
 getHome = do
-  result <- readFromTemplates "notFound.html"
+  result <- readFromTemplates "notAuthorized.html"
   case result of
     Right template -> do
       let content = makeContextHtml (gvalHelper baseContext)
