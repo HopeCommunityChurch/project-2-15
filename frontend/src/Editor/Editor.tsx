@@ -660,13 +660,13 @@ const questionPopup = (
 
     mover.addEventListener("mousedown", (e) => {
       e.preventDefault();
-      startDrag(e.clientX, e.clientY);
+      startDrag(e.pageX, e.pageY);
     });
 
     mover.addEventListener("touchstart", (e) => {
       e.preventDefault();
       const touch = e.touches[0];
-      startDrag(touch.clientX, touch.clientY);
+      startDrag(touch.pageX, touch.pageY);
     });
 
     let popUpTitle = mover.appendChild(document.createElement("p"));
@@ -683,7 +683,7 @@ const questionPopup = (
     let closer = mover.appendChild(document.createElement("closer"));
     let closeImage = document.createElement("img");
     closer.className = "closer";
-    // closeImage.src = CloseXIcon;
+    closeImage.src = window.base + "/static/img/x.svg";
     closer.appendChild(closeImage);
     closer.onclick = (e) => {
       //turn off ref highlight
@@ -1660,29 +1660,10 @@ export class P215Editor {
   }
 
   scrollTo (index : number) : void {
-    const state = this.view.state;
-    let position = null;
-    state.doc.descendants( (_1, pos, _2, i) => {
-      if (i === index) {
-        position = pos;
-      }
-      return false;
-    });
-
-    if (position == null) {
-      return;
+    const elem = document.getElementById(`section-${index}`);
+    if (elem) {
+      elem.scrollIntoView({behavior: "smooth"});
     }
-
-    const selection = new TextSelection(this.view.state.doc.resolve(position+2));
-    const tr = state.tr.setSelection(selection)
-    tr.scrollIntoView();
-    this.view.dispatch(tr);
-
-
-    // const elem = document.getElementById(`section-${index}`);
-    // if (elem) {
-    //   elem.scrollIntoView({behavior: "smooth"});
-    // }
     this.view.focus();
   }
 }

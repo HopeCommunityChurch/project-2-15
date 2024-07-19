@@ -1657,7 +1657,6 @@ img.ProseMirror-separator {
 #studyContent {
   display: grid;
   grid-template-columns: 300px 1fr;
-  position: relative;
   #leftSidebar {
     .container {
       position: sticky;
