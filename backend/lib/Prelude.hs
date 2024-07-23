@@ -94,7 +94,7 @@ import Relude.Monoid
 import Relude.Numeric
 import Relude.String
 import UnliftIO hiding (Handler, timeout)
-import Web.Scotty.Trans (ActionT, ScottyError)
+import Web.Scotty.Trans (ActionT)
 
 -- import Data.Generics.Labels
 
@@ -111,7 +111,7 @@ instance MonadIO m => MonadFail (LogPrefixT m) where
   fail :: MonadIO m => String -> LogPrefixT m a
   fail = liftIO . fail
 
-instance (MonadLogger m, ScottyError e) => MonadLogger (ActionT e m) where
+instance (MonadLogger m) => MonadLogger (ActionT m) where
   monadLoggerLog loc src lvl msg =
     lift $ monadLoggerLog loc src lvl msg
 

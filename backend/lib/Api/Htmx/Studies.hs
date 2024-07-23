@@ -40,9 +40,8 @@ getStudies
   :: ( MonadDb env m
      , MonadLogger m
      )
-  => ScottyError e
   => AuthUser
-  -> ActionT e m ()
+  -> ActionT m ()
 getStudies user = do
   docs <- lift $ Doc.getAllDocs user
   result <- readFromTemplates "studies.html"

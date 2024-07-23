@@ -7,7 +7,6 @@ import Api.Htmx.Login qualified as Login
 import Api.Htmx.NotFound qualified as NotFound
 import Api.Htmx.Studies qualified as Studies
 import Api.Htmx.Study qualified as Study
-import Data.List qualified as List
 import DbHelper qualified as Db
 import EnvFields (EnvType (..))
 import Network.Wai qualified as Wai
@@ -29,7 +28,7 @@ import Web.Scotty.Trans qualified as Scotty
 scottyT
   :: MonadUnliftIO m
   => Port
-  -> Scotty.ScottyT LText m ()
+  -> Scotty.ScottyT m ()
   -> m ()
 scottyT port action =
   withRunInIO $ \ runInIO ->

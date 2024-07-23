@@ -20,8 +20,7 @@ import Network.Wai qualified as Wai
 
 getUser
   :: (MonadDb env m, MonadLogger m)
-  => ScottyError e
-  => ActionT e m (Maybe Auth.AuthUser)
+  => ActionT m (Maybe Auth.AuthUser)
 getUser = do
   mCookie <- header "Cookie"
   case mCookie of
@@ -37,8 +36,7 @@ getUser = do
 
 getUserWithRedirect
   :: (MonadDb env m, MonadLogger m)
-  => ScottyError e
-  => ActionT e m Auth.AuthUser
+  => ActionT m Auth.AuthUser
 getUserWithRedirect = do
   mUser <- getUser
   case mUser of
@@ -50,9 +48,9 @@ getUserWithRedirect = do
         then do
           Just currentUrl <- header "HX-Current-Url"
           setHeader "HX-Redirect" (toLazy (url <> "?redirect=" <> encodeText (toStrict currentUrl)))
-          raiseStatus status204 (stringError "redirect")
+          raiseStatus status204 "redirect"
         else do
           req <- request
           let path :: Text = baseUrl <> decodeUtf8 (Wai.rawPathInfo req)
           setHeader "Location" (toLazy (url <> "?redirect=" <> encodeText path))
-          raiseStatus status302 (stringError "redirect")
+          raiseStatus status302 "redirect"

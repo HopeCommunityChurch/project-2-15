@@ -12,8 +12,7 @@ import DbHelper (MonadDb)
 
 getHome
   :: (MonadDb env m, MonadLogger m)
-  => ScottyError e
-  => ActionT e m ()
+  => ActionT m ()
 getHome = do
   user <- getUser
   logInfoSH user

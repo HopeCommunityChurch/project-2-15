@@ -47,7 +47,7 @@ common buildDepends
     GADTs,
     ConstraintKinds,
     GeneralizedNewtypeDeriving,
-    TypeInType,
+    DataKinds,
     PolyKinds,
     TypeFamilies,
     TypeFamilyDependencies,
