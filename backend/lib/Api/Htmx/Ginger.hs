@@ -39,7 +39,7 @@ getFileFromTemplatesFolder sn = do
 
 
 baseUrl :: IsString s => s
-baseUrl = "/htmx"
+baseUrl = ""
 
 baseContext :: HashMap Text (GVal m)
 baseContext = fromList [("base", baseUrl)]

@@ -81,15 +81,18 @@
               quic = true;
               http3_hq = true;
               locations."/" = {
-                root = "${drv}/";
+                proxyPass = "http://127.0.0.1:3001/";
+                proxyWebsockets = true;
+              };
+              locations."/index.js" = {
+                tryFiles = "${drv}/index.js";
+              };
+              locations."/index.js.map" = {
+                tryFiles = "${drv}/index.js.map";
               };
               locations."/app/" = {
                 root = "${drv}/";
                 extraConfig = "rewrite ^ /index.html break;";
-              };
-              locations."/htmx/" = {
-                proxyPass = "http://127.0.0.1:3001/";
-                proxyWebsockets = true;
               };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
