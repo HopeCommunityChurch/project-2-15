@@ -47,16 +47,15 @@ getStudy
   :: ( MonadDb env m
      , MonadLogger m
      )
-  => ScottyError e
   => AuthUser
-  -> ActionT e m ()
+  -> ActionT m ()
 getStudy user = do
   mUserAgent <- header "User-Agent"
   docId <- param "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
   let modKey = modifierKey $ getSystem (fmap toStrict mUserAgent)
   result <- readFromTemplates "study.html"
-  env <- asks (.envType)
+  env <- lift $ asks (.envType)
   case result of
     Right template -> do
       let context = baseContext
@@ -98,10 +97,9 @@ emptyStudy = unsafeAsObject $ Aeson.object
 
 createStudy
   :: ( MonadDb env m
-     , ScottyError e
      )
   => AuthUser
-  -> ActionT e m ()
+  -> ActionT m ()
 createStudy user = do
   title <- param "studyTitle"
   let crDoc = Doc.CrDoc Nothing title emptyStudy user.userId
@@ -113,10 +111,9 @@ createStudy user = do
 
 deleteStudy
   :: ( MonadDb env m
-     , ScottyError e
      )
   => AuthUser
-  -> ActionT e m ()
+  -> ActionT m ()
 deleteStudy user = do
   docId <- param "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId

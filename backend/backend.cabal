@@ -47,7 +47,7 @@ common buildDepends
     GADTs,
     ConstraintKinds,
     GeneralizedNewtypeDeriving,
-    TypeInType,
+    DataKinds,
     PolyKinds,
     TypeFamilies,
     TypeFamilyDependencies,
@@ -178,11 +178,3 @@ executable backend
   hs-source-dirs:   app
   default-language: GHC2021
 
-test-suite backend-test
-  import: warnings
-  default-language: GHC2021
-  type: exitcode-stdio-1.0
-  hs-source-dirs: test
-  main-is: Main.hs
-  build-depends:
-      backend

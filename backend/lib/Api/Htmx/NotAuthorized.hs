@@ -9,8 +9,7 @@ import Web.Scotty.Trans hiding (scottyT)
 
 getHome
   :: (MonadIO m, MonadLogger m)
-  => ScottyError e
-  => ActionT e m a
+  => ActionT m a
 getHome = do
   result <- readFromTemplates "notAuthorized.html"
   case result of
@@ -28,10 +27,9 @@ getHome = do
 handleNotFound
   :: ( MonadIO m
      , MonadLogger m
-     , ScottyError e
      )
   => (id -> m (Maybe a))
-  -> (id -> ActionT e m a)
+  -> (id -> ActionT m a)
 handleNotFound finding id =
   lift (finding id) >>= \case
     Just a -> pure a

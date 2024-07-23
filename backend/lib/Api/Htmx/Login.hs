@@ -31,8 +31,7 @@ getLogin
   :: ( MonadIO m
      , MonadLogger m
      )
-  => ScottyError e
-  => ActionT e m ()
+  => ActionT m ()
 getLogin = do
   result <- readFromTemplates "login.html"
   mRedirect <- L.lookup "redirect" <$> params
@@ -66,10 +65,9 @@ loginForm
   :: ( MonadIO m
      , MonadLogger m
      )
-  => ScottyError e
   => T.Email
   -> Text
-  -> ActionT e m ()
+  -> ActionT m ()
 loginForm email password = do
   result <- readFromTemplates "login/form.html"
   case result of
@@ -89,8 +87,7 @@ login
   :: ( MonadDb env m
      , MonadLogger m
      )
-  => ScottyError e
-  => ActionT e m ()
+  => ActionT m ()
 login = do
   email <- param "email"
   password <- param "password"
@@ -117,8 +114,7 @@ signout
   :: ( MonadDb env m
      , MonadLogger m
      )
-  => ScottyError e
-  => ActionT e m ()
+  => ActionT m ()
 signout = do
   setHeader "Location" (toLazy (baseUrl <> "/"))
   cookie <- lift deleteCookie
