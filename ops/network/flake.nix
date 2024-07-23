@@ -84,19 +84,16 @@
                 proxyPass = "http://127.0.0.1:3001/";
                 proxyWebsockets = true;
               };
-              locations."/index.js" = {
-                tryFiles = "${drv}/index.js =404";
-              };
-              locations."/index.js.map" = {
-                tryFiles = "${drv}/index.js.map =404";
-              };
               locations."/app/" = {
-                root = "${drv}/";
-                extraConfig = "rewrite ^ /index.html break;";
+                proxyPass = "http://127.0.0.1:3001/";
+                proxyWebsockets = true;
               };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
                 proxyWebsockets = true;
+              };
+              locations."/editor/" = {
+                root = "${drv}/";
               };
             };
           };
