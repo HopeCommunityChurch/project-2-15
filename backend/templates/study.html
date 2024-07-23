@@ -330,7 +330,7 @@
     </div>
   </div>
 
-{% if env.tag == "Dev" %}
+{% if env.tag == "Dev" && env.contents == "local" %}
   <script src="http://localhost:1234/index.js"></script>
 {% else %}
   <script src="{{base}}/index.js"></script>
