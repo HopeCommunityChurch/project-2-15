@@ -2,8 +2,7 @@
   description = "test";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
-    unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     devenv.url = "github:cachix/devenv";
     backend.url = "path:./backend/";
   };
@@ -31,7 +30,7 @@
 
           services.mailpit = {
             enable = true;
-            package = inputs.unstable.legacyPackages.${system}.mailpit;
+            package = inputs.nixpkgs.legacyPackages.${system}.mailpit;
           };
 
           services.postgres = {
