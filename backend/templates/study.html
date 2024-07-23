@@ -157,12 +157,14 @@
       {{doc.name}}
     </p>
     <p class="divider">|</p>
-    <p id="saved" class="saveThing">
-      saved <img src="{{base}}/static/img/saved.svg" >
-    </p>
-    <p id="saving" class="saveThing">
-      saving <img src="{{base}}/static/img/saving.svg" >
-    </p>
+    <div id="saveThingy" class="notSaving">
+      <p id="saved" class="saveThing">
+        saved <img src="{{base}}/static/img/saved.svg" >
+      </p>
+      <p id="saving" class="saveThing">
+        saving <img src="{{base}}/static/img/saving.svg" >
+      </p>
+    </div>
     <menu class="menu"></menu>
     <div class="buttons">
       <button class="profileButton" onclick="toggleModal('#profileNav')">

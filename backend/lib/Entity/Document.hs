@@ -26,6 +26,7 @@ import Database.Beam (
   update,
   val_,
   guard_',
+  limit_,
   (<-.),
   (==.),
   (==?.),
@@ -38,6 +39,12 @@ import Entity.AuthUser
 import Entity.User qualified as User
 import Types qualified as T
 
+data LastUpdate = MkLastUpdate
+  { computerId :: T.ComputerId
+  , time :: UTCTime
+  }
+  deriving (Generic, Show)
+  deriving (FromJSON, ToJSON, ToSchema)
 
 data GetDoc = MkGetDoc
   { docId :: T.DocId
@@ -49,6 +56,7 @@ data GetDoc = MkGetDoc
   , editors :: List User.GetUser
   , updated :: UTCTime
   , created :: UTCTime
+  , lastUpdate :: Maybe LastUpdate
   }
   deriving (Generic, Show)
   deriving (FromJSON, ToJSON, ToSchema)
@@ -83,6 +91,7 @@ instance E.Entity GetDoc where
       (fmap E.toEntity (toList (Db.unPgJSONB editors)))
       updated
       created
+      Nothing
 
   queryEntity mAuthUser = do
     doc <- all_ Db.db.document
@@ -153,9 +162,11 @@ getDocInStudyGroup authUser docId =
 updateDocument
   :: MonadDb env m
   => T.DocId
+  -> T.UserId
+  -> T.ComputerId
   -> Object
-  -> m ()
-updateDocument docId document = do
+  -> m UTCTime
+updateDocument docId userId computerId document = do
   now <- getCurrentTime
   runBeam
     $ runUpdate
@@ -166,6 +177,17 @@ updateDocument docId document = do
         <> (r.updated <-. val_ now)
       )
       (\ r -> r.docId ==. val_ docId)
+  runBeam
+    $ runInsert
+    $ insert Db.db.documentSave
+    $ insertValues
+      [ Db.MkDocumentSaveT
+        docId
+        userId
+        computerId
+        now
+      ]
+  pure now
 
 
 updateDocMeta
@@ -253,3 +275,20 @@ getAllDocs user =
   $ orderBy_ (desc_ . (.updated))
   $ do
     E.queryEntity @GetDoc (Just user)
+
+
+getLastUpdate
+  :: MonadDb env m
+  => T.DocId
+  -> m (Maybe LastUpdate)
+getLastUpdate docId =
+  fmap (fmap (\ s -> MkLastUpdate s.computerId s.time))
+  $ runBeam
+  $ runSelectReturningOne
+  $ select
+  $ limit_ 1
+  $ orderBy_ (desc_ . (.time))
+  $ do
+    save <- all_ Db.db.documentSave
+    guard_ $ save.docId ==. val_ docId
+    pure save

@@ -40,6 +40,7 @@ import {
   unhighlighQuestion,
 } from "./QuestionHighlightPlugin";
 import { otherCursorPlugin, setSelection } from "./OtherCursorPlugin";
+import {getRandomStr} from "../Util";
 
 // import CloseXIcon from "../Assets/x.svg";
 import { v4 as uuidv4 } from "uuid";
@@ -131,11 +132,6 @@ class BibleTextView implements NodeView {
 }
 
 
-function getRandomStr(): string {
-  const arrayb = new Uint8Array(10);
-  let b = self.crypto.getRandomValues(arrayb);
-  return btoa(b.reduce((a, b) => a + b, ""));
-}
 
 function newQuestionNode(): [string, Node] {
   const questionId = getRandomStr();
@@ -1369,7 +1365,8 @@ export class P215Editor {
   editable: boolean;
   view: EditorView;
   questionMap: Dictionary<QuestionMapItem>;
-  updateHanlders: Array<(change: Node) => void>;
+  updateHanlders: Array<(change: any) => void>;
+  updateStateHanlders: Array<(change: EditorState) => void>;
   remoteThings: RemoteThingy;
 
   currentEditor : EditorView;
@@ -1383,6 +1380,7 @@ export class P215Editor {
     this.remoteThings = remoteThings;
     let node = Node.fromJSON(textSchema, cleanupExtraStudyBlocks(initDoc));
     this.updateHanlders = [];
+    this.updateStateHanlders = [];
     this.questionMap = {};
 
     baseKeymap["Backspace"] = chainCommands(
@@ -1487,13 +1485,22 @@ export class P215Editor {
         if (transaction.docChanged) {
           this.updateHanlders.forEach((handler) => {
             try {
-              handler(transaction.doc);
+              handler(newState.doc);
             } catch(e) {
               console.error(e);
             }
           });
           steps = transaction.steps.map((st) => st.toJSON());
         }
+
+
+        this.updateStateHanlders.forEach((handler) => {
+          try {
+            handler(newState);
+          } catch(e) {
+            console.error(e);
+          }
+        });
 
         const head = newState.selection.head;
         const anchor = newState.selection.anchor;
@@ -1653,7 +1660,12 @@ export class P215Editor {
     return headerText;
   }
 
-  onUpdate(f: (change: Node) => void) {
+  onStateUpdate(f: (change: EditorState) => void) {
+    if (this.editable) {
+      this.updateStateHanlders.push(f);
+    }
+  }
+  onUpdate(f: (change: any) => void) {
     if (this.editable) {
       this.updateHanlders.push(f);
     }

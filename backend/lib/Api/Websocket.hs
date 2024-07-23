@@ -2,11 +2,8 @@ module Api.Websocket where
 
 
 import Api.Auth (AuthUser (..))
-import Api.Errors qualified as Errs
-import Bible.Esv.Parser qualified as ESV
 import Control.Monad.Logger.Prefix (prefixLogs)
 import Data.Aeson qualified as Aeson
-import Data.Char (toLower)
 import Data.Map qualified as Map
 import Data.UUID (UUID)
 import Data.UUID.V4 qualified as UUID
@@ -17,12 +14,12 @@ import Entity.User qualified as User
 import GHC.Records (HasField)
 import Network.WebSockets (Connection, withPingThread)
 import Network.WebSockets qualified as WS
-import Network.Wreq qualified as Wreq
 import Relude (atomicModifyIORef_, drop)
 import Servant
-import Text.Parsec qualified as Parsec
 import Types qualified as T
 import WebsocketServant
+import Entity.Document (GetDoc)
+import Types (NewType(MkNewType))
 
 
 type ConnId = UUID
@@ -44,11 +41,18 @@ mkSubs :: MonadIO m => m Subs
 mkSubs = newIORef Map.empty
 
 
+newtype SaveDoc = MkSaveDoc
+  { document :: Aeson.Object
+  }
+  deriving (Generic, Show)
+  deriving anyclass (FromJSON)
+
+
 data InMsg
   = InOpenDoc T.DocId -- Call before you send updates and saves
   | InCloseDoc T.DocId -- Call when done sending updates
   | InUpdated Aeson.Value -- Updating the doc
-  | InSaveDoc Aeson.Object
+  | InSaveDoc SaveDoc
   | InListenToDoc T.DocId  -- Call when you want to listen to the updates for a doc
   | InStopListenToDoc T.DocId
   | OpenStudyChat T.GroupStudyId -- Not implemented yet
@@ -66,12 +70,19 @@ instance FromJSON InMsg where
       Aeson.defaultOptions { Aeson.constructorTagModifier = fieldModifier 2 }
 
 
+newtype SavedDoc = MkSavedDoc
+  { time :: UTCTime
+  }
+  deriving (Generic, Show)
+  deriving anyclass (ToJSON)
+
+
 data OutMsg
   = OutDocUpdated Aeson.Value
-  | OutDocOpened Aeson.Value
+  | OutDocOpened GetDoc
   | OutDocOpenedOther -- when the doc is opened on another device, you should close your document
   | OutDocListenStart Aeson.Object
-  | OutDocSaved
+  | OutDocSaved SavedDoc
   | OutUnauthorized
   | OutNotFound
   | OutParseError String
@@ -92,8 +103,18 @@ sendOut conn msg = do
 
 data SocketState = MkSocketState
   { openDocument :: Maybe T.DocId
+  , computerId :: T.ComputerId
   }
   deriving (Show, Generic)
+
+
+getComputerId
+  :: MonadUnliftIO m
+  => Connection
+  -> m T.ComputerId
+getComputerId conn = do
+  str <- liftIO $ WS.receiveData conn
+  pure (MkNewType str)
 
 
 websocketSever
@@ -106,9 +127,10 @@ websocketSever
 websocketSever user conn = do
   logInfo $ user.name <> " connected"
   connId <- liftIO UUID.nextRandom
-  st <- newIORef (MkSocketState Nothing)
   withRunInIO $ \ runInIO -> do
     withPingThread conn 20 (pure ()) $ runInIO $ prefixLogs (show connId) $ do
+      computerId <- getComputerId conn
+      st <- newIORef (MkSocketState Nothing computerId)
       result <- try $ forever $ do
         str <- liftIO $ WS.receiveData conn
         case Aeson.eitherDecode' str of
@@ -124,7 +146,7 @@ websocketSever user conn = do
               InListenToDoc docId ->
                 prefixLogs "ListenToDoc" $ handleListenToDoc user connId conn docId
               InSaveDoc obj ->
-                prefixLogs "SaveDoc" $ handleSave conn st obj
+                prefixLogs "SaveDoc" $ handleSave conn user.userId st obj
               other -> prefixLogs "other" $
                 logInfo $ show other
       case result of
@@ -162,17 +184,18 @@ handleSave
      , HasSubs env
      )
   => Connection
+  -> T.UserId
   -> IORef SocketState
-  -> Aeson.Object
+  -> SaveDoc
   -> m ()
-handleSave conn rst obj = do
+handleSave conn userId rst doc = do
   logInfo "saving"
   st <- readIORef rst
   void $ runMaybeT $ do
     logDebugSH st
     docId <- hoistMaybe st.openDocument
-    lift $ Doc.updateDocument docId obj
-    lift $ sendOut conn OutDocSaved
+    updatedTime <- lift $ Doc.updateDocument docId userId st.computerId doc.document
+    lift $ sendOut conn (OutDocSaved (MkSavedDoc updatedTime))
 
 
 handleListenToDoc
@@ -271,7 +294,8 @@ handleOpenDoc user (conn, connId) rst docId = do
       else do
         rsubs <- asks (.subs)
         atomicWriteIORef rst (st { openDocument = Just docId })
-        sendOut conn (OutDocOpened (Aeson.Object doc.document))
+        mLastUpdate <- Doc.getLastUpdate docId
+        sendOut conn (OutDocOpened doc { Doc.lastUpdate = mLastUpdate })
         subs <- readIORef rsubs
         let mdocSt = Map.lookup docId subs
         case mdocSt of

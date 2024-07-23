@@ -1,6 +1,7 @@
 module Types (
   NewType (..),
   UserId,
+  ComputerId,
   Email,
   ChurchId,
   GroupStudyId,
@@ -75,6 +76,9 @@ instance Wrapped (NewType p a)
 data UserId'
 type UserId = NewType UserId' UUID
 
+
+data ComputerId'
+type ComputerId = NewType ComputerId' Text
 
 
 data ChurchId'

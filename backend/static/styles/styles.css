@@ -264,10 +264,22 @@ h3 {
     }
   }
 
-  #saving {
+  .notSaving #saving {
     display: none;
+  }
+
+  .saving {
+    #saving {
+      display: flex;
+    }
+    #saved {
+      display: none;
+    }
+  }
+
+  #saving {
     img {
-    animation: rotateClockwise 1.5s linear infinite;
+      animation: rotateClockwise 1.5s linear infinite;
     }
   }
 

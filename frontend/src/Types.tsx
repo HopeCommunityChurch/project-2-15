@@ -1,4 +1,3 @@
-import { Instant, LocalDateTime } from "@js-joda/core";
 
 export type UUID = string & { readonly __tag: unique symbol };
 
@@ -33,8 +32,6 @@ export type GroupStudyRaw = {
 };
 
 export type DocMeta = {
-  created: LocalDateTime;
-  updated: LocalDateTime;
   docId: DocId;
   name: string;
   studyId: GroupStudyId;
@@ -49,6 +46,12 @@ export type GroupStudy = {
   owners: Array<PublicUser>;
 };
 
+
+export type LastUpdate = {
+  computerId: string,
+  time: string,
+};
+
 export type DocRaw = {
   docId : DocId;
   document: any;
@@ -59,32 +62,8 @@ export type DocRaw = {
   studyTemplateId?: StudyTemplateId;
   created: string;
   updated: string;
+  lastUpdate?: LastUpdate
 };
-
-export type Doc = {
-  docId : DocId;
-  document: any;
-  editors: Array<PublicUser>;
-  name: string;
-  groupStudyId?: GroupStudyId;
-  groupStudyName?: string;
-  studyTemplateId?: StudyTemplateId;
-  created: LocalDateTime;
-  updated: LocalDateTime;
-};
-
-export function toDocFromRaw(doc: DocRaw): Doc {
-  return {
-    editors: doc.editors,
-    docId: doc.docId,
-    groupStudyId: doc.groupStudyId,
-    groupStudyName: doc.groupStudyName,
-    document: doc.document,
-    name: doc.name,
-    created: LocalDateTime.ofInstant(Instant.parse(doc.created)),
-    updated: LocalDateTime.ofInstant(Instant.parse(doc.updated)),
-  };
-}
 
 
 export type Verse = {
