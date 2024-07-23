@@ -93,7 +93,7 @@
                 proxyWebsockets = true;
               };
               locations."/editor/" = {
-                root = "${drv}/";
+                alias = "${drv}/";
               };
             };
           };
