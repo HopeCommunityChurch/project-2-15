@@ -85,10 +85,10 @@
                 proxyWebsockets = true;
               };
               locations."/index.js" = {
-                alias = "${drv}/index.js";
+                tryFiles = "${drv}/index.js =404";
               };
               locations."/index.js.map" = {
-                alias = "${drv}/index.js.map";
+                tryFiles = "${drv}/index.js.map =404";
               };
               locations."/app/" = {
                 root = "${drv}/";
