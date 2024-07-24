@@ -1,5 +1,6 @@
 import { Node } from "prosemirror-model";
 import * as Editor from "./Editor/Editor"
+import * as EditorUtil from "./Editor/editorUtils"
 
 document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
   const editor = ev.editor;
@@ -27,7 +28,7 @@ function updateSectionNames (container: HTMLElement, doc : Node) {
     const sectionText = sectionHeader.child(0);
     const oldTxt = container.children.item(index).innerHTML;
     if (oldTxt != sectionText.text) {
-      container.children.item(index).innerHTML = sectionText.text;
+      container.children.item(index).querySelector("span").innerHTML = sectionText.text;
     }
   });
 }
@@ -35,7 +36,7 @@ function updateSectionNames (container: HTMLElement, doc : Node) {
 function initialSetup(editor : Editor.P215Editor, container: HTMLElement, doc : Node) {
   doc.forEach( (node, _, index) => {
     const section = createSectionHeader(editor, index);
-    section.innerHTML = node.child(0).child(0).text;
+    section.querySelector("span").innerHTML = node.child(0).child(0).text;
     container.appendChild(section);
   });
 }
@@ -46,5 +47,18 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   section.addEventListener("click", () => {
     editor.scrollTo(index);
   });
+
+  const sectionText = document.createElement("span");
+  section.appendChild(sectionText);
+
+  const remove = document.createElement("div");
+  remove.innerHTML = "-";
+  remove.className = "remove";
+  remove.addEventListener("click", (e) => {
+    e.stopPropagation();
+    editor.applyDispatch(EditorUtil.deleteSection(index));
+  });
+  section.appendChild(remove);
+
   return section;
 };
