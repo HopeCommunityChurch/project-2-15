@@ -56,21 +56,7 @@
           ";
         };
 
-        services.nginx =
-        let frontend = inputs.frontend.packages.x86_64-linux.frontend;
-            pkgs = import nixpkgs {};
-            drv = pkgs.stdenv.mkDerivation {
-                    name = "frontend-drv";
-                    src = ./.;
-                    buildInputs = [
-                      frontend
-                    ];
-                    installPhase = ''
-                      mkdir -p $out/
-                      cp -r ${frontend}/lib/node_modules/frontend/dist/* $out/
-                    '';
-                  };
-        in {
+        services.nginx = {
           enable = true;
           package = nixpkgs-unstable.legacyPackages.x86_64-linux.nginxQuic;
           recommendedProxySettings = true;
@@ -91,9 +77,6 @@
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
                 proxyWebsockets = true;
-              };
-              locations."/editor/" = {
-                alias = "${drv}/";
               };
             };
           };
@@ -121,14 +104,17 @@
                       buildInputs = [
                         backend
                         templatesPath
+                        frontend
                       ];
                       installPhase = ''
                         mkdir -p $out/
                         mkdir -p $out/templates
                         mkdir -p $out/static
+                        mkdir -p $out/static/editor
                         cp -r ${templatesPath}/* $out/templates/
                         cp -r ${staticPath}/* $out/static/
                         cp -r ${backend}/bin/backend $out/
+                        cp -r ${frontend}/lib/node_modules/frontend/dist/* $out/static/editor/
                       '';
                     };
           in
