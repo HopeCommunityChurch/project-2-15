@@ -97,6 +97,7 @@
               migrationPath = ../../backend/migrations;
               templatesPath = ../../backend/templates;
               staticPath = ../../backend/static;
+              frontend = inputs.frontend.packages.x86_64-linux.frontend;
               pkgs = import nixpkgs {};
               backend-drv = pkgs.stdenv.mkDerivation {
                       name = "backend-drv";
