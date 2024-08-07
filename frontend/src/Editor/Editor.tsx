@@ -380,6 +380,13 @@ export class ChunkView implements NodeView {
     this.dom.className = "outerChunk";
     this.contentDOM = document.createElement("p");
     this.contentDOM.className = "chunk";
+    const level = node.attrs.level;
+    if (level != 0) {
+      const color = "--indent" + (level % 5 + 1);
+      this.contentDOM.style.borderLeft = `3px solid var(${color})`;
+      this.contentDOM.style.paddingLeft = "6px";
+      this.contentDOM.style.marginLeft = `${level}em`;
+    }
     this.contentDOM.setAttribute("level", node.attrs.level);
     this.dom.appendChild(this.contentDOM);
 

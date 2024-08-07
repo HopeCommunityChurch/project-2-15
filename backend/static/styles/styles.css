@@ -13,6 +13,11 @@ body {
   --blue-75: #4181dc;
   --blue-50: #9fc5ff;
   --blue-25: #eef5ff;
+  --indent1: rgba(102, 150, 217, 0.5);
+  --indent2: rgba(78, 177, 104, 0.5);
+  --indent3: rgba(87, 84, 100, 0.5);
+  --indent4: rgba(252, 189, 11, 0.5);
+  --indent5: rgba(240, 105, 55, 0.5);
 }
 
 button {
@@ -1282,40 +1287,6 @@ img.ProseMirror-separator {
     box-sizing: border-box;
     position: relative;
     line-height: 1.42;
-    // padding-bottom: 5px;
-    /* box-shadow: black 0px 0px 3px; */
-    /* margin: 4px; */
-  }
-
-  // Indent spacing and border colors
-  $indentLeftBorderColors: (
-    rgba(102, 150, 217, 0.5),
-    rgba(78, 177, 104, 0.5),
-    rgba(87, 84, 100, 0.5),
-    rgba(252, 189, 11, 0.5),
-    rgba(240, 105, 55, 0.5)
-  );
-
-  @for $i from 1 through 15 {
-    $colorIndex: ($i - 1) % 5 + 1;
-    $currentColor: nth($indentLeftBorderColors, $colorIndex);
-
-    p[level="#{$i}"] {
-      border-left: 3px solid $currentColor;
-      padding-left: 6px;
-      // margin-top: 2px;
-      // margin-bottom: 2px;
-
-      margin-left: calc(#{$i}em);
-
-      @media (min-width: 768px) {
-        margin-left: calc(#{$i * 1.2}em);
-      }
-
-      @media (min-width: 1024px) {
-        margin-left: calc(#{$i * 1.5}em);
-      }
-    }
   }
 
   .chunkComment {
