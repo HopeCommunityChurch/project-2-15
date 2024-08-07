@@ -1637,6 +1637,20 @@ img.ProseMirror-separator {
 }
 
 
+#studyContent.collapse {
+  grid-template-columns: 60px 1fr;
+  #collapse img{
+    transform: rotate(180deg);
+  }
+
+  #sectionContainer {
+    display: none !important;
+  }
+  #bottom {
+    display: none !important;
+  }
+}
+
 #studyContent {
   display: grid;
   grid-template-columns: 300px 1fr;
@@ -1644,6 +1658,9 @@ img.ProseMirror-separator {
     .container {
       position: sticky;
       top: 6rem;
+    }
+    #collapse img {
+      transition: transform 0.3s;
     }
     #sectionContainer {
       box-sizing: border-box;
@@ -1656,6 +1673,7 @@ img.ProseMirror-separator {
         user-select: none;
         cursor: pointer;
         position: relative;
+        text-wrap: nowrap;
 
         &:hover {
           background-color: #e9e9e9;
@@ -1687,3 +1705,4 @@ img.ProseMirror-separator {
     }
   }
 }
+
