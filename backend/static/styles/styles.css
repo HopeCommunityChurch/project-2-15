@@ -1653,20 +1653,30 @@ img.ProseMirror-separator {
 
 #studyContent {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 200px 1fr;
   #leftSidebar {
     .container {
       position: sticky;
       top: 6rem;
     }
-    #collapse img {
-      transition: transform 0.3s;
+    #collapse {
+      margin-left: 7px;
+      img {
+        transition: transform 0.3s;
+      }
     }
     #sectionContainer {
       box-sizing: border-box;
       text-overflow: ellipsis;
       color: #757575;
       overflow: hidden;
+
+      .section:hover {
+        background-color: #e9e9e9;
+        .remove {
+          display: block;
+        }
+      }
 
       .section {
         padding: 5px 20px;
@@ -1675,13 +1685,6 @@ img.ProseMirror-separator {
         position: relative;
         text-wrap: nowrap;
 
-        &:hover {
-          background-color: #e9e9e9;
-          .remove {
-            display: block;
-          }
-        }
-
         .remove {
           position: absolute;
           top: 0.5em;
@@ -1689,12 +1692,9 @@ img.ProseMirror-separator {
           display: none;
           width: 30px;
           text-align: center;
-
-          &:hover {
-            color: red;
-          }
-
-
+        }
+        .remove:hover {
+          color: red;
         }
       }
 
