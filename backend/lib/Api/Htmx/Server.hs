@@ -47,7 +47,11 @@ scottyServer
      )
   => m ()
 scottyServer = do
-  caching <- liftIO $ initCaching PublicStaticCaching
+  caching <- liftIO $ initCaching $ CustomCaching $ \ f ->
+                [ ("Cache-Control", "no-transform,public,max-age=300,s-maxage=900")
+                , ("ETag", f.fm_etag)
+                , ("Vary", "Accept-Encoding")
+                ]
   env <- ask
   scottyT 3001 $ do
     Scotty.middleware (logMiddle env.envType)
