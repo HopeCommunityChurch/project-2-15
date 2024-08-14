@@ -40,6 +40,7 @@ logMiddle (Dev _) = logStdoutDev
 logMiddle Prod = logStdout
 
 
+
 scottyServer
   :: ( MonadUnliftIO m
      , MonadLogger m

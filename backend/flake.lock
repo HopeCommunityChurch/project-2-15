@@ -66,24 +66,7 @@
       "inputs": {
         "flake-parts": "flake-parts",
         "haskell-flake": "haskell-flake",
-        "nixpkgs": "nixpkgs",
-        "wai-middleware-static": "wai-middleware-static"
-      }
-    },
-    "wai-middleware-static": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1723099294,
-        "narHash": "sha256-HTeM8+nPF4jgVJM+Jmjl1pEN4UPUdSkbAjHlmiPPj0k=",
-        "owner": "HopeCommunityChurch",
-        "repo": "wai-middleware-static",
-        "rev": "0a7a7d73d2e2f264940098071eaa97eb49c7375e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "HopeCommunityChurch",
-        "repo": "wai-middleware-static",
-        "type": "github"
+        "nixpkgs": "nixpkgs"
       }
     }
   },

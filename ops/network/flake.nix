@@ -69,14 +69,23 @@
               locations."/" = {
                 proxyPass = "http://127.0.0.1:3001/";
                 proxyWebsockets = true;
+                extraConfig = ''
+                  proxy_hide_header Last-Modified;
+                '';
               };
               locations."/app/" = {
                 proxyPass = "http://127.0.0.1:3001/";
                 proxyWebsockets = true;
+                extraConfig = ''
+                  proxy_hide_header Last-Modified;
+                '';
               };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
                 proxyWebsockets = true;
+                extraConfig = ''
+                  proxy_hide_header Last-Modified;
+                '';
               };
             };
           };

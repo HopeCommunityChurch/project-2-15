@@ -83,6 +83,7 @@
                   proxy_set_header        X-Forwarded-Proto $scheme;
                   proxy_set_header        X-Forwarded-Host $host;
                   proxy_set_header        X-Forwarded-Server $host;
+                  proxy_hide_header       Last-Modified;
                   proxy_pass http://localhost:3001/;
                 }
 
@@ -95,6 +96,7 @@
                   proxy_set_header        X-Forwarded-Proto $scheme;
                   proxy_set_header        X-Forwarded-Host $host;
                   proxy_set_header        X-Forwarded-Server $host;
+                  proxy_hide_header       Last-Modified;
                   proxy_pass http://localhost:3000/;
                 }
 
