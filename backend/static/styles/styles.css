@@ -1672,6 +1672,10 @@ img.ProseMirror-separator {
       color: #757575;
       overflow: hidden;
 
+      .moving {
+        opacity: 0.5;
+      }
+
       .section {
         padding: 5px 20px;
         user-select: none;

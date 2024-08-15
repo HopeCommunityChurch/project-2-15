@@ -43,9 +43,13 @@ function initialSetup(editor : Editor.P215Editor, container: HTMLElement, doc : 
 
 function createSectionHeader(editor : Editor.P215Editor, index : number) {
   const section = document.createElement("div");
+  section.setAttribute("currentIndex", index + "");
+  section.setAttribute("oldIndex", index + "");
+
   section.className = "section";
   section.addEventListener("click", () => {
-    editor.scrollTo(index);
+    const currentIndex = section.getAttribute("currentIndex")
+    editor.scrollTo(Number(currentIndex));
   });
 
   const sectionText = document.createElement("span");
@@ -58,9 +62,61 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   remove.className = "remove";
   remove.addEventListener("click", (e) => {
     e.stopPropagation();
-    editor.applyDispatch(EditorUtil.deleteSection(index));
+
+    const currentIndex = section.getAttribute("currentIndex")
+    editor.applyDispatch(EditorUtil.deleteSection(Number(currentIndex)));
   });
   section.appendChild(remove);
 
+  function mousemove (e : MouseEvent) {
+    section.classList.add("moving");
+    const rec = section.getBoundingClientRect();
+    if(e.clientY > rec.bottom) {
+      const next = section.nextElementSibling;
+      if(next) {
+        let ncurrentIndex = Number(next.getAttribute("currentIndex"));
+        ncurrentIndex --;
+        next.setAttribute("currentIndex", ncurrentIndex + "");
+        next.setAttribute("oldIndex", ncurrentIndex + "");
+
+        section.parentElement.insertBefore(next, section);
+        let currentIndex = Number(section.getAttribute("currentIndex"));
+        currentIndex ++;
+        section.setAttribute("currentIndex", currentIndex + "");
+      }
+    } else if (e.clientY < rec.top) {
+      const previous = section.previousElementSibling;
+      if(previous) {
+        let pcurrentIndex = Number(previous.getAttribute("currentIndex"));
+        pcurrentIndex ++;
+        previous.setAttribute("currentIndex", pcurrentIndex + "");
+        previous.setAttribute("oldIndex", pcurrentIndex + "");
+
+        section.parentElement.insertBefore(section, previous);
+        let currentIndex = Number(section.getAttribute("currentIndex"));
+        currentIndex --;
+        section.setAttribute("currentIndex", currentIndex + "");
+      }
+    }
+  };
+
+  function mouseup () {
+    document.removeEventListener("mouseup", mouseup);
+    document.removeEventListener("mousemove", mousemove);
+    section.classList.remove("moving");
+    let currentIndex = Number(section.getAttribute("currentIndex"));
+    let oldIndex = Number(section.getAttribute("oldIndex"));
+    if (currentIndex != oldIndex) {
+      editor.applyDispatch(EditorUtil.moveSection(oldIndex, currentIndex));
+      section.setAttribute("oldIndex", currentIndex + "");
+    }
+  };
+
+  section.addEventListener("mousedown", (e: MouseEvent) => {
+    if(e.button == 0) {
+      document.addEventListener("mousemove", mousemove);
+      document.addEventListener("mouseup", mouseup);
+    }
+  });
   return section;
 };
