@@ -23,14 +23,18 @@ export type SendSaveDoc = {
   },
 };
 
+export type SendUpdateName = {
+  tag: "UpdateName",
+  contents: string,
+};
+
 
 export type SendMsg =
   | SendOpenDoc
   | SendUpdated
   | SendListenToDoc
   | SendSaveDoc
-
-
+  | SendUpdateName
 
 
 
@@ -62,6 +66,11 @@ type RecDocSaved = {
 };
 
 
+type RecDocNameUpdated = {
+  tag: "DocNameUpdated",
+};
+
+
 type RecNotFound = {
   tag: "NotFound",
 };
@@ -80,6 +89,7 @@ type RecMsg =
   | RecDocSaved
   | RecDocOpenedOther
   | RecDocOpened
+  | RecDocNameUpdated
   | RecNotFound
   | RecUnauthorized
   | RecParseError
@@ -123,6 +133,13 @@ export class DocOpenedEvent extends Event {
     this.doc = doc;
   }
 }
+
+export class DocNameUpdated extends Event {
+  constructor() {
+    super("DocNameUpdated");
+  }
+}
+
 
 
 export class DocOpenedOtherEvent extends Event {
@@ -208,6 +225,11 @@ export class MyWebsocket extends EventTarget {
         }
         case "DocOpenedOther": {
           let event = new DocOpenedOtherEvent();
+          this.dispatchEvent(event);
+          break;
+        }
+        case "DocNameUpdated": {
+          let event = new DocNameUpdated();
           this.dispatchEvent(event);
           break;
         }

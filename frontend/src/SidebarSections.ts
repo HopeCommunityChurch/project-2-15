@@ -52,7 +52,9 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   section.appendChild(sectionText);
 
   const remove = document.createElement("div");
-  remove.innerHTML = "-";
+  remove.innerHTML = "x";
+  const img = document.createElement("img");
+  img.src = "/static/img/x.svg";
   remove.className = "remove";
   remove.addEventListener("click", (e) => {
     e.stopPropagation();

@@ -1688,14 +1688,14 @@ img.ProseMirror-separator {
 
         .remove {
           position: absolute;
-          top: 0.5em;
-          right: 20px;
+          top: 0.3em;
+          right: 0px;
           display: none;
           width: 30px;
           text-align: center;
 
           &:hover {
-            color: red;
+            color: #303030;
           }
 
 

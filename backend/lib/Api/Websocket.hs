@@ -84,8 +84,8 @@ data OutMsg
   | OutDocOpenedOther -- when the doc is opened on another device, you should close your document
   | OutDocListenStart Aeson.Object
   | OutDocSaved SavedDoc
+  | OutDocNameUpdated
   | OutUnauthorized
-  | OutNameUpdated
   | OutNotFound
   | OutParseError String
   deriving (Show, Generic)
@@ -195,7 +195,7 @@ handleUpdateName conn rst name =
     st <- readIORef rst
     docId <- hoistMaybe st.openDocument
     lift $ Doc.updateDocMeta docId name
-    lift $ sendOut conn OutNameUpdated
+    lift $ sendOut conn OutDocNameUpdated
     pure ()
 
 

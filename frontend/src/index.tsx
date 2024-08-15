@@ -82,6 +82,15 @@ ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
     window.localStorage.setItem(localSaveTimeKey, (new Date).toISOString());
     saver.save(doc);
   });
+
+  const studyNameElem = document.getElementById("studyName");
+  studyNameElem.addEventListener("input", (ev) => {
+    const update : WS.SendUpdateName = {
+      tag: "UpdateName",
+      contents: studyNameElem.innerText,
+    }
+    ws.send(update);
+  })
 });
 
 
