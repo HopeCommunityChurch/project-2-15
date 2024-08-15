@@ -1697,10 +1697,10 @@ img.ProseMirror-separator {
           display: none;
           width: 30px;
           text-align: center;
+          background-color: #e9e9e9;
 
           &:hover {
             color: #303030;
-            background-color: #e9e9e9;
           }
 
 
