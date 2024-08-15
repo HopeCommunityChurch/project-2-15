@@ -52,6 +52,7 @@ data InMsg
   = InOpenDoc T.DocId -- Call before you send updates and saves
   | InCloseDoc T.DocId -- Call when done sending updates
   | InUpdated Aeson.Value -- Updating the doc
+  | InUpdateName Text
   | InSaveDoc SaveDoc
   | InListenToDoc T.DocId  -- Call when you want to listen to the updates for a doc
   | InStopListenToDoc T.DocId
@@ -84,6 +85,7 @@ data OutMsg
   | OutDocListenStart Aeson.Object
   | OutDocSaved SavedDoc
   | OutUnauthorized
+  | OutNameUpdated
   | OutNotFound
   | OutParseError String
   deriving (Show, Generic)
@@ -147,6 +149,8 @@ websocketSever user conn = do
                 prefixLogs "ListenToDoc" $ handleListenToDoc user connId conn docId
               InSaveDoc obj ->
                 prefixLogs "SaveDoc" $ handleSave conn user.userId st obj
+              InUpdateName txt ->
+                prefixLogs "UpdateName" $ handleUpdateName conn st txt
               other -> prefixLogs "other" $
                 logInfo $ show other
       case result of
@@ -177,6 +181,23 @@ handleUpdated rst obj = do
     dsubs <- readIORef rdDocSt.subscriptions
     for_ dsubs $ \ conn ->
       lift $ sendOut conn (OutDocUpdated obj)
+
+
+handleUpdateName
+  :: ( MonadDb env m
+     )
+  => Connection
+  -> IORef SocketState
+  -> Text
+  -> m ()
+handleUpdateName conn rst name =
+  void $ runMaybeT $ do
+    st <- readIORef rst
+    docId <- hoistMaybe st.openDocument
+    lift $ Doc.updateDocMeta docId name
+    lift $ sendOut conn OutNameUpdated
+    pure ()
+
 
 
 handleSave
