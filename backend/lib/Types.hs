@@ -1,6 +1,7 @@
 module Types (
   NewType (..),
   UserId,
+  ComputerId,
   Email,
   ChurchId,
   GroupStudyId,
@@ -35,12 +36,14 @@ import Data.ByteString qualified as BS
 import Data.List ((!!))
 import Data.Text qualified as T
 import Servant.API (FromHttpApiData)
+import Web.Scotty.Trans (Parsable)
 
 newtype NewType p a = MkNewType a
   deriving (Generic)
   deriving newtype
     ( Show
     , Read
+    , Parsable
     , Hashable
     , Eq
     , Ord
@@ -73,6 +76,9 @@ instance Wrapped (NewType p a)
 data UserId'
 type UserId = NewType UserId' UUID
 
+
+data ComputerId'
+type ComputerId = NewType ComputerId' Text
 
 
 data ChurchId'

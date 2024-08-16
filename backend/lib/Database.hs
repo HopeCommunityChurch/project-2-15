@@ -360,6 +360,34 @@ documentTable =
       }
 
 
+data DocumentSaveT f = MkDocumentSaveT
+  { docId :: C f T.DocId
+  , userId :: C f T.UserId
+  , computerId :: C f T.ComputerId
+  , time :: C f UTCTime
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table DocumentSaveT where
+  data PrimaryKey DocumentSaveT f = DocumentSaveKey (C f T.DocId)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = DocumentSaveKey <$> (.docId)
+
+documentSaveTable :: TableMod DocumentSaveT
+documentSaveTable =
+  modifyTable
+    "document_save"
+    MkDocumentSaveT
+      { docId = fieldNamed "docId"
+      , userId = fieldNamed "userId"
+      , computerId = fieldNamed "computerId"
+      , time = fieldNamed "time"
+      }
+
+
+
 data DocumentEditorT f = MkDocumentEditorT
   { docId :: C f T.DocId
   , userId :: C f T.UserId
@@ -396,6 +424,7 @@ data Db f = MkDb
   , groupStudyOwner :: f (TableEntity GroupStudyOwnerT)
   , groupStudyShare :: f (TableEntity GroupStudyShareT)
   , document :: f (TableEntity DocumentT)
+  , documentSave :: f (TableEntity DocumentSaveT)
   , documentEditor :: f (TableEntity DocumentEditorT)
   }
   deriving (Generic)
@@ -416,5 +445,6 @@ db = defaultDbSettings `withDbModification`
           , groupStudyOwner = groupStudyOwnerTable
           , groupStudyShare = groupStudyShareTable
           , document = documentTable
+          , documentSave = documentSaveTable
           , documentEditor = documentEditorTable
           }

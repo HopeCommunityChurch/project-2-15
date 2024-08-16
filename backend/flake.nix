@@ -1,8 +1,9 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-23.05";
+    nixpkgs.url = "github:nixos/nixpkgs/release-24.05";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    haskell-flake.url = "github:srid/haskell-flake";
+    haskell-flake.url = "github:srid/haskell-flake?ref=0.5.0";
+
   };
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
@@ -25,11 +26,6 @@
           # Note that local packages are automatically included in `packages`
           # (defined by `defaults.packages` option).
           #
-          # packages = {
-          #   crypton.source = inputs.crypton;
-          #   http2.source = inputs.http2;
-          #   quic.source = inputs.quic;
-          # };
           settings = {
             deriving-aeson = {
               haddock = true;
@@ -43,6 +39,15 @@
             };
             unliftio-pool = {
               haddock = true;
+            };
+            monad-logger-prefix = {
+              broken = false;
+              jailbreak = true;
+              haddock = true;
+            };
+            beam-postgres = {
+              check = false;
+              jailbreak = true;
             };
             lens-datetime = {
               broken = false;

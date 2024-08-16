@@ -1,12 +1,11 @@
 import {
-  toggleBold,
-  toggleItalic,
-  toggleUnderline,
-  clearFormatting,
-  setTextColor,
-  setHighlightColor,
-  removeHighlightColor,
   getCurrentTextAndHighlightColors,
+  increaseLevel,
+  toggleBold,
+  toggleUnderline,
+  toggleItalic,
+  decreaseLevel,
+  addGeneralStudyBlock,
 } from "./editorUtils";
 
 import {
@@ -34,38 +33,20 @@ import { keymap } from "prosemirror-keymap";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { StepMap, Step, Transform } from "prosemirror-transform";
 import { baseKeymap } from "prosemirror-commands";
-import "./styles.css";
-import * as classes from "./styles.module.scss";
-import QuestionIcon from "../Pages/Study/TextEditorToolbar/Assets/question-icon.svg";
-import AddScriptureIcon from "../Assets/add-scripture.svg";
-import GrayPencilCircle from "../Assets/gray-pencil-in-circle.svg";
+// import AddScriptureIcon from "../Assets/add-scripture.svg";
 import {
   questionHighlightPlugin,
   highlighQuestion,
   unhighlighQuestion,
 } from "./QuestionHighlightPlugin";
-import {
-  otherCursorPlugin,
-  setSelection,
-} from "./OtherCursorPlugin";
+import { otherCursorPlugin, setSelection } from "./OtherCursorPlugin";
+import {getRandomStr} from "../Util";
 
-import CloseXIcon from "../Assets/x.svg";
+// import CloseXIcon from "../Assets/x.svg";
 import { v4 as uuidv4 } from "uuid";
 
 // var blockMap : Dictionary<BlockMapItem> = {};
 
-class SectionView implements NodeView {
-  dom: HTMLElement;
-  contentDOM: HTMLElement;
-  constructor(node: Node, sectionIndex: number) {
-    this.dom = document.createElement("div");
-    this.dom.className = classes.section;
-    // this.dom.id = `section-${sectionIndex}`;
-    this.contentDOM = document.createElement("div");
-    this.contentDOM.className = classes.content;
-    this.dom.appendChild(this.contentDOM);
-  }
-}
 
 function extractAllStudyBlocksAndQuestions(node: Node, allStudyBlocks: Node[] = []) {
   // Iterate over the children of the node
@@ -89,39 +70,36 @@ class StudyBlocksView implements NodeView {
     node: Node,
     view: EditorView,
     getPos: () => number,
-    selectedStudyBlockArea,
-    setSelectedStudyBlockArea
   ) {
     // Create a container div
     this.dom = document.createElement("div");
-    this.dom.className = classes.studyBlocksContainer;
+    this.dom.className = "studyBlocksContainer";
 
     // Create the table
     const table = document.createElement("table");
-    table.className = classes.studyBlocks;
-
-    // Find the section node that contains this position
-    let sectionNode = null;
-    let sectionPos = null;
-    view.state.doc.nodesBetween(getPos(), getPos(), (node, pos) => {
-      if (node.type.name === "section") {
-        sectionNode = node;
-        sectionPos = pos;
-        return false; // Stop iterating further
-      }
-    });
-
-    let combinedStudyBlocks = extractAllStudyBlocksAndQuestions(sectionNode);
+    table.className = "studyBlocks";
 
     // Create and configure the Pencil icon
     const questionIcon = new Image();
-    questionIcon.src = GrayPencilCircle;
-    questionIcon.className = classes.studyBlockEditPencil;
+    questionIcon.src = window.base + "/static/img/gray-pencil-in-circle.svg";
+    questionIcon.className = "studyBlockEditPencil";
 
-    // if (selectedStudyBlockArea()) console.log(selectedStudyBlockArea());
     questionIcon.addEventListener("click", () => {
+      // Find the section node that contains this position
+      let sectionNode = null;
+      let sectionPos = null;
+      view.state.doc.nodesBetween(getPos(), getPos(), (node, pos) => {
+        if (node.type.name === "section") {
+          sectionNode = node;
+          sectionPos = pos;
+          return false; // Stop iterating further
+        }
+      });
+
+      let combinedStudyBlocks = extractAllStudyBlocksAndQuestions(sectionNode);
+
       // Update the signal with the combined study blocks and the current position
-      setSelectedStudyBlockArea({ studyBlocks: combinedStudyBlocks, position: getPos() });
+      // setSelectedStudyBlockArea({ studyBlocks: combinedStudyBlocks, position: getPos() });
     });
 
     // Position the Question icon at the top right of the table
@@ -133,11 +111,27 @@ class StudyBlocksView implements NodeView {
   }
 }
 
-function getRandomStr(): string {
-  const arrayb = new Uint8Array(10);
-  let b = self.crypto.getRandomValues(arrayb);
-  return btoa(b.reduce((a, b) => a + b, ""));
+class BibleTextView implements NodeView {
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+
+  constructor(
+    node: Node,
+  ) {
+    this.dom = document.createElement("div");
+    this.dom.className = "bibleText";
+
+    const header = document.createElement("h3");
+    header.innerText = node.attrs.verses;
+    this.dom.appendChild(header);
+
+    const body = document.createElement("div");
+    this.contentDOM = body;
+    this.dom.appendChild(body);
+  }
 }
+
+
 
 function newQuestionNode(): [string, Node] {
   const questionId = getRandomStr();
@@ -161,7 +155,7 @@ class QuestionsView implements NodeView {
   constructor(node: Node, view: EditorView, getPos: () => number) {
     this.node = node;
     this.dom = document.createElement("tr");
-    this.dom.className = classes.questions;
+    this.dom.className = "questions";
 
     const header = document.createElement("td");
     header.setAttribute("contenteditable", "false");
@@ -169,7 +163,7 @@ class QuestionsView implements NodeView {
     const headerDiv = document.createElement("div");
     headerDiv.setAttribute("contenteditable", "false");
     headerDiv.innerText = "Questions";
-    headerDiv.className = classes.studyBlockHeaderDiv;
+    headerDiv.className = "studyBlockHeaderDiv";
 
     headerDiv.onclick = () => {
       // Logic to move the cursor to the previous position
@@ -186,8 +180,8 @@ class QuestionsView implements NodeView {
 
     if (node.content.size === 0) {
       const noQuestionsText = document.createElement("div");
-      noQuestionsText.className = classes.noQuestionsText;
-      noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${QuestionIcon}" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+      noQuestionsText.className = "noQuestionsText";
+      noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
 
       noQuestionsText.onclick = () => {
         // Logic to move the cursor to the previous position
@@ -217,7 +211,7 @@ class GeneralStudyBlockHeader implements NodeView {
     this.node = node;
     this.dom = document.createElement("td");
     this.contentDOM = document.createElement("div");
-    this.contentDOM.className = classes.studyBlockHeaderDiv;
+    this.contentDOM.className = "studyBlockHeaderDiv";
     this.dom.appendChild(this.contentDOM);
   }
   update(node: Node) {
@@ -319,7 +313,7 @@ export class QuestionView implements NodeView {
         view.dispatch(tr2);
       };
       addAnswer.innerText = "+ Answer";
-      addAnswer.className = classes.addAnswer;
+      addAnswer.className = "addAnswer";
       this.dom.appendChild(addAnswer);
     }
 
@@ -330,7 +324,7 @@ export class QuestionView implements NodeView {
     //   delete this.questionMap[this.questionId];
     // };
     // deleteQuestion.innerText = "delete question";
-    // deleteQuestion.className = classes.deleteQuestion;
+    // deleteQuestion.className = "deleteQuestion";
     // this.dom.appendChild(deleteQuestion);
   }
 
@@ -383,9 +377,16 @@ export class ChunkView implements NodeView {
 
   constructor(node: Node, view: EditorView, getPos: () => number) {
     this.dom = document.createElement("p");
-    this.dom.className = classes.outerChunk;
+    this.dom.className = "outerChunk";
     this.contentDOM = document.createElement("p");
-    this.contentDOM.className = classes.chunk;
+    this.contentDOM.className = "chunk";
+    const level = node.attrs.level;
+    if (level != 0) {
+      const color = "--indent" + (level % 5 + 1);
+      this.contentDOM.style.borderLeft = `3px solid var(${color})`;
+      this.contentDOM.style.paddingLeft = "6px";
+      this.contentDOM.style.marginLeft = `${level}em`;
+    }
     this.contentDOM.setAttribute("level", node.attrs.level);
     this.dom.appendChild(this.contentDOM);
 
@@ -397,7 +398,7 @@ export class ChunkView implements NodeView {
     //   e.preventDefault();
     //   let widget = Decoration.widget(getPos()+1, () => {
     //     const but = document.createElement("div");
-    //     but.className = classes.chunkButton;
+    //     but.className = "chunkButton";
     //     but.onclick = () => {
     //       const chunkCom = textSchema.nodes.chunkComment.create({
     //         content: Fragment.empty,
@@ -440,7 +441,7 @@ export class ChunkCommentView implements NodeView {
     this.outerView = view;
     this.node = node;
     this.dom = document.createElement("chunkComment");
-    this.dom.className = classes.chunkButton;
+    this.dom.className = "chunkButton";
     this.popup = null;
     this.dom.onclick = (e) => {
       if (!this.popup) this.open();
@@ -484,7 +485,7 @@ export class ChunkCommentView implements NodeView {
   open() {
     let pop = this.dom.appendChild(document.createElement("div"));
     this.popup = pop;
-    pop.className = classes.chunkCommentPopup;
+    pop.className = "chunkCommentPopup";
 
     let closeBut = pop.appendChild(document.createElement("button"));
     closeBut.innerText = "Close";
@@ -540,73 +541,11 @@ class CustomEditorView extends EditorView {
     super(place, props);
   }
 
-  toggleBold() {
-    if (this.editable) {
-      toggleBold(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
-  toggleItalic() {
-    if (this.editable) {
-      toggleItalic(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
-  toggleUnderline() {
-    if (this.editable) {
-      toggleUnderline(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
-  clearFormatting() {
-    if (this.editable) {
-      clearFormatting(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
-  setTextColor(color: string) {
-    if (this.editable) {
-      setTextColor(this.state, this.dispatch, color);
-      this.focus();
-    }
-  }
-
-  setHighlightColor(color: string) {
-    if (this.editable) {
-      setHighlightColor(this.state, this.dispatch, color);
-      this.focus();
-    }
-  }
-
-  removeHighlightColor() {
-    if (this.editable) {
-      removeHighlightColor(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
   getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
     getCurrentTextAndHighlightColors(this.state, setHighlightFillColor, setTextFillColor);
     this.focus();
   }
 
-  increaseLevel() {
-    if (this.editable) {
-      increaseLevel(this.state, this.dispatch);
-      this.focus();
-    }
-  }
-
-  decreaseLevel() {
-    if (this.editable) {
-      decreaseLevel(this.state, this.dispatch);
-      this.focus();
-    }
-  }
 }
 
 const zIndices: { [key: string]: number } = {}; // Object to store z-index values for pop-ups
@@ -618,12 +557,12 @@ const questionPopup = (
   qId,
   questionMap: Dictionary<QuestionMapItem>,
   view: EditorView,
-  setActiveEditor
+  setCurrentEditor : (view : EditorView) => void
 ) => {
   let qNode = questionMap[qId];
   if (!qNode.editor) {
     const pop = document.createElement("questionRefPopup");
-    pop.className = classes.questionRefPopup;
+    pop.className = "questionRefPopup";
 
     // Initially position it off-screen so it doesn't flicker
     pop.style.position = "absolute";
@@ -631,7 +570,8 @@ const questionPopup = (
     pop.style.top = "-9999px";
 
     // Add it to the body so it renders and we can measure it
-    document.body.appendChild(pop);
+    const p215EditorHolder = document.getElementById("editorHolder");
+    p215EditorHolder.appendChild(pop);
 
     // Now measure it
     const rect = pop.getBoundingClientRect();
@@ -723,30 +663,30 @@ const questionPopup = (
 
     mover.addEventListener("mousedown", (e) => {
       e.preventDefault();
-      startDrag(e.clientX, e.clientY);
+      startDrag(e.pageX, e.pageY);
     });
 
     mover.addEventListener("touchstart", (e) => {
       e.preventDefault();
       const touch = e.touches[0];
-      startDrag(touch.clientX, touch.clientY);
+      startDrag(touch.pageX, touch.pageY);
     });
 
     let popUpTitle = mover.appendChild(document.createElement("p"));
     popUpTitle.innerHTML = "Question";
-    popUpTitle.className = classes.QpopUpTitle;
+    popUpTitle.className = "QpopUpTitle";
 
     //add question icon
     let questionIconImg = document.createElement("img");
-    questionIconImg.src = QuestionIcon;
+    questionIconImg.src = window.base + "/static/img/question-icon.svg";
 
     popUpTitle.prepend(questionIconImg);
 
     // Add close Icon
     let closer = mover.appendChild(document.createElement("closer"));
     let closeImage = document.createElement("img");
-    closer.className = classes.closer;
-    closeImage.src = CloseXIcon;
+    closer.className = "closer";
+    closeImage.src = window.base + "/static/img/x.svg";
     closer.appendChild(closeImage);
     closer.onclick = (e) => {
       //turn off ref highlight
@@ -775,7 +715,7 @@ const questionPopup = (
     };
 
     let editorHolder = pop.appendChild(document.createElement("div"));
-    editorHolder.className = classes.questionEditorHolder;
+    editorHolder.className = "questionEditorHolder";
 
     let bottomButtons = pop.appendChild(document.createElement("div"));
 
@@ -783,7 +723,7 @@ const questionPopup = (
     if (view.editable) {
       const addAnswerButton = document.createElement("button");
       addAnswerButton.innerText = "+ Answer";
-      addAnswerButton.className = classes.questionPopUpAddAnswer;
+      addAnswerButton.className = "questionPopUpAddAnswer";
 
       addAnswerButton.onclick = (e) => {
         e.preventDefault();
@@ -806,7 +746,7 @@ const questionPopup = (
     if (view.editable) {
       const trashButton = document.createElement("button");
       trashButton.innerText = "Delete";
-      trashButton.className = classes.questionPopUpTrash;
+      trashButton.className = "questionPopUpTrash";
 
       trashButton.onclick = (e) => {
         e.preventDefault();
@@ -841,7 +781,7 @@ const questionPopup = (
       editable: () => view.editable,
       handleDOMEvents: {
         focus: () => {
-          setActiveEditor(qNode.editor);
+          setCurrentEditor(qNode.editor);
         },
       },
       state: EditorState.create({
@@ -856,9 +796,9 @@ const questionPopup = (
             "Mod-]": increaseLevel,
             "Shift-Tab": decreaseLevel,
             "Mod-[": decreaseLevel,
-            "Mod-b": toggleMark(textSchema.marks.strong),
-            "Mod-i": toggleMark(textSchema.marks.em),
-            "Mod-u": toggleMark(textSchema.marks.underline),
+            "Mod-b": toggleBold,
+            "Mod-i": toggleItalic,
+            "Mod-u": toggleUnderline,
           }),
           keymap(baseKeymap),
         ],
@@ -880,7 +820,7 @@ const questionPopup = (
 
 export const questionReferenceMarkView = (mark: Mark, view: EditorView) => {
   const mview = document.createElement("questionRef");
-  mview.className = classes.questionRef;
+  mview.className = "questionRef";
   const qId = mark.attrs.questionId;
   mview.setAttribute("questionId", qId);
   return { dom: mview };
@@ -895,78 +835,55 @@ export const referenceToMarkView = (mark: Mark, view: EditorView) => {
     // e.preventDefault();
     // var references = document.querySelectorAll(qselector);
     // references.forEach( (r) => {
-    //   r.classList.add(classes.referenceTo);
+    //   r.classList.add("referenceTo");
     // })
   };
   mview.onmouseleave = (e) => {
     e.preventDefault();
     // var references = document.querySelectorAll(qselector);
     // references.forEach( (r) => {
-    //   r.classList.remove(classes.referenceTo);
+    //   r.classList.remove("referenceTo");
     // })
   };
   return { dom: mview };
 };
 
-const nodeIsChunk = (node: Node) => {
-  if (node.type.name === "section") return true;
-  if (node.type.name === "bibleText") return true;
-  if (node.type.name != "chunk") return false;
+const questionMarkWidget = (
+  qId: string,
+  questionMap: Dictionary<QuestionMapItem>,
+  setCurrentEditor : (view : EditorView) => void
+) => (view: EditorView) => {
+  const elem = document.createElement("div");
+  elem.className = "questionMark";
+  elem.innerHTML = `<img src='${window.base}/static/img/question-icon.svg'/>`;
+
+  // Add mouseenter event listener to add a class to questionRef
+  elem.addEventListener("mouseenter", (e) => {
+    e.preventDefault();
+    highlighQuestion(qId, view.state, view.dispatch);
+  });
+
+  // Add mouseleave event listener to remove the class from questionRef
+  elem.addEventListener("mouseleave", (e) => {
+    e.preventDefault();
+    let qNode = questionMap[qId];
+    if (!qNode.editor) {
+      unhighlighQuestion(qId, view.state, view.dispatch);
+    }
+  });
+
+  elem.onmousedown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    questionPopup(e.pageX, e.pageY, qId, questionMap, view, setCurrentEditor);
+  };
+  return elem;
 };
 
-let currentChunkPlug = new Plugin({
-  props: {
-    decorations(state: EditorState) {
-      const selection = state.selection;
-      const decorations = [];
-
-      if (!selection.empty) return null;
-
-      state.doc.nodesBetween(selection.from, selection.to, (node, position) => {
-        const result = nodeIsChunk(node);
-        if (result === true) return true;
-        if (result === false) return false;
-        decorations.push(
-          Decoration.node(position, position + node.nodeSize, { class: classes.selected })
-        );
-      });
-
-      return DecorationSet.create(state.doc, decorations);
-    },
-  },
-});
-
-const questionMarkWidget =
-  (qId: string, questionMap: Dictionary<QuestionMapItem>, setActiveEditor) =>
-  (view: EditorView) => {
-    const elem = document.createElement("div");
-    elem.className = classes.questionMark;
-    elem.innerHTML = '<img src="' + QuestionIcon + '" />';
-
-    // Add mouseenter event listener to add a class to questionRef
-    elem.addEventListener("mouseenter", (e) => {
-      e.preventDefault();
-      highlighQuestion(qId, view.state, view.dispatch);
-    });
-
-    // Add mouseleave event listener to remove the class from questionRef
-    elem.addEventListener("mouseleave", (e) => {
-      e.preventDefault();
-      let qNode = questionMap[qId];
-      if (!qNode.editor) {
-        unhighlighQuestion(qId, view.state, view.dispatch);
-      }
-    });
-
-    elem.onmousedown = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      questionPopup(e.pageX, e.pageY, qId, questionMap, view, setActiveEditor);
-    };
-    return elem;
-  };
-
-let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>, setActiveEditor) =>
+let questionMarkPlugin = (
+  questionMap: Dictionary<QuestionMapItem>,
+  setCurrentEditor : (view : EditorView) => void
+) =>
   new Plugin({
     props: {
       decorations(state: EditorState) {
@@ -987,7 +904,7 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>, setActiveEdi
         Object.keys(questions).forEach((qId) => {
           const loc = questions[qId];
           decorations.push(
-            Decoration.widget(loc, questionMarkWidget(qId, questionMap, setActiveEditor), {
+            Decoration.widget(loc, questionMarkWidget(qId, questionMap, setCurrentEditor), {
               key: "qmark" + qId,
               stopEvent: (e: Event) => {
                 return e.type === "click";
@@ -1000,6 +917,39 @@ let questionMarkPlugin = (questionMap: Dictionary<QuestionMapItem>, setActiveEdi
       },
     },
   });
+
+let hideOnlyOneBibleTextPlugin = new Plugin({
+  props: {
+    decorations(state: EditorState) {
+      const decorations = [];
+      const questions = {};
+      state.doc.forEach( (section, offset) => {
+        let count = 0;
+        section.forEach( (node) => {
+          if (node.type.name === "bibleText") count++;
+        });
+        if (count > 1) {
+          decorations.push(
+            Decoration.node(offset, offset + section.nodeSize, {
+              class: "showBibleTextHeader",
+            })
+          );
+        } else {
+          decorations.push(
+            Decoration.node(offset, offset + section.nodeSize, {
+              class: "hideBibleTextHeader",
+            })
+          );
+        }
+      });
+
+      return DecorationSet.create(state.doc, decorations);
+    },
+  },
+});
+
+
+
 
 const verseRefWidget = (verse, position) => (view: EditorView) => {
   const elem = document.createElement("span");
@@ -1016,7 +966,7 @@ const verseRefWidget = (verse, position) => (view: EditorView) => {
     window.open(url, "_blank").focus();
     view.focus();
   };
-  elem.className = classes.verseRef;
+  elem.className = "verseRef";
   elem.contentEditable = "true";
   if (verse.verse === 1) {
     elem.innerHTML = verse.chapter + ":" + verse.verse;
@@ -1115,58 +1065,13 @@ let sectionIdPlugin = new Plugin({
   },
 });
 
-const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-  let from = state.selection.from;
-  let to = state.selection.to;
-  let toTransform = [];
-  // Why is this stupid?
-  state.doc.nodesBetween(from, to, (node, pos) => {
-    const result = nodeIsChunk(node);
-    if (result === true) return true;
-    if (result === false) return false;
-    toTransform.push({ pos, node });
-    return false;
-  });
-  if (toTransform.length == 0) return false;
-  let type = textSchema.nodes.chunk;
-  if (dispatch)
-    dispatch(
-      toTransform.reduce((pre, { pos, node }) => {
-        return pre.setNodeMarkup(pos, type, { level: node.attrs.level + 1 }, null);
-      }, state.tr)
-    );
-  return true;
-};
-
-const decreaseLevel = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-  let type = textSchema.nodes.chunk;
-  let from = state.selection.from;
-  let to = state.selection.to;
-  let toTransform = [];
-  // Why is this stupid?
-  state.doc.nodesBetween(from, to, (node, pos) => {
-    const result = nodeIsChunk(node);
-    if (result === true) return true;
-    if (result === false) return false;
-    toTransform.push({ pos, node });
-    return false;
-  });
-  if (toTransform.length == 0) return false;
-  let nextState = toTransform.reduce((pre, { pos, node }) => {
-    let level = node.attrs.level;
-    let nextLevel = level != 0 ? level - 1 : level;
-    return pre.setNodeMarkup(pos, type, { level: nextLevel }, null);
-  }, state.tr);
-  if (dispatch) dispatch(nextState);
-  return true;
-};
 
 const addQuestion = (
   state: EditorState,
   dispatch: (tr: Transaction) => void,
   questionMap: Dictionary<QuestionMapItem>,
   view: EditorView,
-  setActiveEditor
+  setCurrentEditor : (view : EditorView) => void
 ) => {
   const from = state.selection.from;
   const to = state.selection.to;
@@ -1221,7 +1126,7 @@ const addQuestion = (
     const popUpX = coords.left + window.pageXOffset; // X coordinate
     const popUpY = coords.bottom + window.pageYOffset; // Y coordinate
 
-    questionPopup(popUpX, popUpY, qId, questionMap, view, setActiveEditor);
+    questionPopup(popUpX, popUpY, qId, questionMap, view, setCurrentEditor);
 
     return true;
   }
@@ -1304,193 +1209,8 @@ function removeQuestion(
   }
 }
 
-function moveSection(
-  originalIndex: number,
-  newIndex: number,
-  state: EditorState,
-  dispatch?: (tr: Transaction) => void
-) {
-  if (dispatch) {
-    let originalPos: number = null;
-    let originalNode: Node = null;
-    let index = 0;
-    state.doc.descendants((node: Node, pos: number) => {
-      if (node.type.name === "section") {
-        if (index == originalIndex) {
-          originalPos = pos;
-          originalNode = node;
-        }
-        index++;
-        return false;
-      }
-      return false;
-    });
-    let tr = state.tr.deleteRange(originalPos, originalPos + originalNode.nodeSize);
 
-    let newPos = null;
-    index = 0;
-    let lastNode = null;
-    let lastPos = null;
-    tr.doc.descendants((node: Node, pos: number) => {
-      if (node.type.name === "section") {
-        lastNode = node;
-        lastPos = pos;
-        if (index == newIndex) {
-          newPos = pos;
-        }
-        index++;
-        return false;
-      }
-      return false;
-    });
 
-    if (newPos === null) {
-      newPos = lastPos + lastNode.nodeSize;
-    }
-
-    tr.insert(newPos, originalNode);
-
-    dispatch(tr);
-    return true;
-  }
-}
-
-export type AddVerse = {
-  book: string;
-  chapter: number;
-  verse: number;
-  passage: string;
-};
-
-function mkVerseNode(verse: AddVerse): Node[] {
-  const vMark = textSchema.marks.verse.create({
-    book: verse.book,
-    chapter: verse.chapter,
-    verse: verse.verse,
-  });
-  return [textSchema.text(verse.passage, [vMark]), textSchema.text(" ")];
-}
-
-let addVerse = (
-  verseRef: string,
-  passage: Array<AddVerse>,
-  state: EditorState,
-  dispatch?: (tr: Transaction) => void
-) => {
-  if (dispatch) {
-    const selection = state.selection;
-
-    let sectionNode = null;
-    let sectionPos = null;
-    state.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
-      if (node.type.name === "section") {
-        sectionNode = node;
-        sectionPos = pos;
-      }
-    });
-
-    if (sectionNode && sectionPos !== null) {
-      let posOfStudyBlock = null;
-      let posOfSectionHeader = null;
-      let sectionHeaderNode = null;
-      let sectionHeaderSize = 0;
-      sectionNode.forEach((childNode, offset) => {
-        if (childNode.type.name === "studyBlocks") {
-          posOfStudyBlock = sectionPos + 1 + offset;
-        }
-        if (childNode.type.name === "sectionHeader") {
-          posOfSectionHeader = sectionPos + 1 + offset;
-          sectionHeaderNode = childNode;
-          sectionHeaderSize = childNode.nodeSize;
-        }
-      });
-
-      let tr = state.tr;
-      let headerDiff = 0;
-
-      // Check if the section header is "Untitled"
-      if (
-        sectionHeaderNode &&
-        sectionHeaderNode.textContent === "Untitled" &&
-        posOfSectionHeader !== null
-      ) {
-        const newHeader = textSchema.text(verseRef);
-        headerDiff = newHeader.nodeSize - sectionHeaderSize;
-        tr = tr.replaceWith(posOfSectionHeader, posOfSectionHeader + sectionHeaderSize, newHeader);
-      }
-
-      // Adjust the position of studyBlocks based on the new header size
-      if (posOfStudyBlock !== null) {
-        posOfStudyBlock += headerDiff + 1;
-
-        const textNode = passage.flatMap(mkVerseNode);
-        const chunk = textSchema.nodes.chunk.create(null, textNode);
-        const bibleText = textSchema.nodes.bibleText.create({ verses: verseRef }, chunk);
-        tr = tr.insert(posOfStudyBlock, bibleText);
-      }
-
-      // Dispatch the transaction with the adjustments
-      dispatch(tr);
-      return true;
-    }
-  }
-  return false;
-};
-
-function newSectionNode(): Node {
-  const header = textSchema.text("Untitled");
-  const children = [textSchema.nodes.sectionHeader.create(null, header)];
-  // crSection.bibleSections.map(newBibleText).forEach( (bs) => children.push(bs));
-  const questions = textSchema.nodes.questions.createChecked();
-  const studyBlock = textSchema.nodes.studyBlocks.createChecked(null, questions);
-  children.push(studyBlock);
-  const section = textSchema.nodes.section.createChecked(null, children);
-  return section;
-}
-
-const addSection = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-  const from = state.selection.from;
-  const to = state.selection.to;
-  if (dispatch) {
-    const node = newSectionNode();
-    // should be the end of the document.
-    const pos = state.doc.nodeSize - 2;
-    const tr = state.tr.insert(pos, node);
-    dispatch(tr);
-    return true;
-  }
-};
-
-const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
-  if (dispatch) {
-    // Get the section node where the cursor is currently positioned
-    const sectionNode = state.selection.$anchor.node(1);
-    let position = null;
-
-    // Find the position right after the last child of the current section
-    position = state.selection.$anchor.before(1) + sectionNode.content.size;
-
-    // Create the nodes for the new study block
-    const header = textSchema.text("Untitled");
-    const sbHeader = textSchema.nodes.generalStudyBlockHeader.createChecked(null, header);
-    const bodytxt = textSchema.text("my stuff here");
-    const bodyp = textSchema.nodes.paragraph.createChecked(null, bodytxt);
-    const sbBody = textSchema.nodes.generalStudyBlockBody.create(null, bodyp);
-
-    const newStudyBlockId = uuidv4();
-
-    // Create the study block and insert it at the found position
-    const studyBlock = textSchema.nodes.generalStudyBlock.createChecked(
-      { id: newStudyBlockId }, // Assign the generated ID
-      [sbHeader, sbBody]
-    );
-    const tr = state.tr.insert(position, studyBlock);
-
-    // Dispatch the transaction
-    dispatch(tr);
-    return true;
-  }
-};
 
 const complexNodeTypes = new Set(["bibleText", "sectionHeader", "studyBlocks"]);
 
@@ -1529,10 +1249,17 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
     },
   },
 });
+
 const mkPlaceholderElement = (pos) => (view: EditorView) => {
   const placeholderElement = document.createElement("div");
-  placeholderElement.className = classes.bibleTextPlaceholder;
-  placeholderElement.innerHTML = `<em>Place your cursor in this section and click the "Add Scripture" button</em> <img src="${AddScriptureIcon}" alt="Add Scripture Icon"> <em>above to add your verses here</em>`;
+  placeholderElement.className = "bibleTextPlaceholder";
+  placeholderElement.innerHTML = `
+    <em>
+      Place your cursor in this section and click the "Add Scripture" button
+    </em>
+    <img src="${window.base}/static/img/add-scripture.svg" alt="Add Scripture Icon">
+    <em>above to add your verses here</em>
+  `;
 
   placeholderElement.onclick = () => {
     // Logic to move the cursor to the previous position
@@ -1620,7 +1347,25 @@ type SectionDiff = {
 type TransactionDiff = {
   steps: any[];
   selection: SectionDiff;
+};
+
+function cleanupExtraStudyBlocks (initDoc : any) : any {
+  const newArray = initDoc.content.map( (section) => {
+    return {
+      type: "section",
+      content: section.content.filter((node) =>
+        !(node.type == "studyBlocks" && !node.hasOwnProperty("content"))
+      )
+    }
+  });
+  const result = {
+    type: "doc",
+    content: newArray,
+  }
+  return result;
 }
+
+type DispatchFunc = (tr : Transaction) => void;
 
 export class P215Editor {
   state: EditorState;
@@ -1628,31 +1373,22 @@ export class P215Editor {
   view: EditorView;
   questionMap: Dictionary<QuestionMapItem>;
   updateHanlders: Array<(change: any) => void>;
-  activeEditor: any;
-  setActiveEditor: any;
-  selectedStudyBlockArea: any;
-  setSelectedStudyBlockArea: any;
+  updateStateHanlders: Array<(change: EditorState) => void>;
   remoteThings: RemoteThingy;
+
+  currentEditor : EditorView;
 
   constructor({
     initDoc,
     editable,
-    activeEditor,
-    setActiveEditor,
     remoteThings,
-    selectedStudyBlockArea,
-    setSelectedStudyBlockArea,
   }) {
     this.editable = editable;
     this.remoteThings = remoteThings;
-    let node = Node.fromJSON(textSchema, initDoc);
+    let node = Node.fromJSON(textSchema, cleanupExtraStudyBlocks(initDoc));
     this.updateHanlders = [];
+    this.updateStateHanlders = [];
     this.questionMap = {};
-
-    this.activeEditor = activeEditor;
-    this.setActiveEditor = setActiveEditor;
-    this.selectedStudyBlockArea = selectedStudyBlockArea;
-    this.setSelectedStudyBlockArea = setSelectedStudyBlockArea;
 
     baseKeymap["Backspace"] = chainCommands(
       deleteQuestionSelection,
@@ -1680,21 +1416,27 @@ export class P215Editor {
           "Mod-u": toggleMark(textSchema.marks.underline),
         }),
         keymap(baseKeymap),
-        currentChunkPlug,
-        questionMarkPlugin(this.questionMap, this.setActiveEditor),
+        questionMarkPlugin(this.questionMap, (view) => this.currentEditor = view),
         sectionIdPlugin,
         verseReferencePlugin,
         preventUpdatingMultipleComplexNodesSelectionPlugin,
         bibleTextPlaceholderPlugin,
         questionHighlightPlugin,
         otherCursorPlugin,
-        // referencePlugin
+        hideOnlyOneBibleTextPlugin,
+        // referencePlugin,
       ],
     });
   }
 
   addQuestionCommand = (state, dispatch) => {
-    return addQuestion(state, dispatch, this.questionMap, this.view, this.setActiveEditor);
+    return addQuestion(
+            state,
+            dispatch,
+            this.questionMap,
+            this.view,
+            (view) => this.currentEditor = view
+          );
   };
 
   addEditor(editorRoot: HTMLElement) {
@@ -1705,17 +1447,18 @@ export class P215Editor {
       handlePaste: this.handlePaste.bind(this),
       handleDOMEvents: {
         focus: () => {
-          this.setActiveEditor(this);
+          this.currentEditor = this.view;
         },
       },
       nodeViews: {
+        bibleText(node) {
+          return new BibleTextView(node);
+        },
         studyBlocks(node, view, getPos) {
           return new StudyBlocksView(
             node,
             view,
             getPos,
-            that.selectedStudyBlockArea,
-            that.setSelectedStudyBlockArea
           );
         },
         questions(node, view, getPos) {
@@ -1748,10 +1491,23 @@ export class P215Editor {
         let steps = null;
         if (transaction.docChanged) {
           this.updateHanlders.forEach((handler) => {
-            handler(transaction.doc.toJSON());
+            try {
+              handler(newState.doc);
+            } catch(e) {
+              console.error(e);
+            }
           });
           steps = transaction.steps.map((st) => st.toJSON());
         }
+
+
+        this.updateStateHanlders.forEach((handler) => {
+          try {
+            handler(newState);
+          } catch(e) {
+            console.error(e);
+          }
+        });
 
         const head = newState.selection.head;
         const anchor = newState.selection.anchor;
@@ -1766,9 +1522,10 @@ export class P215Editor {
         }
       },
     });
+    this.currentEditor = this.view;
   }
 
-  dispatchSteps (changeDiff : TransactionDiff) {
+  dispatchSteps(changeDiff: TransactionDiff) {
     if (changeDiff.steps != null) {
       const steps = changeDiff.steps.map((st) => Step.fromJSON(textSchema, st));
       const tr = this.view.state.tr;
@@ -1776,6 +1533,13 @@ export class P215Editor {
       this.view.dispatch(tr);
     }
     setSelection(changeDiff.selection, this.view.state, this.view.dispatch);
+  }
+
+  applyDispatch(func : (state: EditorState, dispatch : DispatchFunc) => void) {
+    const state = this.currentEditor.state;
+    const dispatch = this.currentEditor.dispatch;
+    func(state, dispatch);
+    this.currentEditor.focus();
   }
 
   handlePaste(view, event, slice) {
@@ -1872,80 +1636,8 @@ export class P215Editor {
         this.view.dispatch,
         this.questionMap,
         this.view,
-        this.setActiveEditor
+        (view) => this.currentEditor = view
       );
-      this.view.focus();
-    }
-  }
-
-  increaseLevel() {
-    if (this.editable) {
-      increaseLevel(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  decreaseLevel() {
-    if (this.editable) {
-      decreaseLevel(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  undo() {
-    if (this.editable) {
-      const { state, dispatch } = this.view;
-      undo(state, dispatch);
-      this.view.focus();
-    }
-  }
-
-  redo() {
-    if (this.editable) {
-      const { state, dispatch } = this.view;
-      redo(state, dispatch);
-      this.view.focus();
-    }
-  }
-
-  toggleBold() {
-    if (this.editable) {
-      toggleBold(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  toggleItalic() {
-    if (this.editable) {
-      toggleItalic(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  toggleUnderline() {
-    if (this.editable) {
-      toggleUnderline(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  setTextColor(color: string) {
-    if (this.editable) {
-      setTextColor(this.view.state, this.view.dispatch, color);
-      this.view.focus();
-    }
-  }
-
-  setHighlightColor(color: string) {
-    if (this.editable) {
-      setHighlightColor(this.view.state, this.view.dispatch, color);
-      this.view.focus();
-    }
-  }
-
-  removeHighlightColor() {
-    if (this.editable) {
-      removeHighlightColor(this.view.state, this.view.dispatch);
       this.view.focus();
     }
   }
@@ -1954,79 +1646,70 @@ export class P215Editor {
     getCurrentTextAndHighlightColors(this.view.state, setHighlightFillColor, setTextFillColor);
   }
 
-  clearFormatting() {
-    if (this.editable) {
-      clearFormatting(this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
+  getCurrentVerse() {
+    const { state } = this.view;
+    const { selection } = state;
+    let headerText = "";
 
-  addSection() {
-    if (this.editable) {
-      addSection(this.view.state, this.view.dispatch);
-    }
-  }
-
-  addVerse(verseRef: string, passage: Array<AddVerse>) {
-    if (this.editable) {
-      addVerse(verseRef, passage, this.view.state, this.view.dispatch);
-      this.view.focus();
-    }
-  }
-
-  insertLink(url: string, title: string = "") {
-    if (this.editable) {
-      const { state, dispatch } = this.view;
-      const { tr, selection } = state;
-      const link = state.schema.marks.link.create({ href: url, title });
-      tr.addMark(selection.from, selection.to, link);
-      dispatch(tr);
-    }
-  }
-
-  moveSection(oldIndex: number, newIndex: number) {
-    if (this.editable) {
-      moveSection(oldIndex, newIndex, this.view.state, this.view.dispatch);
-    }
-  }
-
-  deleteSection(sectionIndex: number) {
-    if (this.editable) {
-      let sectionPositions: number[] = [];
-      this.view.state.doc.descendants((node, pos) => {
-        if (node.type.name === "section") {
-          sectionPositions.push(pos);
-        }
-      });
-
-      if (sectionIndex >= sectionPositions.length) {
-        console.error("Invalid section index");
-        return;
+    // Traverse up the document structure from the selection to find the section
+    state.doc.nodesBetween(selection.from, selection.to, (node) => {
+      if (node.type.name === "section") {
+        // Find the sectionHeader child of this section
+        node.forEach((childNode) => {
+          if (childNode.type.name === "sectionHeader") {
+            headerText = childNode.textContent;
+          }
+        });
+        return false; // Stop traversing further
       }
+    });
 
-      const sectionPos = sectionPositions[sectionIndex];
-      const sectionNode = this.view.state.doc.nodeAt(sectionPos);
-
-      if (!sectionNode) {
-        console.error("Couldn't find section node");
-        return;
-      }
-
-      // Deleting the section
-      const tr = this.view.state.tr.delete(sectionPos, sectionPos + sectionNode.nodeSize);
-      this.view.dispatch(tr);
-    }
+    return headerText;
   }
 
-  addGeneralStudyBlock() {
+  onStateUpdate(f: (change: EditorState) => void) {
     if (this.editable) {
-      addGeneralStudyBlock(this.view.state, this.view.dispatch);
+      this.updateStateHanlders.push(f);
     }
   }
-
   onUpdate(f: (change: any) => void) {
     if (this.editable) {
       this.updateHanlders.push(f);
     }
   }
+
+  scrollTo (index : number) : void {
+    const state = this.view.state;
+    let position = null;
+    state.doc.descendants( (_1, pos, _2, i) => {
+      if (i === index) {
+        position = pos;
+      }
+      return false;
+    });
+
+    if (position == null) {
+      return;
+    }
+
+    const selection = new TextSelection(this.view.state.doc.resolve(position+2));
+    const tr = state.tr.setSelection(selection)
+    this.view.dispatch(tr);
+
+    const elem = document.getElementById(`section-${index}`);
+    if (elem) {
+      elem.scrollIntoView({behavior: "smooth"});
+    }
+    this.view.focus();
+  }
 }
+
+
+export class EditorAttached extends Event {
+  editor : P215Editor
+  constructor(editor : P215Editor) {
+    super("editorAttached");
+    this.editor = editor;
+  }
+}
+

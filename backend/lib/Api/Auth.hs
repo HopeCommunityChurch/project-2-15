@@ -4,6 +4,9 @@ module Api.Auth (
   Api,
   server,
   authCookie,
+  setCookie',
+  deleteCookie,
+  lookupSession,
   AuthUser (..),
   authCookieToken
 ) where
@@ -196,6 +199,29 @@ invalidateCookie cookie = do
       (\ r -> r.token ==. val_ cookie)
 
 
+setCookie'
+  :: MonadDb env m
+  => T.UserId
+  -> m Cookie.SetCookie
+setCookie' userId = do
+  envType <- asks (.envType)
+  let shouldBeSeure =
+        case envType of
+          Dev "local" -> False
+          _ -> True
+  (token, expiresAt) <- mkCookie userId
+  let setCookie' = Cookie.defaultSetCookie
+                  { Cookie.setCookieName = "p215-auth"
+                  , Cookie.setCookieValue = encodeUtf8 (unwrap token)
+                  , Cookie.setCookieExpires = Just expiresAt
+                  , Cookie.setCookieHttpOnly = True
+                  , Cookie.setCookieSecure = shouldBeSeure
+                  , Cookie.setCookieSameSite = Just Cookie.sameSiteStrict
+                  , Cookie.setCookiePath = Just "/"
+                  }
+  pure $ setCookie'
+
+
 
 setCookie
   :: MonadDb env m
@@ -220,26 +246,31 @@ setCookie userId = do
   pure $ addHeader setCookie' ()
 
 
-setCookieDelete
-  :: MonadDb env m
-  => m (CookieHeader ())
-setCookieDelete = do
+deleteCookie :: MonadDb env m => m Cookie.SetCookie
+deleteCookie = do
   envType <- asks (.envType)
   now <- getCurrentTime
   let shouldBeSeure =
         case envType of
           Dev "local" -> False
           _ -> True
-  let setCookie' = Cookie.defaultSetCookie
-                  { Cookie.setCookieName = "p215-auth"
-                  , Cookie.setCookieValue = "deleted"
-                  , Cookie.setCookieExpires = Just now
-                  , Cookie.setCookieHttpOnly = True
-                  , Cookie.setCookieSecure = shouldBeSeure
-                  , Cookie.setCookieSameSite = Just Cookie.sameSiteStrict
-                  , Cookie.setCookiePath = Just "/"
-                  }
-  pure $ addHeader setCookie' ()
+  pure $ Cookie.defaultSetCookie
+    { Cookie.setCookieName = "p215-auth"
+    , Cookie.setCookieValue = "deleted"
+    , Cookie.setCookieExpires = Just now
+    , Cookie.setCookieHttpOnly = True
+    , Cookie.setCookieSecure = shouldBeSeure
+    , Cookie.setCookieSameSite = Just Cookie.sameSiteStrict
+    , Cookie.setCookiePath = Just "/"
+    }
+
+
+setCookieDelete
+  :: MonadDb env m
+  => m (CookieHeader ())
+setCookieDelete = do
+  dCookie <- deleteCookie
+  pure $ addHeader dCookie ()
 
 
 passwordLogin

@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-23.11";
+    nixpkgs.url = "github:nixos/nixpkgs/release-24.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     backend.url = "path:../../backend/";
     frontend.url = "path:../../frontend/";
@@ -55,21 +55,7 @@
           ";
         };
 
-        services.nginx =
-        let frontend = inputs.frontend.packages.x86_64-linux.frontend;
-            pkgs = import nixpkgs {};
-            drv = pkgs.stdenv.mkDerivation {
-                    name = "frontend-drv";
-                    src = ./.;
-                    buildInputs = [
-                      frontend
-                    ];
-                    installPhase = ''
-                      mkdir -p $out/
-                      cp -r ${frontend}/lib/node_modules/frontend/dist/* $out/
-                    '';
-                  };
-        in {
+        services.nginx = {
           enable = true;
           package = nixpkgs-unstable.legacyPackages.x86_64-linux.nginxQuic;
           recommendedProxySettings = true;
@@ -80,15 +66,25 @@
               quic = true;
               http3_hq = true;
               locations."/" = {
-                root = "${drv}/";
+                proxyPass = "http://127.0.0.1:3001/";
+                proxyWebsockets = true;
+                extraConfig = ''
+                  proxy_hide_header Last-Modified;
+                '';
               };
               locations."/app/" = {
-                root = "${drv}/";
-                extraConfig = "rewrite ^ /index.html break;";
+                proxyPass = "http://127.0.0.1:3001/";
+                proxyWebsockets = true;
+                extraConfig = ''
+                  proxy_hide_header Last-Modified;
+                '';
               };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
                 proxyWebsockets = true;
+                extraConfig = ''
+                  proxy_hide_header Last-Modified;
+                '';
               };
             };
           };
@@ -96,6 +92,8 @@
             worker_connections 20000;
           '';
         };
+
+        system.stateVersion = "23.11";
 
         security.acme.acceptTerms = true;
         security.acme.certs."${host}"  = {
@@ -105,13 +103,36 @@
         systemd.services.backend =
           let backend = inputs.backend.packages.x86_64-linux.backend;
               migrationPath = ../../backend/migrations;
+              templatesPath = ../../backend/templates;
+              staticPath = ../../backend/static;
+              frontend = inputs.frontend.packages.x86_64-linux.frontend;
+              pkgs = import nixpkgs {};
+              backend-drv = pkgs.stdenv.mkDerivation {
+                      name = "backend-drv";
+                      src = ./.;
+                      buildInputs = [
+                        backend
+                        templatesPath
+                        frontend
+                      ];
+                      installPhase = ''
+                        mkdir -p $out/
+                        mkdir -p $out/templates
+                        mkdir -p $out/static
+                        mkdir -p $out/static/editor
+                        cp -r ${templatesPath}/* $out/templates/
+                        cp -r ${staticPath}/* $out/static/
+                        cp -r ${backend}/bin/backend $out/
+                        cp -r ${frontend}/lib/node_modules/frontend/dist/* $out/static/editor/
+                      '';
+                    };
           in
             { description = "p215 backend";
               after = [ "network.target" ];
               wantedBy = [ "multi-user.target" ];
               serviceConfig = {
-                WorkingDirectory = "${backend}/bin/";
-                ExecStart = "${backend}/bin/backend +RTS -M1G -T";
+                WorkingDirectory = "${backend-drv}/";
+                ExecStart = "${backend-drv}/backend +RTS -M1G -T";
                 Restart = "always";
                 RestartSec = 3;
                 LimitNOFILE = 65536;

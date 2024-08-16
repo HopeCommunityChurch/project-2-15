@@ -15,3 +15,11 @@ declare var process : {
     [key: string] : string;
   }
 }
+
+declare interface Window {
+  editor: any;
+  editorActions: any;
+  base: string;
+  previewScripture: any;
+  isLocal: number;
+}

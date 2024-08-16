@@ -6,7 +6,6 @@ import {
 } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { Node } from "prosemirror-model";
-import * as classes from "./styles.module.scss";
 
 let questionHighlightKey = new PluginKey<QuestionId []>("questionHighlight");
 
@@ -50,7 +49,7 @@ export const questionHighlightPlugin = new Plugin<QuestionId []>({
         if(m) {
           decorations.push(
             Decoration.inline(pos, pos + node.nodeSize, {
-              class: classes.referenceToPopOpen
+              class: "referenceToPopOpen"
             })
           )
         }

@@ -2,8 +2,7 @@
   description = "test";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
-    unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     devenv.url = "github:cachix/devenv";
     backend.url = "path:./backend/";
   };
@@ -31,7 +30,7 @@
 
           services.mailpit = {
             enable = true;
-            package = inputs.unstable.legacyPackages.${system}.mailpit;
+            package = inputs.nixpkgs.legacyPackages.${system}.mailpit;
           };
 
           services.postgres = {
@@ -79,19 +78,13 @@
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection $connection_upgrade;
-                  proxy_set_header        Host $host;
                   proxy_set_header        X-Real-IP $remote_addr;
                   proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
                   proxy_set_header        X-Forwarded-Proto $scheme;
                   proxy_set_header        X-Forwarded-Host $host;
                   proxy_set_header        X-Forwarded-Server $host;
-                  add_header Last-Modified $date_gmt;
-                  add_header Cache-Control 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
-                  if_modified_since off;
-                  expires off;
-                  etag off;
-
-                  proxy_pass http://localhost:1234/;
+                  proxy_hide_header       Last-Modified;
+                  proxy_pass http://localhost:3001/;
                 }
 
                 location /api/ {
@@ -103,8 +96,12 @@
                   proxy_set_header        X-Forwarded-Proto $scheme;
                   proxy_set_header        X-Forwarded-Host $host;
                   proxy_set_header        X-Forwarded-Server $host;
+                  proxy_hide_header       Last-Modified;
                   proxy_pass http://localhost:3000/;
                 }
+
+
+
 
                 location /mailpit/ {
                   proxy_http_version 1.1;
@@ -121,23 +118,23 @@
             '';
           };
 
-          processes.backend =
-            let backend = inputs.backend.packages.${system}.backend;
-            in {
-              exec = ''
-                export SECRETS_FILE=${./backend/local-secrets.json}
-                export MIGRATION_PATH=${./backend/migrations}
-                ${backend}/bin/backend +RTS -M1G -T
-              '';
-              process-compose = {
-                depends_on.postgres.condition = "process_started";
-                availability = {
-                  restart = "on_failure";
-                  backoff_seconds = 2;
-                  max_restarts = 5;
-                };
-              };
-            };
+          # processes.backend =
+          #   let backend = inputs.backend.packages.${system}.backend;
+          #   in {
+          #     exec = ''
+          #       export SECRETS_FILE=${./backend/local-secrets.json}
+          #       export MIGRATION_PATH=${./backend/migrations}
+          #       ${backend}/bin/backend +RTS -M1G -T
+          #     '';
+          #     process-compose = {
+          #       depends_on.postgres.condition = "process_started";
+          #       availability = {
+          #         restart = "on_failure";
+          #         backoff_seconds = 2;
+          #         max_restarts = 5;
+          #       };
+          #     };
+          #   };
 
         };
 

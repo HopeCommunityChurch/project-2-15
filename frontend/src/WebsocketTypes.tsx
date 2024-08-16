@@ -18,7 +18,14 @@ export type SendListenToDoc = {
 
 export type SendSaveDoc = {
   tag: "SaveDoc",
-  contents: any,
+  contents: {
+    document: any,
+  },
+};
+
+export type SendUpdateName = {
+  tag: "UpdateName",
+  contents: string,
 };
 
 
@@ -27,8 +34,7 @@ export type SendMsg =
   | SendUpdated
   | SendListenToDoc
   | SendSaveDoc
-
-
+  | SendUpdateName
 
 
 
@@ -39,6 +45,11 @@ type RecDocListenStart = {
 
 type RecDocOpened = {
   tag: "DocOpened",
+  contents: any,
+};
+
+type RecDocOpenedOther = {
+  tag: "DocOpenedOther",
 };
 
 
@@ -49,6 +60,14 @@ type RecDocUpdated = {
 
 type RecDocSaved = {
   tag: "DocSaved",
+  contents: {
+    time: string,
+  },
+};
+
+
+type RecDocNameUpdated = {
+  tag: "DocNameUpdated",
 };
 
 
@@ -68,7 +87,9 @@ type RecMsg =
   | RecDocListenStart
   | RecDocUpdated
   | RecDocSaved
+  | RecDocOpenedOther
   | RecDocOpened
+  | RecDocNameUpdated
   | RecNotFound
   | RecUnauthorized
   | RecParseError
@@ -90,8 +111,10 @@ export class DocListenStartEvent extends Event {
 
 
 export class DocSavedEvent extends Event {
-  constructor() {
+  time : string;
+  constructor(time : string) {
     super("DocSaved");
+    this.time = time;
   }
 }
 
@@ -104,8 +127,24 @@ export class DocUpdatedEvent extends Event {
 }
 
 export class DocOpenedEvent extends Event {
-  constructor() {
+  doc : T.DocRaw
+  constructor(doc : T.DocRaw) {
     super("DocOpened");
+    this.doc = doc;
+  }
+}
+
+export class DocNameUpdated extends Event {
+  constructor() {
+    super("DocNameUpdated");
+  }
+}
+
+
+
+export class DocOpenedOtherEvent extends Event {
+  constructor() {
+    super("DocOpenedOther");
   }
 }
 
@@ -129,7 +168,7 @@ export class MyWebsocket extends EventTarget {
     this.ws = null;
     this.host = location.host;
     this.openedDoc = null;
-    this.protocol = this.host.includes("local") ? "ws://" : "wss://";
+    this.protocol = window.isLocal == 1 ? "ws://" : "wss://";
   }
 
   connect () {
@@ -170,7 +209,7 @@ export class MyWebsocket extends EventTarget {
           break;
         }
         case "DocSaved": {
-          let event = new DocSavedEvent();
+          let event = new DocSavedEvent(rec.contents.time);
           this.dispatchEvent(event);
           break;
         }
@@ -180,7 +219,17 @@ export class MyWebsocket extends EventTarget {
           break;
         }
         case "DocOpened": {
-          let event = new DocOpenedEvent();
+          let event = new DocOpenedEvent(rec.contents);
+          this.dispatchEvent(event);
+          break;
+        }
+        case "DocOpenedOther": {
+          let event = new DocOpenedOtherEvent();
+          this.dispatchEvent(event);
+          break;
+        }
+        case "DocNameUpdated": {
+          let event = new DocNameUpdated();
           this.dispatchEvent(event);
           break;
         }
@@ -205,6 +254,11 @@ export class MyWebsocket extends EventTarget {
     this.send({ tag: "OpenDoc", contents: docId});
   }
 
+  sendStrRaw (msg:string) {
+    if(this.ws.readyState == 1) {
+      this.ws.send(msg);
+    }
+  }
 
   send (msg : SendMsg) {
     if(this.ws.readyState == 1) {

@@ -2,14 +2,12 @@
   "env": {
     "development": {
       "presets": [
-        ["babel-preset-solid"]
       ],
       "plugins": [
       ]
     },
     "production": {
       "presets": [
-        ["babel-preset-solid"]
       ],
       "plugins": [
       ]

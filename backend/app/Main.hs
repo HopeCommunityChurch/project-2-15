@@ -23,6 +23,7 @@ import Prelude hiding (get)
 import UnliftIO.Concurrent (threadDelay)
 import Api.Bible qualified
 import Mail qualified
+import Api.Htmx.Server qualified as HXServer
 
 
 data DbInfo = MkDbInfo
@@ -107,12 +108,16 @@ main = do
       putStrLn "running migration"
       migration (dbToConnectInfo file.db)
       putStrLn "starting on port 3000"
-      run (fromMaybe 3000 env.port)
-        (logMiddle env.envType
-           (serveWithContext
-              (Proxy @Api.Api)
-              (Api.serverContext env)
-              (Api.server env)))
+      mapConcurrently_ identity
+        [ run (fromMaybe 3000 env.port)
+            (logMiddle env.envType
+               (serveWithContext
+                  (Proxy @Api.Api)
+                  (Api.serverContext env)
+                  (Api.server env)))
+        , runReaderT (runStdoutLoggingT HXServer.scottyServer) env
+        ]
+
 
 
 migrationOptions :: Mig.MigrationOptions

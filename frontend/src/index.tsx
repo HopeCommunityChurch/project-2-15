@@ -1,65 +1,162 @@
-import { render } from "solid-js/web";
-import { createSignal, createEffect, onMount } from "solid-js";
-import * as classes from "./styles.module.scss";
-import { Routes, Route, Router } from "@solidjs/router";
 
-import { LandingHomePage } from "./Pages/LandingHomePage/LandingHomePage";
-import { LoginPage } from "./Pages/LoginPage/login";
-import { SignUpPage } from "./Pages/SignUpPage/signup";
-import { ResetPasswordPage } from "./Pages/ResetPasswordPage/resetpassword";
-import { ResetPasswordTokenPage } from "./Pages/ResetPasswordToken/resetpassword";
-import { StudiesPage } from "./Pages/Studies/studies";
-import { StudyPage } from "./Pages/Study/study";
-import { AdminArea } from "./Pages/AdminArea/AdminArea";
-import { MyAccountPage } from "./Pages/MyAccountPage/MyAccountPage";
-import { Four04 } from "./Pages/Four04/Four04";
-import { updateLoginState } from "./Pages/LoginPage/login";
+import * as EActions from "./Editor/editorUtils"
+import * as Editor from "./Editor/Editor"
+import * as WS from "./WebsocketTypes"
+import * as T from "./Types"
+import {} from "./PreviewScripture"
+import {} from "./SidebarSections"
+import * as Util from "./Util"
 
-export function App() {
-  return (
-    <div class={classes.global}>
-      <Routes>
-        <Route path={["/", "/app"]} component={LandingHomePage} />
-        <Route path={"/app/login"} component={LoginPage} />
-        <Route path={"/app/resetpassword"} component={ResetPasswordPage} />
-        <Route path={"/app/reset_token"} component={ResetPasswordTokenPage} />
-        <Route path={"/app/signup"} component={SignUpPage} />
-        <Route path={"/app/studies"} component={StudiesPage} />
-        <Route path={"/app/admin"} component={AdminArea} />
-        <Route path={"/app/account"} component={MyAccountPage} />
-        <Route path={"/app/study/:documentID"} component={StudyPage} />
-        <Route path="*" component={Four04} />
-      </Routes>
-    </div>
-  );
-}
 
-updateLoginState().then(() => {
-  render(
-    () => (
-      <Router>
-        <App></App>
-      </Router>
-    ),
-    document.getElementById("root")
-  );
+const pathparts = window.location.pathname.split("/");
+const docId = pathparts[pathparts.length - 1] as T.DocId;
+
+const ws = new WS.MyWebsocket();
+ws.connect();
+
+const computerId = (function () : string {
+  let computerId = window.localStorage.getItem("computerId");
+  if (computerId === null) {
+    computerId = Util.getRandomStr();
+    window.localStorage.setItem("computerId", computerId);
+  }
+  return computerId;
+})();
+
+
+ws.addEventListener("open", () => {
+  ws.sendStrRaw(computerId);
+  ws.openDoc(docId);
 });
 
-setInterval(() => {
-  const script = document.getElementById("js-source") as HTMLScriptElement;
-  if (script) {
-    let src = script.src;
-    fetch(src, {
-      method: "HEAD",
-    }).then((response) => {
-      let status = response.status;
-      if (status === 200) {
-        return;
-      }
-      if (status == 404) {
-        alert("New version of p215 found. To ensure nothing breaks forcing an update.");
-        location.reload();
-      }
-    });
+const localSaveTimeKey = docId +  ".time"
+const lastRemoveSaveTimeKey = docId +  ".remoteSaveTime"
+const localDoc = docId + ".doc";
+
+
+function checkLastUpdate (doc : T.DocRaw) : any {
+  if(doc.lastUpdate == null) {
+    console.log("using remote doc");
+    return doc.document;
   }
-}, 60_000);
+  if (doc.lastUpdate.computerId == computerId) {
+    console.log("using local storage");
+    const result = window.localStorage.getItem(localDoc);
+    return JSON.parse(result);
+  } else {
+    // We need to make this nicer in the where if a local update hasn't been
+    // saved we can present a choise for the user.
+    console.error("using remote doc");
+    return doc.document;
+  }
+}
+
+let wasInitialized = false;
+
+function initialize (e : WS.DocOpenedEvent) {
+  const saver = mkSaveObject(ws);
+
+  const doc = checkLastUpdate(e.doc)
+
+  const editor = new Editor.P215Editor({
+    initDoc: doc,
+    editable: true,
+    remoteThings: {
+      send: (steps: any) => {
+        ws.send({ tag: "Updated", contents: steps });
+      },
+    },
+  });
+  window.editor = editor;
+  window.editorActions = EActions;
+  const editorLocation = document.getElementById("editorHolder");
+  editor.addEditor(editorLocation);
+
+  let event = new Editor.EditorAttached(editor);
+  document.dispatchEvent(event);
+
+  editor.onUpdate( doc => {
+    window.localStorage.setItem(docId + ".doc", JSON.stringify(doc));
+    window.localStorage.setItem(localSaveTimeKey, (new Date).toISOString());
+    saver.save(doc);
+  });
+
+  const studyNameElem = document.getElementById("studyName");
+  studyNameElem.addEventListener("input", (ev) => {
+    const update : WS.SendUpdateName = {
+      tag: "UpdateName",
+      contents: studyNameElem.innerText,
+    }
+    ws.send(update);
+  });
+  wasInitialized = true;
+}
+
+ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
+  if(!wasInitialized) {
+    initialize(e)
+  } else {
+
+    if (e.doc.lastUpdate.computerId != computerId) {
+      alert("You disconnected and there was an update since your last change. Updating this document will override those changes. Refreshing will give you the newest changes.");
+    }
+  }
+});
+
+
+function mkSaveObject (ws : WS.MyWebsocket) {
+  let isSaving = false;
+  let nextSave = null;
+
+  function save (doc: any) {
+    const update : WS.SendSaveDoc = {
+      tag: "SaveDoc",
+      contents: {
+        document: doc,
+      },
+    };
+    ws.send(update);
+  }
+
+  ws.addEventListener("DocSaved", (ev : WS.DocSavedEvent) => {
+    window.localStorage.setItem(lastRemoveSaveTimeKey, ev.time);
+    setTimeout(() => {
+      if(nextSave === null) {
+        isSaving = false;
+        document.getElementById("saveThingy").className = "notSaving";
+      } else {
+        const doc = nextSave;
+        nextSave = null;
+        save(doc);
+      }
+    }, 1000);
+  });
+
+
+  return {
+    save : (doc : any) => {
+      if (!isSaving) {
+        isSaving = true;
+        document.getElementById("saveThingy").className = "saving";
+        save(doc);
+      } else {
+        nextSave = doc;
+      }
+    },
+  };
+};
+
+// window.visualViewport.addEventListener("resize", () => {
+//   const viewPort = document.querySelector("meta[name=viewport]");
+//   let map = {};
+//   viewPort.getAttribute("content").split(",").forEach( (t) => {
+//     const [key, value] = t.split("=");
+//     map[key.trim()] = value;
+//   });
+//   map["height"] = window.visualViewport.height + "";
+//   const newContent = Object.keys(map).map( (key) => {
+//     return key + "=" + map[key];
+//   }).join(", ");
+//   viewPort.setAttribute("content", newContent);
+//   console.log(newContent);
+// });

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com"  >
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""  >
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"  >
+
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1, interactive-widget=resizes-content" name="viewport" >
+  <title>Project 2:15</title>
+  <link rel="icon" href="{{base}}/static/favicon.ico" type="image/x-icon"  >
+  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="{{base}}/static/styles/styles.css">
+  <script>
+    function toggleDialog(qs) {
+      const nav = document.querySelector(qs);
+      if(nav.open) {
+        nav.close();
+      } else {
+        nav.show();
+      }
+    }
+    function toggleModal(qs) {
+      const dialog = document.querySelector(qs);
+      if(dialog.open) {
+        dialog.close();
+      } else {
+        dialog.showModal();
+        const clickFunc = (ev) => {
+          var rect = dialog.getBoundingClientRect();
+          var isInDialog =
+            (rect.top <= event.clientY
+              && event.clientY <= rect.top + rect.height
+              && rect.left <= event.clientX
+              && event.clientX <= rect.left + rect.width);
+          if (!isInDialog) {
+            dialog.close();
+          }
+        };
+        const closeFunc = () => {
+          dialog.removeEventListener('click', clickFunc);
+          dialog.removeEventListener('close', closeFunc);
+        };
+        dialog.addEventListener('close', closeFunc) ;
+        dialog.addEventListener('click', clickFunc);
+      }
+    }
+
+    window.base = "{{base}}";
+
+    function openInsertScripture() {
+      const header = editor.getCurrentVerse();
+      document.querySelector("#addScripture").value = header;
+      toggleModal('#addScripturePopup');
+      document.getElementById("previewScripture").style.display = "none";
+    }
+
+    function undoClick() {
+      console.log(this);
+      window.editor.applyDispatch(window.editorActions.undo);
+    }
+
+    function redoClick() {
+      window.editor.applyDispatch(window.editorActions.redo);
+    }
+
+    function boldClick() {
+      window.editor.applyDispatch(window.editorActions.toggleBold);
+    }
+
+    function italicClick() {
+      window.editor.applyDispatch(window.editorActions.toggleItalic);
+    }
+
+    function underlineClick() {
+      window.editor.applyDispatch(window.editorActions.toggleUnderline);
+    }
+
+    function underlineClick() {
+      window.editor.applyDispatch(window.editorActions.toggleUnderline);
+    }
+
+    function indentClick() {
+      window.editor.applyDispatch(window.editorActions.increaseLevel);
+    }
+
+    function outdentClick() {
+      window.editor.applyDispatch(window.editorActions.decreaseLevel);
+    }
+
+    function addStudyBlockClick() {
+      window.editor.applyDispatch(window.editorActions.addGeneralStudyBlock);
+    }
+
+    function addQuestionClick() {
+      window.editor.addQuestion();
+    }
+
+    function setColorClick(color) {
+      window.editor.applyDispatch(window.editorActions.setTextColor(color));
+    }
+
+    function removeHighlightClick() {
+      window.editor.applyDispatch(window.editorActions.removeHighlightColor);
+    }
+
+    function setHighlightClick(color) {
+      window.editor.applyDispatch(window.editorActions.setHighlightColor(color));
+    }
+
+    function clearFormatClick() {
+      window.editor.applyDispatch(window.editorActions.clearFormatting);
+    }
+
+    function toggleTextColor(target, event) {
+      const sel = document.getElementById(target);
+      const isOpen = sel.classList.contains("display");
+      let first = true;
+      if (isOpen) {
+        sel.classList.remove("display");
+      } else {
+        sel.classList.add("display");
+        const clickFunc = (ev) => {
+          if (first) {
+            first = false;
+            return;
+          }
+          var rect = sel.getBoundingClientRect();
+          var isInDialog =
+            (rect.top <= event.clientY
+              && event.clientY <= rect.top + rect.height
+              && rect.left <= event.clientX
+              && event.clientX <= rect.left + rect.width);
+          if (!isInDialog) {
+            sel.classList.remove("display");
+          }
+          document.removeEventListener('click', clickFunc);
+        };
+        document.addEventListener('click', clickFunc);
+      }
+    }
+
+    function addSectionClick () {
+      window.editor.applyDispatch(window.editorActions.addSection);
+    }
+
+    function collapse() {
+      const studyContent = document.getElementById("studyContent");
+      studyContent.classList.toggle("collapse");
+    }
+
+
+  </script>
+</head>
+<body>
+
+  <header id="header">
+    <a class="logo" href="{{base}}/">
+      <img class="logo" src="{{base}}/static/img/p215-circle.svg" >
+    </a>
+    <p id="studyName" contenteditable>
+      {{doc.name}}
+    </p>
+    <p class="divider">|</p>
+    <div id="saveThingy" class="notSaving">
+      <p id="saved" class="saveThing">
+        saved <img src="{{base}}/static/img/saved.svg" >
+      </p>
+      <p id="saving" class="saveThing">
+        saving <img src="{{base}}/static/img/saving.svg" >
+      </p>
+    </div>
+    <menu class="menu"></menu>
+    <div class="buttons">
+      <button class="profileButton" onclick="toggleModal('#profileNav')">
+        {{user.nameShort}}
+      </button>
+    </div>
+  </header>
+
+  <dialog id="profileNav">
+    <menu>
+      <li>
+        <a href="{{base}}/">
+          Home
+        </a>
+      </li>
+      <li>
+        <a onclick="toggleModal('#confirmDelete')">
+          Delete Study
+        </a>
+      </li>
+      <li>
+        <a href="https://forms.gle/koJrP31Vh9TfvPcq7" target="_blank">
+          Give Feedback
+        </a>
+      </li>
+      <li>
+        <a href="{{base}}/signout">
+          Sign Out
+        </a>
+      </li>
+    </menu>
+  </dialog>
+
+  <dialog id="confirmDelete">
+    <h3>Are you sure?</h3>
+    <p>Are you sure you want to delete your study?</p>
+    <div>
+      <button class="lightBlue" onclick="toggleModal('#confirmDelete')">
+        Cancel
+      </button>
+      <button class="blue" hx-delete="{{base}}/study/{{doc.docId}}">
+        Yes, delete
+      </button>
+    </div>
+  </dialog>
+
+  <header id="editorToolbar">
+
+    <button class="toolbarButton" title="Undo" onclick="undoClick()">
+      <img src="{{base}}/static/img/undo-icon.svg" >
+    </button>
+    <button class="toolbarButton" title="Redo" onclick="redoClick()">
+      <img src="{{base}}/static/img/redo-icon.svg" >
+    </button>
+
+    <div class="seperator">&nbsp;</div>
+
+    <button class="toolbarButton" title="Bold ({{modkey}} + b)" onclick="boldClick()">
+      <img src="{{base}}/static/img/bold-icon.svg" >
+    </button>
+    <button class="toolbarButton" title="Italic ({{modkey}} + i)" onclick="italicClick()">
+      <img src="{{base}}/static/img/italic-icon.svg" >
+    </button>
+    <button class="toolbarButton" title="Underline ({{modkey}} + u)" onclick="underlineClick()">
+      <img src="{{base}}/static/img/underline-icon.svg" >
+    </button>
+    <div class="popupContainer">
+      <button class="toolbarButton" title="Text Color" onclick="toggleTextColor('textColorSelector', event)">
+        <img src="{{base}}/static/img/text-color-icon.svg" >
+      </button>
+
+      <div class="popup" id="textColorSelector">
+        <button style="background-color: #292c33" onclick="setColorClick('#292c33')"> </button>
+        <button style="background-color: #91a4b1" onclick="setColorClick('#91a4b1')"> </button>
+        <button style="background-color: #8b4e35" onclick="setColorClick('#8b4e35')"> </button>
+        <button style="background-color: #f13a35" onclick="setColorClick('#f13a35')"> </button>
+        <button style="background-color: #eb732e" onclick="setColorClick('#eb732e')"> </button>
+        <button style="background-color: #f8ac2b" onclick="setColorClick('#f8ac2b')"> </button>
+        <button style="background-color: #00a55b" onclick="setColorClick('#00a55b')"> </button>
+        <button style="background-color: #2d78ed" onclick="setColorClick('#2d78ed')"> </button>
+      </div>
+    </div>
+
+    <div class="popupContainer">
+      <button class="toolbarButton" title="Highlight Color" onclick="toggleTextColor('highlightColorSelector', event)">
+        <img src="{{base}}/static/img/highlight-color-icon.svg" >
+      </button>
+      <div class="popup" id="highlightColorSelector">
+        <button style="background-color: #fff; border: 1px solid black;" onclick="removeHighlightClick()"> </button>
+        <button style="background-color: #e3d1c9" onclick="setHighlightClick('#e3d1c9')"> </button>
+        <button style="background-color: #fdcbc8" onclick="setHighlightClick('#fdcbc8')"> </button>
+        <button style="background-color: #fbdcc5" onclick="setHighlightClick('#fbdcc5')"> </button>
+        <button style="background-color: #fcf0bf" onclick="setHighlightClick('#fcf0bf')"> </button>
+        <button style="background-color: #c0e9d4" onclick="setHighlightClick('#c0e9d4')"> </button>
+        <button style="background-color: #aedcfd" onclick="setHighlightClick('#aedcfd')"> </button>
+        <button style="background-color: #e8d0e5" onclick="setHighlightClick('#e8d0e5')"> </button>
+      </div>
+    </div>
+
+    <div class="seperator">&nbsp;</div>
+
+    <button class="toolbarButton" title="Outdent ({{modkey}} + [)" onclick="outdentClick()">
+      <img src="{{base}}/static/img/outdent-icon.svg" >
+    </button>
+    <button class="toolbarButton" title="Indent ({{modkey}} + ])" onclick="indentClick()">
+      <img src="{{base}}/static/img/indent-icon.svg" >
+    </button>
+
+    <div class="seperator">&nbsp;</div>
+
+    <button class="toolbarButton" title="Add Question ({{modkey}} + e)" onclick="addQuestionClick()">
+      <img src="{{base}}/static/img/question-icon.svg" >
+    </button>
+    <button class="toolbarButton" title="Insert Scripture" onclick="openInsertScripture()">
+      <img src="{{base}}/static/img/add-scripture.svg" >
+    </button>
+    <button class="toolbarButton" title="Add Study Block ({{modkey}} + s)" onclick="addStudyBlockClick()">
+      <img src="{{base}}/static/img/add-study-block-icon.svg" >
+    </button>
+
+    <div class="seperator">&nbsp;</div>
+    <button class="toolbarButton" title="Clear Formatting" onclick="clearFormatClick()">
+      <img src="{{base}}/static/img/clear-formatting-icon.svg" >
+    </button>
+
+  </header>
+
+  <dialog class="popup" id="addScripturePopup">
+    <form onsubmit="previewScripture(event)" >
+      <label for="addScripture">Ref:</label>
+      <input id="addScripture" autofocus >
+      <button class="lightBlue" type="submit">
+        Preview
+      </button>
+      <div id="previewScripture">
+        <header>
+        </header>
+        <section>
+        </section>
+        <button class="blue" type="submit" id="addScriptureButton">
+          Insert
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="studyContent">
+    <div id="leftSidebar">
+      <div class="container">
+        <button id="collapse" onclick="collapse()">
+          <img src="{{base}}/static/img/arrow2.svg" >
+        </button>
+        <div id="sectionContainer" >
+        </div>
+        <div id="bottom">
+          <button onclick="addSectionClick()">Add Section</button>
+        </div>
+      </div>
+    </div>
+    <div id="editorHolder">
+    </div>
+  </div>
+{% if isLocal == true %}
+  <script>
+    window.isLocal = {{isLocal}};
+  </script>
+  <script src="http://{{host}}:1234/index.js"></script>
+{% else %}
+  <script src="{{base}}/static/editor/index.js"></script>
+{% endif %}
+</body>
+</html>
+
+

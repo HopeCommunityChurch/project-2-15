@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div id="loginContent">
+
+  <div class="leftColumn">
+     <div class="innerLeftColumn">
+        <a link="" href="/app/" aria-current="page">
+          <img alt="Logo" src="{{base}}/static/img/p215-circle.svg">
+        </a>
+        <h1>Log In</h1>
+        <p>
+          Please enter your login credentials below to start using the admin console.
+        </p>
+        {% include "login/form.html" %}
+     </div>
+  </div>
+
+  <div class="rightColumn">
+    <div class="centeredDiv">
+       <h2>Making Bible Study Simpler than Ever!</h2>
+       <p>
+         Take the complexity out of Bible study and delve deeper
+         into the Word with others
+       </p>
+       <img src="{{base}}/static/img/laptop-mockup.png">
+    </div>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const ps = document.getElementById("password");
+      if(ps.type === "password") {
+        ps.type = "input";
+      } else {
+        ps.type = "password";
+      }
+    }
+  </script>
+
+ </div>
+{% endblock %}

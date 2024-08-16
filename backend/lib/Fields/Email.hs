@@ -26,6 +26,7 @@ import Orphans ()
 import Test.QuickCheck.Arbitrary (Arbitrary (..))
 import Test.QuickCheck.Instances ()
 import Text.Email.Validate qualified as VEmail
+import Web.Scotty.Trans (Parsable(..))
 
 
 newtype UnvalidatedEmail = UnvalidatedEmail Text
@@ -60,6 +61,10 @@ instance FromJSON Email where
       Right email   -> pure email
       Left errorStr -> Aeson.typeMismatch (toString errorStr) v
   parseJSON v = Aeson.typeMismatch "not a string" v
+
+instance Parsable Email where
+  parseParam = first toLazy . mkEmail . toStrict
+
 
 
 

@@ -14,64 +14,21 @@ extra-source-files:
 
 
 common warnings
-  ghc-options: -Wall -Werror=missing-fields -Werror=incomplete-uni-patterns
+  ghc-options: -Wall -Werror=missing-fields -Werror=incomplete-uni-patterns -Wunused-packages
 
 common buildDepends
   build-depends:
-    base-noprelude,
-    text,
-    case-insensitive,
-    postgresql-simple,
-    beam-core,
-    beam-postgres,
-    containers,
-    unordered-containers,
-    relude,
-    unliftio,
-    unliftio-pool,
-    lens,
-    generic-lens,
-    bytestring,
-    aeson,
-    deriving-aeson,
     warp,
+    postgresql-simple,
     wai,
     wai-extra,
-    wai-logger,
-    openapi3,
-    servant-openapi3,
-    servant,
+    aeson,
+    text,
+    unliftio,
+    base-noprelude,
     servant-server,
-    monad-logger,
-    monad-logger-prefix,
-    uuid,
-    hashable,
-    time,
-    tz,
-    tzdata,
-    vector,
-    cryptonite,
-    QuickCheck,
-    quickcheck-instances,
-    cookie,
-    lens-datetime,
-    servant-swagger-ui,
-    servant-swagger-ui-redoc,
-    postgresql-migration,
-    email-validate,
-    wreq,
-    parsec,
-    HaskellNet,
-    mime-mail,
-    network,
-    lucid,
-    clay,
-    servant-lucid,
-    template-haskell,
-    file-embed,
-    websockets,
-    wai-websockets,
-    resourcet
+
+
 
   default-extensions:
     OverloadedStrings,
@@ -90,7 +47,7 @@ common buildDepends
     GADTs,
     ConstraintKinds,
     GeneralizedNewtypeDeriving,
-    TypeInType,
+    DataKinds,
     PolyKinds,
     TypeFamilies,
     TypeFamilyDependencies,
@@ -139,6 +96,14 @@ library
     Api.Document,
     Api.Websocket,
     Api.Htmx.Studies,
+    Api.Htmx.Study,
+    Api.Htmx.Login,
+    Api.Htmx.Home,
+    Api.Htmx.NotFound,
+    Api.Htmx.NotAuthorized,
+    Api.Htmx.Ginger,
+    Api.Htmx.AuthHelper,
+    Api.Htmx.Server,
     Password,
     SwaggerHelpers,
     Orphans,
@@ -152,6 +117,50 @@ library
     WebsocketServant,
 
   build-depends:
+    HaskellNet,
+    QuickCheck,
+    quickcheck-instances,
+    bytestring,
+    beam-core,
+    beam-postgres,
+    unordered-containers,
+    relude,
+    unliftio-pool,
+    openapi3,
+    servant-openapi3,
+    servant,
+    uuid,
+    time,
+    tz,
+    vector,
+    servant-swagger-ui,
+    servant-swagger-ui-redoc,
+    wreq,
+    parsec,
+    websockets,
+    wai-websockets,
+    resourcet,
+    scotty,
+    uri-encode,
+    network,
+    monad-logger,
+    monad-logger-prefix,
+    mime-mail,
+    lucid,
+    lens-datetime,
+    lens,
+    http-types,
+    ginger,
+    email-validate,
+    directory,
+    cookie,
+    data-default,
+    deriving-aeson,
+    cryptonite,
+    containers,
+    case-insensitive,
+    clay,
+    wai-middleware-static,
 
   hs-source-dirs:   lib
   default-language: GHC2021
@@ -162,17 +171,10 @@ executable backend
   main-is: Main.hs
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      backend,
-      scotty,
+    backend,
+    postgresql-migration,
+    generic-lens,
 
   hs-source-dirs:   app
   default-language: GHC2021
 
-test-suite backend-test
-  import: warnings
-  default-language: GHC2021
-  type: exitcode-stdio-1.0
-  hs-source-dirs: test
-  main-is: Main.hs
-  build-depends:
-      backend

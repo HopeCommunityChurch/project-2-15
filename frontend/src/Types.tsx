@@ -1,4 +1,3 @@
-import { Instant, LocalDateTime } from "@js-joda/core";
 
 export type UUID = string & { readonly __tag: unique symbol };
 
@@ -33,8 +32,6 @@ export type GroupStudyRaw = {
 };
 
 export type DocMeta = {
-  created: LocalDateTime;
-  updated: LocalDateTime;
   docId: DocId;
   name: string;
   studyId: GroupStudyId;
@@ -49,26 +46,11 @@ export type GroupStudy = {
   owners: Array<PublicUser>;
 };
 
-// export function toDocFromRaw(doc: DocMetaRaw): DocMeta {
-//   return {
-//     editors: doc.editors,
-//     docId: doc.docId,
-//     studyId: doc.studyId,
-//     name: doc.name,
-//     created: LocalDateTime.ofInstant(Instant.parse(doc.created)),
-//     updated: LocalDateTime.ofInstant(Instant.parse(doc.updated)),
-//   };
-// }
 
-// export function toStudyFromRaw(study: GroupStudyRaw): GroupStudy {
-//   return {
-//     name: study.name,
-//     studyId: study.studyId,
-//     studyTemplateId: study.studyTemplateId,
-//     docs: study.docs.map(toDocFromRaw),
-//     owners: study.owners
-//   };
-// }
+export type LastUpdate = {
+  computerId: string,
+  time: string,
+};
 
 export type DocRaw = {
   docId : DocId;
@@ -80,29 +62,20 @@ export type DocRaw = {
   studyTemplateId?: StudyTemplateId;
   created: string;
   updated: string;
+  lastUpdate?: LastUpdate
 };
 
-export type Doc = {
-  docId : DocId;
-  document: any;
-  editors: Array<PublicUser>;
-  name: string;
-  groupStudyId?: GroupStudyId;
-  groupStudyName?: string;
-  studyTemplateId?: StudyTemplateId;
-  created: LocalDateTime;
-  updated: LocalDateTime;
+
+export type Verse = {
+  book: string;
+  chapter: number;
+  verse: number;
+  passage: string;
 };
 
-export function toDocFromRaw(doc: DocRaw): Doc {
-  return {
-    editors: doc.editors,
-    docId: doc.docId,
-    groupStudyId: doc.groupStudyId,
-    groupStudyName: doc.groupStudyName,
-    document: doc.document,
-    name: doc.name,
-    created: LocalDateTime.ofInstant(Instant.parse(doc.created)),
-    updated: LocalDateTime.ofInstant(Instant.parse(doc.updated)),
-  };
-}
+
+
+export type ESVResponse = {
+  canonical: string;
+  passage: Array<Verse>;
+};

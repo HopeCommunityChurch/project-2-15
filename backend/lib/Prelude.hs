@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Prelude
@@ -54,7 +55,7 @@ import Control.Lens (
  )
 import Control.Monad.Logger.CallStack (
   LoggingT,
-  MonadLogger,
+  MonadLogger(..),
   logDebug,
   logDebugSH,
   logError,
@@ -93,6 +94,7 @@ import Relude.Monoid
 import Relude.Numeric
 import Relude.String
 import UnliftIO hiding (Handler, timeout)
+import Web.Scotty.Trans (ActionT)
 
 -- import Data.Generics.Labels
 
@@ -108,4 +110,8 @@ unwrap = view _Wrapped'
 instance MonadIO m => MonadFail (LogPrefixT m) where
   fail :: MonadIO m => String -> LogPrefixT m a
   fail = liftIO . fail
+
+instance (MonadLogger m) => MonadLogger (ActionT m) where
+  monadLoggerLog loc src lvl msg =
+    lift $ monadLoggerLog loc src lvl msg
 

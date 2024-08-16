@@ -12,18 +12,20 @@ import Database.Beam (
   in_,
   insert,
   insertExpressions,
-  runInsert,
   insertValues,
+  runInsert,
   val_,
   (==.),
  )
 import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
-import Database.Beam.Postgres (PgJSONB(..))
-import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam, asJust_)
+import Database.Beam.Postgres (PgJSONB (..))
+import Database.Beam.Query qualified as BQ
+import DbHelper (MonadDb, asJust_, jsonArraryOf, jsonBuildObject, runBeam)
 import Entity qualified as E
 import Entity.AuthUser
 import Entity.User
 import Types qualified as T
+import Unsafe.Coerce (unsafeCoerce)
 
 
 data GetDocMeta = MkGetDocMeta
@@ -154,6 +156,8 @@ instance E.Entity GetGroupStudy where
         docs
         owners
 
+unsafeBreakScope :: BQ.QGenExpr ctx be s a -> BQ.QGenExpr ctx be s2 a
+unsafeBreakScope = unsafeCoerce
 
 type GetGroupStudy' = DbEntity GetGroupStudy Identity
 
