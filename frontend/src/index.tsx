@@ -14,17 +14,14 @@ const docId = pathparts[pathparts.length - 1] as T.DocId;
 const ws = new WS.MyWebsocket();
 ws.connect();
 
-
-function getComputerId () : string {
+const computerId = (function () : string {
   let computerId = window.localStorage.getItem("computerId");
   if (computerId === null) {
     computerId = Util.getRandomStr();
     window.localStorage.setItem("computerId", computerId);
   }
   return computerId;
-}
-
-const computerId = getComputerId();
+})();
 
 
 ws.addEventListener("open", () => {
@@ -54,8 +51,9 @@ function checkLastUpdate (doc : T.DocRaw) : any {
   }
 }
 
+let wasInitialized = false;
 
-ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
+function initialize (e : WS.DocOpenedEvent) {
   const saver = mkSaveObject(ws);
 
   const doc = checkLastUpdate(e.doc)
@@ -90,7 +88,19 @@ ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
       contents: studyNameElem.innerText,
     }
     ws.send(update);
-  })
+  });
+  wasInitialized = true;
+}
+
+ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
+  if(!wasInitialized) {
+    initialize(e)
+  } else {
+
+    if (e.doc.lastUpdate.computerId != computerId) {
+      alert("You disconnected and there was an update since your last change. Updating this document will override those changes.");
+    }
+  }
 });
 
 
