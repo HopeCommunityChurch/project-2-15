@@ -68,6 +68,17 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   });
   section.appendChild(remove);
 
+  const deleter = document.createElement("div");
+  deleter.className = "deleter";
+  deleter.innerText = "Remove";
+  section.appendChild(deleter);
+  deleter.addEventListener("touchstart", (e) => {
+    e.stopPropagation();
+    closeAllDeleters(section);
+    const currentIndex = section.getAttribute("currentIndex")
+    editor.applyDispatch(EditorUtil.deleteSection(Number(currentIndex)));
+  });
+
   function moveDown () {
     const next = section.nextElementSibling;
     if(next) {
@@ -129,63 +140,136 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
 
   section.addEventListener("touchstart", (e : TouchEvent) => {
     e.preventDefault();
+    closeAllDeleters(section);
     const startTime = e.timeStamp;
-    let isMoving = false;
-    let isWipeRight = false;
-    let initialTouch = copyTouch(e.touches[0]);
+    let state : TouchStates = {
+      swipeState: {
+        isNotSwipe: false,
+        initialTouch: copyTouch(e.touches[0]),
+      },
+      currentGesture: "None",
+    }
+
     let moveTimeout = setTimeout(() => {
       if(e.touches.length == 1) {
         section.classList.add("moving");
-        isMoving = true;
+        state.currentGesture = "Moving";
       }
     }, 400);
 
     function touchMove(e2 : TouchEvent) {
       clearTimeout(moveTimeout);
-      if(isMoving) {
-        const rec = section.getBoundingClientRect();
-        const touch = e2.touches[0];
-        if (touch.clientY > rec.bottom) {
-          moveDown();
-        } else if (touch.clientY < rec.top) {
-          moveUp();
+      switch (state.currentGesture) {
+        case "Moving": {
+          const rec = section.getBoundingClientRect();
+          const touch = e2.touches[0];
+          if (touch.clientY > rec.bottom) {
+            moveDown();
+          } else if (touch.clientY < rec.top) {
+            moveUp();
+          }
+          break;
         }
-      } else {
+        case "Swipe": {
+          const touch = e2.touches[0];
+          let moveX = touch.clientX - state.swipeState.initialTouch.clientX;
+          section.style.transform = `translateX(${moveX}px)`;
+          state.swipeState.lastTouch = copyTouch(touch);
+          break;
+        }
+        case "None": {
+          if(!state.swipeState.isNotSwipe) {
+            if(e2.touches.length == 1) {
+              const touch = e2.touches[0];
+              let dX = touch.clientX - state.swipeState.initialTouch.clientX;
+              let dY = touch.clientY - state.swipeState.initialTouch.clientY;
+              if(Math.abs(dY) > 40) {
+                state.swipeState.isNotSwipe = true;
+              } else {
+                if(dX < -30) {
+                  state.currentGesture = "Swipe";
+                }
+              }
+            }
+          }
+        }
       }
+
     }
 
     function touchEnd(e2: TouchEvent) {
       clearTimeout(moveTimeout);
       document.removeEventListener("touchmove", touchMove);
       document.removeEventListener("touchend", touchEnd);
-      if(isMoving) {
-        section.classList.remove("moving");
-        let currentIndex = Number(section.getAttribute("currentIndex"));
-        let oldIndex = Number(section.getAttribute("oldIndex"));
-        if (currentIndex != oldIndex) {
-          editor.applyDispatch(EditorUtil.moveSection(oldIndex, currentIndex));
-          section.setAttribute("oldIndex", currentIndex + "");
+      switch (state.currentGesture) {
+        case "Moving": {
+          section.classList.remove("moving");
+          let currentIndex = Number(section.getAttribute("currentIndex"));
+          let oldIndex = Number(section.getAttribute("oldIndex"));
+          if (currentIndex != oldIndex) {
+            editor.applyDispatch(EditorUtil.moveSection(oldIndex, currentIndex));
+            section.setAttribute("oldIndex", currentIndex + "");
+          }
+          break;
         }
-      } else {
-        const endTime = e2.timeStamp;
-        // A tap
-        if(endTime - startTime < 100) {
-          const currentIndex = section.getAttribute("currentIndex")
-          editor.scrollTo(Number(currentIndex));
+        case "Swipe": {
+          const touch = state.swipeState.lastTouch;
+          if (touch.clientX - state.swipeState.initialTouch.clientX < -30) {
+            section.style.transform = "";
+            section.classList.add("swipeOpen");
+          } else {
+            section.style.transform = "";
+          }
+          break;
+        }
+        case "None": {
+          const endTime = e2.timeStamp;
+          // A tap
+          if(endTime - startTime < 100) {
+            const currentIndex = section.getAttribute("currentIndex")
+            editor.scrollTo(Number(currentIndex));
+          }
+          break;
         }
       }
     }
 
     document.addEventListener("touchmove", touchMove);
     document.addEventListener("touchend", touchEnd);
+    document.addEventListener("touchcancel", touchEnd);
 
   });
   return section;
 };
 
-function copyTouch (touch : Touch) {
+type TouchStateSwipe = {
+  isNotSwipe: Boolean,
+  initialTouch: InitialTouch,
+  lastTouch?: InitialTouch,
+};
+
+
+type TouchStates = {
+  swipeState: TouchStateSwipe,
+  currentGesture: "None" | "Swipe" | "Moving",
+};
+
+
+type InitialTouch = {
+  clientX: number,
+  clientY: number,
+}
+
+function copyTouch (touch : Touch) : InitialTouch {
   return {
     clientX: touch.clientX,
     clientY: touch.clientY,
+  }
+}
+
+function closeAllDeleters (section: Element) {
+  const children = section.parentElement.children
+  for(let i = 0; i<children.length; i++) {
+    children[i].classList.remove("swipeOpen");
   }
 }

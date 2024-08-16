@@ -1679,6 +1679,11 @@ img.ProseMirror-separator {
         transition: transform 0.2s cubic-bezier(.6,1.36,0,1.99);
       }
 
+      .swipeOpen {
+        transition: transform 0.2s ease;
+        transform: translateX(-73px);
+      }
+
       .section {
         padding: 5px 20px;
         user-select: none;
@@ -1705,8 +1710,17 @@ img.ProseMirror-separator {
           &:hover {
             color: #303030;
           }
+        }
 
-
+        .deleter {
+          position: absolute;
+          background-color: red;
+          top: 0px;
+          right: 0px;
+          padding: 5px 6px;
+          transform: translateX(100%);
+          width: 300px;
+          color: white;
         }
       }
 
