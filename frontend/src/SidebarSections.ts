@@ -68,35 +68,43 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   });
   section.appendChild(remove);
 
+  function moveDown () {
+    const next = section.nextElementSibling;
+    if(next) {
+      let ncurrentIndex = Number(next.getAttribute("currentIndex"));
+      ncurrentIndex --;
+      next.setAttribute("currentIndex", ncurrentIndex + "");
+      next.setAttribute("oldIndex", ncurrentIndex + "");
+
+      section.parentElement.insertBefore(next, section);
+      let currentIndex = Number(section.getAttribute("currentIndex"));
+      currentIndex ++;
+      section.setAttribute("currentIndex", currentIndex + "");
+    }
+  }
+
+  function moveUp () {
+    const previous = section.previousElementSibling;
+    if(previous) {
+      let pcurrentIndex = Number(previous.getAttribute("currentIndex"));
+      pcurrentIndex ++;
+      previous.setAttribute("currentIndex", pcurrentIndex + "");
+      previous.setAttribute("oldIndex", pcurrentIndex + "");
+
+      section.parentElement.insertBefore(section, previous);
+      let currentIndex = Number(section.getAttribute("currentIndex"));
+      currentIndex --;
+      section.setAttribute("currentIndex", currentIndex + "");
+    }
+  }
+
   function mousemove (e : MouseEvent) {
     section.classList.add("moving");
     const rec = section.getBoundingClientRect();
     if(e.clientY > rec.bottom) {
-      const next = section.nextElementSibling;
-      if(next) {
-        let ncurrentIndex = Number(next.getAttribute("currentIndex"));
-        ncurrentIndex --;
-        next.setAttribute("currentIndex", ncurrentIndex + "");
-        next.setAttribute("oldIndex", ncurrentIndex + "");
-
-        section.parentElement.insertBefore(next, section);
-        let currentIndex = Number(section.getAttribute("currentIndex"));
-        currentIndex ++;
-        section.setAttribute("currentIndex", currentIndex + "");
-      }
+      moveDown();
     } else if (e.clientY < rec.top) {
-      const previous = section.previousElementSibling;
-      if(previous) {
-        let pcurrentIndex = Number(previous.getAttribute("currentIndex"));
-        pcurrentIndex ++;
-        previous.setAttribute("currentIndex", pcurrentIndex + "");
-        previous.setAttribute("oldIndex", pcurrentIndex + "");
-
-        section.parentElement.insertBefore(section, previous);
-        let currentIndex = Number(section.getAttribute("currentIndex"));
-        currentIndex --;
-        section.setAttribute("currentIndex", currentIndex + "");
-      }
+      moveUp();
     }
   };
 
@@ -118,5 +126,61 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
       document.addEventListener("mouseup", mouseup);
     }
   });
+
+  section.addEventListener("touchstart", (e : TouchEvent) => {
+    e.preventDefault();
+    let isMoving = false;
+    let isWipeRight = false;
+    let initialTouch = copyTouch(e.touches[0]);
+    let moveTimeout = setTimeout(() => {
+      if(e.touches.length == 1) {
+        section.classList.add("moving");
+        isMoving = true;
+      }
+    }, 400);
+
+    function touchMove(e2 : TouchEvent) {
+      clearTimeout(moveTimeout);
+      if(isMoving) {
+        const rec = section.getBoundingClientRect();
+        const touch = e2.touches[0];
+        if (touch.clientY > rec.bottom) {
+          moveDown();
+        } else if (touch.clientY < rec.top) {
+          moveUp();
+        }
+      } else {
+      }
+    }
+
+    function touchEnd() {
+      clearTimeout(moveTimeout);
+      document.removeEventListener("touchmove", touchMove);
+      document.removeEventListener("touchend", touchEnd);
+      if(isMoving) {
+        section.classList.remove("moving");
+        let currentIndex = Number(section.getAttribute("currentIndex"));
+        let oldIndex = Number(section.getAttribute("oldIndex"));
+        if (currentIndex != oldIndex) {
+          editor.applyDispatch(EditorUtil.moveSection(oldIndex, currentIndex));
+          section.setAttribute("oldIndex", currentIndex + "");
+        }
+      } else {
+        const currentIndex = section.getAttribute("currentIndex")
+        editor.scrollTo(Number(currentIndex));
+      }
+    }
+
+    document.addEventListener("touchmove", touchMove);
+    document.addEventListener("touchend", touchEnd);
+
+  });
   return section;
 };
+
+function copyTouch (touch : Touch) {
+  return {
+    clientX: touch.clientX,
+    clientY: touch.clientY,
+  }
+}
