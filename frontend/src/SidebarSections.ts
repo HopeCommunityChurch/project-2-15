@@ -129,6 +129,7 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
 
   section.addEventListener("touchstart", (e : TouchEvent) => {
     e.preventDefault();
+    const startTime = e.timeStamp;
     let isMoving = false;
     let isWipeRight = false;
     let initialTouch = copyTouch(e.touches[0]);
@@ -153,7 +154,7 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
       }
     }
 
-    function touchEnd() {
+    function touchEnd(e2: TouchEvent) {
       clearTimeout(moveTimeout);
       document.removeEventListener("touchmove", touchMove);
       document.removeEventListener("touchend", touchEnd);
@@ -166,8 +167,12 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
           section.setAttribute("oldIndex", currentIndex + "");
         }
       } else {
-        const currentIndex = section.getAttribute("currentIndex")
-        editor.scrollTo(Number(currentIndex));
+        const endTime = e2.timeStamp;
+        // A tap
+        if(endTime - startTime < 100) {
+          const currentIndex = section.getAttribute("currentIndex")
+          editor.scrollTo(Number(currentIndex));
+        }
       }
     }
 
