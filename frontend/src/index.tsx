@@ -98,7 +98,7 @@ ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
   } else {
 
     if (e.doc.lastUpdate.computerId != computerId) {
-      alert("You disconnected and there was an update since your last change. Updating this document will override those changes.");
+      alert("You disconnected and there was an update since your last change. Updating this document will override those changes. Refreshing will give you the newest changes.");
     }
   }
 });
