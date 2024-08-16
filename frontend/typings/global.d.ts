@@ -21,4 +21,5 @@ declare interface Window {
   editorActions: any;
   base: string;
   previewScripture: any;
+  isLocal: number;
 }

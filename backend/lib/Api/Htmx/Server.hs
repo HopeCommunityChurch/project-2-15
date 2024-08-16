@@ -77,6 +77,8 @@ scottyServer = do
       user <- getUserWithRedirect
       Study.createStudy user
     Scotty.get "/study/:documentId" $ do
+      headers <- Scotty.headers
+      logInfoSH headers
       user <- getUserWithRedirect
       Study.getStudy user
     Scotty.delete "/study/:documentId" $ do

@@ -1,23 +1,24 @@
 module Api.Htmx.Study where
 
-import Api.Htmx.AuthHelper (AuthUser(..))
+import Api.Htmx.AuthHelper (AuthUser (..))
 import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
+import Api.Htmx.NotAuthorized qualified as NotAuth
+import Api.Htmx.NotFound qualified as NotFound
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.HashMap.Strict qualified as HMap
 import Data.Text qualified as Txt
+import Data.UUID as UUID
 import DbHelper (MonadDb)
 import Entity qualified as E
 import Entity.Document qualified as Doc
 import Entity.User qualified as User
+import EnvFields (EnvType (..))
 import Network.HTTP.Types.Status (status200)
 import Text.Ginger
 import Text.Ginger.Html (htmlSource)
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
-import Api.Htmx.NotFound qualified as NotFound
-import Api.Htmx.NotAuthorized qualified as NotAuth
-import Data.UUID as UUID
 
 
 data SystemType = Linux | Mac | Windows | Unknown
@@ -51,19 +52,23 @@ getStudy
   -> ActionT m ()
 getStudy user = do
   mUserAgent <- header "User-Agent"
+  mHost <- header "X-Forwarded-Host"
+  let host = fromMaybe "local.p215.church" mHost
   docId <- param "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
   let modKey = modifierKey $ getSystem (fmap toStrict mUserAgent)
   result <- readFromTemplates "study.html"
-  env <- lift $ asks (.envType)
+  envType <- lift (asks (.envType))
+  let isLocal = envType == Dev "local"
   case result of
     Right template -> do
       let context = baseContext
-                    & HMap.insert "env" (toGVal (Aeson.toJSON env))
+                    & HMap.insert "isLocal" (toGVal isLocal)
                     & HMap.insert "user" (toGVal (Aeson.toJSON user))
                     & HMap.insert "modkey" (toGVal modKey)
                     & HMap.insert "docName" (toGVal doc.name)
                     & HMap.insert "doc" (toGVal (Aeson.toJSON doc))
+                    & HMap.insert "host" (toGVal host)
       let content = makeContextHtml (gvalHelper context)
       let h = runGinger content template
       html $ toLazy (htmlSource h)

@@ -332,9 +332,11 @@
     <div id="editorHolder">
     </div>
   </div>
-
-{% if env.tag == "Dev" && env.contents == "local" %}
-  <script src="http://localhost:1234/index.js"></script>
+{% if isLocal == true %}
+  <script>
+    window.isLocal = {{isLocal}};
+  </script>
+  <script src="http://{{host}}:1234/index.js"></script>
 {% else %}
   <script src="{{base}}/static/editor/index.js"></script>
 {% endif %}
