@@ -28,13 +28,16 @@
 
   <script>
     function togglePassword() {
+      const target = document.querySelector("#viewPassword");
       const ps = document.getElementById("password");
-      if(ps.type === "password") {
+      if(target.checked) {
         ps.type = "input";
       } else {
         ps.type = "password";
       }
     }
+    // make sure the value is correct on a refresh
+    togglePassword();
   </script>
 
  </div>
