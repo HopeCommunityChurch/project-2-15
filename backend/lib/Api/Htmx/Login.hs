@@ -34,7 +34,7 @@ getLogin
   => ActionT m ()
 getLogin = do
   result <- readFromTemplates "login.html"
-  mRedirect <- L.lookup "redirect" <$> params
+  mRedirect <- L.lookup "redirect" <$> queryParams
   case result of
     Right template -> do
       let context = baseContext
@@ -65,10 +65,11 @@ loginForm
   :: ( MonadIO m
      , MonadLogger m
      )
-  => T.Email
+  => Maybe Text
+  -> T.Email
   -> Text
   -> ActionT m ()
-loginForm email password = do
+loginForm mRedirect email password = do
   result <- readFromTemplates "login/form.html"
   case result of
     Right template -> do
@@ -76,6 +77,7 @@ loginForm email password = do
                     & HMap.insert "email" (toGVal (original (unwrap email)))
                     & HMap.insert "password" (toGVal password)
                     & HMap.insert "wasCorrect" "False"
+                    & HMap.insert "redirect" (toGVal mRedirect)
       logInfoSH context
       let content = makeContextHtml (gvalHelper context)
       let h = runGinger content template
@@ -89,9 +91,10 @@ login
      )
   => ActionT m ()
 login = do
-  email <- param "email"
-  password <- param "password"
-  mRedirect <- L.lookup "redirect" <$> params
+  email <- formParam "email"
+  password <- formParam "password"
+  mRedirect <- L.lookup "redirect" <$> formParams
+  let mRedirect' = fmap toStrict mRedirect
   mHash <- lift $ getPasswordHash email
   case mHash of
     Just (userId, hash) -> do
@@ -106,8 +109,8 @@ login = do
           setHeader "Set-Cookie" cookieTxt
           status status200
 
-        else loginForm email password
-    _ -> loginForm email password
+        else loginForm mRedirect' email password
+    _ -> loginForm mRedirect' email password
 
 
 signout

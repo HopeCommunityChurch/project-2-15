@@ -75,7 +75,7 @@ instance E.GuardValue GetUser T.UserId where
     guard_ $ user.userId `in_` ids
 
 
-data NewUser = NewUser
+data NewUser = MkNewUser
   { email :: T.Email
   , name :: Text
   , password :: NewPassword
@@ -113,6 +113,29 @@ createUser newUser = do
         hash
       ]
   pure user.userId
+
+
+data UpdateUser = MkUpdateUser
+  { email :: T.Email
+  , name :: Text
+  }
+  deriving (Show, Generic)
+
+
+updateUser
+  :: MonadDb env m
+  => T.UserId
+  -> UpdateUser
+  -> m ()
+updateUser userId up =
+  runBeam
+  $ runUpdate
+  $ update
+      Db.db.user
+      (\ user -> (user.email <-. val_ up.email)
+              <>  (user.name <-. val_ up.name)
+      )
+      (\ user -> user.userId ==. val_ userId)
 
 
 passwordResetToken

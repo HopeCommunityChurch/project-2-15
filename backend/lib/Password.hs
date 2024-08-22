@@ -11,6 +11,7 @@ module Password
   , PasswordHash(..)
   , NewPassword
   , getHash
+  , newPassword
   ) where
 
 import qualified Crypto.KDF.BCrypt                    as BCrypt
@@ -135,6 +136,8 @@ getHash ::
      (MonadRandom m) => NewPassword -> m PasswordHash
 getHash = runNewPassword
 
+newPassword :: Text -> NewPassword
+newPassword txt = NewPassword (hashPassword txt)
 
 instance Show NewPassword where
   show _ = "**********"

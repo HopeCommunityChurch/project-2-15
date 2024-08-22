@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<header id="header">
+  <a class="logo" href="{{base}}/">
+    <img class="logo" src="{{base}}/static/img/p215-circle.svg" >
+  </a>
+  <menu class="menu">
+    <li class="mobileHidden">
+      <a href="https://experiencethehope.com/teaching" target="_blank">
+        Teachings
+      </a>
+    </li>
+    <li class="mobileHidden">
+      <a href="https://experiencethehope.com/equipping" target="_blank">
+        Equipping
+      </a>
+    </li>
+    <li class="mobileHidden">
+      <a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">
+        Messaging
+      </a>
+    </li>
+  </menu>
+
+  <div class="buttons">
+    <button class="profileButton" onclick="toggleModal('#profileNav')">
+      {{user.nameShort}}
+    </button>
+  </div>
+</header>
+
+<dialog id="profileNav">
+  <menu>
+    <li>
+      <a href="{{base}}/">
+        Home
+      </a>
+    </li>
+    <li>
+      <a href="{{base}}/signout">
+        Sign Out
+      </a>
+    </li>
+  </menu>
+</dialog>
+
+<div id="profileContent">
+  <h1>My Profile</h1>
+  {% include "profile/form.html" %}
+
+</div>
+
+<script>
+  window.addEventListener("load", () => {
+    document.querySelectorAll("input").forEach( (input) => {
+      input.value = input.getAttribute("value");
+    });
+  });
+</script>
+
+{% endblock %}

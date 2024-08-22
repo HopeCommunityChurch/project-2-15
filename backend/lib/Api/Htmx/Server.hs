@@ -5,10 +5,13 @@ import Api.Htmx.Ginger (baseUrl)
 import Api.Htmx.Home qualified as Home
 import Api.Htmx.Login qualified as Login
 import Api.Htmx.NotFound qualified as NotFound
+import Api.Htmx.Profile qualified as Profile
+import Api.Htmx.Signup qualified as Signup
 import Api.Htmx.Studies qualified as Studies
 import Api.Htmx.Study qualified as Study
 import DbHelper qualified as Db
 import EnvFields (EnvType (..))
+import Mail qualified
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp (Port)
 import Network.Wai.Middleware.RequestLogger (
@@ -45,6 +48,7 @@ scottyServer
   :: ( MonadUnliftIO m
      , MonadLogger m
      , Db.MonadDb env m
+     , Mail.HasSmtp env
      )
   => m ()
 scottyServer = do
@@ -69,6 +73,13 @@ scottyServer = do
     Scotty.post "/login" Login.login
     Scotty.get "/signout" Login.signout
 
+    Scotty.get "/signup" $ do
+      mUser <- getUser
+      case mUser of
+        Nothing -> Signup.getSignup
+        Just _ -> Scotty.redirect $ baseUrl <> "/studies"
+    Scotty.post "/signup" Signup.signup
+
     Scotty.get "/studies" $ do
       user <- getUserWithRedirect
       Studies.getStudies user
@@ -82,6 +93,14 @@ scottyServer = do
     Scotty.delete "/study/:documentId" $ do
       user <- getUserWithRedirect
       Study.deleteStudy user
+
+    Scotty.get "/profile" $ do
+      user <- getUserWithRedirect
+      Profile.getProfile user
+
+    Scotty.put "/profile" $ do
+      user <- getUserWithRedirect
+      Profile.putProfile user
 
     Scotty.get "/" $ do
       mUser <- getUser
