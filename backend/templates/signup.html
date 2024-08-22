@@ -7,11 +7,11 @@
         <a link="" href="/app/" aria-current="page">
           <img alt="Logo" src="{{base}}/static/img/p215-circle.svg">
         </a>
-        <h1>Log In</h1>
+        <h1>Sign Up</h1>
         <p>
-          Please enter your login credentials below to start using the admin console.
+          Join the people studying.
         </p>
-        {% include "login/form.html" %}
+        {% include "signup/form.html" %}
      </div>
   </div>
 
@@ -29,12 +29,14 @@
   <script>
     function togglePassword() {
       const target = document.querySelector("#viewPassword");
-      const ps = document.getElementById("password");
-      if(target.checked) {
-        ps.type = "input";
-      } else {
-        ps.type = "password";
-      }
+      const pss = document.querySelectorAll("#password, #password2");
+      pss.forEach( (ps) => {
+        if(target.checked) {
+          ps.type = "input";
+        } else {
+          ps.type = "password";
+        }
+      });
     }
     // make sure the value is correct on a refresh
     togglePassword();

@@ -1,0 +1,7 @@
+<form hx-put="{{base}}/profile" hx-target="this" hx-swap="outerHTML">
+    <label for="name">Name</label>
+    <input value="{{user.name}}" name="name" type="text" required>
+    <label for="name">Email</label>
+    <input name="email" type="email" value="{{user.email}}" required>
+    <button class="blue" type="submit">Save</button>
+</form>
