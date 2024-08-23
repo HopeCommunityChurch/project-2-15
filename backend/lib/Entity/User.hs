@@ -189,14 +189,22 @@ getUserFromResetToken token = do
       guard_ $ isNothing_ $ reset.usedAt
       pure reset.userId
 
+
+  pure userId
+
+
+invalidateResetToken
+  :: MonadDb env m
+  => T.PasswordResetToken
+  -> m ()
+invalidateResetToken token = do
+  now <- getCurrentTime
   runBeam
     $ runUpdate
     $ update
         Db.db.userPasswordReset
         (\ r -> r.usedAt <-. val_ (Just now))
         (\ r -> r.token ==. val_ token)
-
-  pure userId
 
 
 updatePassword

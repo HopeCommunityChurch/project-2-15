@@ -1,17 +1,11 @@
-<form hx-post="{{base}}/signup" hx-target="this" hx-swap="outerHTML" >
-  <label for="name">Name</label>
-  <input required type="text" name="name" {% if errors.name %} value="{{errors.name}}" {% endif %} placeholder="Jonny Covert">
-
-  <label for="email">Email</label>
-  <input required type="email" name="email" {% if errors.email %} value="{{errors.email}}" {% endif %} placeholder="example@example.com">
-
+<form hx-post="{{base}}/reset_token" hx-target="this" hx-swap="outerHTML" >
   <label for="password">Password</label>
   <input required id="password" value="{{errors.password}}" type="password" name="password" >
 
   <label for="password2">Retype Password</label>
   <input required id="password2" value="{{errors.password2}}" type="password" name="password2" >
 
-  <input value="{{redirect}}" type="hidden" name="redirect" >
+  <input required id="token" value="{{token}}" type="hidden" name="token" >
 
   <div class="formGroup">
     <div>
@@ -21,19 +15,10 @@
       </label>
     </div>
   </div>
-  <p class="dontHaveAccount">
-    Already have an account?
-    <a link="" href="{{base}}/login?redirect={{redirect}}">
-      Log In
-    </a>
-  </p>
   {% if wasCorrect == 'False' %}
   <ul class="errorText">
-    {% if errors.nameNotNull != 1 %}
-      <li>Need a name</li>
-    {% endif %}
-    {% if errors.isNotTaken != 1 %}
-      <li>Email already taken</li>
+    {% if errors.tokenIsValid != 1 %}
+      <li>You took to long try again. The token is only valid for 10 mintues.</li>
     {% endif %}
     {% if errors.passwordsMatch != 1 %}
       <li>Passwords don't match</li>
@@ -43,6 +28,5 @@
     {% endif %}
   </ul>
   {% endif %}
-  <button class="blue" type="submit">Sign Up</button>
+  <button class="blue" type="submit">Reset Password</button>
 </form>
-

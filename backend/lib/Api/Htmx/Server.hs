@@ -5,12 +5,13 @@ import Api.Htmx.Ginger (baseUrl)
 import Api.Htmx.Home qualified as Home
 import Api.Htmx.Login qualified as Login
 import Api.Htmx.NotFound qualified as NotFound
+import Api.Htmx.PasswordReset qualified as PasswordReset
 import Api.Htmx.Profile qualified as Profile
 import Api.Htmx.Signup qualified as Signup
 import Api.Htmx.Studies qualified as Studies
 import Api.Htmx.Study qualified as Study
 import DbHelper qualified as Db
-import EnvFields (EnvType (..))
+import EnvFields (EnvType (..), HasUrl)
 import Mail qualified
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp (Port)
@@ -49,6 +50,7 @@ scottyServer
      , MonadLogger m
      , Db.MonadDb env m
      , Mail.HasSmtp env
+     , HasUrl env
      )
   => m ()
 scottyServer = do
@@ -79,6 +81,16 @@ scottyServer = do
         Nothing -> Signup.getSignup
         Just _ -> Scotty.redirect $ baseUrl <> "/studies"
     Scotty.post "/signup" Signup.signup
+
+    Scotty.get "/resetpassword" $ do
+      PasswordReset.getPasswordReset
+    Scotty.post "/reset_email"
+      PasswordReset.resetEmail
+    Scotty.get "/reset_token" $ do
+      PasswordReset.getResetToken
+    Scotty.post "/reset_token" $ do
+      PasswordReset.postResetToken
+
 
     Scotty.get "/studies" $ do
       user <- getUserWithRedirect

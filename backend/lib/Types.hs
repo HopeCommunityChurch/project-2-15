@@ -10,6 +10,7 @@ module Types (
   CookieToken,
   genCookieToken,
   PasswordResetToken,
+  mkPasswordResetToken,
   genPasswordResetToken,
 
   ShareToken,
@@ -104,8 +105,13 @@ type CookieToken = NewType CookieToken' Text
 data PasswordResetToken'
 type PasswordResetToken = NewType PasswordResetToken' Text
 
+mkPasswordResetToken :: Text -> PasswordResetToken
+mkPasswordResetToken = MkNewType
+
+
 data ShareToken'
 type ShareToken = NewType ShareToken' Text
+
 
 validChars :: [Char]
 validChars = ['0'..'9'] <> ['a'..'z'] <> ['A'..'Z'] <> ['_']

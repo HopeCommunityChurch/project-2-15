@@ -57,13 +57,13 @@
               # don't let clients close the keep-alive connection to upstream. See the nginx blog for details:
               # https://www.nginx.com/blog/avoiding-top-10-nginx-configuration-mistakes/#no-keepalives
               # this is a test
-              proxy_set_header        "Connection" "";
-              proxy_set_header        Host $host;
-              proxy_set_header        X-Real-IP $remote_addr;
-              proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header        X-Forwarded-Proto $scheme;
-              proxy_set_header        X-Forwarded-Host $host;
-              proxy_set_header        X-Forwarded-Server $host;
+              proxy_set_header "Connection" "";
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_set_header X-Forwarded-Host $host;
+              proxy_set_header X-Forwarded-Server $host;
               # $connection_upgrade is used for websocket proxying
               map $http_upgrade $connection_upgrade {
                 default upgrade;
@@ -78,12 +78,12 @@
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection $connection_upgrade;
-                  proxy_set_header        X-Real-IP $remote_addr;
-                  proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-                  proxy_set_header        X-Forwarded-Proto $scheme;
-                  proxy_set_header        X-Forwarded-Host $host;
-                  proxy_set_header        X-Forwarded-Server $host;
-                  proxy_hide_header       Last-Modified;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_set_header X-Forwarded-Host $host;
+                  proxy_set_header X-Forwarded-Server $host;
+                  proxy_hide_header Last-Modified;
                   proxy_pass http://localhost:3001/;
                 }
 
@@ -91,12 +91,12 @@
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection $connection_upgrade;
-                  proxy_set_header        X-Real-IP $remote_addr;
-                  proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-                  proxy_set_header        X-Forwarded-Proto $scheme;
-                  proxy_set_header        X-Forwarded-Host $host;
-                  proxy_set_header        X-Forwarded-Server $host;
-                  proxy_hide_header       Last-Modified;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_set_header X-Forwarded-Host $host;
+                  proxy_set_header X-Forwarded-Server $host;
+                  proxy_hide_header Last-Modified;
                   proxy_pass http://localhost:3000/;
                 }
 
@@ -107,11 +107,11 @@
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection $connection_upgrade;
-                  proxy_set_header        X-Real-IP $remote_addr;
-                  proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-                  proxy_set_header        X-Forwarded-Proto $scheme;
-                  proxy_set_header        X-Forwarded-Host $host;
-                  proxy_set_header        X-Forwarded-Server $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_set_header X-Forwarded-Host $host;
+                  proxy_set_header X-Forwarded-Server $host;
                   proxy_pass http://localhost:8025/;
                 }
               }

@@ -38,5 +38,5 @@ passwordReset token baseUrl = do
   br_ []
   a_ [href_ url, style buttonStyle] "Reset Password"
     where
-      url = baseUrl <> "/app/reset_token?token=" <> unwrap token
+      url = baseUrl <> "/reset_token?token=" <> unwrap token
 
