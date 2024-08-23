@@ -86,6 +86,7 @@ library
     Entity.GroupStudy,
     Entity.Shares,
     Entity.Document,
+    Entity.Feature,
     Api,
     Api.Helpers,
     Api.User,

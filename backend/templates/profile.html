@@ -48,12 +48,21 @@
   <h1>My Profile</h1>
   {% include "profile/form.html" %}
 
+  <br>
+  <h1>Features</h1>
+  {% include "profile/featureForm.html" %}
 </div>
 
 <script>
   window.addEventListener("load", () => {
     document.querySelectorAll("input").forEach( (input) => {
       input.value = input.getAttribute("value");
+      console.log(input.getAttribute("checked"));
+      console.log(input.checked);
+    });
+    document.querySelectorAll("input[type=checkbox]").forEach( (input) => {
+      const checked = input.getAttribute("checked");
+      input.checked = checked != null;
     });
   });
 </script>

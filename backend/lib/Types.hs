@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+
 module Types (
   NewType (..),
   UserId,
@@ -17,6 +19,11 @@ module Types (
   genShareToken,
 
   genToken,
+
+  Feature(..),
+  featureIso,
+  featureDescription,
+  allFeatures
 ) where
 
 import Crypto.Random (
@@ -38,6 +45,7 @@ import Data.List ((!!))
 import Data.Text qualified as T
 import Servant.API (FromHttpApiData)
 import Web.Scotty.Trans (Parsable)
+import Control.Lens (iso, review)
 
 newtype NewType p a = MkNewType a
   deriving (Generic)
@@ -144,3 +152,36 @@ genPasswordResetToken = MkNewType <$> genToken 32
 
 genShareToken :: (MonadIO m) => m ShareToken
 genShareToken = MkNewType <$> genToken 32
+
+
+data Feature
+  = GroupStudy
+  | Unknown
+  deriving (Generic, Show, Read, Enum, Bounded, Eq)
+  deriving (ToJSON, FromJSON, ToSchema)
+
+featureIso :: Iso' Text Feature
+featureIso = iso (fromMaybe Unknown . readMaybe . toString) show
+
+instance FromField Feature where
+  fromField f mdata = do
+    x <- fromField f mdata
+    let r = view featureIso x
+    pure r
+
+instance HasSqlEqualityCheck Pg.Postgres Feature
+
+instance HasSqlValueSyntax be Text => HasSqlValueSyntax be Feature where
+  sqlValueSyntax = sqlValueSyntax . review featureIso
+
+instance FromBackendRow Pg.Postgres Feature
+
+
+featureDescription :: Feature -> Text
+featureDescription GroupStudy =
+  "Study together in groups!"
+featureDescription Unknown =
+  "Features we remove will be caught be this one."
+
+allFeatures :: [Feature]
+allFeatures = [minBound..maxBound]

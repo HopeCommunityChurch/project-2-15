@@ -13,6 +13,7 @@ import Api.Htmx.Study qualified as Study
 import DbHelper qualified as Db
 import EnvFields (EnvType (..), HasUrl)
 import Mail qualified
+import Network.HTTP.Types.Status (status500)
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp (Port)
 import Network.Wai.Middleware.RequestLogger (
@@ -44,7 +45,6 @@ logMiddle (Dev _) = logStdoutDev
 logMiddle Prod = logStdout
 
 
-
 scottyServer
   :: ( MonadUnliftIO m
      , MonadLogger m
@@ -66,6 +66,11 @@ scottyServer = do
     let options = Static.defaultOptions { cacheContainer = caching }
     let policy = Static.noDots <> Static.hasPrefix "static/"
     Scotty.middleware (unsafeStaticPolicyWithOptions options policy)
+
+    Scotty.defaultHandler $ Scotty.Handler $ \ (SomeException e) -> do
+      logErrorSH e
+      Scotty.status status500
+      Scotty.text "Something went wrong"
 
     Scotty.get "/login" $ do
       mUser <- getUser
@@ -109,10 +114,12 @@ scottyServer = do
     Scotty.get "/profile" $ do
       user <- getUserWithRedirect
       Profile.getProfile user
-
     Scotty.put "/profile" $ do
       user <- getUserWithRedirect
       Profile.putProfile user
+    Scotty.post "/profile/feature" $ do
+      user <- getUserWithRedirect
+      Profile.postFeatures user
 
     Scotty.get "/" $ do
       mUser <- getUser
