@@ -139,7 +139,19 @@
         saving <img src="{{base}}/static/img/saving.svg" >
       </p>
     </div>
-    <menu class="menu"></menu>
+    {% if contains(features, "GroupStudy") %}
+      <menu class="menu">
+        {% if doc.groupStudyId %}
+          <button class="blue">
+            Group Study
+          </button>
+        {% else %}
+          <button class="blue" onclick="toggleModal('#createGroupStudy')">
+            + Group Study
+          </button>
+        {% endif %}
+      </menu>
+    {% endif %}
     <div class="buttons">
       <button class="profileButton" onclick="toggleModal('#profileNav')">
         {{user.nameShort}}
@@ -176,6 +188,38 @@
       </li>
     </menu>
   </dialog>
+
+  <dialog id="createGroupStudy">
+    <h3>Create Group Study</h3>
+    <form>
+      <label for="createName">
+        Study Name
+      </label>
+      <input
+        id="createName"
+        name="name"
+        type="text"
+        required
+        placeholder="1 Corinthians - Wednesday Guy's Group"
+      >
+
+      <label for="createPeople">
+        People
+      </label>
+      <input
+        id="createPeople"
+        name="people"
+        type="text"
+        placeholder="jonny@p215.church, james@p215.church"
+      >
+      <div id="createPeoples">
+      </div>
+
+      <button type="submit">Create</button>
+
+    </form>
+  </dialog>
+
 
   <dialog id="confirmDelete">
     <h3>Are you sure?</h3>

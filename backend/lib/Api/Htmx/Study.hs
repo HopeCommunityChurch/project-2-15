@@ -12,6 +12,7 @@ import Data.UUID as UUID
 import DbHelper (MonadDb)
 import Entity qualified as E
 import Entity.Document qualified as Doc
+import Entity.Feature qualified as Feature
 import Entity.User qualified as User
 import EnvFields (EnvType (..))
 import Network.HTTP.Types.Status (status200)
@@ -54,7 +55,8 @@ getStudy user = do
   mUserAgent <- header "User-Agent"
   mHost <- header "X-Forwarded-Host"
   let host = fromMaybe "local.p215.church" mHost
-  docId <- param "documentId"
+  userFeatures <- lift $ Feature.getFeaturesForUser user.userId
+  docId <- captureParam "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
   let modKey = modifierKey $ getSystem (fmap toStrict mUserAgent)
   result <- readFromTemplates "study.html"
@@ -69,6 +71,7 @@ getStudy user = do
                     & HMap.insert "docName" (toGVal doc.name)
                     & HMap.insert "doc" (toGVal (Aeson.toJSON doc))
                     & HMap.insert "host" (toGVal host)
+                    & HMap.insert "features" (toGVal (Aeson.toJSON userFeatures))
       let content = makeContextHtml (gvalHelper context)
       let h = runGinger content template
       html $ toLazy (htmlSource h)
@@ -106,7 +109,7 @@ createStudy
   => AuthUser
   -> ActionT m ()
 createStudy user = do
-  title <- param "studyTitle"
+  title <- formParam "studyTitle"
   let crDoc = Doc.CrDoc Nothing title emptyStudy user.userId
   docId <- lift $ Doc.crDocument crDoc
   let url = baseUrl <> "/study/" <> UUID.toText (unwrap docId)
@@ -120,7 +123,7 @@ deleteStudy
   => AuthUser
   -> ActionT m ()
 deleteStudy user = do
-  docId <- param "documentId"
+  docId <- captureParam "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
   unless (user.userId `elem` fmap (.userId) doc.editors) $ do
     NotAuth.getHome
