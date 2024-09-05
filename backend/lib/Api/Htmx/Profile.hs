@@ -1,35 +1,17 @@
 module Api.Htmx.Profile where
 
-import Api.Auth (setCookie')
 import Api.Htmx.AuthHelper (AuthUser (..), getUserWithRedirect)
-import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
+import Api.Htmx.Ginger (baseContext, gvalHelper, readFromTemplates)
 import Data.Aeson qualified as Aeson
-import Data.CaseInsensitive (original)
 import Data.HashMap.Strict qualified as HMap
-import Database qualified as Db
-import Database.Beam (
-  all_,
-  guard_,
-  insert,
-  insertValues,
-  runInsert,
-  runSelectReturningOne,
-  runUpdate,
-  select,
-  update,
-  val_,
-  (<-.),
-  (==.),
-  (>=.),
- )
-import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
+import Data.List ((\\))
+import Data.List qualified as L
+import DbHelper (MonadDb)
+import Entity.Feature qualified as Feature
 import Entity.User qualified as User
-import Network.HTTP.Types.Status (status200)
-import Password (NewPassword, Password, PasswordHash, comparePassword, passwordFromText)
 import Text.Ginger
 import Text.Ginger.Html (htmlSource)
 import Types qualified as T
-import Web.Cookie qualified as Cookie
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
 
@@ -44,10 +26,14 @@ getProfile
   -> ActionT m ()
 getProfile user = do
   result <- readFromTemplates "profile.html"
+  userFeatures <- lift $ Feature.getFeaturesForUser user.userId
+  let allFeatures = Feature.getAllFeatures
   case result of
     Right template -> do
       let context = baseContext
                     & HMap.insert "user" (toGVal (Aeson.toJSON user))
+                    & HMap.insert "userFeatures" (toGVal (Aeson.toJSON userFeatures))
+                    & HMap.insert "allFeatures" (toGVal (Aeson.toJSON allFeatures))
       let content = makeContextHtml (gvalHelper context)
       let h = runGinger content template
       html $ toLazy (htmlSource h)
@@ -78,3 +64,38 @@ putProfile user = do
       let h = runGinger content template
       html $ toLazy (htmlSource h)
     Left err -> html (show err)
+
+
+toListOfFeatures :: [Param] -> [T.Feature]
+toListOfFeatures =
+  L.nub
+  . fmap (\ (name, _) ->
+    view T.featureIso (toStrict name)
+  )
+
+
+postFeatures
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> ActionT m ()
+postFeatures user = do
+  result <- readFromTemplates "profile/featureForm.html"
+  let allFeatures = Feature.getAllFeatures
+  enabledFeatures <- toListOfFeatures <$> formParams
+  let disabledFeatures = fmap (.feature) allFeatures \\ enabledFeatures
+  lift $ Feature.addFeatures user.userId enabledFeatures
+  lift $ Feature.removeFeatures user.userId disabledFeatures
+  userFeatures <- lift $ Feature.getFeaturesForUser user.userId
+  case result of
+    Right template -> do
+      let context = baseContext
+                    & HMap.insert "user" (toGVal (Aeson.toJSON user))
+                    & HMap.insert "userFeatures" (toGVal (Aeson.toJSON userFeatures))
+                    & HMap.insert "allFeatures" (toGVal (Aeson.toJSON allFeatures))
+      let content = makeContextHtml (gvalHelper context)
+      let h = runGinger content template
+      html $ toLazy (htmlSource h)
+    Left err -> html (show err)
+

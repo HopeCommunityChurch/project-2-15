@@ -94,6 +94,32 @@ userPasswordTable =
       }
 
 
+data UserFeatureT f = MkUserFeatureT
+  { userId :: C f T.UserId
+  , feature :: C f T.Feature
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table UserFeatureT where
+  data PrimaryKey UserFeatureT f =
+      UserFeatureKey
+        (C f T.UserId)
+        (C f T.Feature)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = UserFeatureKey <$> (.userId) <*> (.feature)
+
+userFeatureTable :: TableMod UserFeatureT
+userFeatureTable =
+  modifyTable
+    "user_feature"
+    MkUserFeatureT
+      { userId = fieldNamed "userId"
+      , feature = fieldNamed "feature"
+      }
+
+
 data UserPasswordResetT f = MkUserPasswordResetT
   { userId :: C f T.UserId
   , token :: C f T.PasswordResetToken
@@ -415,6 +441,7 @@ documentEditorTable =
 data Db f = MkDb
   { user :: f (TableEntity UserT)
   , userPassword :: f (TableEntity UserPasswordT)
+  , userFeature :: f (TableEntity UserFeatureT)
   , userPasswordReset :: f (TableEntity UserPasswordResetT)
   , userSession :: f (TableEntity UserSessionT)
   , church :: f (TableEntity ChurchT)
@@ -436,6 +463,7 @@ db = defaultDbSettings `withDbModification`
         MkDb
           { user = userTable
           , userPassword = userPasswordTable
+          , userFeature = userFeatureTable
           , userPasswordReset = userPasswordResetTable
           , userSession = userSessionTable
           , church = churchTable

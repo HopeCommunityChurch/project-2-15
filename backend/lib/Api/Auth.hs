@@ -354,6 +354,7 @@ resetPasswordToken MkPassResetTokenReq{token, password} = do
     Nothing -> Errs.throwApi ResetTokenNotFoundOrExpired
     Just userId -> do
       User.updatePassword userId password
+      User.invalidateResetToken token
       setCookie userId
 
 

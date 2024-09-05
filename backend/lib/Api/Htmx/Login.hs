@@ -101,8 +101,12 @@ login = do
       if comparePassword (passwordFromText password) hash
         then do
           let url = case mRedirect of
-                      Just re -> re
+                      Just re ->
+                        if re == ""
+                          then baseUrl <> "/studies"
+                          else re
                       Nothing  -> baseUrl <> "/studies"
+          logDebugSH url
           setHeader "HX-Redirect" url
           cookie <- lift $ setCookie' userId
           let cookieTxt = toLazy (decodeUtf8 (Cookie.renderSetCookieBS cookie))
