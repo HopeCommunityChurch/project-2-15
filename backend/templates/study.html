@@ -139,8 +139,8 @@
         saving <img src="{{base}}/static/img/saving.svg" >
       </p>
     </div>
-    {% if contains(features, "GroupStudy") %}
-      <menu class="menu">
+    <menu class="menu">
+      {% if contains(features, "GroupStudy") %}
         {% if doc.groupStudyId %}
           <button class="blue">
             Group Study
@@ -150,8 +150,8 @@
             + Group Study
           </button>
         {% endif %}
-      </menu>
-    {% endif %}
+      {% endif %}
+    </menu>
     <div class="buttons">
       <button class="profileButton" onclick="toggleModal('#profileNav')">
         {{user.nameShort}}
