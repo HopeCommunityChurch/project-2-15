@@ -1,7 +1,7 @@
 module Api.Htmx.PasswordReset where
 
 import Api.Auth (setCookie')
-import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
+import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates, basicTemplate)
 import Data.Aeson qualified as Aeson
 import Data.HashMap.Strict qualified as HMap
 import Data.List qualified as L
@@ -28,16 +28,8 @@ getPasswordReset
      )
   => ActionT m ()
 getPasswordReset = do
-  result <- readFromTemplates "passwordReset.html"
   mRedirect <- L.lookup "redirect" <$> queryParams
-  case result of
-    Right template -> do
-      let context = baseContext
-                    & HMap.insert "redirect" (toGVal mRedirect)
-      let content = makeContextHtml (gvalHelper context)
-      let h = runGinger content template
-      html $ toLazy (htmlSource h)
-    Left err -> html (show err)
+  basicTemplate "passwordReset.html" (HMap.insert "redirect" (toGVal mRedirect))
 
 
 resetEmail
@@ -62,16 +54,10 @@ getResetToken
      )
   => ActionT m ()
 getResetToken = do
-  result <- readFromTemplates "passwordResetToken.html"
   (token :: Text) <- queryParam "token"
-  case result of
-    Right template -> do
-      let context = baseContext
-                    & HMap.insert "token" (toGVal token)
-      let content = makeContextHtml (gvalHelper context)
-      let h = runGinger content template
-      html $ toLazy (htmlSource h)
-    Left err -> html (show err)
+  basicTemplate
+    "passwordResetToken.html"
+    (HMap.insert "token" (toGVal token))
 
 
 
@@ -120,15 +106,10 @@ postResetToken = do
                   (isJust mUserId)
                   password
                   password2
-    result <- readFromTemplates "passwordReset/form.html"
-    case result of
-      Right template -> do
-        let context = baseContext
-                      & HMap.insert "token" (toGVal token)
-                      & HMap.insert "wasCorrect" "False"
-                      & HMap.insert "errors" (toGVal (Aeson.toJSON errors))
-        let content = makeContextHtml (gvalHelper context)
-        let h = runGinger content template
-        html $ toLazy (htmlSource h)
-      Left err -> html (show err)
+    basicTemplate
+      "passwordReset/form.html"
+      ( HMap.insert "token" (toGVal token)
+      . HMap.insert "wasCorrect" "False"
+      . HMap.insert "errors" (toGVal (Aeson.toJSON errors))
+      )
 

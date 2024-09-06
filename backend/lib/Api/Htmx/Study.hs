@@ -1,7 +1,7 @@
 module Api.Htmx.Study where
 
 import Api.Htmx.AuthHelper (AuthUser (..))
-import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
+import Api.Htmx.Ginger (baseUrl, basicTemplate)
 import Api.Htmx.NotAuthorized qualified as NotAuth
 import Api.Htmx.NotFound qualified as NotFound
 import Data.Aeson ((.=))
@@ -13,11 +13,13 @@ import DbHelper (MonadDb)
 import Entity qualified as E
 import Entity.Document qualified as Doc
 import Entity.Feature qualified as Feature
+import Entity.GroupStudy qualified as GroupStudy
 import Entity.User qualified as User
 import EnvFields (EnvType (..))
+import Fields.Email (mkEmail)
 import Network.HTTP.Types.Status (status200)
 import Text.Ginger
-import Text.Ginger.Html (htmlSource)
+import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
 
@@ -59,23 +61,19 @@ getStudy user = do
   docId <- captureParam "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
   let modKey = modifierKey $ getSystem (fmap toStrict mUserAgent)
-  result <- readFromTemplates "study.html"
   envType <- lift (asks (.envType))
   let isLocal = envType == Dev "local"
-  case result of
-    Right template -> do
-      let context = baseContext
-                    & HMap.insert "isLocal" (toGVal isLocal)
-                    & HMap.insert "user" (toGVal (Aeson.toJSON user))
-                    & HMap.insert "modkey" (toGVal modKey)
-                    & HMap.insert "docName" (toGVal doc.name)
-                    & HMap.insert "doc" (toGVal (Aeson.toJSON doc))
-                    & HMap.insert "host" (toGVal host)
-                    & HMap.insert "features" (toGVal (Aeson.toJSON userFeatures))
-      let content = makeContextHtml (gvalHelper context)
-      let h = runGinger content template
-      html $ toLazy (htmlSource h)
-    Left err -> html (show err)
+  basicTemplate
+    "study.html"
+    ( HMap.insert "isLocal" (toGVal isLocal)
+    . HMap.insert "user" (toGVal (Aeson.toJSON user))
+    . HMap.insert "modkey" (toGVal modKey)
+    . HMap.insert "docName" (toGVal doc.name)
+    . HMap.insert "doc" (toGVal (Aeson.toJSON doc))
+    . HMap.insert "host" (toGVal host)
+    . HMap.insert "features" (toGVal (Aeson.toJSON userFeatures))
+    )
+
 
 unsafeAsObject :: Aeson.Value -> Aeson.Object
 unsafeAsObject (Aeson.Object o) = o
@@ -126,8 +124,22 @@ deleteStudy user = do
   docId <- captureParam "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
   unless (user.userId `elem` fmap (.userId) doc.editors) $ do
-    NotAuth.getHome
+    NotAuth.getNotAuth
   lift $ Doc.deleteDocument docId
   let url = baseUrl <> "/"
   setHeader "HX-Redirect" (toLazy url)
   status status200
+
+
+createGroupStudy
+  :: MonadDb env m
+  => AuthUser
+  -> ActionT m ()
+createGroupStudy user = do
+  docId <- formParam @T.DocId "documentId"
+  doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
+  form <- formParams
+  let emails = filter (\ (key, v) -> key == "email[]") form
+                & fmap (mkEmail . toStrict . snd)
+  logInfoSH emails  -- lift $ GroupStudy.addStudy user.userId undefined
+  undefined

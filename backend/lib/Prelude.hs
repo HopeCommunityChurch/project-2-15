@@ -34,6 +34,7 @@ module Prelude
   , List
   , getCurrentTime
   , unwrap
+  , filter
   )where
 
 
@@ -95,6 +96,7 @@ import Relude.Numeric
 import Relude.String
 import UnliftIO hiding (Handler, timeout)
 import Web.Scotty.Trans (ActionT)
+import Data.List (filter)
 
 -- import Data.Generics.Labels
 

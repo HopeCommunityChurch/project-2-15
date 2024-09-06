@@ -1,7 +1,7 @@
 module Api.Htmx.Login where
 
 import Api.Auth (deleteCookie, setCookie')
-import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
+import Api.Htmx.Ginger (baseUrl, basicTemplate)
 import Data.CaseInsensitive (original)
 import Data.HashMap.Strict qualified as HMap
 import Data.List qualified as L
@@ -17,8 +17,7 @@ import Database.Beam (
 import DbHelper (MonadDb, runBeam)
 import Network.HTTP.Types.Status (status200, status302)
 import Password (PasswordHash, comparePassword, passwordFromText)
-import Text.Ginger
-import Text.Ginger.Html (htmlSource)
+import Text.Ginger (ToGVal (..))
 import Types qualified as T
 import Web.Cookie qualified as Cookie
 import Web.Scotty.Trans hiding (scottyT)
@@ -33,16 +32,10 @@ getLogin
      )
   => ActionT m ()
 getLogin = do
-  result <- readFromTemplates "login.html"
   mRedirect <- L.lookup "redirect" <$> queryParams
-  case result of
-    Right template -> do
-      let context = baseContext
-                    & HMap.insert "redirect" (toGVal mRedirect)
-      let content = makeContextHtml (gvalHelper context)
-      let h = runGinger content template
-      html $ toLazy (htmlSource h)
-    Left err -> html (show err)
+  basicTemplate
+    "login.html"
+    (HMap.insert "redirect" (toGVal mRedirect))
 
 
 getPasswordHash
@@ -70,19 +63,13 @@ loginForm
   -> Text
   -> ActionT m ()
 loginForm mRedirect email password = do
-  result <- readFromTemplates "login/form.html"
-  case result of
-    Right template -> do
-      let context = baseContext
-                    & HMap.insert "email" (toGVal (original (unwrap email)))
-                    & HMap.insert "password" (toGVal password)
-                    & HMap.insert "wasCorrect" "False"
-                    & HMap.insert "redirect" (toGVal mRedirect)
-      logInfoSH context
-      let content = makeContextHtml (gvalHelper context)
-      let h = runGinger content template
-      html $ toLazy (htmlSource h)
-    Left err -> html (show err)
+  basicTemplate
+    "login/form.html"
+    ( HMap.insert "email" (toGVal (original (unwrap email)))
+    . HMap.insert "password" (toGVal password)
+    . HMap.insert "wasCorrect" "False"
+    . HMap.insert "redirect" (toGVal mRedirect)
+    )
 
 
 login

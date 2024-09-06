@@ -1,7 +1,7 @@
 module Api.Htmx.Signup where
 
 import Api.Auth (setCookie')
-import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
+import Api.Htmx.Ginger (baseUrl, basicTemplate)
 import Data.Aeson qualified as Aeson
 import Data.HashMap.Strict qualified as HMap
 import Data.List qualified as L
@@ -22,7 +22,6 @@ import Mail qualified
 import Network.HTTP.Types.Status (status200)
 import Password (newPassword)
 import Text.Ginger
-import Text.Ginger.Html (htmlSource)
 import Types qualified as T
 import Web.Cookie qualified as Cookie
 import Web.Scotty.Trans hiding (scottyT)
@@ -37,16 +36,10 @@ getSignup
      )
   => ActionT m ()
 getSignup = do
-  result <- readFromTemplates "signup.html"
   mRedirect <- L.lookup "redirect" <$> queryParams
-  case result of
-    Right template -> do
-      let context = baseContext
-                    & HMap.insert "redirect" (toGVal mRedirect)
-      let content = makeContextHtml (gvalHelper context)
-      let h = runGinger content template
-      html $ toLazy (htmlSource h)
-    Left err -> html (show err)
+  basicTemplate
+    "signup.html"
+    (HMap.insert "redirect" (toGVal mRedirect))
 
 
 checkEmail
@@ -85,18 +78,12 @@ signupForm
   -> SignupErrors
   -> ActionT m ()
 signupForm mRedirect errors = do
-  result <- readFromTemplates "signup/form.html"
-  case result of
-    Right template -> do
-      let context = baseContext
-                    & HMap.insert "errors" (toGVal (Aeson.toJSON errors))
-                    & HMap.insert "wasCorrect" "False"
-                    & HMap.insert "redirect" (toGVal mRedirect)
-      logInfoSH context
-      let content = makeContextHtml (gvalHelper context)
-      let h = runGinger content template
-      html $ toLazy (htmlSource h)
-    Left err -> html (show err)
+  basicTemplate
+    "signup/form.html"
+    ( HMap.insert "errors" (toGVal (Aeson.toJSON errors))
+    . HMap.insert "wasCorrect" "False"
+    . HMap.insert "redirect" (toGVal mRedirect)
+    )
 
 
 data SignupErrors = MkSignupErrors
