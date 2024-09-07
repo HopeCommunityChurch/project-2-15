@@ -25,10 +25,11 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
 function updateSectionNames (container: HTMLElement, doc : Node) {
   doc.forEach( (node, _, index) => {
     const sectionHeader = node.child(0);
-    const sectionText = sectionHeader.child(0);
+    const sectionText = sectionHeader.maybeChild(0);
+    const txt = (sectionText)? sectionText.text : "Untitled";
     const oldTxt = container.children.item(index).innerHTML;
     if (oldTxt != sectionText.text) {
-      container.children.item(index).querySelector("span").innerHTML = sectionText.text;
+      container.children.item(index).querySelector("span").innerHTML = txt;
     }
   });
 }
@@ -36,7 +37,10 @@ function updateSectionNames (container: HTMLElement, doc : Node) {
 function initialSetup(editor : Editor.P215Editor, container: HTMLElement, doc : Node) {
   doc.forEach( (node, _, index) => {
     const section = createSectionHeader(editor, index);
-    section.querySelector("span").innerHTML = node.child(0).child(0).text;
+    const sectionHeader = node.child(0);
+    const sectionText = sectionHeader.maybeChild(0);
+    const txt = (sectionText)? sectionText.text : "Untitled";
+    section.querySelector("span").innerHTML = txt;
     container.appendChild(section);
   });
 }
