@@ -2,7 +2,7 @@ module Api.Htmx.Studies where
 
 import Api.Auth (setCookie')
 import Api.Htmx.AuthHelper (AuthUser)
-import Api.Htmx.Ginger (baseContext, baseUrl, gvalHelper, readFromTemplates)
+import Api.Htmx.Ginger (basicTemplate)
 import Data.Aeson qualified as Aeson
 import Data.CaseInsensitive (original)
 import Data.HashMap.Strict qualified as HMap
@@ -44,13 +44,8 @@ getStudies
   -> ActionT m ()
 getStudies user = do
   docs <- lift $ Doc.getAllDocs user
-  result <- readFromTemplates "studies.html"
-  case result of
-    Right template -> do
-      let context = baseContext
-                    & HMap.insert "user" (toGVal (Aeson.toJSON user))
-                    & HMap.insert "studies" (toGVal (Aeson.toJSON docs))
-      let content = makeContextHtml (gvalHelper context)
-      let h = runGinger content template
-      html $ toLazy (htmlSource h)
-    Left err -> html (show err)
+  basicTemplate
+    "studies.html"
+    ( HMap.insert "user" (toGVal (Aeson.toJSON user))
+    . HMap.insert "studies" (toGVal (Aeson.toJSON docs))
+    )

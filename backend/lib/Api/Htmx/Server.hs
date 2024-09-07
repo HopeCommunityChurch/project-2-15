@@ -127,6 +127,11 @@ scottyServer = do
       user <- getUserWithRedirect
       Study.deleteStudy user
 
+    Scotty.post "/group_study" $ do
+      user <- getUserWithRedirect
+      Study.createGroupStudy user
+
+
     Scotty.get "/profile" $ do
       user <- getUserWithRedirect
       Profile.getProfile user
@@ -143,4 +148,4 @@ scottyServer = do
         Nothing -> Home.getHome
         Just user -> Studies.getStudies user
 
-    Scotty.notFound NotFound.getHome
+    Scotty.notFound NotFound.getNotFound

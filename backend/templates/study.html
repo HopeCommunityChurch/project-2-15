@@ -191,7 +191,7 @@
 
   <dialog id="createGroupStudy">
     <h3>Create Group Study</h3>
-    <form>
+    <form hx-post="{{base}}/group_study">
       <label for="createName">
         Study Name
       </label>
@@ -201,6 +201,13 @@
         type="text"
         required
         placeholder="1 Corinthians - Wednesday Guy's Group"
+      >
+
+      <input
+        id="documentId"
+        name="documentId"
+        type="hidden"
+        value="{{doc.docId}}"
       >
 
       <label for="createPeople">
