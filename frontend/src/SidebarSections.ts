@@ -28,7 +28,7 @@ function updateSectionNames (container: HTMLElement, doc : Node) {
     const sectionText = sectionHeader.maybeChild(0);
     const txt = (sectionText)? sectionText.text : "Untitled";
     const oldTxt = container.children.item(index).innerHTML;
-    if (oldTxt != sectionText.text) {
+    if (oldTxt != txt) {
       container.children.item(index).querySelector("span").innerHTML = txt;
     }
   });
