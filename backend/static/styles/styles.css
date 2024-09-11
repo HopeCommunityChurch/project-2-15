@@ -1804,6 +1804,9 @@ img.ProseMirror-separator {
 
 
 #profileContent {
+  margin-top: 10px;
+  display: grid;
+  justify-content: center;
   h1 {
     font-size: 27px;
   }
