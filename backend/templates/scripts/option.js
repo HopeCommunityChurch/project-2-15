@@ -28,7 +28,7 @@ class PSelect extends HTMLElement {
       .p-dropbox {
         position: absolute;
         background-color: #e9e9ed;
-        width: 100%;
+        min-width: 100%;
         display: none;
         box-shadow: 0 2px 4px #0003;
         z-index: 1;
@@ -37,6 +37,7 @@ class PSelect extends HTMLElement {
           padding: 2px 6px;
           display: grid;
           align-content: center;
+          white-space: nowrap;
           &:hover {
             background-color: #d0d0d7;
           }
