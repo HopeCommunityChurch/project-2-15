@@ -56,7 +56,7 @@ class PSelect extends HTMLElement {
 
     this.internals = this.attachInternals();
 
-    this.shadow = this.attachShadow({mode: "open"});
+    this.shadow = this.attachShadow({mode: "closed"});
     const styles = document.createElement("style");
     styles.textContent = PSelect._styles;
     this.shadow.appendChild(styles);
