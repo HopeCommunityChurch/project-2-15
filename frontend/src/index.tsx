@@ -6,7 +6,6 @@ import * as T from "./Types"
 import {} from "./PreviewScripture"
 import {} from "./SidebarSections"
 import * as Util from "./Util"
-import {} from "./createGroupStudy"
 
 
 const pathparts = window.location.pathname.split("/");
