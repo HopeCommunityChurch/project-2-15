@@ -692,6 +692,11 @@ h3 {
       margin-bottom: 10px;
     }
   }
+
+  #createName {
+    height: 36px;
+  }
+
   #createPeoples {
     margin-bottom: 20px;
     display: grid;
