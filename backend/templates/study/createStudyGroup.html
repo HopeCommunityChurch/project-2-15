@@ -1,0 +1,78 @@
+<dialog id="groupStudy">
+  <h3>Create Group Study</h3>
+  <form hx-post="{{base}}/group_study">
+    <label for="createName">
+      Study Name
+    </label>
+    <input
+      id="createName"
+      name="name"
+      type="text"
+      required
+      placeholder="1 Corinthians - Wednesday Guy's Group"
+    >
+
+    <input
+      id="documentId"
+      name="documentId"
+      type="hidden"
+      value="{{doc.docId}}"
+    >
+
+    <label for="createPeople">
+      People
+    </label>
+    <div id="createPeoples">
+      <template id="peopleInputTemplate">
+        <div class="peopleInput">
+          <input
+            name="email[]"
+            type="email"
+            placeholder="jonny@p215.church"
+          >
+          <p-select name="permission[]">
+            <option value="member" selected>
+              Member
+            </option>
+            <option value="owner">
+              Owner
+            </option>
+          </p-select>
+          <button class="red">-</button>
+        </div>
+      </template>
+    </div>
+
+    <button type="submit">Create</button>
+
+  </form>
+</dialog>
+
+<script>
+  function addPeopleInput() {
+    const template = document.getElementById("peopleInputTemplate");
+    const content = template.content.cloneNode(true);
+    const button = content.querySelector("button");
+    button.disabled = true;
+    button.addEventListener("click", (e) => {
+      e.stopPropagation()
+      const par = button.parentNode;
+      par.parentNode.removeChild(par);
+    });
+    content.querySelector("input").addEventListener("input", (e) => {
+      const value = e.target.value;
+      if (value === ""){
+        button.disabled = true;
+      } else {
+        button.disabled = false;
+        const createPeoples = document.getElementById("createPeoples");
+        const children = Array.from(createPeoples.children)
+        if (children[children.length-1] == e.target.parentNode) {
+          addPeopleInput();
+        }
+      }
+    });
+    document.getElementById("createPeoples").appendChild(content);
+  }
+  addPeopleInput();
+</script>
