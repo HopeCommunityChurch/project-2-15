@@ -10,6 +10,7 @@ module Prelude
   , module Relude.String
   , module Relude.Lifted.Terminal
   , module Relude.Monoid
+  , module Relude.List.Reexport
   , module Relude.Monad.Maybe
   , module Relude.Monad.Either
   , module Relude.Monad.Trans
@@ -56,7 +57,7 @@ import Control.Lens (
  )
 import Control.Monad.Logger.CallStack (
   LoggingT,
-  MonadLogger(..),
+  MonadLogger (..),
   logDebug,
   logDebugSH,
   logError,
@@ -87,6 +88,7 @@ import Relude.Functor
 import Relude.Functor.Fmap
 import Relude.Functor.Reexport
 import Relude.Lifted.Terminal
+import Relude.List.Reexport
 import Relude.Monad.Either
 import Relude.Monad.Maybe
 import Relude.Monad.Reexport
@@ -96,7 +98,6 @@ import Relude.Numeric
 import Relude.String
 import UnliftIO hiding (Handler, timeout)
 import Web.Scotty.Trans (ActionT)
-import Data.List (filter)
 
 -- import Data.Generics.Labels
 

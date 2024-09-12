@@ -131,6 +131,13 @@ deleteStudy user = do
   status status200
 
 
+
+textToPermission :: Text -> Maybe GroupStudy.Permission
+textToPermission "owner" = Just GroupStudy.Owner
+textToPermission "member" = Just GroupStudy.Member
+textToPermission _ = Nothing
+
+
 createGroupStudy
   :: MonadDb env m
   => AuthUser
@@ -139,7 +146,16 @@ createGroupStudy user = do
   docId <- formParam @T.DocId "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
   form <- formParams
-  let emails = filter (\ (key, v) -> key == "email[]") form
+  let permissions = form
+                    & filter (\ (key, _) -> key == "permission[]")
+                    & fmap (textToPermission . toStrict . snd)
+  let emails = form
+                & filter (\ (key, _) -> key == "email[]")
                 & fmap (mkEmail . toStrict . snd)
+  let shares = zip emails permissions
+               & mapMaybe (\case
+                    (Right email, Just per) -> Just (email, per)
+                    _ -> Nothing
+               )
   logInfoSH emails  -- lift $ GroupStudy.addStudy user.userId undefined
   undefined
