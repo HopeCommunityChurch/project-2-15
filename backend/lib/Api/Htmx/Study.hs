@@ -9,14 +9,17 @@ import Data.Aeson qualified as Aeson
 import Data.HashMap.Strict qualified as HMap
 import Data.Text qualified as Txt
 import Data.UUID as UUID
-import DbHelper (MonadDb)
+import DbHelper (MonadDb, withTransaction)
+import Emails.ShareGroupStudy qualified
 import Entity qualified as E
 import Entity.Document qualified as Doc
 import Entity.Feature qualified as Feature
 import Entity.GroupStudy qualified as GroupStudy
+import Entity.Shares qualified as Shares
 import Entity.User qualified as User
-import EnvFields (EnvType (..))
+import EnvFields (EnvType (..), HasUrl)
 import Fields.Email (mkEmail)
+import Mail qualified
 import Network.HTTP.Types.Status (status200)
 import Text.Ginger
 import Types qualified as T
@@ -139,12 +142,16 @@ textToPermission _ = Nothing
 
 
 createGroupStudy
-  :: MonadDb env m
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     , HasUrl env
+     )
   => AuthUser
   -> ActionT m ()
 createGroupStudy user = do
   docId <- formParam @T.DocId "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
+  groupName <- formParam "name"
   form <- formParams
   let permissions = form
                     & filter (\ (key, _) -> key == "permission[]")
@@ -153,9 +160,27 @@ createGroupStudy user = do
                 & filter (\ (key, _) -> key == "email[]")
                 & fmap (mkEmail . toStrict . snd)
   let shares = zip emails permissions
-               & mapMaybe (\case
+              & mapMaybe (\case
                     (Right email, Just per) -> Just (email, per)
                     _ -> Nothing
-               )
+              )
+              & fmap (\ (email, per) ->
+                Shares.MkShareUnit email (per == GroupStudy.Owner) Nothing
+              )
   logInfoSH emails  -- lift $ GroupStudy.addStudy user.userId undefined
-  undefined
+  let crGroupStudy = GroupStudy.MkCrStudy groupName doc.studyTemplateId
+  lift $ withTransaction $ do
+    groupId <- GroupStudy.addStudy user.userId crGroupStudy
+    Doc.addToGroup doc.docId groupId
+    result <- Shares.addShares groupId shares
+    url <- asks (.url)
+    for_ result $ \ (share, token) ->  do
+      let email = Emails.ShareGroupStudy.mail share groupName token url
+      Mail.sendMail email
+  basicTemplate
+    "study/studyGroup.html"
+    ( HMap.insert "user" (toGVal (Aeson.toJSON user))
+    . HMap.insert "doc" (toGVal (Aeson.toJSON doc))
+    . HMap.insert "created" (toGVal True)
+    )
+

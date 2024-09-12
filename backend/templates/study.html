@@ -142,7 +142,7 @@
     </div>
     <menu class="menu">
       {% if contains(features, "GroupStudy") %}
-        <button class="blue" onclick="toggleModal('#groupStudy')">
+        <button class="blue" id="groupStudyButton" onclick="toggleModal('#groupStudy')">
           {% if doc.groupStudyId %}
             Group Study
           {% else %}
@@ -188,8 +188,13 @@
     </menu>
   </dialog>
   {% if doc.groupStudyId %}
+    <dialog id="groupStudy" >
+      {% include "study/studyGroup.html" %}
+    </dialog>
   {% else %}
-    {% include "study/createStudyGroup.html" %}
+    <dialog id="groupStudy">
+      {% include "study/createStudyGroup.html" %}
+    </dialog>
   {% endif %}
 
 
@@ -200,7 +205,7 @@
       <button class="lightBlue" onclick="toggleModal('#confirmDelete')">
         Cancel
       </button>
-      <button class="blue" hx-delete="{{base}}/study/{{doc.docId}}">
+      <button class="red" hx-delete="{{base}}/study/{{doc.docId}}">
         Yes, delete
       </button>
     </div>

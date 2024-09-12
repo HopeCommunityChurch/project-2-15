@@ -190,6 +190,20 @@ updateDocument docId userId computerId document = do
   pure now
 
 
+addToGroup
+  :: MonadDb env m
+  => T.DocId
+  -> T.GroupStudyId
+  -> m ()
+addToGroup docId groupId =
+  runBeam
+    $ runUpdate
+    $ update
+      Db.db.document
+      (\ r -> r.groupStudyId <-. val_ (Just groupId))
+      (\ r -> r.docId ==. val_ docId)
+
+
 updateDocMeta
   :: MonadDb env m
   => T.DocId

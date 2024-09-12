@@ -41,7 +41,7 @@ data GetDocMeta = MkGetDocMeta
 
 
 data Permission = Owner | Member
-  deriving (Show)
+  deriving (Show, Eq)
 
 
 instance E.Entity GetDocMeta where
@@ -177,7 +177,7 @@ instance E.EntityWithId GetGroupStudy where
   entityId = (.groupStudyId)
 
 
-data CrStudy = CrStudy
+data CrStudy = MkCrStudy
   { name :: Text
   , studyTemplateId :: Maybe T.StudyTemplateId
   }
@@ -214,3 +214,5 @@ addStudy userId crStudy = do
       ]
 
   pure study.groupStudyId
+
+
