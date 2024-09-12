@@ -1,19 +1,21 @@
 <form hx-post="{{base}}/profile/feature" hx-target="this" hx-swap="outerHTML">
   {% for feature in allFeatures %}
-  <div>
-    <input
-      type="checkbox"
-      id="{{feature.feature}}"
-      name="{{feature.feature}}"
-      {% if contains(userFeatures, feature.feature) %}
-        checked
-      {% endif %}
-    >
-    <label for="{{feature.feature}}">
-      {{feature.feature}} - {{feature.description}}
-    </label>
+    {% if feature.feature != "Unknown" %}
+    <div>
+      <input
+        type="checkbox"
+        id="{{feature.feature}}"
+        name="{{feature.feature}}"
+        {% if contains(userFeatures, feature.feature) %}
+          checked
+        {% endif %}
+      >
+      <label for="{{feature.feature}}">
+        {{feature.feature}} - {{feature.description}}
+      </label>
 
-  </div>
+    </div>
+    {% endif %}
   {% endfor %}
   <button class="blue" type="submit">Save</button>
 

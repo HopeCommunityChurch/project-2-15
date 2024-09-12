@@ -8,10 +8,11 @@
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1, interactive-widget=resizes-content" name="viewport" >
   <title>Project 2:15</title>
   <link rel="icon" href="{{base}}/static/favicon.ico" type="image/x-icon"  >
-  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.2"></script>
 
   <link rel="stylesheet" href="{{base}}/static/styles/styles.css">
   <script>
+    {% include "scripts/option.js" %}
 
     {% include "scripts/dialog.js" %}
 
@@ -141,15 +142,13 @@
     </div>
     <menu class="menu">
       {% if contains(features, "GroupStudy") %}
-        {% if doc.groupStudyId %}
-          <button class="blue">
+        <button class="blue" onclick="toggleModal('#groupStudy')">
+          {% if doc.groupStudyId %}
             Group Study
-          </button>
-        {% else %}
-          <button class="blue" onclick="toggleModal('#createGroupStudy')">
+          {% else %}
             + Group Study
-          </button>
-        {% endif %}
+          {% endif %}
+        </button>
       {% endif %}
     </menu>
     <div class="buttons">
@@ -188,44 +187,10 @@
       </li>
     </menu>
   </dialog>
-
-  <dialog id="createGroupStudy">
-    <h3>Create Group Study</h3>
-    <form hx-post="{{base}}/group_study">
-      <label for="createName">
-        Study Name
-      </label>
-      <input
-        id="createName"
-        name="name"
-        type="text"
-        required
-        placeholder="1 Corinthians - Wednesday Guy's Group"
-      >
-
-      <input
-        id="documentId"
-        name="documentId"
-        type="hidden"
-        value="{{doc.docId}}"
-      >
-
-      <label for="createPeople">
-        People
-      </label>
-      <input
-        id="createPeople"
-        name="people"
-        type="text"
-        placeholder="jonny@p215.church, james@p215.church"
-      >
-      <div id="createPeoples">
-      </div>
-
-      <button type="submit">Create</button>
-
-    </form>
-  </dialog>
+  {% if doc.groupStudyId %}
+  {% else %}
+    {% include "study/createStudyGroup.html" %}
+  {% endif %}
 
 
   <dialog id="confirmDelete">

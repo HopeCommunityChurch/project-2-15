@@ -9,6 +9,10 @@ body {
 }
 
 :root {
+  --red-100: #ff0404;
+  --red-75: #ff3737;
+  --red-50: #ff4646;
+  --red-25: #ff4646;
   --blue-100: #0057d1;
   --blue-75: #4181dc;
   --blue-50: #9fc5ff;
@@ -41,20 +45,32 @@ button.lightBlue {
   color: var(--blue-100);
   background-color: var(--blue-25);
   border: 2px solid var(--blue-50);
-}
-
-button.lightBlue:hover {
-  background-color: var(--blue-50);
+  &:hover {
+    background-color: var(--blue-50);
+  }
 }
 
 button.blue {
   color: white;
   background-color: var(--blue-100);
+  &:hover {
+    background-color: var(--blue-75);
+  }
 }
 
-button.blue:hover {
-  background-color: var(--blue-75);
+button.red {
+  color: white;
+  background-color: var(--red-100);
+  &:hover {
+    background-color: var(--red-75);
+  }
+  &:disabled {
+    background-color: var(--red-25);
+    cursor: not-allowed;
+  }
 }
+
+
 
 input[type="checkbox"].custom {
   appearance: none;
@@ -96,8 +112,9 @@ input[type="password"] {
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-bottom: 15px;
-  padding: 12px;
+  padding: 0px 12px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 input:user-invalid {
@@ -404,6 +421,12 @@ h3 {
   padding: 0;
   display: grid;
   overflow: hidden;
+  input[type="email"],
+  input[type="text"],
+  input[type="input"],
+  input[type="password"] {
+    padding: 12px;
+  }
   .leftColumn {
     background-color: #f9f9fb;
     flex-direction: column;
@@ -649,20 +672,17 @@ h3 {
   }
 }
 
-#createGroupStudy {
+#groupStudy {
   background-color: #fff;
   border-radius: 8px;
-  width: 90%;
+  width: 100vw;
   max-width: 520px;
   min-height: 10px;
   padding: 20px;
   overflow-y: auto;
   box-shadow: 0 4px 6px #0000001a;
   border: none;
-  div {
-    gap: 10px;
-    display: flex;
-  }
+  box-sizing: border-box;
   form {
     flex-direction: column;
     align-items: stretch;
@@ -678,22 +698,33 @@ h3 {
       margin-bottom: 10px;
     }
   }
+
+  #createName {
+    height: 36px;
+  }
+
   #createPeoples {
-    display: flex;
-    flex-direction: row;
-    .person {
-      padding: 5px 10px;
-      border-radius: calc(1em + 10px);
-      font-size: 13px;
-      background-color: #d0d0d7;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      img {
-        height: 1em;
-      }
+    margin-bottom: 20px;
+    display: grid;
+    grid-row-gap: 10px;
+  }
+  .peopleInput{
+    display: grid;
+    height: 2em;
+    grid-template-columns: 1fr 100px 40px;
+    grid-column-gap: 3px;
+    input {
+      height: 100%;
+    }
+    p-select::part(p-select) {
+      width: 100%;
+      height: 100%;
+    }
+    p-select::part(p-option) {
+      height: 2em;
     }
   }
+
 }
 
 
@@ -746,6 +777,9 @@ h3 {
   box-shadow: 0 4px 6px #0000001a;
   position: relative;
   border: none;
+  input {
+    padding: 12px;
+  }
 }
 
 #newStudy h3 {
@@ -1784,6 +1818,9 @@ img.ProseMirror-separator {
 
 
 #profileContent {
+  margin-top: 10px;
+  display: grid;
+  justify-content: center;
   h1 {
     font-size: 27px;
   }
@@ -1801,3 +1838,4 @@ img.ProseMirror-separator {
     }
   }
 }
+
