@@ -112,7 +112,7 @@ input[type="password"] {
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-bottom: 15px;
-  padding: 12px;
+  padding: 0px 12px;
   font-size: 14px;
   box-sizing: border-box;
 }
@@ -421,6 +421,12 @@ h3 {
   padding: 0;
   display: grid;
   overflow: hidden;
+  input[type="email"],
+  input[type="text"],
+  input[type="input"],
+  input[type="password"] {
+    padding: 12px;
+  }
   .leftColumn {
     background-color: #f9f9fb;
     flex-direction: column;
@@ -771,6 +777,9 @@ h3 {
   box-shadow: 0 4px 6px #0000001a;
   position: relative;
   border: none;
+  input {
+    padding: 12px;
+  }
 }
 
 #newStudy h3 {
