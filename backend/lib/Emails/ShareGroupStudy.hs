@@ -47,6 +47,6 @@ shareEmail token name mMessage baseUrl = do
   br_ []
   a_ [href_ url, style buttonStyle] "join"
     where
-      url = baseUrl <> "/app/studies?share_token=" <> unwrap token
+      url = baseUrl <> "/studies?share_token=" <> unwrap token
 
 

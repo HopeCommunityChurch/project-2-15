@@ -20,11 +20,12 @@ import Entity.User qualified as User
 import EnvFields (EnvType (..), HasUrl)
 import Fields.Email (mkEmail)
 import Mail qualified
-import Network.HTTP.Types.Status (status200)
+import Network.HTTP.Types.Status (status200, status204)
 import Text.Ginger
 import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
+import Api.Htmx.NotFound qualified as NotFound
 
 
 data SystemType = Linux | Mac | Windows | Unknown
@@ -63,6 +64,8 @@ getStudy user = do
   userFeatures <- lift $ Feature.getFeaturesForUser user.userId
   docId <- captureParam "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
+  unless (user.userId `elem` fmap (.userId) doc.editors) $ do
+    NotFound.getNotFound
   let modKey = modifierKey $ getSystem (fmap toStrict mUserAgent)
   envType <- lift (asks (.envType))
   let isLocal = envType == Dev "local"
@@ -184,3 +187,39 @@ createGroupStudy user = do
     . HMap.insert "created" (toGVal True)
     )
 
+rejectShare
+  :: MonadDb env m
+  => AuthUser
+  -> ActionT m ()
+rejectShare _ = do
+  shareToken <- captureParam "shareToken"
+  lift $ Shares.rejectToken shareToken
+  status status200
+
+
+-- TODO get to work with templates
+acceptShare
+  :: MonadDb env m
+  => AuthUser
+  -> ActionT m ()
+acceptShare user = do
+  shareToken <- captureParam "shareToken"
+  docStuff <- formParam "document"
+  docId <-
+    if docStuff == ("new" :: Text) then do
+      let crDoc = Doc.CrDoc Nothing "Untitled" emptyStudy user.userId
+      lift $ Doc.crDocument crDoc
+    else do
+      docId <- formParam "document"
+      doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
+      unless (user.userId `elem` fmap (.userId) doc.editors) $ do
+        NotFound.getNotFound
+      pure docId
+
+  didWork <- lift $ Shares.acceptShare user.userId shareToken docId
+  unless didWork
+    NotFound.getNotFound
+
+  let url = baseUrl <> "/study/" <> UUID.toText (unwrap docId)
+  setHeader "HX-Redirect" (toLazy url)
+  status status200

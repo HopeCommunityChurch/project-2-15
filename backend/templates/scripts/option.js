@@ -5,7 +5,7 @@ class PSelect extends HTMLElement {
   static _styles = `
     .p-select {
       display: inline-grid;
-      grid-template-columns: 1fr 1em;
+      grid-template-columns: 1fr 1.5em;
       position: relative;
       padding: 2px 6px;
       box-sizing: border-box;
