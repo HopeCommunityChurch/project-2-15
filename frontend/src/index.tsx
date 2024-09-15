@@ -5,6 +5,7 @@ import * as WS from "./WebsocketTypes"
 import * as T from "./Types"
 import {} from "./PreviewScripture"
 import {} from "./SidebarSections"
+import {} from "./GroupStudy"
 import * as Util from "./Util"
 
 

@@ -96,7 +96,7 @@ class PSelect extends HTMLElement {
       }
 
       if(def) {
-        this.selected(def);
+        this.selected(def, false);
       }
 
       options.forEach( (option) => {
@@ -106,7 +106,7 @@ class PSelect extends HTMLElement {
         whatever.innerHTML = option.innerText;
         whatever.addEventListener("click", (e) => {
           e.stopPropagation();
-          this.selected(option);
+          this.selected(option, true);
         });
         this.dropbox.appendChild(whatever);
       });
@@ -114,14 +114,21 @@ class PSelect extends HTMLElement {
 
   }
 
-  selected (option) {
+  selected (option, includeEvents) {
     let value = option.value
     if(!value) {
       value = option.innerText;
     }
     this.internals.setFormValue(value);
+    this.value = value;
     this.current.innerHTML = option.innerText;
     this.dropbox.classList.remove("open");
+    if (includeEvents) {
+      const ev = new InputEvent("input");
+      this.dispatchEvent(ev);
+      const ev2 = new Event("change");
+      this.dispatchEvent(ev2);
+    }
   }
 
 }

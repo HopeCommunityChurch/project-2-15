@@ -1755,23 +1755,49 @@ img.ProseMirror-separator {
 }
 
 
-#studyContent.collapse {
-  grid-template-columns: 60px 1fr;
-  #collapse img{
-    transform: rotate(180deg);
-  }
-
-  #sectionContainer {
-    display: none !important;
-  }
-  #bottom {
-    display: none !important;
-  }
-}
 
 #studyContent {
   display: grid;
   grid-template-columns: 200px 1fr;
+
+  &.collapse{
+    grid-template-columns: 60px 1fr;
+    #collapse img{
+      transform: rotate(180deg);
+    }
+
+    #sectionContainer {
+      display: none !important;
+    }
+    #bottom {
+      display: none !important;
+    }
+  }
+
+  &.collapse.split {
+    grid-template-columns: 60px 1fr 1fr;
+  }
+  &.split {
+    grid-template-columns: 200px 1fr 1fr;
+    #splitside {
+      display: block;
+    }
+  }
+
+  #splitside {
+    display: none;
+    position: relative;
+    .container {
+      position: sticky;
+      top: 6rem;
+    }
+    #splitPicker {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+  }
+
   #leftSidebar {
     .container {
       position: sticky;

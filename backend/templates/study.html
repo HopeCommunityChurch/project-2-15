@@ -119,6 +119,11 @@
       studyContent.classList.toggle("collapse");
     }
 
+    function split() {
+      const studyContent = document.getElementById("studyContent");
+      studyContent.classList.toggle("split");
+    }
+
 
   </script>
 </head>
@@ -285,10 +290,18 @@
       <img src="{{base}}/static/img/add-study-block-icon.svg" >
     </button>
 
+    {% if contains(features, "GroupStudy") && doc.groupStudyId  %}
+      <div class="seperator">&nbsp;</div>
+      <button class="toolbarButton" id="splitscreenButton" onclick="split()">
+        <img src="{{base}}/static/img/parallel-view-icon.svg" >
+      </button>
+    {% endif %}
+
     <div class="seperator">&nbsp;</div>
     <button class="toolbarButton" title="Clear Formatting" onclick="clearFormatClick()">
       <img src="{{base}}/static/img/clear-formatting-icon.svg" >
     </button>
+
 
   </header>
 
@@ -325,6 +338,24 @@
       </div>
     </div>
     <div id="editorHolder">
+    </div>
+    <div id="splitside">
+      <div class="container">
+        <div id="splitPicker">
+          <p-select id="groupStudySelector">
+            {% for gdoc in groupStudy.docs  %}
+              {% if gdoc.docId != doc.docId %}
+                <option value="{{gdoc.docId}}">
+                  {{gdoc.editors[0].name}}
+                  -
+                  {{gdoc.name}}
+                </option>
+              {% endif %}
+            {% endfor %}
+            <option value="test">test</option>
+          </p-select>
+        </div>
+      </div>
     </div>
   </div>
 {% if isLocal == true %}

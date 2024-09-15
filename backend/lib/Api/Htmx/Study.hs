@@ -66,6 +66,8 @@ getStudy user = do
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
   unless (user.userId `elem` fmap (.userId) doc.editors) $ do
     NotFound.getNotFound
+  groupStudy <- forM doc.groupStudyId $ \ groupStudyId ->
+     lift $ E.getByIdForUser @GroupStudy.GetGroupStudy user groupStudyId
   let modKey = modifierKey $ getSystem (fmap toStrict mUserAgent)
   envType <- lift (asks (.envType))
   let isLocal = envType == Dev "local"
@@ -76,6 +78,7 @@ getStudy user = do
     . HMap.insert "modkey" (toGVal modKey)
     . HMap.insert "docName" (toGVal doc.name)
     . HMap.insert "doc" (toGVal (Aeson.toJSON doc))
+    . HMap.insert "groupStudy" (toGVal (Aeson.toJSON (join groupStudy)))
     . HMap.insert "host" (toGVal host)
     . HMap.insert "features" (toGVal (Aeson.toJSON userFeatures))
     )
