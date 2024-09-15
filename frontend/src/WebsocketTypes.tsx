@@ -16,6 +16,12 @@ export type SendListenToDoc = {
   contents: T.DocId,
 };
 
+export type SendStopListenToDoc = {
+  tag: "StopListenToDoc",
+  contents: T.DocId,
+};
+
+
 export type SendSaveDoc = {
   tag: "SaveDoc",
   contents: {
@@ -33,6 +39,7 @@ export type SendMsg =
   | SendOpenDoc
   | SendUpdated
   | SendListenToDoc
+  | SendStopListenToDoc
   | SendSaveDoc
   | SendUpdateName
 

@@ -58,6 +58,67 @@
 </dialog>
 
 <div id="studiesContent">
+
+  {% if length(shares) > 0 %}
+  <div id="allShares">
+    <h1>Invites</h1>
+    <div class="table3">
+      <header>
+        Group Study
+      </header>
+      <header>
+        Template Name
+      </header>
+      <header>
+      </header>
+      {% for share in shares %}
+        <div class="row share" id="share-{{share.token}}">
+          <div>
+            {{ share.groupStudyName }}
+          </div>
+          <div
+            {% if share.studyTemplateId %}
+            {% else %}
+              class = "shareWith"
+            {% endif %}
+          >
+            {% if share.studyTemplateId %}
+              {{share.studyTemplateName }}
+            {% else %}
+              Free Hand
+            {% endif %}
+          </div>
+          <div class="options">
+            <form
+               hx-post="/group_study/share/{{share.token}}"
+            >
+              <p-select name="document">
+                <option value="new">New Document</option>
+                {% for study in studies %}
+                  {% if study.groupStudyName %}
+                  {% else %}
+                    <option value="{{study.docId}}">{{study.name}}</option>
+                  {% endif %}
+                {% endfor %}
+              </p-select>
+              <button class="blue" type="submit" class="accept">Accept</button>
+              <button
+                class="red"
+                hx-delete="/group_study/share/{{share.token}}"
+                hx-target="#share-{{share.token}}"
+                hx-swap="delete"
+                class="reject"
+              >
+                Reject
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   <h1>My Studies</h1>
   <div class="table3">
     <header>
@@ -74,7 +135,12 @@
         <div>
           {{study.name}}
         </div>
-        <div class="shareWith">
+        <div
+          {% if study.groupStudyName %}
+          {% else %}
+            class="shareWith"
+          {% endif %}
+        >
           {% if study.groupStudyName %}
             {{study.groupStudyName}}
           {% else %}

@@ -1,0 +1,20 @@
+{% if created %}
+<button
+  class="blue"
+  id="groupStudyButton"
+  hx-swap-oob="true"
+  onclick="toggleModal('#groupStudy')"
+>
+  Group Study
+</button>
+{% endif %}
+
+<div
+  id="groupStudyInner"
+  {% if created %}
+  hx-swap-oob="true"
+  {% endif %}
+>
+  <h3>Group Study</h3>
+  Not Yet Implemented
+</div>

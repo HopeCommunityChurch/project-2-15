@@ -39,6 +39,9 @@ button {
   font-size: 14px;
   font-weight: 600;
   transition: background-color .3s;
+  &:disabled {
+    cursor: not-allowed;
+  }
 }
 
 button.lightBlue {
@@ -48,6 +51,9 @@ button.lightBlue {
   &:hover {
     background-color: var(--blue-50);
   }
+  &:disabled {
+    border: 2px solid var(--red-50);
+  }
 }
 
 button.blue {
@@ -55,6 +61,13 @@ button.blue {
   background-color: var(--blue-100);
   &:hover {
     background-color: var(--blue-75);
+  }
+  &:disabled:hover {
+    background-color: var(--blue-75);
+  }
+  &:disabled {
+    background-color: var(--blue-75);
+    border: 2px solid var(--red-50);
   }
 }
 
@@ -140,19 +153,25 @@ h3 {
 .table3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  header {
+    font-weight: 900;
+  }
+  & > .row {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+    grid-column: span 3;
+  }
+  & > a {
+    text-decoration: none;
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+    grid-column: span 3;
+  }
 }
 
-.table3 header {
-  font-weight: 900;
-}
 
-.table3 > a {
-  text-decoration: none;
-  display: grid;
-  width: 100%;
-  grid-template-columns: repeat(3, 1fr);
-  grid-column: span 3;
-}
 
 #home-grid {
 }
@@ -394,7 +413,7 @@ h3 {
     }
 
     .rightImage {
-      self-align: center;
+      align-self: center;
       @media screen and (max-width: 1350px) {
         display: none;
       }
@@ -734,36 +753,52 @@ h3 {
   max-width: 1080px;
   margin: 0 auto;
   padding-top: 20px;
+  #allShares {
+    margin-bottom: 30px;
+    .share {
+      color: black;
+      border-radius: 9px;
+      transition: background-color .3s;
+      box-shadow: 0 4px 7px 1px #00000012;
+      margin-top: 10px;
+      div {
+        padding: 10px;
+        align-self: center;
+      }
+    }
+  }
+  h1 {
+    font-size: 27px;
+  }
+  .table3 {
+    margin-top: 20px;
+    & > a {
+      cursor: pointer;
+      color: black;
+      border-radius: 9px;
+      transition: background-color .3s;
+      box-shadow: 0 4px 7px 1px #00000012;
+      margin-top: 10px;
+      a&hover {
+        background-color: #eef5ff;
+      }
+      div {
+        padding: 10px;
+      }
+    }
+  }
+
+  .shareWith {
+    color: #797d80;
+  }
+
 }
 
-#studiesContent h1 {
-  font-size: 27px;
-}
 
-#studiesContent .table3 {
-  margin-top: 20px;
-}
 
-#studiesContent .table3 > a {
-  cursor: pointer;
-  color: black;
-  border-radius: 9px;
-  transition: background-color .3s;
-  box-shadow: 0 4px 7px 1px #00000012;
-  margin-top: 10px;
-}
 
-#studiesContent .table3 > a:hover {
-  background-color: #eef5ff;
-}
 
-#studiesContent .table3 > a div {
-  padding: 10px;
-}
 
-#studiesContent .shareWith {
-  color: #797d80;
-}
 
 #newStudy {
   background-color: #fff;
@@ -1238,7 +1273,8 @@ img.ProseMirror-separator {
   /* padding: 0px; */
 }
 
-#editorHolder {
+
+.editorHolder {
   .section {
     scroll-margin-top: 6rem;
     margin: 0px;
@@ -1463,17 +1499,10 @@ img.ProseMirror-separator {
     height: 1.3em;
     display: inline-block;
     position: absolute;
-    top: 1px;
+    top: -1em;
     left: -1px;
     animation: blinker 3s cubic-bezier(1,0,1,-0.93) infinite;
   }
-
-  @keyframes blinker {
-    50% {
-      opacity: 0;
-    }
-  }
-
 
   .otherSelection {
     background-color: #2cff001f;
@@ -1720,23 +1749,56 @@ img.ProseMirror-separator {
 }
 
 
-#studyContent.collapse {
-  grid-template-columns: 60px 1fr;
-  #collapse img{
-    transform: rotate(180deg);
-  }
-
-  #sectionContainer {
-    display: none !important;
-  }
-  #bottom {
-    display: none !important;
-  }
-}
 
 #studyContent {
   display: grid;
   grid-template-columns: 200px 1fr;
+
+  &.collapse{
+    grid-template-columns: 60px 1fr;
+    #collapse img{
+      transform: rotate(180deg);
+    }
+
+    #sectionContainer {
+      display: none !important;
+    }
+    #bottom {
+      display: none !important;
+    }
+  }
+
+  &.collapse.split {
+    grid-template-columns: 60px 1fr 1fr;
+  }
+  &.split {
+    grid-template-columns: 200px 1fr 1fr;
+    grid-column-gap: 5px;
+    #splitside {
+      display: block;
+    }
+  }
+
+  #splitside {
+    display: none;
+    position: relative;
+    .container {
+      position: sticky;
+      top: 6rem;
+    }
+    #splitPicker {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 100;
+    }
+  }
+
+  #sideBySideEditor {
+    height: calc(100vh - 6rem);
+    overflow-y: scroll;
+  }
+
   #leftSidebar {
     .container {
       position: sticky;
@@ -1839,3 +1901,8 @@ img.ProseMirror-separator {
   }
 }
 
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}

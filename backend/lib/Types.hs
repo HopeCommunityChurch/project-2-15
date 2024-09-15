@@ -16,6 +16,7 @@ module Types (
   genPasswordResetToken,
 
   ShareToken,
+  mkShareToken,
   genShareToken,
 
   genToken,
@@ -119,6 +120,9 @@ mkPasswordResetToken = MkNewType
 
 data ShareToken'
 type ShareToken = NewType ShareToken' Text
+
+mkShareToken :: Text -> ShareToken
+mkShareToken = MkNewType
 
 
 validChars :: [Char]

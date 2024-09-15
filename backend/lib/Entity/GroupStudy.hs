@@ -40,6 +40,10 @@ data GetDocMeta = MkGetDocMeta
   deriving (FromJSON, ToJSON, ToSchema)
 
 
+data Permission = Owner | Member
+  deriving (Show, Eq)
+
+
 instance E.Entity GetDocMeta where
   data DbEntity GetDocMeta f = MkDbGetDocMeta
     { docId :: C f T.DocId
@@ -91,6 +95,7 @@ instance FromJSON GetDocMeta'
 instance E.GuardValue GetDocMeta T.GroupStudyId where
   guardValues ids doc =
     guard_ $ doc.groupStudyId `in_` ids
+
 
 
 data GetGroupStudy = MkGetGroupStudy
@@ -172,10 +177,9 @@ instance E.EntityWithId GetGroupStudy where
   entityId = (.groupStudyId)
 
 
-data CrStudy = CrStudy
+data CrStudy = MkCrStudy
   { name :: Text
   , studyTemplateId :: Maybe T.StudyTemplateId
-  , document :: Object
   }
   deriving (Generic, Show)
   deriving anyclass (FromJSON, ToJSON, ToSchema)
@@ -210,3 +214,5 @@ addStudy userId crStudy = do
       ]
 
   pure study.groupStudyId
+
+
