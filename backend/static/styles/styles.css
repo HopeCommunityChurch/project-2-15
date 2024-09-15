@@ -1273,7 +1273,8 @@ img.ProseMirror-separator {
   /* padding: 0px; */
 }
 
-#editorHolder {
+
+.editorHolder {
   .section {
     scroll-margin-top: 6rem;
     margin: 0px;
@@ -1498,17 +1499,10 @@ img.ProseMirror-separator {
     height: 1.3em;
     display: inline-block;
     position: absolute;
-    top: 1px;
+    top: -1em;
     left: -1px;
     animation: blinker 3s cubic-bezier(1,0,1,-0.93) infinite;
   }
-
-  @keyframes blinker {
-    50% {
-      opacity: 0;
-    }
-  }
-
 
   .otherSelection {
     background-color: #2cff001f;
@@ -1779,6 +1773,7 @@ img.ProseMirror-separator {
   }
   &.split {
     grid-template-columns: 200px 1fr 1fr;
+    grid-column-gap: 5px;
     #splitside {
       display: block;
     }
@@ -1795,7 +1790,13 @@ img.ProseMirror-separator {
       position: absolute;
       top: 10px;
       left: 10px;
+      z-index: 100;
     }
+  }
+
+  #sideBySideEditor {
+    height: calc(100vh - 6rem);
+    overflow-y: scroll;
   }
 
   #leftSidebar {
@@ -1900,3 +1901,8 @@ img.ProseMirror-separator {
   }
 }
 
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}

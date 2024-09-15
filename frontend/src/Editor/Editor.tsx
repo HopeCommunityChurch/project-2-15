@@ -1390,6 +1390,11 @@ export class P215Editor {
     this.updateStateHanlders = [];
     this.questionMap = {};
 
+
+    this.newState(node);
+  }
+
+  newState (node: any) {
     baseKeymap["Backspace"] = chainCommands(
       deleteQuestionSelection,
       deleteAnswerSelection,
@@ -1427,6 +1432,9 @@ export class P215Editor {
         // referencePlugin,
       ],
     });
+    if (this.view) {
+      this.view.updateState(this.state);
+    }
   }
 
   addQuestionCommand = (state, dispatch) => {

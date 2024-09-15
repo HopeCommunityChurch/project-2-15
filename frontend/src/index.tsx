@@ -5,7 +5,7 @@ import * as WS from "./WebsocketTypes"
 import * as T from "./Types"
 import {} from "./PreviewScripture"
 import {} from "./SidebarSections"
-import {} from "./GroupStudy"
+import * as GS from "./GroupStudy"
 import * as Util from "./Util"
 
 
@@ -146,6 +146,8 @@ function mkSaveObject (ws : WS.MyWebsocket) {
     },
   };
 };
+
+GS.init(ws);
 
 // window.visualViewport.addEventListener("resize", () => {
 //   const viewPort = document.querySelector("meta[name=viewport]");
