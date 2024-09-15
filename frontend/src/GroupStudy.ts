@@ -21,23 +21,26 @@ export function init(ws : WS.MyWebsocket) {
   function loadEditor() {
     const docId = groupStudySelector.value as T.DocId;
     if (docId == currentDocId) return;
+    if(currentDocId) {
+      ws.send({ tag: "StopListenToDoc", contents: docId });
+    }
     currentDocId = docId;
     ws.send({ tag: "ListenToDoc", contents: docId });
   }
 
   ws.addEventListener("DocListenStart", (ev : WS.DocListenStartEvent) => {
     const doc = ev.document;
+    console.log(doc);
     if(editor) {
-      editor.newState(doc);
-    } else {
-      editor = new Editor.P215Editor({
-        initDoc: doc,
-        editable: false,
-        remoteThings: null,
-      });
-      const elem = document.getElementById("sideBySideEditor");
-      editor.addEditor(elem);
+      editor.removeEditor();
     }
+    editor = new Editor.P215Editor({
+      initDoc: doc,
+      editable: false,
+      remoteThings: null,
+    });
+    const elem = document.getElementById("sideBySideEditor");
+    editor.addEditor(elem);
 
   });
 
