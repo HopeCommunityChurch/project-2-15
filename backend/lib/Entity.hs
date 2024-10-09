@@ -163,8 +163,8 @@ getById
      )
   => EntityId entity
   -> m (Maybe entity)
-getById id =
-  getOneEntityBy id
+getById =
+  getOneEntityBy
 
 
 getForUserBy

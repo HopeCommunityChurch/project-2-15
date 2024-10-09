@@ -12,6 +12,8 @@ function toggleModal(qs) {
     dialog.close();
   } else {
     dialog.showModal();
+    const ev = new Event("custom-open");
+    dialog.dispatchEvent(ev);
     const clickFunc = (ev) => {
       var rect = dialog.getBoundingClientRect();
       var isInDialog =

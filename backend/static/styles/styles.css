@@ -150,6 +150,10 @@ h3 {
   margin: 0px;
 }
 
+h4 {
+  margin: 0px;
+}
+
 .table3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -744,6 +748,14 @@ h3 {
     }
   }
 
+  h4 {
+    margin-top: 10px;
+  }
+
+  #studyGroupDeletes {
+    display: none;
+  }
+
 }
 
 
@@ -1275,6 +1287,9 @@ img.ProseMirror-separator {
 
 
 .editorHolder {
+  height: calc(100vh - 6rem);
+  overflow-y: scroll;
+
   .section {
     scroll-margin-top: 6rem;
     margin: 0px;
@@ -1792,11 +1807,6 @@ img.ProseMirror-separator {
       left: 10px;
       z-index: 100;
     }
-  }
-
-  #sideBySideEditor {
-    height: calc(100vh - 6rem);
-    overflow-y: scroll;
   }
 
   #leftSidebar {
