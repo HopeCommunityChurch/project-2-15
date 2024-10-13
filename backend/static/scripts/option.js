@@ -71,7 +71,7 @@ class PSelect extends HTMLElement {
 
     this.arrow = document.createElement("img");
     this.arrow.className = "p-arrow";
-    this.arrow.src = "{{base}}/static/img/arrow.svg"
+    this.arrow.src = "/static/img/arrow.svg"
     this.select.appendChild(this.arrow);
 
     this.dropbox = document.createElement("div");

@@ -15,6 +15,83 @@
   hx-swap-oob="true"
   {% endif %}
 >
-  <h3>Group Study</h3>
-  Not Yet Implemented
+  <form>
+    <h3>Group Study</h3>
+    <h4>Invites</h4>
+    <div id="studyGroupInvites">
+      {% for share in shares %}
+        <div>
+          {% if isOwner %}
+            <button data-token="{{share.token}}">
+              <img src="{{base}}/static/img/gray-trash-icon.svg">
+            </button>
+          {% endif %}
+          {{share.email}}
+        </div>
+      {% endfor %}
+    </div>
+
+    <h4>Members</h4>
+    <div id="studyGroupMembers">
+      {% for doc in groupStudy.docs %}
+        <div>
+          {% if isOwner %}
+            <button class="trash" data-doc="{{doc.docId}}">
+              <img src="{{base}}/static/img/gray-trash-icon.svg">
+            </button>
+          {% endif %}
+          {{doc.editors[0].name}}
+          {% if isOwner %}
+            <p-select name="permission[{{doc.editors[0].userId}}]">
+              <option value="member" selected>
+                Member
+              </option>
+              <option value="owner">
+                Owner
+              </option>
+            </p-select>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+{% if isOwner %}
+    <h4>New Members</h4>
+    <div id="createPeoples">
+      <template id="peopleInputTemplate">
+        <div class="peopleInput">
+          <input
+            name="email[]"
+            type="email"
+            placeholder="jonny@p215.church"
+          >
+          <p-select name="permission[]">
+            <option value="member" selected>
+              Member
+            </option>
+            <option value="owner">
+              Owner
+            </option>
+          </p-select>
+          <button class="red">-</button>
+        </div>
+      </template>
+    </div>
+
+    <div id="studyGroupDeletes">
+    </div>
+{% endif %}
+
+{% if isOwner %}
+    <button type="submit" class="blue">Update</button>
+    <button type="submit" class="red">Delete</button>
+{% endif %}
+  </form>
 </div>
+
+{% if isOwner %}
+<script>
+  addPeopleInput();
+  studyGroupUpdateSetup();
+</script>
+{% endif %}

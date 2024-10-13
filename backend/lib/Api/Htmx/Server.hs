@@ -127,6 +127,9 @@ scottyServer = do
       user <- getUserWithRedirect
       Study.deleteStudy user
 
+    Scotty.get "/group_study/:documentId" $ do
+      user <- getUserWithRedirect
+      Study.getGroupStudy user
     Scotty.post "/group_study" $ do
       user <- getUserWithRedirect
       Study.createGroupStudy user

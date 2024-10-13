@@ -1430,9 +1430,6 @@ export class P215Editor {
     });
   }
 
-  distroy (node: any) {
-  }
-
   addQuestionCommand = (state, dispatch) => {
     return addQuestion(
             state,

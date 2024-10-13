@@ -85,6 +85,7 @@ addShares gsId shares = do
 
 data GetMyShareData = MkGetMyShareData
   { token :: T.ShareToken
+  , email :: T.Email
   , groupStudyId :: T.GroupStudyId
   , groupStudyName :: Text
   , studyTemplateId :: Maybe T.StudyTemplateId
@@ -97,6 +98,7 @@ data GetMyShareData = MkGetMyShareData
 instance E.Entity GetMyShareData where
   data DbEntity GetMyShareData f = MkDbGetMyShareData
     { token :: C f T.ShareToken
+    , email :: C f T.Email
     , groupStudyId :: C f T.GroupStudyId
     , groupStudyName :: C f Text
     , studyTemplateId :: C f (Maybe T.StudyTemplateId)
@@ -114,6 +116,7 @@ instance E.Entity GetMyShareData where
   toEntity MkDbGetMyShareData{..} =
     MkGetMyShareData
       token
+      email
       groupStudyId
       groupStudyName
       studyTemplateId
@@ -134,6 +137,7 @@ instance E.Entity GetMyShareData where
     pure $
       MkDbGetMyShareData
         share.shareToken
+        share.email
         gs.groupStudyId
         gs.name
         template.studyTemplateId
@@ -142,6 +146,11 @@ instance E.Entity GetMyShareData where
         share.expiresAt
         share.rejected
         share.created
+
+
+instance E.GuardValue GetMyShareData T.GroupStudyId where
+  guardValues ids doc =
+    guard_ $ doc.groupStudyId `in_` ids
 
 
 getSharesForUser
@@ -236,6 +245,7 @@ acceptShare userId token docId = withTransaction $ do
 
 data GetShareData = MkGetShareData
   { email :: T.Email
+  , token :: T.ShareToken
   , expiresAt :: UTCTime
   , rejected :: Bool
   , created :: UTCTime
@@ -249,7 +259,7 @@ getGroupShareData
   => T.GroupStudyId
   -> m [GetShareData]
 getGroupShareData gsId =
-  fmap (fmap (\(email, ex, r, cr) -> MkGetShareData email ex r cr))
+  fmap (fmap (\(ex, token, email, r, cr) -> MkGetShareData email token ex r cr))
   $ runBeam
   $ runSelectReturningList
   $ select
@@ -257,7 +267,7 @@ getGroupShareData gsId =
     share <- all_ Db.db.groupStudyShare
     guard_ $ share.groupStudyId ==. val_ gsId
     guard_ $ isNothing_ share.usedAt
-    pure (share.email, share.expiresAt, share.rejected, share.created)
+    pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created)
 
 
 deleteShare

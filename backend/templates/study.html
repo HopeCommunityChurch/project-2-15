@@ -11,10 +11,10 @@
   <script src="https://unpkg.com/htmx.org@2.0.2"></script>
 
   <link rel="stylesheet" href="{{base}}/static/styles/styles.css">
+  <script src="{{base}}/static/scripts/option.js"></script>
+  <script src="{{base}}/static/scripts/dialog.js"></script>
+  <script src="{{base}}/static/scripts/studyGroup.js"></script>
   <script>
-    {% include "scripts/option.js" %}
-
-    {% include "scripts/dialog.js" %}
 
     window.base = "{{base}}";
 
@@ -192,13 +192,12 @@
       </li>
     </menu>
   </dialog>
-  {% if doc.groupStudyId %}
-    <dialog id="groupStudy" >
-      {% include "study/studyGroup.html" %}
-    </dialog>
-  {% else %}
-    <dialog id="groupStudy">
-      {% include "study/createStudyGroup.html" %}
+  {% if contains(features, "GroupStudy") %}
+    <dialog
+      id="groupStudy"
+      hx-trigger="custom-open"
+      hx-get="/group_study/{{doc.docId}}"
+    >
     </dialog>
   {% endif %}
 

@@ -25,7 +25,6 @@ import Text.Ginger
 import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
-import Api.Htmx.NotFound qualified as NotFound
 
 
 data SystemType = Linux | Mac | Windows | Unknown
@@ -139,6 +138,45 @@ deleteStudy user = do
   setHeader "HX-Redirect" (toLazy url)
   status status200
 
+
+getGroupStudy
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> ActionT m ()
+getGroupStudy user = do
+  userFeatures <- lift $ Feature.getFeaturesForUser user.userId
+  docId <- captureParam "documentId"
+  doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
+  unless (user.userId `elem` fmap (.userId) doc.editors) $ do
+    NotFound.getNotFound
+  groupStudy' <- forM doc.groupStudyId $ \ groupStudyId ->
+     lift $ E.getByIdForUser @GroupStudy.GetGroupStudy user groupStudyId
+  let groupStudy = join groupStudy'
+  let tfile = if isNothing groupStudy
+               then "study/createStudyGroup.html"
+               else "study/studyGroup.html"
+  let isOwner = case groupStudy of
+                  Nothing -> False
+                  Just gs ->
+                    any (\ o -> o.userId == user.userId) gs.owners
+
+  shares' <- forM groupStudy $ \ gs ->
+    lift $ Shares.getGroupShareData gs.groupStudyId
+  let share = join (maybeToList shares')
+  logDebugSH share
+
+  basicTemplate
+    tfile
+    ( HMap.insert "user" (toGVal (Aeson.toJSON user))
+    . HMap.insert "isOwner" (toGVal isOwner)
+    . HMap.insert "docName" (toGVal doc.name)
+    . HMap.insert "doc" (toGVal (Aeson.toJSON doc))
+    . HMap.insert "shares" (toGVal (Aeson.toJSON share))
+    . HMap.insert "groupStudy" (toGVal (Aeson.toJSON groupStudy))
+    . HMap.insert "features" (toGVal (Aeson.toJSON userFeatures))
+    )
 
 
 textToPermission :: Text -> Maybe GroupStudy.Permission
