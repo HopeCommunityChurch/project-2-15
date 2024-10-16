@@ -16,17 +16,41 @@
   {% endif %}
 >
   <form>
-    <h3>Group Study</h3>
+    <h3>{{groupStudy.name}}</h3>
     <h4>Invites</h4>
     <div id="studyGroupInvites">
       {% for share in shares %}
-        <div>
+        <div class="share" id="share-{{share.token}}">
+          <div class="share-email">
+            {{share.email}}
+            {% if share.rejected %}
+              <span class="expired">
+                (rejected)
+              </span>
+            {% elif share.isExpired %}
+              <span class="expired">
+                (expired)
+              </span>
+            {% endif %}
+          </div>
           {% if isOwner %}
-            <button data-token="{{share.token}}">
-              <img src="{{base}}/static/img/gray-trash-icon.svg">
-            </button>
+            <div class="buttons">
+              <button
+                class="lightBlue"
+                hx-post="/group_study/{{groupStudy.groupStudyId}}/share/{{share.token}}/resend"
+                hx-target="#share-{{share.token}}"
+              >
+                Resend
+              </button>
+              <button
+                data-token="{{share.token}}"
+                hx-delete="/group_study/{{groupStudy.groupStudyId}}/share/{{share.token}}"
+                hx-target="#share-{{share.token}}"
+              >
+                <img src="{{base}}/static/img/gray-trash-icon.svg">
+              </button>
+            </div>
           {% endif %}
-          {{share.email}}
         </div>
       {% endfor %}
     </div>
@@ -35,11 +59,6 @@
     <div id="studyGroupMembers">
       {% for doc in groupStudy.docs %}
         <div>
-          {% if isOwner %}
-            <button class="trash" data-doc="{{doc.docId}}">
-              <img src="{{base}}/static/img/gray-trash-icon.svg">
-            </button>
-          {% endif %}
           {{doc.editors[0].name}}
           {% if isOwner %}
             <p-select name="permission[{{doc.editors[0].userId}}]">
@@ -51,47 +70,21 @@
               </option>
             </p-select>
           {% endif %}
+          {% if isOwner %}
+            <button class="trash" data-doc="{{doc.docId}}">
+              <img src="{{base}}/static/img/gray-trash-icon.svg">
+            </button>
+          {% endif %}
         </div>
       {% endfor %}
     </div>
 
 {% if isOwner %}
-    <h4>New Members</h4>
-    <div id="createPeoples">
-      <template id="peopleInputTemplate">
-        <div class="peopleInput">
-          <input
-            name="email[]"
-            type="email"
-            placeholder="jonny@p215.church"
-          >
-          <p-select name="permission[]">
-            <option value="member" selected>
-              Member
-            </option>
-            <option value="owner">
-              Owner
-            </option>
-          </p-select>
-          <button class="red">-</button>
-        </div>
-      </template>
-    </div>
-
-    <div id="studyGroupDeletes">
-    </div>
+  <button class="lightBlue">
+    Invite New Members
+  </button>
 {% endif %}
 
-{% if isOwner %}
-    <button type="submit" class="blue">Update</button>
-    <button type="submit" class="red">Delete</button>
-{% endif %}
   </form>
 </div>
 
-{% if isOwner %}
-<script>
-  addPeopleInput();
-  studyGroupUpdateSetup();
-</script>
-{% endif %}

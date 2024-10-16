@@ -264,3 +264,17 @@ acceptShare user = do
   let url = baseUrl <> "/study/" <> UUID.toText (unwrap docId)
   setHeader "HX-Redirect" (toLazy url)
   status status200
+
+
+-- In theory I could check to make sure that the token is actually part of
+-- this group and that the user is an owner, but you can already reject a
+-- token by tokenId
+ownerShareDelete
+  :: MonadDb env m
+  => AuthUser
+  -> ActionT m ()
+ownerShareDelete _ = do
+  shareToken <- captureParam "shareToken"
+  lift $ Shares.deleteToken shareToken
+  status status200
+

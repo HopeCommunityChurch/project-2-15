@@ -139,6 +139,12 @@ scottyServer = do
     Scotty.post "/group_study/share/:shareToken" $ do
       user <- getUserWithRedirect
       Study.acceptShare user
+    Scotty.delete "/group_study/:groupId/share/:shareToken" $ do
+      -- In theory I could check to make sure that the token is actually part of
+      -- this group and that the user is an owner, but you can already reject a
+      -- token by tokenId
+      user <- getUserWithRedirect
+      Study.ownerShareDelete user
 
     Scotty.get "/profile" $ do
       user <- getUserWithRedirect
