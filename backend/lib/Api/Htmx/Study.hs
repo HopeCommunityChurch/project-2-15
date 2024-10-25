@@ -273,9 +273,9 @@ resendInvite _ = do
                               <> "/resend"
           L.button_
             [ L.class_ "lightBlue"
-            , L.hxPost resendUrl
-            , L.hxTarget target
-            , L.hxSwap "outerHTML"
+            , L.hxPost_ resendUrl
+            , L.hxTarget_ target
+            , L.hxSwap_ "outerHTML"
             ]
             "Resend"
           let deleteUrl = "/group_study/"
@@ -284,11 +284,13 @@ resendInvite _ = do
                               <> unwrap shareToken
           L.button_
             [ L.class_ "red trash"
-            , L.hxConfirm "Are you sure you want to delete this invite?"
-            , L.hxDelete deleteUrl
-            , L.hxTarget target
+            , L.hxConfirm_ "Are you sure you want to delete this invite?"
+            , L.hxDelete_ deleteUrl
+            , L.hxTarget_ target
             ]
             (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
+      L.notifcation_ [ L.timems_ "2500" ]
+        "Sent!"
 
 
 

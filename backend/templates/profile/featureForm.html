@@ -17,6 +17,11 @@
     </div>
     {% endif %}
   {% endfor %}
+  {% if wasSaved %}
+    <p-notification time-ms="1000">
+      Saved!
+    </p-notification>
+  {% endif %}
   <button class="blue" type="submit">Save</button>
 
 </form>
