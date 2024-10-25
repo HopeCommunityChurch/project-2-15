@@ -20,7 +20,6 @@ import Servant.Server (
  )
 import System.Environment qualified as Env
 import Prelude hiding (get)
-import UnliftIO.Concurrent (threadDelay)
 import Api.Bible qualified
 import Mail qualified
 import Api.Htmx.Server qualified as HXServer
@@ -102,9 +101,6 @@ main = do
     Right (file :: SecretsFile) -> do
       putStrLn "read the secrets file"
       env <- secretToEnv file
-      when (env.envType /= Prod) $
-        -- pure ()
-        threadDelay (2*1000*1000)
       putStrLn "running migration"
       migration (dbToConnectInfo file.db)
       putStrLn "starting on port 3000"

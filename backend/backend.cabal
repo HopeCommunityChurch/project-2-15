@@ -116,6 +116,7 @@ library
     Emails.PasswordReset,
     Emails.ShareGroupStudy,
     WebsocketServant,
+    Lucid.Htmx,
 
   build-depends:
     HaskellNet,

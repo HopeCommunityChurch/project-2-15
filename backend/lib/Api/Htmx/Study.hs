@@ -19,12 +19,15 @@ import Entity.Shares qualified as Shares
 import Entity.User qualified as User
 import EnvFields (EnvType (..), HasUrl)
 import Fields.Email (mkEmail)
+import Lucid qualified as L
+import Lucid.Htmx qualified as L
 import Mail qualified
 import Network.HTTP.Types.Status (status200, status204)
 import Text.Ginger
 import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
+import Data.CaseInsensitive qualified as CI
 
 
 data SystemType = Linux | Mac | Windows | Unknown
@@ -251,13 +254,46 @@ resendInvite _ = do
   studyGroup <- NotFound.handleNotFound
                   (E.getOneEntityBy @GroupStudy.GetGroupStudy)
                   shareToken
+  share <- lift $ Shares.expandShareExpire shareToken
 
   lift $ withTransaction $ do
-    share <- Shares.expandShareExpire shareToken
     url <- asks (.url)
     let email = Emails.ShareGroupStudy.mail share studyGroup.name shareToken url
     Mail.sendMail email
-  status status200
+  result <- L.renderTextT $ do
+      L.div_ [ L.class_ "share" , L.id_ ("share-" <> unwrap shareToken) ] $ do
+        L.div_ [ L.class_ "share-email" ] $ do
+          L.toHtml (CI.original (unwrap share.email))
+        L.div_ [L.class_ "buttons"] $ do
+          let target = "#share-" <> unwrap shareToken
+          let resendUrl = "/group_study/"
+                              <> show (unwrap studyGroup.groupStudyId)
+                              <> "/share/"
+                              <> unwrap shareToken
+                              <> "/resend"
+          L.button_
+            [ L.class_ "lightBlue"
+            , L.hxPost resendUrl
+            , L.hxTarget target
+            , L.hxSwap "outerHTML"
+            ]
+            "Resend"
+          let deleteUrl = "/group_study/"
+                              <> show (unwrap studyGroup.groupStudyId)
+                              <> "/share/"
+                              <> unwrap shareToken
+          L.button_
+            [ L.class_ "red trash"
+            , L.hxConfirm "Are you sure you want to delete this invite?"
+            , L.hxDelete deleteUrl
+            , L.hxTarget target
+            ]
+            (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
+
+
+
+
+  html result
 
 
 -- TODO get to work with templates
