@@ -228,6 +228,7 @@ createGroupStudy user = do
     . HMap.insert "created" (toGVal True)
     )
 
+
 rejectShare
   :: MonadDb env m
   => AuthUser
@@ -235,6 +236,27 @@ rejectShare
 rejectShare _ = do
   shareToken <- captureParam "shareToken"
   lift $ Shares.rejectToken shareToken
+  status status200
+
+
+resendInvite
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     , HasUrl env
+     )
+  => AuthUser
+  -> ActionT m ()
+resendInvite _ = do
+  shareToken <- captureParam "shareToken"
+  studyGroup <- NotFound.handleNotFound
+                  (E.getOneEntityBy @GroupStudy.GetGroupStudy)
+                  shareToken
+
+  lift $ withTransaction $ do
+    share <- Shares.expandShareExpire shareToken
+    url <- asks (.url)
+    let email = Emails.ShareGroupStudy.mail share studyGroup.name shareToken url
+    Mail.sendMail email
   status status200
 
 

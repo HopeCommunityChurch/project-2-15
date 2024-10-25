@@ -11,73 +11,81 @@
 
 <div
   id="groupStudyInner"
+  class="groupStudyEditorHolder"
   {% if created %}
   hx-swap-oob="true"
   {% endif %}
 >
-  <form>
-    <h3>{{groupStudy.name}}</h3>
-    <h4>Invites</h4>
-    <div id="studyGroupInvites">
-      {% for share in shares %}
-        <div class="share" id="share-{{share.token}}">
-          <div class="share-email">
-            {{share.email}}
-            {% if share.rejected %}
-              <span class="expired">
-                (rejected)
-              </span>
-            {% elif share.isExpired %}
-              <span class="expired">
-                (expired)
-              </span>
-            {% endif %}
-          </div>
-          {% if isOwner %}
-            <div class="buttons">
-              <button
-                class="lightBlue"
-                hx-post="/group_study/{{groupStudy.groupStudyId}}/share/{{share.token}}/resend"
-                hx-target="#share-{{share.token}}"
-              >
-                Resend
-              </button>
-              <button
-                data-token="{{share.token}}"
-                hx-delete="/group_study/{{groupStudy.groupStudyId}}/share/{{share.token}}"
-                hx-target="#share-{{share.token}}"
-              >
-                <img src="{{base}}/static/img/gray-trash-icon.svg">
-              </button>
-            </div>
+  <h3>{{groupStudy.name}}</h3>
+  <h4>Invites</h4>
+  <div id="studyGroupInvites">
+    {% for share in shares %}
+      <div class="share" id="share-{{share.token}}">
+        <div class="share-email">
+          {{share.email}}
+          {% if share.rejected %}
+            <span class="expired">
+              (rejected)
+            </span>
+          {% elif share.isExpired %}
+            <span class="expired">
+              (expired)
+            </span>
           {% endif %}
         </div>
-      {% endfor %}
-    </div>
-
-    <h4>Members</h4>
-    <div id="studyGroupMembers">
-      {% for doc in groupStudy.docs %}
-        <div>
-          {{doc.editors[0].name}}
-          {% if isOwner %}
-            <p-select name="permission[{{doc.editors[0].userId}}]">
-              <option value="member" selected>
-                Member
-              </option>
-              <option value="owner">
-                Owner
-              </option>
-            </p-select>
-          {% endif %}
-          {% if isOwner %}
-            <button class="trash" data-doc="{{doc.docId}}">
+        {% if isOwner %}
+          <div class="buttons">
+            <button
+              class="lightBlue"
+              hx-post="/group_study/{{groupStudy.groupStudyId}}/share/{{share.token}}/resend"
+              hx-target="#share-{{share.token}}"
+            >
+              Resend
+            </button>
+            <button
+              class="red trash"
+              data-token="{{share.token}}"
+              hx-delete="/group_study/{{groupStudy.groupStudyId}}/share/{{share.token}}"
+              hx-target="#share-{{share.token}}"
+            >
               <img src="{{base}}/static/img/gray-trash-icon.svg">
             </button>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <h4>Members</h4>
+  <div id="studyGroupMembers">
+    {% for doc in groupStudy.docs %}
+      <div class="member" >
+        <div>
+          {{doc.editors[0].name}}
+          {% if doc.editors[0].userId == user.userId %}
+            <span>(you)</span>
           {% endif %}
         </div>
-      {% endfor %}
-    </div>
+        <div class="buttons" >
+        {% if isOwner %}
+          <p-select name="permission[{{doc.editors[0].userId}}]">
+            <option value="member" selected>
+              Member
+            </option>
+            <option value="owner">
+              Owner
+            </option>
+          </p-select>
+        {% endif %}
+        {% if isOwner %}
+          <button class="red trash" data-doc="{{doc.docId}}">
+            <img src="{{base}}/static/img/gray-trash-icon.svg">
+          </button>
+        {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 
 {% if isOwner %}
   <button class="lightBlue">
@@ -85,6 +93,5 @@
   </button>
 {% endif %}
 
-  </form>
 </div>
 

@@ -33,6 +33,7 @@ import DbHelper (MonadDb, runBeam, withTransaction)
 import Entity qualified as E
 import Entity.AuthUser
 import Types qualified as T
+import Database.Beam.Backend.SQL.BeamExtensions (MonadBeamUpdateReturning(runUpdateReturningList))
 
 
 
@@ -81,6 +82,25 @@ addShares gsId shares = do
           now
       )
   pure st
+
+
+expandShareExpire
+  :: MonadDb env m
+  => T.ShareToken
+  -> m ShareUnit
+expandShareExpire token = do
+  now <- getCurrentTime
+  [result] <-
+    runBeam
+      $ runUpdateReturningList
+      $ update
+          Db.db.groupStudyShare
+          (\ r ->
+            (r.expiresAt <-. val_ (now & (TL.flexDT . TL.days) +~ 14))
+            <> (r.rejected <-. val_ False)
+          )
+          (\ r -> r.shareToken ==. val_ token)
+  pure (MkShareUnit result.email result.shareAsOwner result.message)
 
 
 data GetMyShareData = MkGetMyShareData
