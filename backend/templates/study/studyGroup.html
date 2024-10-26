@@ -11,61 +11,67 @@
 
 <div
   id="groupStudyInner"
+  class="groupStudyEditorHolder"
   {% if created %}
   hx-swap-oob="true"
   {% endif %}
 >
-  <form>
-    <h3>Group Study</h3>
-    <h4>Invites</h4>
-    <div id="studyGroupInvites">
-      {% for share in shares %}
-        <div>
-          {% if isOwner %}
-            <button data-token="{{share.token}}">
-              <img src="{{base}}/static/img/gray-trash-icon.svg">
-            </button>
-          {% endif %}
+  <h3>{{groupStudy.name}}</h3>
+  <h4>Invites</h4>
+  <div id="studyGroupInvites">
+    {% for share in shares %}
+      <div class="share" id="share-{{share.token}}">
+        <div class="share-email">
           {{share.email}}
+          {% if share.rejected %}
+            <span class="expired">
+              (rejected)
+            </span>
+          {% elif share.isExpired %}
+            <span class="expired">
+              (expired)
+            </span>
+          {% endif %}
         </div>
-      {% endfor %}
-    </div>
-
-    <h4>Members</h4>
-    <div id="studyGroupMembers">
-      {% for doc in groupStudy.docs %}
-        <div>
-          {% if isOwner %}
-            <button class="trash" data-doc="{{doc.docId}}">
+        {% if isOwner %}
+          <div class="buttons">
+            <button
+              class="lightBlue"
+              hx-post="/group_study/{{groupStudy.groupStudyId}}/share/{{share.token}}/resend"
+              hx-target="#share-{{share.token}}"
+              hx-swap="outerHTML"
+            >
+              Resend
+            </button>
+            <button
+              class="red trash"
+              hx-confirm="Are you sure you want to delete this invite?"
+              hx-delete="/group_study/{{groupStudy.groupStudyId}}/share/{{share.token}}"
+              hx-target="#share-{{share.token}}"
+            >
               <img src="{{base}}/static/img/gray-trash-icon.svg">
             </button>
-          {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <h4>Members</h4>
+  <div id="studyGroupMembers">
+    {% for doc in groupStudy.docs %}
+      <div class="member" id="member-doc-{{doc.docId}}" >
+        <div>
           {{doc.editors[0].name}}
-          {% if isOwner %}
-            <p-select name="permission[{{doc.editors[0].userId}}]">
-              <option value="member" selected>
-                Member
-              </option>
-              <option value="owner">
-                Owner
-              </option>
-            </p-select>
+          {% if doc.editors[0].userId == user.userId %}
+            <span>(you)</span>
           {% endif %}
         </div>
-      {% endfor %}
-    </div>
-
-{% if isOwner %}
-    <h4>New Members</h4>
-    <div id="createPeoples">
-      <template id="peopleInputTemplate">
-        <div class="peopleInput">
-          <input
-            name="email[]"
-            type="email"
-            placeholder="jonny@p215.church"
+        <div class="buttons" >
+        {% if isOwner %}
+          <p-select
+              hx-post="/groupStudy/{{groupStudyId}}/member/{{doc.editors[0].userId}}/ownerShip"
           >
-          <p-select name="permission[]">
             <option value="member" selected>
               Member
             </option>
@@ -73,25 +79,27 @@
               Owner
             </option>
           </p-select>
-          <button class="red">-</button>
+        {% endif %}
+        {% if isOwner %}
+          <button
+            class="red trash"
+            hx-confirm="Are you sure you want to delete this member?"
+            hx-delete="/group_study/{{groupStudy.groupStudyId}}/member/{{doc.docId}}"
+            hx-target="#member-doc-{{doc.docId}}"
+          >
+            <img src="{{base}}/static/img/gray-trash-icon.svg">
+          </button>
+        {% endif %}
         </div>
-      </template>
-    </div>
-
-    <div id="studyGroupDeletes">
-    </div>
-{% endif %}
+      </div>
+    {% endfor %}
+  </div>
 
 {% if isOwner %}
-    <button type="submit" class="blue">Update</button>
-    <button type="submit" class="red">Delete</button>
+  <button class="lightBlue">
+    Invite New Members
+  </button>
 {% endif %}
-  </form>
+
 </div>
 
-{% if isOwner %}
-<script>
-  addPeopleInput();
-  studyGroupUpdateSetup();
-</script>
-{% endif %}

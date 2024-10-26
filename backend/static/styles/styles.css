@@ -706,19 +706,47 @@ h4 {
   box-shadow: 0 4px 6px #0000001a;
   border: none;
   box-sizing: border-box;
-  form {
+  .groupStudyEditorHolder {
     flex-direction: column;
     align-items: stretch;
     width: 100%;
-    margin-top: 20px;
     display: flex;
     gap: 5px;
+    .trash {
+      align-content: center;
+      display: flex;
+      height: 35px;
+    }
+    .expired {
+      color: red;
+      font-size: 0.7em;
+    }
+    .buttons {
+      display: flex;
+      justify-content: end;
+      gap: 3px;
+    }
+    .share {
+      display: grid;
+      grid-template-columns: 1fr 150px;
+      .share-email {
+        align-content: center;
+      }
+    }
     label {
       color: #666;
       font-size: 16px;
     }
     input {
       margin-bottom: 10px;
+    }
+
+    .member {
+      display: grid;
+      grid-template-columns: 1fr 150px;
+      p-select::part(p-select) {
+        height: 100%;
+      }
     }
   }
 
@@ -1916,3 +1944,4 @@ img.ProseMirror-separator {
     opacity: 0;
   }
 }
+

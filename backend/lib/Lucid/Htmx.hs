@@ -1,0 +1,34 @@
+module Lucid.Htmx where
+
+import Lucid.Base (makeAttribute, Attribute, Term, term)
+
+
+hxGet_ :: Text -> Attribute
+hxGet_ = makeAttribute "hx-get"
+
+hxPost_ :: Text -> Attribute
+hxPost_ = makeAttribute "hx-post"
+
+hxDelete_ :: Text -> Attribute
+hxDelete_ = makeAttribute "hx-delete"
+
+hxTarget_ :: Text -> Attribute
+hxTarget_ = makeAttribute "hx-target"
+
+hxConfirm_ :: Text -> Attribute
+hxConfirm_ = makeAttribute "hx-confirm"
+
+hxSwap_ :: Text -> Attribute
+hxSwap_ = makeAttribute "hx-swap"
+
+hxSwapOob_ :: Text -> Attribute
+hxSwapOob_ = makeAttribute "hx-swap-oob"
+
+
+-- Not htmx, but I need it somewher
+
+notifcation_ :: Term arg result => arg -> result
+notifcation_ = term "p-notification"
+
+timems_ :: Text -> Attribute
+timems_ = makeAttribute "time-ms"

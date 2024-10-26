@@ -71,7 +71,10 @@
               ghcid = null;
             };
             mkShellArgs = {
-              nativeBuildInputs = [pkgs.haskell-language-server];
+              nativeBuildInputs = [
+                pkgs.haskell-language-server
+                pkgs.watchexec
+              ];
             };
            };
         };

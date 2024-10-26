@@ -1,8 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Api.Auth (
-  Api,
-  server,
   authCookie,
   setCookie',
   deleteCookie,
@@ -11,7 +9,6 @@ module Api.Auth (
   authCookieToken
 ) where
 
-import Api.Errors qualified as Errs
 import Data.List qualified as List
 import Data.OpenApi qualified as OpenApi
 import Data.Time.Lens qualified as TL
@@ -23,27 +20,19 @@ import Database.Beam (
   insertValues,
   runInsert,
   runSelectReturningOne,
-  runUpdate,
   select,
-  update,
   val_,
-  (<-.),
   (==.),
   (>=.),
  )
 import DbHelper (HasDbConn, MonadDb, runBeam, withTransaction)
-import Emails.PasswordReset qualified
-import Emails.Welcome qualified
 import Entity qualified as E
 import Entity.AuthUser (AuthUser (..))
-import Entity.User qualified as User
-import EnvFields (EnvType (..), HasEnvType, HasUrl)
-import Mail qualified
+import EnvFields (EnvType (..), HasEnvType)
 import Network.Wai (
   Request,
   requestHeaders,
  )
-import Password (NewPassword, Password, PasswordHash, comparePassword)
 import Servant
 import Servant.Server.Experimental.Auth (
   AuthHandler,
@@ -138,33 +127,6 @@ lookupSession token = withTransaction $ do
 
 
 
-data PassLogin = MkPassLogin
-  { email :: T.Email
-  , password :: Password
-  }
-  deriving (Generic, Show)
-  deriving (FromJSON, ToJSON, ToSchema)
-
-
-type CookieHeader = Headers '[ Header "Set-Cookie" Cookie.SetCookie]
-
-
-getPasswordHash
-  :: MonadDb env m
-  => T.Email
-  -> m (Maybe (T.UserId, PasswordHash))
-getPasswordHash email =
-  runBeam
-  $ runSelectReturningOne
-  $ select
-  $ do
-    user <- all_ Db.db.user
-    guard_ $ user.email ==. val_ email
-    p <- all_ Db.db.userPassword
-    guard_ $ p.userId ==. user.userId
-    pure (p.userId, p.password)
-
-
 mkCookie
   :: (MonadDb env m)
   => T.UserId
@@ -186,19 +148,6 @@ mkCookie userId = do
   pure (token, expiresAt)
 
 
-invalidateCookie
-  :: (MonadDb env m)
-  => T.CookieToken
-  -> m ()
-invalidateCookie cookie = do
-  now <- getCurrentTime
-  runBeam
-    $ runUpdate
-    $ update Db.db.userSession
-      (\ r -> r.created <-. val_ now)
-      (\ r -> r.token ==. val_ cookie)
-
-
 setCookie'
   :: MonadDb env m
   => T.UserId
@@ -210,7 +159,7 @@ setCookie' userId = do
           Dev "local" -> False
           _ -> True
   (token, expiresAt) <- mkCookie userId
-  let setCookie' = Cookie.defaultSetCookie
+  let setCookie'' = Cookie.defaultSetCookie
                   { Cookie.setCookieName = "p215-auth"
                   , Cookie.setCookieValue = encodeUtf8 (unwrap token)
                   , Cookie.setCookieExpires = Just expiresAt
@@ -219,31 +168,7 @@ setCookie' userId = do
                   , Cookie.setCookieSameSite = Just Cookie.sameSiteStrict
                   , Cookie.setCookiePath = Just "/"
                   }
-  pure $ setCookie'
-
-
-
-setCookie
-  :: MonadDb env m
-  => T.UserId
-  -> m (CookieHeader ())
-setCookie userId = do
-  envType <- asks (.envType)
-  let shouldBeSeure =
-        case envType of
-          Dev "local" -> False
-          _ -> True
-  (token, expiresAt) <- mkCookie userId
-  let setCookie' = Cookie.defaultSetCookie
-                  { Cookie.setCookieName = "p215-auth"
-                  , Cookie.setCookieValue = encodeUtf8 (unwrap token)
-                  , Cookie.setCookieExpires = Just expiresAt
-                  , Cookie.setCookieHttpOnly = True
-                  , Cookie.setCookieSecure = shouldBeSeure
-                  , Cookie.setCookieSameSite = Just Cookie.sameSiteStrict
-                  , Cookie.setCookiePath = Just "/"
-                  }
-  pure $ addHeader setCookie' ()
+  pure setCookie''
 
 
 deleteCookie :: MonadDb env m => m Cookie.SetCookie
@@ -265,127 +190,3 @@ deleteCookie = do
     }
 
 
-setCookieDelete
-  :: MonadDb env m
-  => m (CookieHeader ())
-setCookieDelete = do
-  dCookie <- deleteCookie
-  pure $ addHeader dCookie ()
-
-
-passwordLogin
-  :: MonadDb env m
-  => PassLogin
-  -> m (CookieHeader ())
-passwordLogin MkPassLogin{email, password} = do
-  mHash <- getPasswordHash email
-  case mHash of
-    Nothing -> Errs.throwAuthErr
-    Just (userId, hash) ->
-      if comparePassword password hash
-        then setCookie userId
-        else Errs.throwAuthErr
-
-
-logout
-  :: MonadDb env m
-  => (AuthUser, T.CookieToken)
-  -> m (CookieHeader ())
-logout (_, token) = do
-  invalidateCookie token
-  setCookieDelete
-
-
-createUser
-  :: ( MonadDb env m
-     , Mail.HasSmtp env
-     )
-  => User.NewUser
-  -> m (CookieHeader ())
-createUser newUser = do
-  userId <- User.createUser newUser
-  Mail.sendMail (Emails.Welcome.mail newUser.email)
-  setCookie userId
-
-
-newtype PassReset = MkPassReset
-  { email :: T.Email
-  }
-  deriving (Show, Generic)
-  deriving anyclass (FromJSON, ToJSON, ToSchema)
-
-
-resetPassword
-  :: ( MonadDb env m
-     , Mail.HasSmtp env
-     , HasUrl env
-     )
-  => PassReset
-  -> m NoContent
-resetPassword MkPassReset{email} = do
-  mToken <- User.passwordResetToken email
-  for_ mToken $ \ token -> do
-    url <- asks (.url)
-    Mail.sendMail (Emails.PasswordReset.mail email token url)
-  pure NoContent
-
-
-data PassResetTokenReq = MkPassResetTokenReq
-  { token :: T.PasswordResetToken
-  , password :: NewPassword
-  }
-  deriving (Show, Generic)
-  deriving anyclass (FromJSON, ToJSON, ToSchema)
-
-
-data ResetTokenNotFoundOrExpired = ResetTokenNotFoundOrExpired
-  deriving (Show, Generic)
-  deriving anyclass (Exception, ToJSON, Errs.ApiException)
-
-
-resetPasswordToken
-  :: ( MonadDb env m
-     )
-  => PassResetTokenReq
-  -> m (CookieHeader ())
-resetPasswordToken MkPassResetTokenReq{token, password} = do
-  mUserId <- User.getUserFromResetToken token
-  case mUserId of
-    Nothing -> Errs.throwApi ResetTokenNotFoundOrExpired
-    Just userId -> do
-      User.updatePassword userId password
-      User.invalidateResetToken token
-      setCookie userId
-
-
-type Api =
-  "password"
-    :> Description "Password login"
-    :> ReqBody '[JSON] PassLogin
-    :> Verb 'POST 204 '[JSON] (CookieHeader ())
-  :<|> "logout"
-    :> AuthProtect "cookie-with-token"
-    :> Verb 'POST 204 '[JSON] (CookieHeader ())
-  :<|> "register"
-    :> ReqBody '[JSON] User.NewUser
-    :> Verb 'POST 204 '[JSON] (CookieHeader ())
-  :<|> "password_reset"
-    :> ReqBody '[JSON] PassReset
-    :> PostNoContent
-  :<|> "password_reset_token"
-    :> ReqBody '[JSON] PassResetTokenReq
-    :> Verb 'POST 204 '[JSON] (CookieHeader ())
-
-
-server
-  :: ( MonadDb env m
-     , Mail.HasSmtp env
-     , HasUrl env
-     )
-  => ServerT Api m
-server =
-  passwordLogin
-  :<|> logout
-  :<|> createUser
-  :<|> resetPassword
-  :<|> resetPasswordToken

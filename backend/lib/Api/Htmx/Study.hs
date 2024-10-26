@@ -19,12 +19,15 @@ import Entity.Shares qualified as Shares
 import Entity.User qualified as User
 import EnvFields (EnvType (..), HasUrl)
 import Fields.Email (mkEmail)
+import Lucid qualified as L
+import Lucid.Htmx qualified as L
 import Mail qualified
 import Network.HTTP.Types.Status (status200, status204)
 import Text.Ginger
 import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
+import Data.CaseInsensitive qualified as CI
 
 
 data SystemType = Linux | Mac | Windows | Unknown
@@ -228,6 +231,7 @@ createGroupStudy user = do
     . HMap.insert "created" (toGVal True)
     )
 
+
 rejectShare
   :: MonadDb env m
   => AuthUser
@@ -236,6 +240,62 @@ rejectShare _ = do
   shareToken <- captureParam "shareToken"
   lift $ Shares.rejectToken shareToken
   status status200
+
+
+resendInvite
+  :: ( MonadDb env m
+     , Mail.HasSmtp env
+     , HasUrl env
+     )
+  => AuthUser
+  -> ActionT m ()
+resendInvite _ = do
+  shareToken <- captureParam "shareToken"
+  studyGroup <- NotFound.handleNotFound
+                  (E.getOneEntityBy @GroupStudy.GetGroupStudy)
+                  shareToken
+  share <- lift $ Shares.expandShareExpire shareToken
+
+  lift $ withTransaction $ do
+    url <- asks (.url)
+    let email = Emails.ShareGroupStudy.mail share studyGroup.name shareToken url
+    Mail.sendMail email
+  result <- L.renderTextT $ do
+      L.div_ [ L.class_ "share" , L.id_ ("share-" <> unwrap shareToken) ] $ do
+        L.div_ [ L.class_ "share-email" ] $ do
+          L.toHtml (CI.original (unwrap share.email))
+        L.div_ [L.class_ "buttons"] $ do
+          let target = "#share-" <> unwrap shareToken
+          let resendUrl = "/group_study/"
+                              <> show (unwrap studyGroup.groupStudyId)
+                              <> "/share/"
+                              <> unwrap shareToken
+                              <> "/resend"
+          L.button_
+            [ L.class_ "lightBlue"
+            , L.hxPost_ resendUrl
+            , L.hxTarget_ target
+            , L.hxSwap_ "outerHTML"
+            ]
+            "Resend"
+          let deleteUrl = "/group_study/"
+                              <> show (unwrap studyGroup.groupStudyId)
+                              <> "/share/"
+                              <> unwrap shareToken
+          L.button_
+            [ L.class_ "red trash"
+            , L.hxConfirm_ "Are you sure you want to delete this invite?"
+            , L.hxDelete_ deleteUrl
+            , L.hxTarget_ target
+            ]
+            (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
+      L.notifcation_ [ L.timems_ "2500" ]
+        "Sent!"
+
+
+
+
+  html result
 
 
 -- TODO get to work with templates
@@ -264,3 +324,17 @@ acceptShare user = do
   let url = baseUrl <> "/study/" <> UUID.toText (unwrap docId)
   setHeader "HX-Redirect" (toLazy url)
   status status200
+
+
+-- In theory I could check to make sure that the token is actually part of
+-- this group and that the user is an owner, but you can already reject a
+-- token by tokenId
+ownerShareDelete
+  :: MonadDb env m
+  => AuthUser
+  -> ActionT m ()
+ownerShareDelete _ = do
+  shareToken <- captureParam "shareToken"
+  lift $ Shares.deleteToken shareToken
+  status status200
+

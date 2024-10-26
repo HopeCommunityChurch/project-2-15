@@ -24,33 +24,3 @@ function addPeopleInput() {
   document.getElementById("createPeoples").appendChild(content);
 }
 
-
-function studyGroupUpdateSetup() {
-  const invitesDiv = document.getElementById("studyGroupInvites");
-  const membersDiv = document.getElementById("studyGroupMembers");
-  const deletes = document.getElementById("studyGroupDeletes");
-
-  invitesDiv.querySelectorAll("button").forEach( button => {
-    button.addEventListener("click", () => {
-      const parent = button.parentElement;
-      parent.parentElement.removeChild(parent);
-      const token = button.getAttribute("data-token");
-      const input = document.createElement("input");
-      input.name = "delete-invite[]";
-      input.value = token;
-      deletes.appendChild(input);
-    });
-  });
-
-  membersDiv.querySelectorAll("button.trash").forEach( button => {
-    button.addEventListener("click", () => {
-      const parent = button.parentElement;
-      parent.parentElement.removeChild(parent);
-      const docId = button.getAttribute("data-doc");
-      const input = document.createElement("input");
-      input.name = "delete-member[]";
-      input.value = docId;
-      deletes.appendChild(input);
-    });
-  });
-}

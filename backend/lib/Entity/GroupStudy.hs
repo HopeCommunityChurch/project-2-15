@@ -176,6 +176,12 @@ instance E.EntityWithId GetGroupStudy where
   type EntityId GetGroupStudy = T.GroupStudyId
   entityId = (.groupStudyId)
 
+instance E.GuardValue GetGroupStudy T.ShareToken where
+  guardValues shareTokens study = do
+    share <- all_ Db.db.groupStudyShare
+    guard_ $ share.shareToken `in_` shareTokens
+    guard_ $ study.groupStudyId ==. share.groupStudyId
+
 
 data CrStudy = MkCrStudy
   { name :: Text

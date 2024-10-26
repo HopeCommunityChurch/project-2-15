@@ -1,0 +1,3 @@
+optimization: False
+packages:
+  backend.cabal

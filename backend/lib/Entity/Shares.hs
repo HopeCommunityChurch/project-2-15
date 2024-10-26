@@ -33,6 +33,7 @@ import DbHelper (MonadDb, runBeam, withTransaction)
 import Entity qualified as E
 import Entity.AuthUser
 import Types qualified as T
+import Database.Beam.Backend.SQL.BeamExtensions (MonadBeamUpdateReturning(runUpdateReturningList))
 
 
 
@@ -81,6 +82,25 @@ addShares gsId shares = do
           now
       )
   pure st
+
+
+expandShareExpire
+  :: MonadDb env m
+  => T.ShareToken
+  -> m ShareUnit
+expandShareExpire token = do
+  now <- getCurrentTime
+  [result] <-
+    runBeam
+      $ runUpdateReturningList
+      $ update
+          Db.db.groupStudyShare
+          (\ r ->
+            (r.expiresAt <-. val_ (now & (TL.flexDT . TL.days) +~ 14))
+            <> (r.rejected <-. val_ False)
+          )
+          (\ r -> r.shareToken ==. val_ token)
+  pure (MkShareUnit result.email result.shareAsOwner result.message)
 
 
 data GetMyShareData = MkGetMyShareData
@@ -202,6 +222,17 @@ rejectToken token =
       ( \ r -> r.shareToken ==. val_ token)
 
 
+deleteToken
+  :: MonadDb env m
+  => T.ShareToken
+  -> m ()
+deleteToken token =
+  runBeam
+    $ runDelete
+    $ delete Db.db.groupStudyShare
+      ( \ r -> r.shareToken ==. val_ token)
+
+
 acceptShare
   :: MonadDb env m
   => T.UserId
@@ -247,6 +278,7 @@ data GetShareData = MkGetShareData
   { email :: T.Email
   , token :: T.ShareToken
   , expiresAt :: UTCTime
+  , isExpired :: Bool
   , rejected :: Bool
   , created :: UTCTime
   }
@@ -258,16 +290,28 @@ getGroupShareData
   :: MonadDb env m
   => T.GroupStudyId
   -> m [GetShareData]
-getGroupShareData gsId =
-  fmap (fmap (\(ex, token, email, r, cr) -> MkGetShareData email token ex r cr))
-  $ runBeam
-  $ runSelectReturningList
-  $ select
-  $ do
-    share <- all_ Db.db.groupStudyShare
-    guard_ $ share.groupStudyId ==. val_ gsId
-    guard_ $ isNothing_ share.usedAt
-    pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created)
+getGroupShareData gsId = do
+  now <- getCurrentTime
+  fmap
+    (fmap
+      (\(ex, token, email, r, cr) ->
+        MkGetShareData
+          email
+          token
+          ex
+          (ex < now)
+          r
+          cr
+      )
+    )
+    $ runBeam
+    $ runSelectReturningList
+    $ select
+    $ do
+      share <- all_ Db.db.groupStudyShare
+      guard_ $ share.groupStudyId ==. val_ gsId
+      guard_ $ isNothing_ share.usedAt
+      pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created)
 
 
 deleteShare

@@ -139,6 +139,12 @@ scottyServer = do
     Scotty.post "/group_study/share/:shareToken" $ do
       user <- getUserWithRedirect
       Study.acceptShare user
+    Scotty.delete "/group_study/:groupId/share/:shareToken" $ do
+      user <- getUserWithRedirect
+      Study.ownerShareDelete user
+    Scotty.post "/group_study/:groupId/share/:shareToken/resend" $ do
+      user <- getUserWithRedirect
+      Study.resendInvite user
 
     Scotty.get "/profile" $ do
       user <- getUserWithRedirect

@@ -51,7 +51,9 @@ putProfile user = do
   user' <- getUserWithRedirect
   basicTemplate
     "profile/form.html"
-    (HMap.insert "user" (toGVal (Aeson.toJSON user')))
+    (HMap.insert "user" (toGVal (Aeson.toJSON user'))
+    . HMap.insert "wasSaved" (toGVal True)
+    )
 
 
 toListOfFeatures :: [Param] -> [T.Feature]
@@ -80,4 +82,5 @@ postFeatures user = do
     ( HMap.insert "user" (toGVal (Aeson.toJSON user))
     . HMap.insert "userFeatures" (toGVal (Aeson.toJSON userFeatures))
     . HMap.insert "allFeatures" (toGVal (Aeson.toJSON allFeatures))
+    . HMap.insert "wasSaved" (toGVal True)
     )

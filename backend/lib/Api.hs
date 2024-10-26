@@ -1,13 +1,10 @@
 module Api where
 
-import Api.Auth qualified
 import Api.Bible qualified
-import Api.Document qualified
 import Api.Errors qualified as Errs
-import Api.GroupStudy qualified
 -- import Api.Htmx.Studies qualified
-import Api.User qualified
 import Api.Websocket qualified
+import Api.Auth qualified
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.OpenApi qualified as OpenApi
@@ -30,15 +27,7 @@ import Types qualified as T
 
 
 type Api'
-  = OpenApiTag "auth" "auth stuff"
-    :> "auth" :> Api.Auth.Api
-  :<|> OpenApiTag "user" "user stuff"
-    :> "user" :> Api.User.Api
-  :<|> OpenApiTag "group-study" "group-study stuff"
-    :> "group-study" :> Api.GroupStudy.Api
-  :<|> OpenApiTag "document" "document stuff"
-    :> "document" :> Api.Document.Api
-  :<|> OpenApiTag "websocket" "websocket"
+  = OpenApiTag "websocket" "websocket"
     :> "document" :> "realtime" :> Api.Websocket.Api
   :<|> OpenApiTag "bible" "bible stuff"
     :> "bible" :> Api.Bible.Api
@@ -55,11 +44,7 @@ server'
   => Api.Bible.HasESVEnv env
   => ServerT Api' m
 server'
-  = Api.Auth.server
-  :<|> Api.User.server
-  :<|> Api.GroupStudy.server
-  :<|> Api.Document.server
-  :<|> Api.Websocket.server
+  = Api.Websocket.server
   :<|> Api.Bible.server
   -- :<|> Api.Htmx.Studies.server
 
