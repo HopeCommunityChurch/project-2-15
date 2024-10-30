@@ -1,5 +1,6 @@
 module Api.Htmx.Server where
 
+import Altcha qualified
 import Api.Htmx.AuthHelper (getUser, getUserWithRedirect)
 import Api.Htmx.Ginger (baseUrl)
 import Api.Htmx.Home qualified as Home
@@ -51,6 +52,7 @@ scottyServer
   :: ( MonadUnliftIO m
      , MonadLogger m
      , Db.MonadDb env m
+     , Altcha.HasAltchaKey env
      , Mail.HasSmtp env
      , HasUrl env
      )

@@ -31,6 +31,10 @@
           services.mailpit = {
             enable = true;
             package = inputs.nixpkgs.legacyPackages.${system}.mailpit;
+            additionalArgs = [
+              "--webroot"
+              "/mailpit/"
+            ];
           };
 
           services.postgres = {
@@ -74,7 +78,7 @@
 
               server {
                 listen 0.0.0.0:8080;
-                location / {
+                location /mailpit/ {
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection $connection_upgrade;
@@ -83,8 +87,7 @@
                   proxy_set_header X-Forwarded-Proto $scheme;
                   proxy_set_header X-Forwarded-Host $host;
                   proxy_set_header X-Forwarded-Server $host;
-                  proxy_hide_header Last-Modified;
-                  proxy_pass http://localhost:3001/;
+                  proxy_pass http://127.0.0.1:8025;
                 }
 
                 location /api/ {
@@ -100,10 +103,7 @@
                   proxy_pass http://localhost:3000/;
                 }
 
-
-
-
-                location /mailpit/ {
+                location / {
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection $connection_upgrade;
@@ -112,11 +112,36 @@
                   proxy_set_header X-Forwarded-Proto $scheme;
                   proxy_set_header X-Forwarded-Host $host;
                   proxy_set_header X-Forwarded-Server $host;
-                  proxy_pass http://localhost:8025/;
+                  proxy_hide_header Last-Modified;
+                  proxy_pass http://localhost:3001/;
                 }
+
               }
             '';
           };
+
+          processes.backend = {
+            exec = ''
+              cd backend
+              chmod +x run.sh
+              nix develop --command sh -c "./run.sh"
+            '';
+          };
+
+          processes.hoogle = {
+            exec = ''
+              cd backend
+              nix develop --command sh -c "hoogle server --local --port 8081"
+            '';
+          };
+
+          # processes.frontend = {
+          #   exec = ''
+          #     cd frontend
+          #     nix develop --command sh -c "npm run dev"
+          #   '';
+          # };
+
 
           # processes.backend =
           #   let backend = inputs.backend.packages.${system}.backend;

@@ -74,6 +74,7 @@
               nativeBuildInputs = [
                 pkgs.haskell-language-server
                 pkgs.watchexec
+                pkgs.cabal-install
               ];
             };
            };
