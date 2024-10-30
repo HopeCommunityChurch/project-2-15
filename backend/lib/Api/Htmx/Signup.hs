@@ -26,6 +26,7 @@ import Types qualified as T
 import Web.Cookie qualified as Cookie
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
+import Altcha qualified
 
 
 
@@ -95,6 +96,7 @@ data SignupErrors = MkSignupErrors
   , email :: T.Email
   , password :: Text
   , password2 :: Text
+  , verified :: Bool
   }
   deriving (Generic, Show)
   deriving anyclass (ToJSON)
@@ -104,6 +106,7 @@ signup
   :: ( MonadDb env m
      , MonadLogger m
      , Mail.HasSmtp env
+     , Altcha.HasAltchaKey env
      )
   => ActionT m ()
 signup = do
@@ -112,13 +115,21 @@ signup = do
   logInfoSH name
   password <- formParam "password"
   password2 <- formParam "password2"
+  altcha <- formParam "altcha"
+  key <- lift (asks (.altchaKey))
+  let verified = Altcha.verifyChallenge key altcha
   mRedirect <- L.lookup "redirect" <$> formParams
   isNotTaken <- lift $ checkEmail email
   let passwordsMatch = password == password2
   let passwordLength = T.length password > 8
   let nameNotNull = not (T.null name)
   (Just churchId) <- lift getChurch
-  if isNotTaken && passwordsMatch && passwordLength && nameNotNull then do
+  let allGood = isNotTaken
+                  && passwordsMatch
+                  && passwordLength
+                  && nameNotNull
+                  && verified
+  if allGood then do
     let newUser = User.MkNewUser
                     email
                     name
@@ -144,4 +155,5 @@ signup = do
                   email
                   password
                   password2
+                  verified
     signupForm (fmap toStrict mRedirect) errors

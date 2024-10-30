@@ -1,10 +1,14 @@
 module Api where
 
+import Altcha qualified
+import Api.Altcha qualified
 import Api.Bible qualified
 import Api.Errors qualified as Errs
+
 -- import Api.Htmx.Studies qualified
-import Api.Websocket qualified
+
 import Api.Auth qualified
+import Api.Websocket qualified
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.OpenApi qualified as OpenApi
@@ -31,6 +35,8 @@ type Api'
     :> "document" :> "realtime" :> Api.Websocket.Api
   :<|> OpenApiTag "bible" "bible stuff"
     :> "bible" :> Api.Bible.Api
+  :<|> OpenApiTag "altcha" "altcha stuff"
+    :> "altcha" :> Api.Altcha.Api
   -- :<|> OpenApiTag "htmx studies" "htmx studies"
   --   :> "htmx" :> "studies" :> Api.Htmx.Studies.Api
 
@@ -40,12 +46,14 @@ server'
      , Mail.HasSmtp env
      , HasUrl env
      , Api.Websocket.HasSubs env
+     , Altcha.HasAltchaKey env
      )
   => Api.Bible.HasESVEnv env
   => ServerT Api' m
 server'
   = Api.Websocket.server
   :<|> Api.Bible.server
+  :<|> Api.Altcha.server
   -- :<|> Api.Htmx.Studies.server
 
 
@@ -121,6 +129,7 @@ server
   => Api.Bible.HasESVEnv env
   => Mail.HasSmtp env
   => Api.Websocket.HasSubs env
+  => Altcha.HasAltchaKey env
   => env
   -> Server Api
 server env =

@@ -41,8 +41,15 @@
     {% if errors.passwordLength != 1 %}
       <li>Password needs to be at least 9 characters long</li>
     {% endif %}
+    {% if errors.verified != 1 %}
+      <li>Verification failed</li>
+    {% endif %}
   </ul>
   {% endif %}
+  <altcha-widget
+    challengeurl="/api/altcha/challenge"
+    floating
+  ></altcha-widget>
   <button class="blue" type="submit">Sign Up</button>
 </form>
 

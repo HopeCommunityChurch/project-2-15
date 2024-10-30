@@ -90,6 +90,7 @@ library
     Api,
     Api.Helpers,
     Api.Bible,
+    Api.Altcha,
     Api.Auth,
     Api.Errors,
     Api.Websocket,
@@ -117,6 +118,7 @@ library
     Emails.ShareGroupStudy,
     WebsocketServant,
     Lucid.Htmx,
+    Altcha,
 
   build-depends:
     HaskellNet,
@@ -158,12 +160,13 @@ library
     cookie,
     data-default,
     deriving-aeson,
-    cryptonite,
     containers,
     case-insensitive,
     clay,
     wai-middleware-static,
-    mtl
+    mtl,
+    crypton,
+    memory,
 
   hs-source-dirs:   lib
   default-language: GHC2021

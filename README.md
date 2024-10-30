@@ -9,9 +9,6 @@
 5. Run `devenv up`
 6. Open a new tab in you terminal, and move into `frontend`
 7. Run `npm run dev`
-8. Open a new tab in you terminal, and move into `backend`
-9. Run `chmod +x run.sh`
-9. Run `./run.sh`
 
 ## Update front end (/frontend)
 
