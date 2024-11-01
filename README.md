@@ -9,6 +9,7 @@
 5. Run `devenv up`
 6. Open a new tab in you terminal, and move into `frontend`
 7. Run `npm run dev`
+8. Open browser to 127.0.0.1
 
 ## Update front end (/frontend)
 
