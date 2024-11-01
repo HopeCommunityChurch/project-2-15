@@ -115,20 +115,20 @@
       window.editor.applyDispatch(window.editorActions.addSection);
     }
 
-    function collapse() {
-      const studyContent = document.getElementById("studyContent");
-      studyContent.classList.toggle("collapse");
+    function collapseSide() {
+      const studyContent = document.getElementById("studyPage");
+      studyContent.classList.toggle("collapseSide");
     }
 
     function split() {
-      const studyContent = document.getElementById("studyContent");
+      const studyContent = document.getElementById("studyPage");
       studyContent.classList.toggle("split");
     }
 
 
   </script>
 </head>
-<body>
+<body id="studyPage">
 
   <header id="header">
     <a class="logo" href="{{base}}/">
@@ -324,38 +324,40 @@
     </form>
   </dialog>
 
-  <div id="studyContent">
-    <div id="leftSidebar">
-      <div class="container">
-        <button id="collapse" onclick="collapse()">
-          <img src="{{base}}/static/img/arrow2.svg" >
-        </button>
-        <div id="sectionContainer" >
-        </div>
-        <div id="bottom">
-          <button onclick="addSectionClick()">Add Section</button>
-        </div>
+  <div id="leftSidebar">
+    <div class="container">
+      <button id="collapseSide" onclick="collapseSide()">
+        <img src="{{base}}/static/img/arrow2.svg" >
+      </button>
+      <div id="sectionContainer" >
+      </div>
+      <div id="bottom">
+        <button onclick="addSectionClick()">Add Section</button>
       </div>
     </div>
-    <div id="editorHolder" class="editorHolder">
+  </div>
+
+  <div class="editorHolder">
+    <div id="editorHolder">
     </div>
-    <div id="splitside">
-      <div class="container">
-        <div id="splitPicker">
-          <p-select id="groupStudySelector">
-            {% for gdoc in groupStudy.docs  %}
-              {% if gdoc.docId != doc.docId %}
-                <option value="{{gdoc.docId}}">
-                  {{gdoc.editors[0].name}}
-                  -
-                  {{gdoc.name}}
-                </option>
-              {% endif %}
-            {% endfor %}
-          </p-select>
-        </div>
-        <div id="sideBySideEditor" class="editorHolder">
-        </div>
+  </div>
+
+  <div id="splitside">
+    <div class="container">
+      <div id="splitPicker">
+        <p-select id="groupStudySelector">
+          {% for gdoc in groupStudy.docs  %}
+            {% if gdoc.docId != doc.docId %}
+              <option value="{{gdoc.docId}}">
+                {{gdoc.editors[0].name}}
+                -
+                {{gdoc.name}}
+              </option>
+            {% endif %}
+          {% endfor %}
+        </p-select>
+      </div>
+      <div id="sideBySideEditor" class="editorHolder">
       </div>
     </div>
   </div>

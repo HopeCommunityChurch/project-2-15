@@ -1315,8 +1315,9 @@ img.ProseMirror-separator {
 
 
 .editorHolder {
-  height: calc(100vh - 6rem);
-  overflow-y: scroll;
+  overflow-y: auto;
+  align-self: stretch;
+  justify-self: stretch;
 
   .section {
     scroll-margin-top: 6rem;
@@ -1791,15 +1792,17 @@ img.ProseMirror-separator {
   }
 }
 
-
-
-#studyContent {
+#studyPage {
   display: grid;
+  height: 100vh;
+  grid-template-areas: "header header" "toolbar toolbar" "sidebar editor";
   grid-template-columns: 200px 1fr;
+  grid-template-rows: 52px 34px 1fr;
+  overflow: hidden;
 
-  &.collapse{
+  &.collapseSide{
     grid-template-columns: 60px 1fr;
-    #collapse img{
+    #collapseSide img{
       transform: rotate(180deg);
     }
 
@@ -1811,16 +1814,29 @@ img.ProseMirror-separator {
     }
   }
 
-  &.collapse.split {
+  &.collapseSide.split {
     grid-template-columns: 60px 1fr 1fr;
   }
   &.split {
+    grid-template-areas:
+      "header header header"
+      "toolbar toolbar toolbar"
+      "sidebar editor sidebyside";
     grid-template-columns: 200px 1fr 1fr;
     grid-column-gap: 5px;
     #splitside {
       display: block;
     }
   }
+
+  #header {
+    grid-area: header;
+    width: 100%;
+  }
+  #editorToolbar {
+    grid-area: toolbar;
+  }
+
 
   #splitside {
     display: none;
@@ -1842,7 +1858,7 @@ img.ProseMirror-separator {
       position: sticky;
       top: 6rem;
     }
-    #collapse {
+    #collapseSide {
       margin-left: 7px;
       img {
         transition: transform 0.3s;
