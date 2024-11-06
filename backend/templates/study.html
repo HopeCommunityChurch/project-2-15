@@ -337,28 +337,26 @@
     </div>
   </div>
 
-  <div class="editorHolder">
-    <div id="editorHolder">
+  <div id="mainEditorHolder">
+    <div id="editorHolder" class="editorHolder">
     </div>
   </div>
 
   <div id="splitside">
-    <div class="container">
-      <div id="splitPicker">
-        <p-select id="groupStudySelector">
-          {% for gdoc in groupStudy.docs  %}
-            {% if gdoc.docId != doc.docId %}
-              <option value="{{gdoc.docId}}">
-                {{gdoc.editors[0].name}}
-                -
-                {{gdoc.name}}
-              </option>
-            {% endif %}
-          {% endfor %}
-        </p-select>
-      </div>
-      <div id="sideBySideEditor" class="editorHolder">
-      </div>
+    <div id="splitPicker">
+      <p-select id="groupStudySelector">
+        {% for gdoc in groupStudy.docs  %}
+          {% if gdoc.docId != doc.docId %}
+            <option value="{{gdoc.docId}}">
+              {{gdoc.editors[0].name}}
+              -
+              {{gdoc.name}}
+            </option>
+          {% endif %}
+        {% endfor %}
+      </p-select>
+    </div>
+    <div id="sideBySideEditor" class="editorHolder">
     </div>
   </div>
 

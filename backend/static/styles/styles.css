@@ -1313,12 +1313,13 @@ img.ProseMirror-separator {
   /* padding: 0px; */
 }
 
-
-.editorHolder {
+#mainEditorHolder {
   overflow-y: auto;
   align-self: stretch;
   justify-self: stretch;
+}
 
+.editorHolder {
   .section {
     scroll-margin-top: 6rem;
     margin: 0px;
@@ -1839,17 +1840,19 @@ img.ProseMirror-separator {
 
 
   #splitside {
+    overflow-y: auto;
+    align-self: stretch;
+    justify-self: stretch;
     display: none;
     position: relative;
-    .container {
-      position: sticky;
-      top: 6rem;
-    }
     #splitPicker {
-      position: absolute;
+      position: sticky;
       top: 10px;
       left: 10px;
       z-index: 100;
+    }
+    #sideBySideEditor {
+      margin-top: -30px;
     }
   }
 
