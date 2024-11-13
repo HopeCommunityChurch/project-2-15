@@ -35,7 +35,7 @@
         };
         boot.isContainer = true;
 
-        networking.hostname = host;
+        networking.hostName = host;
         networking.firewall = {
           allowedTCPPorts = [ 22 80 443 ];
           allowedUDPPorts = [ 443 ];
