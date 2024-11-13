@@ -35,6 +35,7 @@
         };
         boot.isContainer = true;
 
+        networking.hostname = host;
         networking.firewall = {
           allowedTCPPorts = [ 22 80 443 ];
           allowedUDPPorts = [ 443 ];
@@ -42,6 +43,13 @@
         };
 
         services.do-agent.enable = true;
+
+        services.postfix = {
+          enable = true;
+          origin = host;
+          hostname = host;
+          enableSMTP = true;
+        };
 
         services.sshd = {
           enable = true;
