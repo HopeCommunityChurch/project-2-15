@@ -48,7 +48,7 @@
           enable = true;
           origin = host;
           hostname = host;
-          enableSMTP = true;
+          enableSmtp = true;
         };
 
         services.sshd = {
