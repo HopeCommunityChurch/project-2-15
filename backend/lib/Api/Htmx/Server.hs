@@ -107,8 +107,14 @@ scottyServer = do
 
     Scotty.get "/resetpassword" $ do
       PasswordReset.getPasswordReset
-    Scotty.post "/reset_email"
-      PasswordReset.resetEmail
+    Scotty.post "/reset_email" $ do
+      result <- try PasswordReset.resetEmail
+      case result of
+        (Left (SomeException err)) -> do
+          Scotty.status status500
+          Scotty.text "Something went wrong"
+          logErrorSH err
+        Right r -> pure r
     Scotty.get "/reset_token" $ do
       PasswordReset.getResetToken
     Scotty.post "/reset_token" $ do
