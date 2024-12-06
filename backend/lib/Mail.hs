@@ -11,10 +11,16 @@ data Auth = MkAuth
   , password :: Text
   }
 
+data SSLSettings
+  = NoSSL
+  | StartTsl
+  | SSL
+
 data Smtp = MkSmtp
   { host :: String
   , port :: Int
   , auth :: Maybe Auth
+  , ssl :: SSLSettings
   }
 
 type HasSmtp env = HasField "smtp" env Smtp
@@ -41,6 +47,18 @@ doSMTPSTARTTLSWithSettings host settings action =
     Smtp.doSMTPSTARTTLSWithSettings host settings (runInIO . action)
 
 
+doSMTPSSLWithSettings
+  :: MonadUnliftIO m
+  => String
+  -> Smtp.Settings
+  -> (Smtp.SMTPConnection -> m b)
+  -> m b
+doSMTPSSLWithSettings host settings action =
+  withRunInIO $ \ runInIO ->
+    Smtp.doSMTPSSLWithSettings host settings (runInIO . action)
+
+
+
 sendMail
   :: ( HasSmtp env
      , MonadUnliftIO m
@@ -53,22 +71,28 @@ sendMail m = do
   logInfo $ "sending email to: " <> show m.mailTo
   smtp <- asks (.smtp)
 
-  case smtp.auth of
-    Nothing ->
-      doSMTPPort smtp.host (fromIntegral smtp.port) $ \ conn -> do
-        logInfo $ "connected to " <> toText smtp.host <> ":" <> show smtp.port
-        liftIO $ Smtp.sendMail m conn
-    Just auth -> do
-      let settings = Smtp.defaultSettingsSMTPSTARTTLS
-                        { Smtp.sslPort = fromIntegral smtp.port
-                        }
-      doSMTPSTARTTLSWithSettings smtp.host settings $ \ conn -> do
-        logInfo $ "connected to " <> toText smtp.host <> ":" <> show smtp.port
-        authResult <- liftIO $ Smtp.authenticate
-                        Smtp.LOGIN
-                        (toString auth.username)
-                        (toString auth.password)
-                        conn
-        if authResult
-          then liftIO $ Smtp.sendMail m conn
-          else logInfo "Auth Failed"
+  let func = case smtp.ssl of
+                NoSSL ->
+                  doSMTPPort smtp.host (fromIntegral smtp.port)
+                StartTsl -> do
+                  let settings = Smtp.defaultSettingsSMTPSTARTTLS
+                                    { Smtp.sslPort = fromIntegral smtp.port
+                                    }
+                  doSMTPSTARTTLSWithSettings smtp.host settings
+                SSL -> do
+                  let settings = Smtp.defaultSettingsSMTPSSL
+                                    { Smtp.sslPort = fromIntegral smtp.port
+                                    }
+                  doSMTPSSLWithSettings smtp.host settings
+
+  func $ \ conn -> do
+    logInfo $ "connected to " <> toText smtp.host <> ":" <> show smtp.port
+    authResult <- forM smtp.auth $ \ auth ->
+       liftIO $ Smtp.authenticate
+          Smtp.LOGIN
+          (toString auth.username)
+          (toString auth.password)
+          conn
+    if authResult == Just False
+      then logInfo "Auth Failed"
+      else liftIO $ Smtp.sendMail m conn
