@@ -123,6 +123,7 @@ library
 
   build-depends:
     HaskellNet,
+    HaskellNet-SSL,
     QuickCheck,
     quickcheck-instances,
     bytestring,

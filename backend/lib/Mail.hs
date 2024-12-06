@@ -1,6 +1,7 @@
 module Mail where
 
 import Network.HaskellNet.SMTP qualified as Smtp
+import Network.HaskellNet.SMTP.SSL qualified as Smtp
 import Network.Socket (PortNumber)
 import GHC.Records (HasField)
 import Network.Mail.Mime (Mail(..))
@@ -28,6 +29,18 @@ doSMTPPort host port action =
   withRunInIO $ \ runInIO ->
     Smtp.doSMTPPort host port (runInIO . action)
 
+
+doSMTPSSLWithSettings
+  :: MonadUnliftIO m
+  => String
+  -> Smtp.Settings
+  -> (Smtp.SMTPConnection -> m b)
+  -> m b
+doSMTPSSLWithSettings host settings action =
+  withRunInIO $ \ runInIO ->
+    Smtp.doSMTPSSLWithSettings host settings (runInIO . action)
+
+
 sendMail
   :: ( HasSmtp env
      , MonadUnliftIO m
@@ -40,14 +53,22 @@ sendMail m = do
   logInfo $ "sending email to: " <> show m.mailTo
   smtp <- asks (.smtp)
 
-  doSMTPPort smtp.host (fromIntegral smtp.port) $ \ conn -> do
-    logInfo $ "connected to " <> toText smtp.host <> ":" <> show smtp.port
-    authResult <- forM smtp.auth $ \ auth -> do
-      liftIO $ Smtp.authenticate
-                  Smtp.LOGIN
-                  (toString auth.username)
-                  (toString auth.password)
-                  conn
-    if authResult == Just False
-      then logInfo "Auth Failed"
-      else liftIO $ Smtp.sendMail m conn
+  case smtp.auth of
+    Nothing ->
+      doSMTPPort smtp.host (fromIntegral smtp.port) $ \ conn -> do
+        logInfo $ "connected to " <> toText smtp.host <> ":" <> show smtp.port
+        liftIO $ Smtp.sendMail m conn
+    Just auth -> do
+      let settings = Smtp.defaultSettingsSMTPSTARTTLS
+                        { Smtp.sslPort = fromIntegral smtp.port
+                        }
+      doSMTPSSLWithSettings smtp.host settings $ \ conn -> do
+        logInfo $ "connected to " <> toText smtp.host <> ":" <> show smtp.port
+        authResult <- liftIO $ Smtp.authenticate
+                        Smtp.LOGIN
+                        (toString auth.username)
+                        (toString auth.password)
+                        conn
+        if authResult
+          then liftIO $ Smtp.sendMail m conn
+          else logInfo "Auth Failed"
