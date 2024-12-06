@@ -43,6 +43,13 @@
 
         services.do-agent.enable = true;
 
+        services.postfix = {
+          enable = true;
+          origin = host;
+          hostname = host;
+          enableSmtp = true;
+        };
+
         services.sshd = {
           enable = true;
         };

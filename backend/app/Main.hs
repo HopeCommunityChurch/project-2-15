@@ -48,6 +48,8 @@ dbToConnectInfo MkDbInfo{host, port, username, password, database} =
 data Smtp = MkSmtp
   { host :: String
   , port :: Int
+  , username :: Maybe Text
+  , password :: Maybe Text
   }
   deriving (Generic)
   deriving anyclass (FromJSON)
@@ -88,7 +90,12 @@ secretToEnv :: MonadIO m => SecretsFile -> m Env
 secretToEnv MkSecretsFile{db, env, port, esvToken, smtp, url, altchaKey} = do
   dbConn <- liftIO $ Db.createPool (dbToConnectInfo db)
   let esvEnv = Api.Bible.MkESVEnv (encodeUtf8 esvToken)
-  let smtp2 = Mail.MkSmtp smtp.host (fromIntegral smtp.port)
+  let auth = case (smtp.username, smtp.password) of
+               (Just username, Just password) ->
+                 Just (Mail.MkAuth username password)
+               _ ->
+                 Nothing
+  let smtp2 = Mail.MkSmtp smtp.host smtp.port auth
   subs <- WS.mkSubs
   pure $ MkEnv env port dbConn esvEnv smtp2 url subs (encodeUtf8 altchaKey)
 
