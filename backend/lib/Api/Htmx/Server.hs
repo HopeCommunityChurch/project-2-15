@@ -49,6 +49,20 @@ logMiddle (Dev _) = logStdoutDev
 logMiddle Prod = logStdout
 
 
+errorWrapper
+  :: (MonadUnliftIO m, MonadLogger m)
+  => Scotty.ActionT m ()
+  -> Scotty.ActionT m ()
+errorWrapper action = do
+  result <- try action
+  case result of
+    Right r -> pure r
+    Left (SomeException err) -> do
+      logErrorSH err
+      Scotty.status status500
+      Scotty.text "Something went wrong"
+
+
 scottyServer
   :: ( MonadUnliftIO m
      , MonadLogger m
@@ -139,7 +153,7 @@ scottyServer = do
     Scotty.get "/group_study/:documentId" $ do
       user <- getUserWithRedirect
       GroupStudy.getGroupStudy user
-    Scotty.post "/group_study" $ do
+    Scotty.post "/group_study" $ errorWrapper $ do
       user <- getUserWithRedirect
       GroupStudy.createGroupStudy user
     Scotty.delete "/group_study/share/:shareToken" $ do

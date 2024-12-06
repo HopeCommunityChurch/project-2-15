@@ -55,6 +55,22 @@ emptyStudy = unsafeAsObject $ Aeson.object
   ]
 
 
+getGroupStudy'
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> T.GroupStudyId
+  -> ActionT m ()
+getGroupStudy' user groupStudyId = do
+  groupStudy <- NotFound.handleNotFound
+                  (E.getByIdForUser @GroupStudy.GetGroupStudy user)
+                  groupStudyId
+  let isOwner = any (\ o -> o.userId == user.userId) groupStudy.owners
+
+  shares <- lift $ Shares.getGroupShareData groupStudy.groupStudyId
+  logDebugSH shares
+  html =<< L.renderTextT (groupStudyHTML user isOwner shares groupStudy)
 
 getGroupStudy
   :: ( MonadDb env m
@@ -69,19 +85,9 @@ getGroupStudy user = do
     NotFound.getNotFound
   case doc.groupStudyId of
     Just groupStudyId -> do
-      groupStudy <- NotFound.handleNotFound
-                      (E.getByIdForUser @GroupStudy.GetGroupStudy user)
-                      groupStudyId
-      let isOwner = any (\ o -> o.userId == user.userId) groupStudy.owners
-
-      shares <- lift $ Shares.getGroupShareData groupStudy.groupStudyId
-      logDebugSH shares
-      html =<< L.renderTextT (groupStudyHTML user isOwner shares groupStudy)
-      finish
-
+      getGroupStudy' user groupStudyId
     Nothing -> do
       html =<< L.renderTextT (createStudyGroupHTML doc)
-      finish
 
 
 createStudyGroupHTML
@@ -261,7 +267,7 @@ createGroupStudy user = do
               )
   logInfoSH emails  -- lift $ GroupStudy.addStudy user.userId undefined
   let crGroupStudy = GroupStudy.MkCrStudy groupName doc.studyTemplateId
-  lift $ withTransaction $ do
+  groupId <- lift $ withTransaction $ do
     groupId <- GroupStudy.addStudy user.userId crGroupStudy
     Doc.addToGroup doc.docId groupId
     result <- Shares.addShares groupId shares
@@ -269,7 +275,8 @@ createGroupStudy user = do
     for_ result $ \ (share, token) ->  do
       let email = Emails.ShareGroupStudy.mail share groupName token url
       Mail.sendMail email
-  getGroupStudy user
+    pure groupId
+  getGroupStudy' user groupId
 
 
 rejectShare
