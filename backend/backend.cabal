@@ -121,7 +121,7 @@ library
     Altcha,
 
   build-depends:
-    smtp-mail,
+    HaskellNet,
     QuickCheck,
     quickcheck-instances,
     bytestring,
