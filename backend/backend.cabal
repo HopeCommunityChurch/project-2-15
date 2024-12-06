@@ -97,6 +97,7 @@ library
     Api.Htmx.Studies,
     Api.Htmx.Profile,
     Api.Htmx.Study,
+    Api.Htmx.GroupStudy,
     Api.Htmx.Login,
     Api.Htmx.Signup,
     Api.Htmx.PasswordReset,

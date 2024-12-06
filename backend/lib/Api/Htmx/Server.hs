@@ -3,6 +3,7 @@ module Api.Htmx.Server where
 import Altcha qualified
 import Api.Htmx.AuthHelper (getUser, getUserWithRedirect)
 import Api.Htmx.Ginger (baseUrl)
+import Api.Htmx.GroupStudy qualified as GroupStudy
 import Api.Htmx.Home qualified as Home
 import Api.Htmx.Login qualified as Login
 import Api.Htmx.NotFound qualified as NotFound
@@ -137,22 +138,26 @@ scottyServer = do
 
     Scotty.get "/group_study/:documentId" $ do
       user <- getUserWithRedirect
-      Study.getGroupStudy user
+      GroupStudy.getGroupStudy user
     Scotty.post "/group_study" $ do
       user <- getUserWithRedirect
-      Study.createGroupStudy user
+      GroupStudy.createGroupStudy user
     Scotty.delete "/group_study/share/:shareToken" $ do
       user <- getUserWithRedirect
-      Study.rejectShare user
+      GroupStudy.rejectShare user
     Scotty.post "/group_study/share/:shareToken" $ do
       user <- getUserWithRedirect
-      Study.acceptShare user
+      GroupStudy.acceptShare user
     Scotty.delete "/group_study/:groupId/share/:shareToken" $ do
       user <- getUserWithRedirect
-      Study.ownerShareDelete user
+      GroupStudy.ownerShareDelete user
     Scotty.post "/group_study/:groupId/share/:shareToken/resend" $ do
       user <- getUserWithRedirect
-      Study.resendInvite user
+      GroupStudy.resendInvite user
+    Scotty.delete "/group_study/:groupId/member/:docId" $ do
+      user <- getUserWithRedirect
+      undefined
+      GroupStudy.resendInvite user
 
     Scotty.get "/profile" $ do
       user <- getUserWithRedirect

@@ -18,6 +18,9 @@ hxTarget_ = makeAttribute "hx-target"
 hxConfirm_ :: Text -> Attribute
 hxConfirm_ = makeAttribute "hx-confirm"
 
+hxTrigger_ :: Text -> Attribute
+hxTrigger_ = makeAttribute "hx-trigger"
+
 hxSwap_ :: Text -> Attribute
 hxSwap_ = makeAttribute "hx-swap"
 
@@ -32,3 +35,6 @@ notifcation_ = term "p-notification"
 
 timems_ :: Text -> Attribute
 timems_ = makeAttribute "time-ms"
+
+pSelect_ :: Term arg result => arg -> result
+pSelect_ = term "p-select"
