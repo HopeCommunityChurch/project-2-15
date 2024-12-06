@@ -1,12 +1,10 @@
 module Api.Htmx.GroupStudy where
 
 import Api.Htmx.AuthHelper (AuthUser (..))
-import Api.Htmx.Ginger (baseUrl, basicTemplate)
 import Api.Htmx.NotFound qualified as NotFound
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.CaseInsensitive qualified as CI
-import Data.HashMap.Strict qualified as HMap
 import Data.List (head)
 import Data.UUID as UUID
 import DbHelper (MonadDb, withTransaction)
@@ -22,7 +20,6 @@ import Lucid qualified as L
 import Lucid.Htmx qualified as L
 import Mail qualified
 import Network.HTTP.Types.Status (status200)
-import Text.Ginger
 import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
@@ -344,7 +341,7 @@ acceptShare user = do
   unless didWork
     NotFound.getNotFound
 
-  let url = baseUrl <> "/study/" <> UUID.toText (unwrap docId)
+  let url = "/study/" <> UUID.toText (unwrap docId)
   setHeader "HX-Redirect" (toLazy url)
   status status200
 
