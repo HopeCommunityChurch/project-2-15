@@ -39,8 +39,10 @@ sendMail
 sendMail m = do
   logInfo $ "sending email to: " <> show m.mailTo
   smtp <- asks (.smtp)
+
   doSMTPPort smtp.host (fromIntegral smtp.port) $ \ conn -> do
-    authResult <- forM smtp.auth $ \ auth ->
+    logInfo $ "connected to " <> toText smtp.host <> ":" <> show smtp.port
+    authResult <- forM smtp.auth $ \ auth -> do
       liftIO $ Smtp.authenticate
                   Smtp.LOGIN
                   (toString auth.username)
