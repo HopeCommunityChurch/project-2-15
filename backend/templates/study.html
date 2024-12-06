@@ -147,7 +147,7 @@
       </p>
     </div>
     <menu class="menu">
-      {% if contains(features, "GroupStudy") %}
+      {% if contains(features, "GroupStudy") || doc.groupStudyId  %}
         <button class="blue" id="groupStudyButton" onclick="toggleModal('#groupStudy')">
           {% if doc.groupStudyId %}
             Group Study
@@ -193,7 +193,7 @@
       </li>
     </menu>
   </dialog>
-  {% if contains(features, "GroupStudy") %}
+  {% if contains(features, "GroupStudy") || doc.groupStudyId %}
     <dialog
       id="groupStudy"
       hx-trigger="custom-open"
@@ -290,7 +290,7 @@
       <img src="{{base}}/static/img/add-study-block-icon.svg" >
     </button>
 
-    {% if contains(features, "GroupStudy") && doc.groupStudyId  %}
+    {% if doc.groupStudyId  %}
       <div class="seperator">&nbsp;</div>
       <button class="toolbarButton" id="splitscreenButton" onclick="split()">
         <img src="{{base}}/static/img/parallel-view-icon.svg" >
