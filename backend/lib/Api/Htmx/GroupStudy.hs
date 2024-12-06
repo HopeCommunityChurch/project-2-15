@@ -226,10 +226,6 @@ groupStudyHTML user isOwner shares groupStudy = do
         "Invite New Members"
 
 
-
-
-
-
 textToPermission :: Text -> Maybe GroupStudy.Permission
 textToPermission "owner" = Just GroupStudy.Owner
 textToPermission "member" = Just GroupStudy.Member
@@ -318,7 +314,6 @@ resendInvite _ = do
 
 
 
--- TODO get to work with templates
 acceptShare
   :: MonadDb env m
   => AuthUser

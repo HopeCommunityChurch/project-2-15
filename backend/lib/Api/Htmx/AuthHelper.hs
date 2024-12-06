@@ -52,7 +52,7 @@ getUserWithRedirect = do
           raiseStatus status204 "redirect"
         else do
           req <- request
-          let path = baseUrl <> Wai.rawPathInfo req
+          let path = baseUrl <> Wai.rawPathInfo req <> Wai.rawQueryString req
           let pathEncoded = urlEncode True path
           setHeader "Location" (url <> "?redirect=" <> decodeUtf8 pathEncoded)
           raiseStatus status302 "redirect"
