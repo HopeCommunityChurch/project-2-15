@@ -314,6 +314,34 @@ getGroupShareData gsId = do
       pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created)
 
 
+getGroupShareDataByToken
+  :: MonadDb env m
+  => T.ShareToken
+  -> m (Maybe GetShareData)
+getGroupShareDataByToken shareToken = do
+  now <- getCurrentTime
+  fmap
+    (fmap
+      (\(ex, token, email, r, cr) ->
+        MkGetShareData
+          email
+          token
+          ex
+          (ex < now)
+          r
+          cr
+      )
+    )
+    $ runBeam
+    $ runSelectReturningOne
+    $ select
+    $ do
+      share <- all_ Db.db.groupStudyShare
+      guard_ $ share.shareToken ==. val_ shareToken
+      guard_ $ isNothing_ share.usedAt
+      pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created)
+
+
 deleteShare
   :: MonadDb env m
   => T.GroupStudyId

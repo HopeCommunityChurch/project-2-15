@@ -97,6 +97,7 @@ library
     Api.Htmx.Studies,
     Api.Htmx.Profile,
     Api.Htmx.Study,
+    Api.Htmx.GroupStudy,
     Api.Htmx.Login,
     Api.Htmx.Signup,
     Api.Htmx.PasswordReset,
@@ -122,6 +123,7 @@ library
 
   build-depends:
     HaskellNet,
+    HaskellNet-SSL,
     QuickCheck,
     quickcheck-instances,
     bytestring,
@@ -145,7 +147,6 @@ library
     wai-websockets,
     resourcet,
     scotty,
-    uri-encode,
     network,
     monad-logger,
     monad-logger-prefix,
