@@ -145,7 +145,6 @@ library
     wai-websockets,
     resourcet,
     scotty,
-    uri-encode,
     network,
     monad-logger,
     monad-logger-prefix,

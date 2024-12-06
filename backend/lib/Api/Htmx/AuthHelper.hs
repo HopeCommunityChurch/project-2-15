@@ -12,8 +12,8 @@ import DbHelper (MonadDb)
 import Web.Cookie qualified as Cookie
 import Data.List qualified as List
 import Api.Htmx.Ginger (baseUrl)
+import Network.HTTP.Types (urlEncode)
 import Network.HTTP.Types.Status (status204, status302)
-import Network.URI.Encode (encodeText)
 import Network.Wai qualified as Wai
 
 
@@ -47,10 +47,12 @@ getUserWithRedirect = do
       if isJust mIsHTMX
         then do
           Just currentUrl <- header "HX-Current-Url"
-          setHeader "HX-Redirect" (toLazy (url <> "?redirect=" <> encodeText (toStrict currentUrl)))
+          let currentUrlEncoded = urlEncode True (encodeUtf8 currentUrl)
+          setHeader "HX-Redirect" (url <> "?redirect=" <> decodeUtf8 currentUrlEncoded)
           raiseStatus status204 "redirect"
         else do
           req <- request
-          let path :: Text = baseUrl <> decodeUtf8 (Wai.rawPathInfo req)
-          setHeader "Location" (toLazy (url <> "?redirect=" <> encodeText path))
+          let path = baseUrl <> Wai.rawPathInfo req
+          let pathEncoded = urlEncode True path
+          setHeader "Location" (url <> "?redirect=" <> decodeUtf8 pathEncoded)
           raiseStatus status302 "redirect"
