@@ -30,15 +30,15 @@ doSMTPPort host port action =
     Smtp.doSMTPPort host port (runInIO . action)
 
 
-doSMTPSSLWithSettings
+doSMTPSTARTTLSWithSettings
   :: MonadUnliftIO m
   => String
   -> Smtp.Settings
   -> (Smtp.SMTPConnection -> m b)
   -> m b
-doSMTPSSLWithSettings host settings action =
+doSMTPSTARTTLSWithSettings host settings action =
   withRunInIO $ \ runInIO ->
-    Smtp.doSMTPSSLWithSettings host settings (runInIO . action)
+    Smtp.doSMTPSTARTTLSWithSettings host settings (runInIO . action)
 
 
 sendMail
@@ -62,7 +62,7 @@ sendMail m = do
       let settings = Smtp.defaultSettingsSMTPSTARTTLS
                         { Smtp.sslPort = fromIntegral smtp.port
                         }
-      doSMTPSSLWithSettings smtp.host settings $ \ conn -> do
+      doSMTPSTARTTLSWithSettings smtp.host settings $ \ conn -> do
         logInfo $ "connected to " <> toText smtp.host <> ":" <> show smtp.port
         authResult <- liftIO $ Smtp.authenticate
                         Smtp.LOGIN
