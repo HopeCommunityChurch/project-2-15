@@ -36,7 +36,7 @@
         boot.isContainer = true;
 
         security.pki.certificateFiles = [
-          "${../email.cert}"
+          ../email.cert
         ];
 
         networking.firewall = {
