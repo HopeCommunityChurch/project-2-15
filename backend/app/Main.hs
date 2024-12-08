@@ -97,7 +97,7 @@ secretToEnv MkSecretsFile{db, env, port, esvToken, smtp, url, altchaKey} = do
                  Nothing
   let ssl = case env of
               Dev "local" -> Mail.NoSSL
-              _ -> Mail.NoSSL
+              _ -> Mail.StartTsl
   let smtp2 = Mail.MkSmtp smtp.host smtp.port auth ssl
   subs <- WS.mkSubs
   pure $ MkEnv env port dbConn esvEnv smtp2 url subs (encodeUtf8 altchaKey)
