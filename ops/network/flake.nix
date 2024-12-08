@@ -35,8 +35,8 @@
         };
         boot.isContainer = true;
 
-        security.pki.certificateFiles = [
-          ../email.cert
+        security.pki.certificates = [
+          (builtins.readFile ../email.cert)
         ];
 
         networking.firewall = {
