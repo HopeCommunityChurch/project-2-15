@@ -35,6 +35,10 @@
         };
         boot.isContainer = true;
 
+        security.pki.certificateFiles = [
+          (builtins.readFile ../email.cert)
+        ];
+
         networking.firewall = {
           allowedTCPPorts = [ 22 80 443 ];
           allowedUDPPorts = [ 443 ];
