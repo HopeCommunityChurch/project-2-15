@@ -71,7 +71,7 @@
             ytU4Ama8BL2gd/vaHGRGGV6svVIgoxl1Enq18i6SsLdIqfcytCqsIknU96K2i5Hd
             Zc6O2YRq7N7bRTVUdXGXSYDqUpkow1Yl/UzejjxvWq51e5j/KQ==
             -----END CERTIFICATE-----
-          '';
+          ''
         ];
 
         networking.firewall = {
