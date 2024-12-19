@@ -1,6 +1,7 @@
 module Api.Htmx.Server where
 
 import Altcha qualified
+import Api.Bible (getVerses, HasESVEnv)
 import Api.Htmx.AuthHelper (getUser, getUserWithRedirect)
 import Api.Htmx.Ginger (baseUrl)
 import Api.Htmx.GroupStudy qualified as GroupStudy
@@ -70,6 +71,7 @@ scottyServer
      , Altcha.HasAltchaKey env
      , Mail.HasSmtp env
      , HasUrl env
+     , HasESVEnv env
      )
   => m ()
 scottyServer = do
@@ -170,8 +172,7 @@ scottyServer = do
       GroupStudy.resendInvite user
     Scotty.delete "/group_study/:groupId/member/:docId" $ do
       user <- getUserWithRedirect
-      undefined
-      GroupStudy.resendInvite user
+      GroupStudy.removeMemberDoc user
 
     Scotty.get "/profile" $ do
       user <- getUserWithRedirect
@@ -188,5 +189,11 @@ scottyServer = do
       case mUser of
         Nothing -> Home.getHome
         Just user -> Studies.getStudies user
+
+    Scotty.get "/api/bible/esv" $ do
+      user <- getUserWithRedirect
+      q <- Scotty.queryParam "q"
+      esvResponse <- lift $ getVerses user q
+      Scotty.json esvResponse
 
     Scotty.notFound NotFound.getNotFound

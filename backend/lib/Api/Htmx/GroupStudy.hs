@@ -172,6 +172,50 @@ shareHTML isOwner share groupStudy = do
           (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
 
 
+memberHTML
+  :: Monad m
+  => Bool
+  -> AuthUser
+  -> T.GroupStudyId
+  -> GroupStudy.GetDocMeta
+  -> L.HtmlT m ()
+memberHTML isOwner user groupStudyId gdoc = do
+  let editor = head gdoc.editors
+  let memberId = "member-doc-" <> UUID.toText (unwrap gdoc.docId)
+  L.div_ [L.class_ "member", L.id_ memberId] $ do
+    L.div_ $ do
+      L.toHtml editor.name
+      when (editor.userId == user.userId) $
+        L.span_ "(you)"
+    L.div_ [L.class_ "buttons"] $
+      when isOwner $ do
+        let optionUrl =
+              "/group_study/"
+              <> UUID.toText (unwrap groupStudyId)
+              <> "/member/"
+              <> UUID.toText (unwrap editor.userId)
+              <> "/ownerShip"
+        L.pSelect_ [ L.hxPost_ optionUrl , L.hxTrigger_ "input"] $ do
+          L.option_
+            [L.value_ "member", L.selected_ ""]
+            "Member"
+          L.option_
+            [L.value_ "owner"]
+            "Owner"
+        let deleteUrl =
+              "/group_study/"
+              <> UUID.toText (unwrap groupStudyId)
+              <> "/member/"
+              <> UUID.toText (unwrap gdoc.docId)
+        L.button_
+          [ L.class_ "red trash"
+          , L.hxDelete_ deleteUrl
+          , L.hxTarget_ ("#" <> memberId)
+          , L.hxSwap_ "outerHTML"
+          ]
+          (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
+
+
 groupStudyHTML
   :: Monad m
   => AuthUser
@@ -190,35 +234,7 @@ groupStudyHTML user isOwner shares groupStudy = do
     L.h4_ "Members"
     L.div_ [L.id_ "studyGroupMembers"] $
       for_ groupStudy.docs $ \ gdoc -> do
-        let editor = head gdoc.editors
-        let memberId = "member-doc-" <> UUID.toText (unwrap gdoc.docId)
-        L.div_ [L.class_ "member", L.id_ memberId] $ do
-          L.div_ $ do
-            L.toHtml editor.name
-            when (editor.userId == user.userId) $
-              L.span_ "(you)"
-          L.div_ [L.class_ "buttons"] $
-            when isOwner $ do
-              let optionUrl =
-                    "/groupStudy/"
-                    <> UUID.toText (unwrap groupStudy.groupStudyId)
-                    <> "/member/"
-                    <> UUID.toText (unwrap editor.userId)
-                    <> "/ownerShip"
-              L.pSelect_ [ L.hxPost_ optionUrl , L.hxTrigger_ "input"] $ do
-                L.option_
-                  [L.value_ "member", L.selected_ ""]
-                  "Member"
-                L.option_
-                  [L.value_ "owner"]
-                  "Owner"
-              L.button_
-                [ L.class_ "red trash"
-                , L.hxDelete_ optionUrl
-                , L.hxTarget_ ("#" <> memberId)
-                , L.hxSwap_ "outerHTML"
-                ]
-                (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
+        memberHTML isOwner user groupStudy.groupStudyId gdoc
 
     when isOwner $
       L.button_
@@ -354,3 +370,11 @@ ownerShareDelete _ = do
   status status200
 
 
+removeMemberDoc
+  :: MonadDb env m
+  => AuthUser
+  -> ActionT m ()
+removeMemberDoc user = do
+  -- groupId <- captureParam "groupId"
+  -- docId <- captureParam "docId"
+  undefined
