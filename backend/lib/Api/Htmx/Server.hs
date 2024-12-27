@@ -173,6 +173,10 @@ scottyServer = do
     Scotty.delete "/group_study/:groupId/member/:docId" $ do
       user <- getUserWithRedirect
       GroupStudy.removeMemberDoc user
+    Scotty.post "/group_study/:groupId/member/:docId/ownership" $ do
+      user <- getUserWithRedirect
+      logInfo "testing"
+      GroupStudy.ownershipMemberDoc user
 
     Scotty.get "/profile" $ do
       user <- getUserWithRedirect

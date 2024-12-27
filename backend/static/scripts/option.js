@@ -54,8 +54,8 @@ class PSelect extends HTMLElement {
   }
 
   connectedCallback() {
-
     this.internals = this.attachInternals();
+    this.name = this.getAttribute("name");
 
     this.shadow = this.attachShadow({mode: "closed"});
     const styles = document.createElement("style");
