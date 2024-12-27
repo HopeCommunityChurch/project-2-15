@@ -284,7 +284,6 @@ createGroupStudy user = do
               & fmap (\ (email, per) ->
                 Shares.MkShareUnit email (per == GroupStudy.Owner) Nothing
               )
-  logInfoSH emails  -- lift $ GroupStudy.addStudy user.userId undefined
   let crGroupStudy = GroupStudy.MkCrStudy groupName doc.studyTemplateId
   groupId <- lift $ withTransaction $ do
     groupId <- GroupStudy.addStudy user.userId crGroupStudy
