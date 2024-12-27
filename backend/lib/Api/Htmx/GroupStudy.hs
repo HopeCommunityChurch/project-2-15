@@ -176,10 +176,10 @@ memberHTML
   :: Monad m
   => Bool
   -> AuthUser
-  -> T.GroupStudyId
+  -> GroupStudy.GetGroupStudy
   -> GroupStudy.GetDocMeta
   -> L.HtmlT m ()
-memberHTML isOwner user groupStudyId gdoc = do
+memberHTML isOwner user groupStudy gdoc = do
   let editor = head gdoc.editors
   let memberId = "member-doc-" <> UUID.toText (unwrap gdoc.docId)
   L.div_ [L.class_ "member", L.id_ memberId] $ do
@@ -191,20 +191,23 @@ memberHTML isOwner user groupStudyId gdoc = do
       when isOwner $ do
         let optionUrl =
               "/group_study/"
-              <> UUID.toText (unwrap groupStudyId)
+              <> UUID.toText (unwrap groupStudy.groupStudyId)
               <> "/member/"
               <> UUID.toText (unwrap editor.userId)
               <> "/ownerShip"
         L.pSelect_ [ L.hxPost_ optionUrl , L.hxTrigger_ "input"] $ do
+          let editorIsOwner = elem editor.userId (fmap (.userId) groupStudy.owners)
+          let memberSelect = if editorIsOwner then [] else [L.selected_ ""]
+          let ownerSelect = if editorIsOwner then [L.selected_ ""] else []
           L.option_
-            [L.value_ "member", L.selected_ ""]
+            ([L.value_ "member"] <> memberSelect)
             "Member"
           L.option_
-            [L.value_ "owner"]
+            ([L.value_ "owner"] <> ownerSelect)
             "Owner"
         let deleteUrl =
               "/group_study/"
-              <> UUID.toText (unwrap groupStudyId)
+              <> UUID.toText (unwrap groupStudy.groupStudyId)
               <> "/member/"
               <> UUID.toText (unwrap gdoc.docId)
         L.button_
@@ -234,7 +237,7 @@ groupStudyHTML user isOwner shares groupStudy = do
     L.h4_ "Members"
     L.div_ [L.id_ "studyGroupMembers"] $
       for_ groupStudy.docs $ \ gdoc -> do
-        memberHTML isOwner user groupStudy.groupStudyId gdoc
+        memberHTML isOwner user groupStudy gdoc
 
     when isOwner $
       L.button_
