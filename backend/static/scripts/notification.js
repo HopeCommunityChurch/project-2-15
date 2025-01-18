@@ -51,7 +51,7 @@ class Notification extends HTMLElement {
     console.log(time);
 
     const stylesElem = document.createElement("style");
-    stylesElem.textContent = styles(time, time);
+    stylesElem.textContent = styles(time, type);
     this.shadow.appendChild(stylesElem);
 
     this.base = document.createElement("div");

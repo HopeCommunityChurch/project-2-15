@@ -1,6 +1,7 @@
 module Api.Htmx.Server where
 
 import Altcha qualified
+import Api.Bible (getVerses, HasESVEnv)
 import Api.Htmx.AuthHelper (getUser, getUserWithRedirect)
 import Api.Htmx.Ginger (baseUrl)
 import Api.Htmx.GroupStudy qualified as GroupStudy
@@ -16,7 +17,7 @@ import Data.List qualified as L
 import DbHelper qualified as Db
 import EnvFields (EnvType (..), HasUrl)
 import Mail qualified
-import Network.HTTP.Types.Status (status302, status500)
+import Network.HTTP.Types.Status (status302, status500, status301)
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp (Port)
 import Network.Wai.Middleware.RequestLogger (
@@ -70,6 +71,7 @@ scottyServer
      , Altcha.HasAltchaKey env
      , Mail.HasSmtp env
      , HasUrl env
+     , HasESVEnv env
      )
   => m ()
 scottyServer = do
@@ -170,8 +172,11 @@ scottyServer = do
       GroupStudy.resendInvite user
     Scotty.delete "/group_study/:groupId/member/:docId" $ do
       user <- getUserWithRedirect
-      undefined
-      GroupStudy.resendInvite user
+      GroupStudy.removeMemberDoc user
+    Scotty.post "/group_study/:groupId/member/:docId/ownership" $ do
+      user <- getUserWithRedirect
+      logInfo "testing"
+      GroupStudy.ownershipMemberDoc user
 
     Scotty.get "/profile" $ do
       user <- getUserWithRedirect
@@ -188,5 +193,17 @@ scottyServer = do
       case mUser of
         Nothing -> Home.getHome
         Just user -> Studies.getStudies user
+
+    Scotty.get "/api/bible/esv" $ do
+      user <- getUserWithRedirect
+      q <- Scotty.queryParam "q"
+      esvResponse <- lift $ getVerses user q
+      Scotty.json esvResponse
+
+    Scotty.get (Scotty.regex "^/app/(.*)$") $ do
+      url <- Scotty.captureParam "1"
+      Scotty.setHeader "Location" ("/" <> url)
+      Scotty.status status301
+
 
     Scotty.notFound NotFound.getNotFound

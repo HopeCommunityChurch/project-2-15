@@ -7,14 +7,20 @@ import Database.Beam (
   C,
   all_,
   default_,
+  delete,
   exists_,
   guard_,
   in_,
   insert,
   insertExpressions,
   insertValues,
+  runDelete,
   runInsert,
+  runUpdate,
+  update,
   val_,
+  (&&.),
+  (<-.),
   (==.),
  )
 import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
@@ -95,6 +101,10 @@ instance FromJSON GetDocMeta'
 instance E.GuardValue GetDocMeta T.GroupStudyId where
   guardValues ids doc =
     guard_ $ doc.groupStudyId `in_` ids
+
+instance E.GuardValue GetDocMeta T.DocId where
+  guardValues ids doc =
+    guard_ $ doc.docId `in_` ids
 
 
 
@@ -222,3 +232,52 @@ addStudy userId crStudy = do
   pure study.groupStudyId
 
 
+removeFromGroup
+  :: MonadDb env m
+  => T.DocId
+  -> m ()
+removeFromGroup docId =
+  runBeam
+  $ runUpdate
+  $ update
+    Db.db.document
+    (\ r -> r.groupStudyId <-. val_ Nothing)
+    (\ r -> r.docId ==. val_ docId)
+
+
+removeOwner
+  :: MonadDb env m
+  => T.GroupStudyId
+  -> [T.UserId]
+  -> m ()
+removeOwner groupStudyId userIds = do
+  logInfo $ "Removing owners "
+            <> show (fmap unwrap userIds)
+            <> " from "
+            <> show (unwrap groupStudyId)
+
+  runBeam
+    $ runDelete
+    $ delete
+      Db.db.groupStudyOwner
+      (\ r ->
+        r.userId `in_` fmap val_ userIds
+        &&. r.groupStudyId ==. val_ groupStudyId
+      )
+
+
+addOwners
+  :: MonadDb env m
+  => T.GroupStudyId
+  -> [T.UserId]
+  -> m ()
+addOwners groupStudyId userIds = do
+  logInfo $ "Adding owners "
+            <> show (fmap unwrap userIds)
+            <> " from "
+            <> show (unwrap groupStudyId)
+  runBeam
+    $ runInsert
+    $ insert
+      Db.db.groupStudyOwner
+      (insertValues (userIds <&> Db.MkGroupStudyOwnerT groupStudyId))

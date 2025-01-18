@@ -1,6 +1,8 @@
 module Lucid.Htmx where
 
 import Lucid.Base (makeAttribute, Attribute, Term, term)
+import Lucid qualified as L
+import Web.Scotty.Trans qualified as Scotty
 
 
 hxGet_ :: Text -> Attribute
@@ -38,3 +40,14 @@ timems_ = makeAttribute "time-ms"
 
 pSelect_ :: Term arg result => arg -> result
 pSelect_ = term "p-select"
+
+
+renderScotty
+  :: MonadIO m
+  => L.HtmlT (Scotty.ActionT m) a
+  -> Scotty.ActionT m b
+renderScotty markup = do
+  Scotty.html =<< L.renderTextT markup
+  Scotty.finish
+
+

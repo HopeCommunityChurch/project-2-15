@@ -172,6 +172,60 @@ shareHTML isOwner share groupStudy = do
           (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
 
 
+memberHTML
+  :: Monad m
+  => Bool
+  -> AuthUser
+  -> GroupStudy.GetGroupStudy
+  -> GroupStudy.GetDocMeta
+  -> L.HtmlT m ()
+memberHTML isOwner user groupStudy gdoc = do
+  let editor = head gdoc.editors
+  let memberId = "member-doc-" <> UUID.toText (unwrap gdoc.docId)
+  L.div_ [L.class_ "member", L.id_ memberId] $ do
+    L.div_ $ do
+      L.toHtml editor.name
+      when (editor.userId == user.userId) $
+        L.span_ "(you)"
+    L.div_ [L.class_ "buttons"] $
+      when isOwner $ do
+        let optionUrl =
+              "/group_study/"
+              <> UUID.toText (unwrap groupStudy.groupStudyId)
+              <> "/member/"
+              <> UUID.toText (unwrap gdoc.docId)
+              <> "/ownership"
+        L.pSelect_
+          [ L.hxPost_ optionUrl
+          , L.hxTrigger_ "change"
+          , L.name_ "ownership"
+          , L.hxTarget_ ("#" <> memberId)
+          , L.hxSwap_ "outerHTML"
+          ]
+          $ do
+            let editorIsOwner = elem editor.userId (fmap (.userId) groupStudy.owners)
+            let memberSelect = if editorIsOwner then [] else [L.selected_ ""]
+            let ownerSelect = if editorIsOwner then [L.selected_ ""] else []
+            L.option_
+              ([L.value_ "member"] <> memberSelect)
+              "Member"
+            L.option_
+              ([L.value_ "owner"] <> ownerSelect)
+              "Owner"
+        let deleteUrl =
+              "/group_study/"
+              <> UUID.toText (unwrap groupStudy.groupStudyId)
+              <> "/member/"
+              <> UUID.toText (unwrap gdoc.docId)
+        L.button_
+          [ L.class_ "red trash"
+          , L.hxDelete_ deleteUrl
+          , L.hxTarget_ ("#" <> memberId)
+          , L.hxSwap_ "outerHTML"
+          ]
+          (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
+
+
 groupStudyHTML
   :: Monad m
   => AuthUser
@@ -190,35 +244,7 @@ groupStudyHTML user isOwner shares groupStudy = do
     L.h4_ "Members"
     L.div_ [L.id_ "studyGroupMembers"] $
       for_ groupStudy.docs $ \ gdoc -> do
-        let editor = head gdoc.editors
-        let memberId = "member-doc-" <> UUID.toText (unwrap gdoc.docId)
-        L.div_ [L.class_ "member", L.id_ memberId] $ do
-          L.div_ $ do
-            L.toHtml editor.name
-            when (editor.userId == user.userId) $
-              L.span_ "(you)"
-          L.div_ [L.class_ "buttons"] $
-            when isOwner $ do
-              let optionUrl =
-                    "/groupStudy/"
-                    <> UUID.toText (unwrap groupStudy.groupStudyId)
-                    <> "/member/"
-                    <> UUID.toText (unwrap editor.userId)
-                    <> "/ownerShip"
-              L.pSelect_ [ L.hxPost_ optionUrl , L.hxTrigger_ "input"] $ do
-                L.option_
-                  [L.value_ "member", L.selected_ ""]
-                  "Member"
-                L.option_
-                  [L.value_ "owner"]
-                  "Owner"
-              L.button_
-                [ L.class_ "red trash"
-                , L.hxDelete_ optionUrl
-                , L.hxTarget_ ("#" <> memberId)
-                , L.hxSwap_ "outerHTML"
-                ]
-                (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
+        memberHTML isOwner user groupStudy gdoc
 
     when isOwner $
       L.button_
@@ -258,7 +284,6 @@ createGroupStudy user = do
               & fmap (\ (email, per) ->
                 Shares.MkShareUnit email (per == GroupStudy.Owner) Nothing
               )
-  logInfoSH emails  -- lift $ GroupStudy.addStudy user.userId undefined
   let crGroupStudy = GroupStudy.MkCrStudy groupName doc.studyTemplateId
   groupId <- lift $ withTransaction $ do
     groupId <- GroupStudy.addStudy user.userId crGroupStudy
@@ -354,3 +379,107 @@ ownerShareDelete _ = do
   status status200
 
 
+removeMemberDoc
+  :: MonadDb env m
+  => AuthUser
+  -> ActionT m ()
+removeMemberDoc user = do
+  groupStudyId <- captureParam "groupId"
+  (docId :: T.DocId) <- captureParam "docId"
+  groupStudy <- NotFound.handleNotFound
+                  (E.getById @GroupStudy.GetGroupStudy)
+                  groupStudyId
+  let isOwner = any (\ o -> o.userId == user.userId) groupStudy.owners
+
+  docMeta <- NotFound.handleNotFound
+                  (E.getOneEntityBy @GroupStudy.GetDocMeta)
+                  docId
+
+  unless isOwner $
+    L.renderScotty $ do
+      memberHTML False user groupStudy docMeta
+      L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
+        "You are not an owner. You cannot modify the group."
+
+  logDebugSH (length groupStudy.owners)
+  when (length groupStudy.owners == 1) $
+    L.renderScotty $ do
+      memberHTML True user groupStudy docMeta
+      L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
+        "Cannot remove the last owner."
+
+  lift $ GroupStudy.removeFromGroup docId
+  lift $ GroupStudy.removeOwner groupStudyId (fmap (.userId) docMeta.editors)
+
+  L.renderScotty $ do
+    L.notifcation_ [ L.timems_ "2500" ]
+      "Removed from group."
+
+
+ownershipMemberDoc
+  :: MonadDb env m
+  => AuthUser
+  -> ActionT m ()
+ownershipMemberDoc user = do
+  groupStudyId <- captureParam "groupId"
+  logInfoSH groupStudyId
+  (docId :: T.DocId) <- captureParam "docId"
+  logInfoSH docId
+
+  groupStudy <- NotFound.handleNotFound
+                  (E.getById @GroupStudy.GetGroupStudy)
+                  groupStudyId
+  let isOwner = any (\ o -> o.userId == user.userId) groupStudy.owners
+  logInfoSH isOwner
+
+  docMeta <- NotFound.handleNotFound
+                  (E.getOneEntityBy @GroupStudy.GetDocMeta)
+                  docId
+  logInfoSH docMeta
+
+  (ownership :: Text) <- formParam "ownership"
+
+  logInfo ownership
+
+  permission <- case textToPermission ownership of
+                  Nothing -> do
+                    L.renderScotty $ do
+                      memberHTML False user groupStudy docMeta
+                      L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
+                        "You are not an owner. You cannot modify the group."
+                  Just p -> pure p
+
+  logInfoSH permission
+
+  unless isOwner $
+    L.renderScotty $ do
+      memberHTML False user groupStudy docMeta
+      L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
+        "You are not an owner. You cannot modify the group."
+
+
+  let modifyingSelf = user.userId `elem` fmap (.userId) docMeta.editors
+  when (length groupStudy.owners == 1 && permission == GroupStudy.Member && modifyingSelf) $
+    L.renderScotty $ do
+      memberHTML True user groupStudy docMeta
+      L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
+        "Cannot remove the last owner."
+
+  case permission of
+    GroupStudy.Member ->
+      lift $ GroupStudy.removeOwner groupStudyId (fmap (.userId) docMeta.editors)
+    GroupStudy.Owner ->
+      lift $ GroupStudy.addOwners groupStudyId (fmap (.userId) docMeta.editors)
+
+  groupStudy2 <- NotFound.handleNotFound
+                  (E.getById @GroupStudy.GetGroupStudy)
+                  groupStudyId
+
+  docMeta2 <- NotFound.handleNotFound
+                  (E.getOneEntityBy @GroupStudy.GetDocMeta)
+                  docId
+
+  L.renderScotty $ do
+    memberHTML True user groupStudy2 docMeta2
+    L.notifcation_ [ L.timems_ "2500" ]
+      "Modified ownership"

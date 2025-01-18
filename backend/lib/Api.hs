@@ -24,7 +24,6 @@ import Servant.Server.Experimental.Auth (
   AuthHandler,
  )
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
-import Servant.Swagger.UI.ReDoc qualified as ReDoc
 import SwaggerHelpers (OpenApiTag)
 import Types qualified as T
 
@@ -111,7 +110,6 @@ serverContext env =
 type Api
   = Api'
   :<|> SwaggerSchemaUI "swagger-ui" "swagger.json"
-  :<|> ReDoc.SwaggerSchemaUI "swagger-ui2" "swagger2.json"
 
 
 openApi :: OpenApi.OpenApi
@@ -139,4 +137,3 @@ server env =
     (toHandler env)
     server'
   :<|> swaggerSchemaUIServer openApi
-  :<|> ReDoc.redocSchemaUIServer openApi

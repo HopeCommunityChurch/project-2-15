@@ -140,7 +140,6 @@ library
     tz,
     vector,
     servant-swagger-ui,
-    servant-swagger-ui-redoc,
     wreq,
     parsec,
     websockets,

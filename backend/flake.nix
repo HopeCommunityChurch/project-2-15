@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/release-24.11";
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake?ref=0.5.0";
 
@@ -19,7 +19,7 @@
           # The base package set representing a specific GHC version.
           # By default, this is pkgs.haskellPackages.
           # You may also create your own. See https://haskell.flake.page/package-set
-          # basePackages = pkgs.haskellPackages;
+          basePackages = pkgs.haskellPackages;
 
           # Extra package information. See https://haskell.flake.page/dependency
           #
@@ -52,9 +52,6 @@
             lens-datetime = {
               broken = false;
               jailbreak = true;
-              haddock = true;
-            };
-            servant-swagger-ui-redoc = {
               haddock = true;
             };
           };
