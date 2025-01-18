@@ -119,11 +119,7 @@
                 '';
               };
               locations."/app/" = {
-                proxyPass = "http://127.0.0.1:3001/";
-                proxyWebsockets = true;
-                extraConfig = ''
-                  proxy_hide_header Last-Modified;
-                '';
+                return = "301 https://$host$request_uri";
               };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
