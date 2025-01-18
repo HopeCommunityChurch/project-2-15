@@ -119,7 +119,9 @@
                 '';
               };
               locations."/app/" = {
-                return = "301 https://$host$request_uri";
+                extraConfig = ''
+                  rewrite ^/app/[^/]+/([0-9]+)-([^.]+)$ /$1 permanent;
+                '';
               };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
