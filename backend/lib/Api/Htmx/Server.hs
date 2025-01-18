@@ -17,7 +17,7 @@ import Data.List qualified as L
 import DbHelper qualified as Db
 import EnvFields (EnvType (..), HasUrl)
 import Mail qualified
-import Network.HTTP.Types.Status (status302, status500)
+import Network.HTTP.Types.Status (status302, status500, status301)
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp (Port)
 import Network.Wai.Middleware.RequestLogger (
@@ -199,5 +199,11 @@ scottyServer = do
       q <- Scotty.queryParam "q"
       esvResponse <- lift $ getVerses user q
       Scotty.json esvResponse
+
+    Scotty.get (Scotty.regex "^/app/([A-Za-z0-9//]*)$") $ do
+      url <- Scotty.captureParam "1"
+      Scotty.setHeader "Location" ("/" <> url)
+      Scotty.status status301
+
 
     Scotty.notFound NotFound.getNotFound

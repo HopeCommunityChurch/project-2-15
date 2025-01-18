@@ -118,11 +118,6 @@
                   proxy_hide_header Last-Modified;
                 '';
               };
-              locations."/app/" = {
-                extraConfig = ''
-                  rewrite ^/app/[^/]+/([0-9]+)-([^.]+)$ /$1 permanent;
-                '';
-              };
               locations."/api/" = {
                 proxyPass = "http://127.0.0.1:3000/";
                 proxyWebsockets = true;
