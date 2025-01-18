@@ -200,7 +200,7 @@ scottyServer = do
       esvResponse <- lift $ getVerses user q
       Scotty.json esvResponse
 
-    Scotty.get (Scotty.regex "^/app/([A-Za-z0-9///-]*)$") $ do
+    Scotty.get (Scotty.regex "^/app/(.*)$") $ do
       url <- Scotty.captureParam "1"
       Scotty.setHeader "Location" ("/" <> url)
       Scotty.status status301
