@@ -729,6 +729,7 @@ h4 {
     .share {
       display: grid;
       grid-template-columns: 1fr 150px;
+      padding-bottom: 4px;
       .share-email {
         align-content: center;
       }
@@ -744,6 +745,7 @@ h4 {
     .member {
       display: grid;
       grid-template-columns: 1fr 150px;
+      padding-bottom: 4px;
       p-select::part(p-select) {
         height: 100%;
       }
