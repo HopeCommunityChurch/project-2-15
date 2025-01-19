@@ -746,6 +746,9 @@ h4 {
       display: grid;
       grid-template-columns: 1fr 150px;
       padding-bottom: 4px;
+      div {
+        align-content: center;
+      }
       p-select::part(p-select) {
         height: 100%;
       }
