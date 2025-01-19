@@ -111,18 +111,7 @@ createStudyGroupHTML doc = do
         , L.placeholder_ "1 Corinthians - Wednesday Guy's Group"
         ]
       L.label_ [L.for_ "createPeople"] "People"
-      L.div_ [L.id_ "createPeoples"] $
-        L.template_ [L.id_ "peopleInputTemplate"] $ do
-          L.div_ [L.class_ "peopleInput"] $ do
-            L.input_
-              [ L.name_ "email[]"
-              , L.type_ "email"
-              , L.placeholder_ "jonny@p215.church"
-              ]
-            L.pSelect_ [ L.name_ "permission[]"] $ do
-              L.option_ [ L.value_ "member"] "Member"
-              L.option_ [ L.value_ "owner"] "Owner"
-              L.button_ [L.class_ "red"] "-"
+      L.div_ [L.id_ "createPeoples"] createPeopleTemplate
       L.button_ [L.type_ "submit", L.class_ "blue"]
         "Create"
   L.script_ "addPeopleInput()";
@@ -246,9 +235,13 @@ groupStudyHTML user isOwner shares groupStudy = do
       for_ groupStudy.docs $ \ gdoc -> do
         memberHTML isOwner user groupStudy gdoc
 
-    when isOwner $
+    when isOwner $ do
+      let groupIdTxt = UUID.toText (unwrap groupStudy.groupStudyId)
       L.button_
-        [L.class_ "lightBlue"]
+        [ L.class_ "lightBlue"
+        , L.hxGet_ ("/group_study/invite/" <> groupIdTxt)
+        , L.hxTarget_ "#groupStudyInner"
+        ]
         "Invite New Members"
 
 
@@ -256,6 +249,25 @@ textToPermission :: Text -> Maybe GroupStudy.Permission
 textToPermission "owner" = Just GroupStudy.Owner
 textToPermission "member" = Just GroupStudy.Member
 textToPermission _ = Nothing
+
+
+parseFormBody :: [Param] -> [Shares.ShareUnit]
+parseFormBody form =
+  let permissions = form
+                    & filter (\ (key, _) -> key == "permission[]")
+                    & fmap (textToPermission . toStrict . snd)
+      emails = form
+                & filter (\ (key, _) -> key == "email[]")
+                & fmap (mkEmail . toStrict . snd)
+  in zip emails permissions
+              & mapMaybe (\case
+                    (Right email, Just per) -> Just (email, per)
+                    _ -> Nothing
+              )
+              & fmap (\ (email, per) ->
+                Shares.MkShareUnit email (per == GroupStudy.Owner) Nothing
+              )
+
 
 
 createGroupStudy
@@ -270,20 +282,7 @@ createGroupStudy user = do
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
   groupName <- formParam "name"
   form <- formParams
-  let permissions = form
-                    & filter (\ (key, _) -> key == "permission[]")
-                    & fmap (textToPermission . toStrict . snd)
-  let emails = form
-                & filter (\ (key, _) -> key == "email[]")
-                & fmap (mkEmail . toStrict . snd)
-  let shares = zip emails permissions
-              & mapMaybe (\case
-                    (Right email, Just per) -> Just (email, per)
-                    _ -> Nothing
-              )
-              & fmap (\ (email, per) ->
-                Shares.MkShareUnit email (per == GroupStudy.Owner) Nothing
-              )
+  let shares = parseFormBody form
   let crGroupStudy = GroupStudy.MkCrStudy groupName doc.studyTemplateId
   groupId <- lift $ withTransaction $ do
     groupId <- GroupStudy.addStudy user.userId crGroupStudy
@@ -483,3 +482,86 @@ ownershipMemberDoc user = do
     memberHTML True user groupStudy2 docMeta2
     L.notifcation_ [ L.timems_ "2500" ]
       "Modified ownership"
+
+
+
+
+getInvite
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> ActionT m ()
+getInvite user = do
+  groupId <- captureParam "groupId"
+  html =<< L.renderTextT (getInviteNewMemberHTML groupId)
+
+
+createPeopleTemplate :: Monad m => L.HtmlT m ()
+createPeopleTemplate = do
+  L.template_ [L.id_ "peopleInputTemplate"] $ do
+    L.div_ [L.class_ "peopleInput"] $ do
+      L.input_
+        [ L.name_ "email[]"
+        , L.type_ "email"
+        , L.placeholder_ "jonny@p215.church"
+        ]
+      L.pSelect_ [ L.name_ "permission[]"] $ do
+        L.option_ [ L.value_ "member"] "Member"
+        L.option_ [ L.value_ "owner"] "Owner"
+      L.button_ [L.class_ "red"] "-"
+
+
+getInviteNewMemberHTML
+  :: Monad m
+  => T.GroupStudyId
+  -> L.HtmlT m ()
+getInviteNewMemberHTML groupId = do
+  L.div_ [L.class_ "groupStudyInner"] $ do
+    L.h3_ "Invite New People"
+    let formUrl = "/group_study/invite/add"
+    L.form_ [ L.hxPost_ formUrl, L.class_ "groupStudyEditorHolder", L.hxTarget_ "#groupStudyInner"] $ do
+      L.input_
+        [ L.id_ "groupId"
+        , L.name_ "groupId"
+        , L.type_ "hidden"
+        , L.value_ (UUID.toText (unwrap groupId))
+        ]
+      L.label_ [L.for_ "createPeople"] "People"
+      L.div_ [L.id_ "createPeoples"] createPeopleTemplate
+      L.button_ [L.type_ "submit", L.class_ "blue"]
+        "Invite"
+  L.script_ "addPeopleInput()";
+
+
+postInvite
+  :: ( MonadDb env m
+     , MonadLogger m
+     , Mail.HasSmtp env
+     , HasUrl env
+     )
+  => AuthUser
+  -> ActionT m ()
+postInvite user = do
+  groupId <- formParam "groupId"
+  groupStudy <- NotFound.handleNotFound
+                  (E.getByIdForUser @GroupStudy.GetGroupStudy user)
+                  groupId
+  let isOwner = any (\ o -> o.userId == user.userId) groupStudy.owners
+
+  unless isOwner $
+    L.renderScotty $ do
+      L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
+        "You are not an owner. You cannot modify the group."
+
+  form <- formParams
+  let shares = parseFormBody form
+  html =<< L.renderTextT (getInviteNewMemberHTML groupId)
+  lift $ withTransaction $ do
+    result <- Shares.addShares groupId shares
+    url <- asks (.url)
+    for_ result $ \ (share, token) ->  do
+      let email = Emails.ShareGroupStudy.mail share groupStudy.name token url
+      Mail.sendMail email
+  getGroupStudy' user groupId
+

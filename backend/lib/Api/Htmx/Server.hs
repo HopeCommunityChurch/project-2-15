@@ -177,6 +177,12 @@ scottyServer = do
       user <- getUserWithRedirect
       logInfo "testing"
       GroupStudy.ownershipMemberDoc user
+    Scotty.get "/group_study/invite/:groupId" $ do
+      user <- getUserWithRedirect
+      GroupStudy.getInvite user
+    Scotty.post "/group_study/invite/add" $ do
+      user <- getUserWithRedirect
+      GroupStudy.postInvite user
 
     Scotty.get "/profile" $ do
       user <- getUserWithRedirect
