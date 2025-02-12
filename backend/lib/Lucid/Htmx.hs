@@ -29,6 +29,9 @@ hxSwap_ = makeAttribute "hx-swap"
 hxSwapOob_ :: Text -> Attribute
 hxSwapOob_ = makeAttribute "hx-swap-oob"
 
+hxIndicator_ :: Text -> Attribute
+hxIndicator_ = makeAttribute "hx-indicator"
+
 
 -- Not htmx, but I need it somewher
 

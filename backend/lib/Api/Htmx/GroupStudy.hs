@@ -224,7 +224,21 @@ groupStudyHTML
   -> L.HtmlT m ()
 groupStudyHTML user isOwner shares groupStudy = do
   L.div_ [ L.class_ "groupStudyEditorHolder" , L.id_ "groupStudyInner" ] $ do
-    L.h3_ (L.toHtml groupStudy.name)
+    if isOwner then
+      L.header_ [L.class_ "groupStudyName"] $ do
+        L.input_
+          [ L.contenteditable_ ""
+          , L.hxIndicator_ ".saving"
+          , L.hxTrigger_ "keyup changed delay:1s"
+          , L.hxPost_ "/test"
+          , L.name_ "groupName"
+          , L.value_ groupStudy.name
+          ]
+        L.div_ [L.class_ "saving-box"] $ do
+          L.span_ [L.class_ "saving saving-indicator"] "saving"
+    else
+      L.h3_ (L.toHtml groupStudy.name)
+
     L.h4_ "Invites"
     L.div_ [L.id_ "studyGroupInvites"] $
       for_ shares $ \ share -> do

@@ -146,7 +146,7 @@ websocketSever user conn = do
               InUpdated obj ->
                 prefixLogs "Updated" $ handleUpdated st obj
               InListenToDoc docId ->
-                prefixLogs "ListenToDoc" $ handleListenToDoc user connId conn docId
+                prefixLogs "ListenToDoc" $ handleListenToDoc user connId st conn docId
               InSaveDoc obj ->
                 prefixLogs "SaveDoc" $ handleSave conn user.userId st obj
               InUpdateName txt ->
@@ -225,11 +225,23 @@ handleListenToDoc
      )
   => AuthUser
   -> ConnId
+  -> IORef SocketState
   -> Connection
   -> T.DocId
   -> m ()
-handleListenToDoc user connId conn docId = do
+handleListenToDoc user connId st conn docId = do
   logInfo $ "user " <> show user.name <> " listening to " <> show docId
+  mOpenedDoc <- (.openDocument) <$> readIORef st
+  for_ mOpenedDoc $ \ openedDoc -> do
+    rsubs <- asks (.subs)
+    subs <- readIORef rsubs
+    let mdocSt = Map.lookup openedDoc subs
+    for_ mdocSt $ \ docSt -> do
+      logInfo "closing doc"
+      atomicModifyIORef_ docSt.subscriptions (Map.delete connId)
+      test <- readIORef docSt.subscriptions
+      logInfoSH (Map.keys test)
+
   mDoc <- Doc.getDocInStudyGroup user docId
   for_ mDoc $ \ doc -> do
     logInfo "found doc"
@@ -242,6 +254,7 @@ handleListenToDoc user connId conn docId = do
         Just docSt -> pure docSt
     atomicModifyIORef_ docSt.subscriptions (Map.insert connId conn)
     sendOut conn (OutDocListenStart doc.document)
+    atomicModifyIORef_ st (\ st' -> st' & #openDocument ?~ docId)
 
 
 mkDocSt
