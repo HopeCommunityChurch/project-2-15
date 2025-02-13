@@ -1,7 +1,7 @@
 module Api.Htmx.Server where
 
 import Altcha qualified
-import Api.Bible (getVerses, HasESVEnv)
+import Api.Bible (HasESVEnv, getVerses)
 import Api.Htmx.AuthHelper (getUser, getUserWithRedirect)
 import Api.Htmx.Ginger (baseUrl)
 import Api.Htmx.GroupStudy qualified as GroupStudy
@@ -17,7 +17,7 @@ import Data.List qualified as L
 import DbHelper qualified as Db
 import EnvFields (EnvType (..), HasUrl)
 import Mail qualified
-import Network.HTTP.Types.Status (status302, status500, status301)
+import Network.HTTP.Types.Status (status301, status302, status500)
 import Network.Wai qualified as Wai
 import Network.Wai.Handler.Warp (Port)
 import Network.Wai.Middleware.RequestLogger (
@@ -31,6 +31,7 @@ import Network.Wai.Middleware.Static (
   unsafeStaticPolicyWithOptions,
  )
 import Network.Wai.Middleware.Static qualified as Static
+import UnliftIO.Concurrent (threadDelay)
 import Web.Scotty.Internal.Types qualified as Scotty
 import Web.Scotty.Trans qualified as Scotty
 
@@ -194,6 +195,12 @@ scottyServer = do
       user <- getUserWithRedirect
       Profile.postFeatures user
 
+    Scotty.post "/test" $ do
+      body <- Scotty.body
+      logInfo (toStrict (decodeUtf8 body))
+      threadDelay 1_000_000
+      Scotty.html "test done"
+
     Scotty.get "/" $ do
       mUser <- getUser
       case mUser of
@@ -210,6 +217,7 @@ scottyServer = do
       url <- Scotty.captureParam "1"
       Scotty.setHeader "Location" ("/" <> url)
       Scotty.status status301
+
 
 
     Scotty.notFound NotFound.getNotFound

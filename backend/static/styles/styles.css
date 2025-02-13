@@ -1,3 +1,4 @@
+
 body {
   position: relative;
   font-size: 15px;
@@ -712,6 +713,27 @@ h4 {
     width: 100%;
     display: flex;
     gap: 5px;
+    .groupStudyName {
+      display: grid;
+      grid-template-columns: 1fr 100px;
+      input {
+        margin: 0;
+      }
+
+      .saving-box {
+        justify-self: end;
+        align-self: center;
+        .saving-indicator {
+          display: none;
+        }
+        .htmx-request.saving-indicator {
+          display: inline;
+        }
+        .htmx-request .saving-indicator {
+          display: inline;
+        }
+      }
+    }
     .trash {
       align-content: center;
       display: flex;
@@ -729,6 +751,7 @@ h4 {
     .share {
       display: grid;
       grid-template-columns: 1fr 150px;
+      padding-bottom: 4px;
       .share-email {
         align-content: center;
       }
@@ -744,6 +767,10 @@ h4 {
     .member {
       display: grid;
       grid-template-columns: 1fr 150px;
+      padding-bottom: 4px;
+      div {
+        align-content: center;
+      }
       p-select::part(p-select) {
         height: 100%;
       }

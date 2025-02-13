@@ -32,6 +32,7 @@ module Prelude
   , module Deriving.Aeson.Stock
   , module Data.OpenApi
   , module Data.Vector
+  , module Data.Generics.Labels
   , List
   , getCurrentTime
   , unwrap
@@ -98,8 +99,7 @@ import Relude.Numeric
 import Relude.String
 import UnliftIO hiding (Handler, timeout)
 import Web.Scotty.Trans (ActionT)
-
--- import Data.Generics.Labels
+import Data.Generics.Labels
 
 
 type List a = [a]
