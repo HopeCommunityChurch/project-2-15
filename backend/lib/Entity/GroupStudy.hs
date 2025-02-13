@@ -281,3 +281,18 @@ addOwners groupStudyId userIds = do
     $ insert
       Db.db.groupStudyOwner
       (insertValues (userIds <&> Db.MkGroupStudyOwnerT groupStudyId))
+
+
+updateName
+  :: MonadDb env m
+  => T.GroupStudyId
+  -> Text
+  -> m ()
+updateName groupStudyId name =
+  runBeam
+  $ runUpdate
+  $ update
+    Db.db.groupStudy
+    (\ r -> r.name <-. val_ name)
+    (\ r -> r.groupStudyId ==. val_ groupStudyId)
+

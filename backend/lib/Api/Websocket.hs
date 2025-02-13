@@ -231,16 +231,16 @@ handleListenToDoc
   -> m ()
 handleListenToDoc user connId st conn docId = do
   logInfo $ "user " <> show user.name <> " listening to " <> show docId
-  mOpenedDoc <- (.openDocument) <$> readIORef st
-  for_ mOpenedDoc $ \ openedDoc -> do
-    rsubs <- asks (.subs)
-    subs <- readIORef rsubs
-    let mdocSt = Map.lookup openedDoc subs
-    for_ mdocSt $ \ docSt -> do
-      logInfo "closing doc"
-      atomicModifyIORef_ docSt.subscriptions (Map.delete connId)
-      test <- readIORef docSt.subscriptions
-      logInfoSH (Map.keys test)
+  -- mOpenedDoc <- (.openDocument) <$> readIORef st
+  -- for_ mOpenedDoc $ \ openedDoc -> do
+  --   rsubs <- asks (.subs)
+  --   subs <- readIORef rsubs
+  --   let mdocSt = Map.lookup openedDoc subs
+  --   for_ mdocSt $ \ docSt -> do
+  --     logInfo "closing doc"
+  --     atomicModifyIORef_ docSt.subscriptions (Map.delete connId)
+  --     test <- readIORef docSt.subscriptions
+  --     logInfoSH (Map.keys test)
 
   mDoc <- Doc.getDocInStudyGroup user docId
   for_ mDoc $ \ doc -> do
@@ -254,7 +254,7 @@ handleListenToDoc user connId st conn docId = do
         Just docSt -> pure docSt
     atomicModifyIORef_ docSt.subscriptions (Map.insert connId conn)
     sendOut conn (OutDocListenStart doc.document)
-    atomicModifyIORef_ st (\ st' -> st' & #openDocument ?~ docId)
+    -- atomicModifyIORef_ st (\ st' -> st' & #openDocument ?~ docId)
 
 
 mkDocSt
