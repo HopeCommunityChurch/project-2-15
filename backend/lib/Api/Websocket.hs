@@ -105,6 +105,7 @@ sendOut conn msg = do
 
 data SocketState = MkSocketState
   { openDocument :: Maybe T.DocId
+  , sideDoc :: Maybe T.DocId
   , computerId :: T.ComputerId
   }
   deriving (Show, Generic)
@@ -132,7 +133,7 @@ websocketSever user conn = do
   withRunInIO $ \ runInIO -> do
     withPingThread conn 20 (pure ()) $ runInIO $ prefixLogs (show connId) $ do
       computerId <- getComputerId conn
-      st <- newIORef (MkSocketState Nothing computerId)
+      st <- newIORef (MkSocketState Nothing Nothing computerId)
       result <- try $ forever $ do
         str <- liftIO $ WS.receiveData conn
         case Aeson.eitherDecode' str of
@@ -231,16 +232,16 @@ handleListenToDoc
   -> m ()
 handleListenToDoc user connId st conn docId = do
   logInfo $ "user " <> show user.name <> " listening to " <> show docId
-  -- mOpenedDoc <- (.openDocument) <$> readIORef st
-  -- for_ mOpenedDoc $ \ openedDoc -> do
-  --   rsubs <- asks (.subs)
-  --   subs <- readIORef rsubs
-  --   let mdocSt = Map.lookup openedDoc subs
-  --   for_ mdocSt $ \ docSt -> do
-  --     logInfo "closing doc"
-  --     atomicModifyIORef_ docSt.subscriptions (Map.delete connId)
-  --     test <- readIORef docSt.subscriptions
-  --     logInfoSH (Map.keys test)
+  mSideDoc <- (.sideDoc) <$> readIORef st
+  for_ mSideDoc $ \ sideDoc -> do
+    rsubs <- asks (.subs)
+    subs <- readIORef rsubs
+    let mdocSt = Map.lookup sideDoc subs
+    for_ mdocSt $ \ docSt -> do
+      logInfo "closing doc"
+      atomicModifyIORef_ docSt.subscriptions (Map.delete connId)
+      test <- readIORef docSt.subscriptions
+      logInfoSH (Map.keys test)
 
   mDoc <- Doc.getDocInStudyGroup user docId
   for_ mDoc $ \ doc -> do
@@ -254,7 +255,7 @@ handleListenToDoc user connId st conn docId = do
         Just docSt -> pure docSt
     atomicModifyIORef_ docSt.subscriptions (Map.insert connId conn)
     sendOut conn (OutDocListenStart doc.document)
-    -- atomicModifyIORef_ st (\ st' -> st' & #openDocument ?~ docId)
+    atomicModifyIORef_ st (\ st' -> st' & #sideDoc ?~ docId)
 
 
 mkDocSt
