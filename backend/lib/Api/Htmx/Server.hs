@@ -176,7 +176,6 @@ scottyServer = do
       GroupStudy.removeMemberDoc user
     Scotty.post "/group_study/:groupId/member/:docId/ownership" $ do
       user <- getUserWithRedirect
-      logInfo "testing"
       GroupStudy.ownershipMemberDoc user
     Scotty.get "/group_study/invite/:groupId" $ do
       user <- getUserWithRedirect
@@ -184,6 +183,9 @@ scottyServer = do
     Scotty.post "/group_study/invite/add" $ do
       user <- getUserWithRedirect
       GroupStudy.postInvite user
+    Scotty.post "/group_study/:groupId/name" $ do
+      user <- getUserWithRedirect
+      GroupStudy.nameUpdate user
 
     Scotty.get "/profile" $ do
       user <- getUserWithRedirect
@@ -194,12 +196,6 @@ scottyServer = do
     Scotty.post "/profile/feature" $ do
       user <- getUserWithRedirect
       Profile.postFeatures user
-
-    Scotty.post "/test" $ do
-      body <- Scotty.body
-      logInfo (toStrict (decodeUtf8 body))
-      threadDelay 1_000_000
-      Scotty.html "test done"
 
     Scotty.get "/" $ do
       mUser <- getUser

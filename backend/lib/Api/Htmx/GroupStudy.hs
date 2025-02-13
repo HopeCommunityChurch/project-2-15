@@ -22,6 +22,7 @@ import Mail qualified
 import Network.HTTP.Types.Status (status200)
 import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
+import Web.Scotty.Trans qualified as Scotty
 import Prelude hiding ((**))
 
 
@@ -226,16 +227,19 @@ groupStudyHTML user isOwner shares groupStudy = do
   L.div_ [ L.class_ "groupStudyEditorHolder" , L.id_ "groupStudyInner" ] $ do
     if isOwner then
       L.header_ [L.class_ "groupStudyName"] $ do
+        let groupIdTxt = UUID.toText (unwrap groupStudy.groupStudyId)
         L.input_
           [ L.contenteditable_ ""
           , L.hxIndicator_ ".saving"
           , L.hxTrigger_ "keyup changed delay:1s"
-          , L.hxPost_ "/test"
+          , L.hxPost_ ("/group_study/" <> groupIdTxt <> "/name")
+          , L.hxTarget_ ".saved"
           , L.name_ "groupName"
           , L.value_ groupStudy.name
           ]
         L.div_ [L.class_ "saving-box"] $ do
           L.span_ [L.class_ "saving saving-indicator"] "saving"
+          L.span_ [L.class_ "saved"] mempty
     else
       L.h3_ (L.toHtml groupStudy.name)
 
@@ -346,9 +350,9 @@ resendInvite _ = do
                     url
     Mail.sendMail email
   html $ L.renderText $ do
-      shareHTML True share groupStudy
-      L.notifcation_ [ L.timems_ "2500" ]
-        "Sent!"
+    shareHTML True share groupStudy
+    L.notifcation_ [ L.timems_ "2500" ]
+      "Sent!"
 
 
 
@@ -414,8 +418,8 @@ removeMemberDoc user = do
       L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
         "You are not an owner. You cannot modify the group."
 
-  logDebugSH (length groupStudy.owners)
-  when (length groupStudy.owners == 1) $
+  let tryingToDeleteEditor = any (\e -> e.userId == user.userId) docMeta.editors
+  when (length groupStudy.owners == 1 && tryingToDeleteEditor) $
     L.renderScotty $ do
       memberHTML True user groupStudy docMeta
       L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
@@ -579,3 +583,28 @@ postInvite user = do
       Mail.sendMail email
   getGroupStudy' user groupId
 
+
+nameUpdate
+  :: ( MonadDb env m
+     , MonadLogger m
+     , HasUrl env
+     )
+  => AuthUser
+  -> ActionT m ()
+nameUpdate user = do
+  groupId <- captureParam "groupId"
+  groupStudy <- NotFound.handleNotFound
+                  (E.getByIdForUser @GroupStudy.GetGroupStudy user)
+                  groupId
+  let isOwner = any (\ o -> o.userId == user.userId) groupStudy.owners
+
+  unless isOwner $
+    L.renderScotty $ do
+      L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
+        "You are not an owner. You cannot modify the group."
+
+  name <- formParam "groupName"
+  lift $ GroupStudy.updateName groupId name
+  html $ L.renderText $ do
+    L.notifcation_ [ L.timems_ "2500" ]
+      "Saved!"
