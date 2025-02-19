@@ -79,31 +79,34 @@ class StudyBlocksView implements NodeView {
     const table = document.createElement("table");
     table.className = "studyBlocks";
 
-    // Create and configure the Pencil icon
-    const questionIcon = new Image();
-    questionIcon.src = window.base + "/static/img/gray-pencil-in-circle.svg";
-    questionIcon.className = "studyBlockEditPencil";
+    // // Create and configure the Pencil icon
+    // const questionIcon = new Image();
+    // questionIcon.src = window.base + "/static/img/gray-pencil-in-circle.svg";
+    // questionIcon.className = "studyBlockEditPencil";
+    // questionIcon.onclick = () => {
+    //   alert("coming soon");
+    // };
 
-    questionIcon.addEventListener("click", () => {
-      // Find the section node that contains this position
-      let sectionNode = null;
-      let sectionPos = null;
-      view.state.doc.nodesBetween(getPos(), getPos(), (node, pos) => {
-        if (node.type.name === "section") {
-          sectionNode = node;
-          sectionPos = pos;
-          return false; // Stop iterating further
-        }
-      });
+    // questionIcon.addEventListener("click", () => {
+    //   // Find the section node that contains this position
+    //   let sectionNode = null;
+    //   let sectionPos = null;
+    //   view.state.doc.nodesBetween(getPos(), getPos(), (node, pos) => {
+    //     if (node.type.name === "section") {
+    //       sectionNode = node;
+    //       sectionPos = pos;
+    //       return false; // Stop iterating further
+    //     }
+    //   });
 
-      let combinedStudyBlocks = extractAllStudyBlocksAndQuestions(sectionNode);
+    //   let combinedStudyBlocks = extractAllStudyBlocksAndQuestions(sectionNode);
 
-      // Update the signal with the combined study blocks and the current position
-      // setSelectedStudyBlockArea({ studyBlocks: combinedStudyBlocks, position: getPos() });
-    });
+    //   // Update the signal with the combined study blocks and the current position
+    //   // setSelectedStudyBlockArea({ studyBlocks: combinedStudyBlocks, position: getPos() });
+    // });
 
-    // Position the Question icon at the top right of the table
-    this.dom.appendChild(questionIcon);
+    // // Position the Question icon at the top right of the table
+    // this.dom.appendChild(questionIcon);
 
     // Set the table as the main content
     this.contentDOM = table;

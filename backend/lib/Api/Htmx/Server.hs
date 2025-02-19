@@ -34,6 +34,7 @@ import Network.Wai.Middleware.Static qualified as Static
 import UnliftIO.Concurrent (threadDelay)
 import Web.Scotty.Internal.Types qualified as Scotty
 import Web.Scotty.Trans qualified as Scotty
+import Data.Typeable (cast)
 
 
 scottyT
@@ -89,15 +90,19 @@ scottyServer = do
     let policy = Static.noDots <> Static.hasPrefix "static/"
     Scotty.middleware (unsafeStaticPolicyWithOptions options policy)
 
-
-    Scotty.defaultHandler $ Scotty.Handler $ \ (SomeException e) -> do
-      logErrorSH e
-      Scotty.status status500
-      Scotty.text "Something went wrong"
-
-    Scotty.defaultHandler $ Scotty.Handler $ \ (Scotty.StatusError status txt) -> do
-      Scotty.status status
-      Scotty.text txt
+    Scotty.defaultHandler $ Scotty.Handler $ \ (SomeException e) ->
+      case cast e of
+        Just (Scotty.StatusError status txt) -> do
+          Scotty.status status
+          Scotty.text txt
+        Nothing ->
+          case cast e of
+            Just (_ :: Scotty.ActionError) ->
+              pure ()
+            Nothing -> do
+              logErrorSH e
+              Scotty.status status500
+              Scotty.text "Something went wrong"
 
     Scotty.get "/login" $ do
       mUser <- getUser
