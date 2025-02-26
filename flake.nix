@@ -128,6 +128,14 @@
             '';
           };
 
+          # processes.frontend = {
+          #   exec = ''
+          #     cd frontend
+          #     nix develop --command sh -c "npm run dev"
+          #   '';
+          # };
+
+
           processes.hoogle = {
             exec = ''
               cd backend

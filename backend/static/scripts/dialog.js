@@ -1,3 +1,5 @@
+"use strict";
+
 function toggleDialog(qs) {
   const nav = document.querySelector(qs);
   if(nav.open) {

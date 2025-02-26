@@ -1478,6 +1478,7 @@ img.ProseMirror-separator {
     box-sizing: border-box;
     position: relative;
     line-height: 1.42;
+    margin-bottom: 1px;
   }
 
   .chunkComment {

@@ -1,3 +1,4 @@
+"use strict";
 
 class PSelect extends HTMLElement {
   static formAssociated = true;

@@ -1,3 +1,5 @@
+"use strict";
+
 function addPeopleInput() {
   const template = document.getElementById("peopleInputTemplate");
   const content = template.content.cloneNode(true);
