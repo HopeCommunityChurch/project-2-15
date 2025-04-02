@@ -178,8 +178,8 @@ h4 {
 
 
 
-#home-grid {
-}
+/* #home-grid {
+} */
 
 #footer {
   background-color: #fbfbfb;
@@ -635,8 +635,8 @@ h4 {
   margin-right: 10px;
 }
 
-#profileNav::backdrop {
-}
+/* #profileNav::backdrop {
+} */
 
 #profileNav {
   z-index: 1000;
@@ -1333,10 +1333,10 @@ img.ProseMirror-separator {
   margin-bottom: 23px;
 }
 
-.ProseMirror p {
-  /* margin: 0px; */
-  /* padding: 0px; */
-}
+/* .ProseMirror p {
+  margin: 0px;
+  padding: 0px;
+} */
 
 #mainEditorHolder {
   overflow-y: auto;
