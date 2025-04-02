@@ -7,7 +7,8 @@
 4. (optional) install [nix-direvn](https://github.com/nix-community/nix-direnv)
 
 ## Stertup each time
-1. Run `devenv up`
+
+1. In root project directory: Run `devenv up`
 2. Open a new tab in you terminal, and move into `frontend`
 3. Run `npm run dev`
 4. Open browser to 127.0.0.1:8080
