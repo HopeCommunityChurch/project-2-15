@@ -1,6 +1,9 @@
-Steps to get environment up and running
+## Branch ettiquite
 
-1. "fish" then "devenv up"
-2. in a new terminal window, "fish" then "npm run dev"
-
-nix flake lock --update-input backend
+1. Make changes on a new branch
+2. Push changes to branch
+3. Make a pull request to main
+    - Change compare branch to be mine
+    - Assign Jon (it should send him an email)
+    - Send Jon a text the first time to confirm this is working properly
+4. Jon will be prompted to review
