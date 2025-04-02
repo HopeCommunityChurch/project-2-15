@@ -14,6 +14,15 @@
 7. Run `npm run dev`
 8. Open browser to 127.0.0.1:8080
 
-## Update front end (/frontend)
-
+## Update front end (/frontend) (Have to do this occasionally)
 `rm -rf node_modules && rm -rf .parcel-cache && rm -rf .direnv/ && cd .. && cd frontend/`
+
+## Branch ettiquite
+
+1. Make changes on a new branch
+2. Push changes to branch
+3. Make a pull request to main
+    - Change compare branch to be mine
+    - Assign Jon (it should send him an email)
+    - Send Jon a text the first time to confirm this is working properly
+4. Jon will be prompted to review
