@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="/static/styles/pages/studies.css">
 <link rel="stylesheet" href="/static/styles/header.css">
 <header id="header">
-  <img src="{{base}}/static/img/p215-circle.svg" class="logo">
+  <img src="{{base}}/static/img/p215-circle.svg" class="logo" />
   <menu class="menu">
     <li class="mobileHidden">
       <a href="https://experiencethehope.com/teaching" target="_blank">
@@ -36,15 +36,13 @@
 
 <dialog id="profileNav">
   <menu>
-    <li class="mobileShow" style="padding-bottom: 5px;">
+    <li class="mobileShow" style="padding-bottom: 5px">
       <button class="blue" onclick="toggleModal('#newStudy')">
         + New Study
       </button>
     </li>
     <li>
-      <a href="{{base}}/profile">
-        Profile
-      </a>
+      <a href="{{base}}/profile"> Profile </a>
     </li>
     <li>
       <a href="https://forms.gle/koJrP31Vh9TfvPcq7" target="_blank">
@@ -52,70 +50,60 @@
       </a>
     </li>
     <li>
-      <a href="{{base}}/signout">
-        Sign Out
-      </a>
+      <a href="{{base}}/signout"> Sign Out </a>
     </li>
   </menu>
 </dialog>
 
 <div id="studiesContent">
-
   {% if length(shares) > 0 %}
   <div id="allShares">
     <h1>Invites</h1>
     <div class="table3">
-      <header>
-        Group Study
-      </header>
-      <header>
-        Template Name
-      </header>
-      <header>
-      </header>
+      <header>Group Study</header>
+      <header>Template Name</header>
+      <header></header>
       {% for share in shares %}
-        <div class="row share" id="share-{{share.token}}">
-          <div>
-            {{ share.groupStudyName }}
-          </div>
-          <div
-            {% if share.studyTemplateId %}
-            {% else %}
-              class = "shareWith"
-            {% endif %}
-          >
-            {% if share.studyTemplateId %}
-              {{share.studyTemplateName }}
-            {% else %}
-              Free Hand
-            {% endif %}
-          </div>
-          <div class="options">
-            <form
-               hx-post="/group_study/share/{{share.token}}"
-            >
-              <p-select name="document">
-                <option value="new">New Document</option>
-                {% for study in studies %}
-                  {% if study.groupStudyName %}
-                  {% else %}
-                    <option value="{{study.docId}}">{{study.name}}</option>
-                  {% endif %}
-                {% endfor %}
-              </p-select>
-              <button class="blue" type="submit" class="accept">Accept</button>
-              <button
-                class="red"
-                hx-delete="/group_study/share/{{share.token}}"
-                hx-target="#share-{{share.token}}"
-                hx-swap="delete"
-                class="reject"
-              >
-                Reject
-              </button>
-            </form>
-          </div>
+      <div class="row share" id="share-{{share.token}}">
+        <div>{{ share.groupStudyName }}</div>
+        <div
+          {%
+          if
+          share.studyTemplateId
+          %}
+          {%
+          else
+          %}
+          class="shareWith"
+          {%
+          endif
+          %}
+        >
+          {% if share.studyTemplateId %} {{share.studyTemplateName }} {% else %}
+          Free Hand {% endif %}
         </div>
+        <div class="options">
+          <form hx-post="/group_study/share/{{share.token}}">
+            <p-select name="document">
+              <option value="new">New Document</option>
+              {% for study in studies %} {% if study.groupStudyName %} {% else
+              %}
+              <option value="{{study.docId}}">{{study.name}}</option>
+              {% endif %} {% endfor %}
+            </p-select>
+            <button class="blue" type="submit" class="accept">Accept</button>
+            <button
+              class="red"
+              hx-delete="/group_study/share/{{share.token}}"
+              hx-target="#share-{{share.token}}"
+              hx-swap="delete"
+              class="reject"
+            >
+              Reject
+            </button>
+          </form>
+        </div>
+      </div>
       {% endfor %}
     </div>
   </div>
@@ -123,15 +111,9 @@
 
   <h1>My Studies</h1>
   <div class="table3">
-    <header>
-      Study Title
-    </header>
-    <header>
-      Group Study
-    </header>
-    <header>
-      Last Opened By Me
-    </header>
+    <header>Study Title</header>
+    <header>Group Study</header>
+    <header>Last Opened By Me</header>
     {% for study in studies %}
       <a href="{{base}}/study/{{study.docId}}">
         <div style="view-transition-name: study-{{study.docId}}">
@@ -155,24 +137,27 @@
       </a>
     {% endfor %}
   </div>
-
 </div>
 
 {% include "footer.html" %}
 
 <dialog id="newStudy">
   <h3>Create New Study</h3>
-  <img alt="Close Modal" src="{{base}}/static/img/x.svg" class="closeModalIcon" onclick="toggleModal('#newStudy')">
+  <img
+    alt="Close Modal"
+    src="{{base}}/static/img/x.svg"
+    class="closeModalIcon"
+    onclick="toggleModal('#newStudy')"
+  />
   <form hx-post="{{base}}/study">
     <label for="studyTitle">Title</label>
-    <input type="text" required name="studyTitle" placeholder="New Title...">
+    <input type="text" required name="studyTitle" placeholder="New Title..." />
     <p class="fieldDescription">
-      Ex: "<em>Romans January 2024 Study</em>"
-      or "<em>Wednesday Night Colossians Study</em>"
+      Ex: "<em>Romans January 2024 Study</em>" or "<em
+        >Wednesday Night Colossians Study</em
+      >"
     </p>
-    <button type="submit" class="blue">
-      Create
-    </button>
+    <button type="submit" class="blue">Create</button>
   </form>
 </dialog>
 
