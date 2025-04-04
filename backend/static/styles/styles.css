@@ -178,7 +178,7 @@ h4 {
 
 #footer {
   background-color: #fbfbfb;
-  margin-top: 70px;
+  margin-top: 60px;
   padding: 40px 0;
   menu {
     text-align: center;
@@ -417,6 +417,10 @@ h4 {
     align-items: center;
     flex-wrap: wrap;
 
+    &:last-of-type {
+      padding-bottom: 0;
+    }
+
     @media (max-width: 1045px) {
       padding: 4rem 3rem !important;
     }
@@ -574,11 +578,11 @@ h4 {
   }
 
   .box-6 {
-    max-width: 120px !important;
+    max-width: 70px !important;
     position: absolute;
     z-index: -1;
     top: -100px;
-    right: 0px;
+    right: 70px;
     animation-delay: 2s;
   }
 
@@ -723,6 +727,7 @@ h4 {
     max-width: 1210px !important;
     justify-self: center;
     justify-content: flex-start !important;
+    padding-bottom: 1.4rem !important;
 
     @media (min-width: 1009px) {
       padding-top: 0 !important;
