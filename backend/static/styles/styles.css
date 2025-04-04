@@ -567,6 +567,15 @@ h4 {
     }
   }
 
+  .box-6 {
+    max-width: 120px !important;
+    position: absolute;
+    z-index: -1;
+    top: -100px;
+    right: 0px;
+    animation-delay: 2s;
+  }
+
   .hero-section {
     padding: 9rem 4rem 7rem 4rem !important;
     @media (max-width: 929px) {
@@ -726,15 +735,16 @@ h4 {
 
     .study-image {
       z-index: 1;
-      img {
+      position: relative;
+      img.three-d-photo {
         max-width: 460px;
 
         @media (max-width: 1100px) {
           max-width: 420px !important;
         }
-        @media (max-width: 945px) {
-          display: none;
-        }
+      }
+      @media (max-width: 945px) {
+        display: none;
       }
     }
   }
