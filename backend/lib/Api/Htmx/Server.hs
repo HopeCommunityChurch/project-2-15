@@ -125,7 +125,11 @@ scottyServer = do
       mUser <- getUser
       case mUser of
         Nothing -> Signup.getSignup
-        Just _ -> Scotty.redirect $ baseUrl <> "/studies"
+        Just _ -> do
+          logInfo "signed in redirecting"
+          let url = baseUrl <> "/studies"
+          Scotty.setHeader "Location" (url)
+          Scotty.raiseStatus status302 "redirect"
     Scotty.post "/signup" Signup.signup
 
     Scotty.get "/resetpassword" $ do
