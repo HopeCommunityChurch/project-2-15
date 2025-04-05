@@ -223,6 +223,4 @@ scottyServer = do
       Scotty.setHeader "Location" ("/" <> url)
       Scotty.status status301
 
-
-
     Scotty.notFound NotFound.getNotFound
