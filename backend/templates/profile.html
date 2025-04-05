@@ -1,8 +1,7 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <header id="header">
   <a class="logo" href="{{base}}/">
-    <img class="logo" src="{{base}}/static/img/p215-circle.svg" >
+    <img class="logo" src="{{base}}/static/img/p215-circle.svg" />
   </a>
   <menu class="menu">
     <li class="mobileHidden">
@@ -32,14 +31,10 @@
 <dialog id="profileNav">
   <menu>
     <li>
-      <a href="{{base}}/">
-        Home
-      </a>
+      <a href="{{base}}/"> Home </a>
     </li>
     <li>
-      <a href="{{base}}/signout">
-        Sign Out
-      </a>
+      <a href="{{base}}/signout"> Sign Out </a>
     </li>
   </menu>
 </dialog>
@@ -48,7 +43,7 @@
   <h1>My Profile</h1>
   {% include "profile/form.html" %}
 
-  <br>
+  <br />
   <h1>Features</h1>
   {% include "profile/featureForm.html" %}
 </div>
@@ -57,6 +52,4 @@
   {% include "scripts/inputs.js" %}
 </script>
 
-{% include "footer.html" %}
-
-{% endblock %}
+{% include "footer.html" %} {% endblock %}
