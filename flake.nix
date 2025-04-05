@@ -4,7 +4,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     devenv.url = "github:cachix/devenv";
-    backend.url = "path:./backend/";
   };
 
   outputs = inputs@{ flake-parts, ... }:
@@ -142,32 +141,6 @@
               nix develop --command sh -c "hoogle server --local --port 8081"
             '';
           };
-
-          # processes.frontend = {
-          #   exec = ''
-          #     cd frontend
-          #     nix develop --command sh -c "npm run dev"
-          #   '';
-          # };
-
-
-          # processes.backend =
-          #   let backend = inputs.backend.packages.${system}.backend;
-          #   in {
-          #     exec = ''
-          #       export SECRETS_FILE=${./backend/local-secrets.json}
-          #       export MIGRATION_PATH=${./backend/migrations}
-          #       ${backend}/bin/backend +RTS -M1G -T
-          #     '';
-          #     process-compose = {
-          #       depends_on.postgres.condition = "process_started";
-          #       availability = {
-          #         restart = "on_failure";
-          #         backoff_seconds = 2;
-          #         max_restarts = 5;
-          #       };
-          #     };
-          #   };
 
         };
 
