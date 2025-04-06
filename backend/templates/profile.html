@@ -4,25 +4,13 @@
 <link rel="stylesheet" href="/static/styles/header.css">
 <header id="header">
   <a class="logo" href="{{base}}/">
-    <img class="logo" src="{{base}}/static/img/p215-circle.svg" />
+    <img class="logo" src="{{base}}/static/img/p215-circle.svg" >
   </a>
   <menu class="menu">
-    <li class="mobileHidden">
-      <a href="https://experiencethehope.com/teaching" target="_blank">
-        Teachings
-      </a>
-    </li>
-    <li class="mobileHidden">
-      <a href="https://experiencethehope.com/equipping" target="_blank">
-        Equipping
-      </a>
-    </li>
-    <li class="mobileHidden">
-      <a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">
-        Messaging
-      </a>
-    </li>
-  </menu>
+    <li><a href="https://experiencethehope.com/teaching" target="_blank">Teachings</a></li>
+    <li><a href="https://experiencethehope.com/equipping" target="_blank">Equipping</a></li>
+    <li><a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">Messaging</a></li>
+</menu>
 
   <div class="buttons">
     <button class="profileButton" onclick="toggleModal('#profileNav')">
@@ -46,7 +34,7 @@
   <h1>My Profile</h1>
   {% include "profile/form.html" %}
 
-  <br />
+  <br>
   <h1>Features</h1>
   {% include "profile/featureForm.html" %}
 </div>
@@ -55,4 +43,5 @@
   {% include "scripts/inputs.js" %}
 </script>
 
-{% include "footer.html" %} {% endblock %}
+{% include "footer.html" %} 
+{% endblock %}
