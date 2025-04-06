@@ -5,6 +5,8 @@
 2. Setup nix to use [flakes](https://nixos.wiki/wiki/Flakes)
 3. Install direnv
 4. (optional) install [nix-direvn](https://github.com/nix-community/nix-direnv)
+5. In root project folder, run direnv allow
+6. In the `frontend` folder, run direnv allow
 
 ## Stertup each time
 
