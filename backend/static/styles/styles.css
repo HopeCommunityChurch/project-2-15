@@ -1037,7 +1037,7 @@ h4 {
   justify-content: center;
   align-items: center;
   display: flex;
-  background: url("/htmx/static/img/background-blue-circles.png") 50% / cover
+  background: url("/static/img/background-blue-circles.png") 50% / cover
       no-repeat,
     linear-gradient(135deg, #0d7ae7 0%, #1fa5ff 58%);
   width: 100%;
