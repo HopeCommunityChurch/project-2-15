@@ -29,7 +29,6 @@ common buildDepends
     servant-server,
 
 
-
   default-extensions:
     OverloadedStrings,
     FlexibleInstances,
@@ -125,8 +124,7 @@ library
     Altcha,
 
   build-depends:
-    HaskellNet,
-    HaskellNet-SSL,
+    smtp-mail,
     QuickCheck,
     quickcheck-instances,
     bytestring,

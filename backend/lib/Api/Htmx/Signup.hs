@@ -138,7 +138,8 @@ signup = do
     userId <- lift $ User.createUser newUser
     lift $ Mail.sendMail (Emails.Welcome.mail newUser.email)
     let url = case mRedirect of
-                Just re -> re
+                Just re ->
+                  if re == "" then baseUrl <> "/studies" else re
                 Nothing  -> baseUrl <> "/studies"
     setHeader "HX-Redirect" url
     cookie <- lift $ setCookie' userId
