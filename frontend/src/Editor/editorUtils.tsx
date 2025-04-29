@@ -173,7 +173,7 @@ export let addVerse = (
         posOfSectionHeader !== null
       ) {
         const newHeader = textSchema.text(verseRef);
-        headerDiff = newHeader.nodeSize - sectionHeaderSize;
+        headerDiff = newHeader.nodeSize - sectionHeaderSize + 1;
         tr = tr.replaceWith(posOfSectionHeader, posOfSectionHeader + sectionHeaderSize, newHeader);
       }
 
