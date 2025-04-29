@@ -62,7 +62,7 @@ sendMail m = do
     case authResult of
       Nothing -> liftIO $ Smtp.renderAndSend conn m
       Just (replyCode, bs) -> do
-        if replyCode == 0 then
+        if replyCode == 235 then
           liftIO $ Smtp.renderAndSend conn m
         else do
           logInfo $ "Auth Failed with code: " <> show replyCode
