@@ -86,7 +86,7 @@ data Env = MkEnv
 instance Db.HasDbConn Env where
   dbConn = field' @"dbConn"
 
-secretToEnv :: MonadIO m => SecretsFile -> m Env
+secretToEnv :: (MonadIO m) => SecretsFile -> m Env
 secretToEnv MkSecretsFile{db, env, port, esvToken, smtp, url, altchaKey} = do
   dbConn <- liftIO $ Db.createPool (dbToConnectInfo db)
   let esvEnv = Api.Bible.MkESVEnv (encodeUtf8 esvToken)
@@ -99,7 +99,7 @@ secretToEnv MkSecretsFile{db, env, port, esvToken, smtp, url, altchaKey} = do
               Dev "local" -> Mail.NoSSL
               _ -> Mail.NoSSL
               -- _ -> Mail.StartTsl
-  let smtp2 = Mail.MkSmtp smtp.host smtp.port auth ssl
+  let smtp2 = Mail.MkSmtp smtp.host (fromIntegral smtp.port) auth ssl
   subs <- WS.mkSubs
   pure $ MkEnv env port dbConn esvEnv smtp2 url subs (encodeUtf8 altchaKey)
 

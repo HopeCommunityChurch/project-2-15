@@ -178,10 +178,8 @@ h4 {
 
 
 
-#home-grid {
-}
-
-
+/* #home-grid {
+} */
 
 #footer {
   background-color: #fbfbfb;
@@ -637,8 +635,8 @@ h4 {
   margin-right: 10px;
 }
 
-#profileNav::backdrop {
-}
+/* #profileNav::backdrop {
+} */
 
 #profileNav {
   z-index: 1000;
@@ -1335,10 +1333,10 @@ img.ProseMirror-separator {
   margin-bottom: 23px;
 }
 
-.ProseMirror p {
-  /* margin: 0px; */
-  /* padding: 0px; */
-}
+/* .ProseMirror p {
+  margin: 0px;
+  padding: 0px;
+} */
 
 #mainEditorHolder {
   overflow-y: auto;
@@ -1396,7 +1394,7 @@ img.ProseMirror-separator {
     margin: 0px;
     white-space: pre-wrap;
     box-sizing: border-box;
-    // border: 1px solid #00f0;
+    /* border: 1px solid #00f0; */
     position: relative;
     .innerDiv {
       margin: 0px;
@@ -1529,7 +1527,7 @@ img.ProseMirror-separator {
 
   .questions .studyBlockHeaderDiv {
     user-select: none;
-    // pointer-events: none;
+    /* pointer-events: none; */
   }
 
   .questions h3 {
@@ -1689,7 +1687,7 @@ img.ProseMirror-separator {
     grid-area: q;
     font-weight: 500;
     background-color: #ddeafc8c;
-    // color: #0057d1;
+    /*  color: #0057d1; */
     padding: 1px 6px;
     border-radius: 5px;
     height: fit-content;
@@ -1781,7 +1779,7 @@ img.ProseMirror-separator {
 
   .bibleTextPlaceholder {
     user-select: none;
-    // pointer-events: none;
+    /* pointer-events: none; */
     color: rgb(145, 164, 177);
     margin-top: 5px;
 
@@ -1795,7 +1793,7 @@ img.ProseMirror-separator {
 
   .noQuestionsText {
     user-select: none;
-    // pointer-events: none;
+    /* pointer-events: none; */
     color: rgb(145, 164, 177);
 
     img {
