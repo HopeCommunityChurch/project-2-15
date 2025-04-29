@@ -13,7 +13,7 @@ createChallenge
   => m Altcha.Challenge
 createChallenge = do
   key <- asks (.altchaKey)
-  liftIO $ Altcha.createChallenge key 100_000 False
+  liftIO $ Altcha.createChallenge key 20_000 False
 
 
 type Api =
