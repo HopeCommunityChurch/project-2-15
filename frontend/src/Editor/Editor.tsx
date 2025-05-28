@@ -1428,6 +1428,11 @@ export class P215Editor {
         questionHighlightPlugin,
         otherCursorPlugin,
         hideOnlyOneBibleTextPlugin,
+        keymap({
+          Tab: (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+            return true;
+          }
+        })
         // referencePlugin,
       ],
     });
