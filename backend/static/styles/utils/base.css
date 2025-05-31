@@ -1,0 +1,166 @@
+@import url("./button.css");
+@import url("./checkbox.css");
+@import url("./input.css");
+
+body {
+  position: relative;
+  font-size: 15px;
+  margin: 0px;
+}
+
+* {
+  font-family: Poppins, sans-serif;
+}
+
+:root {
+  --red-100: #ff0404;
+  --red-75: #ff3737;
+  --red-50: #f99;
+  --red-25: #ffdcdc;
+  --blue-100: #0057d1;
+  --blue-75: #4181dc;
+  --blue-50: #9fc5ff;
+  --blue-25: #eef5ff;
+  --indent1: rgba(102, 150, 217, 0.5);
+  --indent2: rgba(78, 177, 104, 0.5);
+  --indent3: rgba(87, 84, 100, 0.5);
+  --indent4: rgba(252, 189, 11, 0.5);
+  --indent5: rgba(240, 105, 55, 0.5);
+}
+
+h1 {
+  font-size: clamp(2.5rem, 6vw + 1rem, 4rem);
+  margin: 0px;
+}
+
+h2 {
+  margin: 0px;
+}
+
+h3 {
+  font-size: 1.8em;
+  font-weight: bold;
+  margin: 0px;
+}
+
+h4 {
+  margin: 0px;
+}
+
+.table3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  header {
+    font-weight: 900;
+  }
+  & > .row {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+    grid-column: span 3;
+  }
+  & > a {
+    text-decoration: none;
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+    grid-column: span 3;
+  }
+}
+
+@media screen and (min-width: 765px) {
+  .mobileShow {
+    display: none !important;
+  }
+}
+
+@media screen and (max-width: 765px) {
+  .mobileHidden {
+    display: none !important;
+  }
+}
+
+.buttonContainer img {
+  width: 20px;
+  padding-left: 10px;
+}
+
+.errorText {
+  color: red;
+}
+
+#confirmDelete {
+  background-color: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 520px;
+  min-height: 10px;
+  padding: 20px;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px #0000001a;
+  border: none;
+  div {
+    gap: 10px;
+    display: flex;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+dialog.popup {
+  border: none;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 6px #0000001a;
+  z-index: 1;
+}
+
+
+/* .ProseMirror p {
+  margin: 0px;
+  padding: 0px;
+} */
+
+#mainEditorHolder {
+  overflow-y: auto;
+  align-self: stretch;
+  justify-self: stretch;
+}
+
+
+#addScripturePopup {
+  max-width: 70%;
+  #previewScripture {
+    display: none;
+  }
+
+  .verseNum {
+    font-size: x-small;
+    vertical-align: super;
+    padding-right: 3px;
+    color: grey;
+  }
+}
+
+
+
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
+

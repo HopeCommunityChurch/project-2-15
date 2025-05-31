@@ -1,0 +1,151 @@
+#header {
+  box-sizing: border-box;
+  z-index: 15;
+  background-color: #fff;
+  align-items: center;
+  width: 100%;
+  height: 52px;
+  padding: 0 20px;
+  display: flex;
+  position: sticky;
+  box-shadow: 0 2px 4px #0003;
+  top: 0px;
+  .logo {
+    max-height: 40px;
+  }
+
+  .menu {
+    margin-left: auto;
+    list-style: none;
+    display: flex;
+
+    li {
+      margin-left: 20px;
+      display: flex;
+      a {
+        color: #000;
+        text-decoration: none;
+        margin: auto;
+      }
+    }
+  }
+
+  .buttons {
+    a {
+      text-decoration: none;
+    }
+    button {
+      margin-left: 15px;
+    }
+  }
+
+  .hamburger {
+    cursor: pointer;
+    margin-left: auto;
+    padding-left: 10px;
+    transform: scale(.6);
+    @media screen and (min-width: 765px) {
+      display: none;
+    }
+  }
+
+  .profileButton {
+    color: #333;
+    cursor: pointer;
+    background-color: #eee;
+    border-radius: 50%;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    margin-left: 16px;
+    display: flex;
+    position: relative;
+  }
+
+  #studyName {
+    margin-left: 10px;
+    padding: 0px 4px;
+    box-sizing: border-box;
+  }
+
+  .divider {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .saveThing {
+    color: gray;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    display: flex;
+
+    img {
+      color: gray;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      display: flex;
+      opacity: .5;
+      width: 15px;
+      margin-left: 5px;
+    }
+  }
+
+  .notSaving #saving {
+    display: none;
+  }
+
+  .saving {
+    #saving {
+      display: flex;
+    }
+    #saved {
+      display: none;
+    }
+  }
+
+  #saving {
+    img {
+      animation: rotateClockwise 1.5s linear infinite;
+    }
+  }
+
+}
+
+@keyframes rotateClockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#mobileNav {
+  z-index: 1000;
+  margin-right: 0px;
+  position: fixed;
+  background-color: #fff;
+  border-radius: 10px;
+  border:none;
+  box-shadow: 0 2px 4px #0003;
+  margin-top: 50px;
+}
+
+#mobileNav menu {
+  flex-direction: column;
+  padding: 10px 40px 0;
+  list-style: none;
+  display: flex;
+}
+
+#mobileNav menu li {
+  padding-bottom: 20px;
+}
+
+#mobileNav menu li a {
+  color: #000;
+  text-decoration: none;
+}

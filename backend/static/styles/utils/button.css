@@ -1,0 +1,58 @@
+button {
+  cursor: pointer;
+  vertical-align: middle;
+  font-size: inherit;
+  border: 0;
+  outline: none;
+  font-family: inherit;
+  text-decoration: none;
+  display: inline-block;
+  position: relative;
+  border-radius: 5px;
+  padding: 5px 13px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color .3s;
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+button.lightBlue {
+  color: var(--blue-100);
+  background-color: var(--blue-25);
+  border: 2px solid var(--blue-50);
+  &:hover {
+    background-color: var(--blue-50);
+  }
+  &:disabled {
+    border: 2px solid var(--red-50);
+  }
+}
+
+button.blue {
+  color: white;
+  background-color: var(--blue-100);
+  &:hover {
+    background-color: var(--blue-75);
+  }
+  &:disabled:hover {
+    background-color: var(--blue-75);
+  }
+  &:disabled {
+    background-color: var(--blue-75);
+    border: 2px solid var(--red-50);
+  }
+}
+
+button.red {
+  color: white;
+  background-color: var(--red-100);
+  &:hover {
+    background-color: var(--red-75);
+  }
+  &:disabled {
+    background-color: var(--red-25);
+    cursor: not-allowed;
+  }
+}

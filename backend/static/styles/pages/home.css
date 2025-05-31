@@ -1,0 +1,49 @@
+@import url("../utils/base.css");
+
+#homeContent {
+  margin-top: 30px;
+  .section1 {
+    grid-gap: 20px;
+    grid-template-columns: 4fr 3fr;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 50px;
+    display: grid;
+    @media screen and (max-width: 1350px) {
+      grid-template-columns: 1fr;
+      max-width: 800px;
+      padding: 0 25px;
+    }
+
+    .leftText {
+      h1 {
+        margin-bottom: 0;
+        font-weight: 600;
+      }
+      .description {
+        font-size: 1.35em;
+      }
+      .blueRoundedContainer {
+        color: #fff;
+        background: linear-gradient(40deg, #0057d1 0% 56%, #7ca8e7 100%);
+        border-bottom-right-radius: 25px;
+        border-bottom-left-radius: 25px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 30px;
+        display: flex;
+      }
+    }
+
+    .rightImage {
+      align-self: center;
+      @media screen and (max-width: 1350px) {
+        display: none;
+      }
+      img {
+        max-width: 100%;
+      }
+    }
+
+  }
+}
