@@ -1,0 +1,56 @@
+#newStudy {
+  background-color: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 700px;
+  min-height: 50vh;
+  max-height: 93vh;
+  padding: 20px;
+  overflow-y: scroll;
+  box-shadow: 0 4px 6px #0000001a;
+  position: relative;
+  border: none;
+  input {
+    padding: 12px;
+  }
+}
+
+#newStudy h3 {
+  margin-top: 0;
+  padding-right: 40px;
+}
+
+#newStudy .closeModalIcon {
+  cursor: pointer;
+  max-width: 20px;
+  padding: 10px;
+  position: absolute;
+  top: 20px;
+  right: 10px;
+}
+
+#newStudy label {
+  color: #666;
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+#newStudy form {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+}
+
+#newStudy .fieldDescription {
+  color: #aaa;
+  margin-top: -7px;
+  font-size: 14px;
+}
+
+#newStudy form:invalid button[type="submit"] {
+  opacity: .5;
+  cursor: not-allowed !important;
+}
+
