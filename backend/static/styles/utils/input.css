@@ -1,0 +1,17 @@
+input[type="email"],
+input[type="text"],
+input[type="input"],
+input[type="password"] {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  padding: 0px 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+input:user-invalid {
+  border: 1px solid red;
+  box-shadow: 0px 0px 1px red;
+}
+
