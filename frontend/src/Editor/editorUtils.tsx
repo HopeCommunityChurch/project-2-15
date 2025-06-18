@@ -247,12 +247,13 @@ export const increaseLevel = (state: EditorState, dispatch?: (tr: Transaction) =
   });
   if (toTransform.length == 0) return false;
   let type = textSchema.nodes.chunk;
-  if (dispatch)
+  if (dispatch) {
     dispatch(
       toTransform.reduce((pre, { pos, node }) => {
         return pre.setNodeMarkup(pos, type, { level: node.attrs.level + 1 }, null);
       }, state.tr)
     );
+  }
   return true;
 };
 
