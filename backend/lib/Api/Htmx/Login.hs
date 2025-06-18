@@ -81,7 +81,6 @@ login = do
   email <- formParam "email"
   password <- formParam "password"
   mRedirect <- L.lookup "redirect" <$> formParams
-  let mRedirect' = fmap toStrict mRedirect
   mHash <- lift $ getPasswordHash email
   case mHash of
     Just (userId, hash) -> do
@@ -94,14 +93,14 @@ login = do
                           else re
                       Nothing  -> baseUrl <> "/studies"
           logDebugSH url
-          setHeader "HX-Redirect" url
+          setHeader "HX-Redirect" (toLazy url)
           cookie <- lift $ setCookie' userId
           let cookieTxt = toLazy (decodeUtf8 (Cookie.renderSetCookieBS cookie))
           setHeader "Set-Cookie" cookieTxt
           status status200
 
-        else loginForm mRedirect' email password
-    _ -> loginForm mRedirect' email password
+        else loginForm mRedirect email password
+    _ -> loginForm mRedirect email password
 
 
 signout

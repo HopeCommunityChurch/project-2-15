@@ -36,7 +36,6 @@ module Prelude
   , List
   , getCurrentTime
   , unwrap
-  , filter
   )where
 
 

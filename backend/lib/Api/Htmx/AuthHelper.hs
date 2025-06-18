@@ -4,17 +4,18 @@ module Api.Htmx.AuthHelper (
   Auth.AuthUser(..),
 ) where
 
-import Prelude hiding ((**))
-import Web.Scotty.Trans hiding (scottyT)
 import Api.Auth qualified as Auth
-import Types qualified as T
-import DbHelper (MonadDb)
-import Web.Cookie qualified as Cookie
-import Data.List qualified as List
 import Api.Htmx.Ginger (baseUrl)
+import Data.List qualified as List
+import DbHelper (MonadDb)
 import Network.HTTP.Types (urlEncode)
 import Network.HTTP.Types.Status (status204, status302)
 import Network.Wai qualified as Wai
+import Types qualified as T
+import Web.Cookie qualified as Cookie
+import Web.Scotty.Trans hiding (scottyT)
+import Web.Scotty.Trans qualified as Scotty
+import Prelude hiding ((**))
 
 
 
@@ -49,10 +50,12 @@ getUserWithRedirect = do
           Just currentUrl <- header "HX-Current-Url"
           let currentUrlEncoded = urlEncode True (encodeUtf8 currentUrl)
           setHeader "HX-Redirect" (url <> "?redirect=" <> decodeUtf8 currentUrlEncoded)
-          raiseStatus status204 "redirect"
+          Scotty.status status204
+          Scotty.finish
         else do
           req <- request
           let path = baseUrl <> Wai.rawPathInfo req <> Wai.rawQueryString req
           let pathEncoded = urlEncode True path
           setHeader "Location" (url <> "?redirect=" <> decodeUtf8 pathEncoded)
-          raiseStatus status302 "redirect"
+          Scotty.status status302
+          Scotty.finish

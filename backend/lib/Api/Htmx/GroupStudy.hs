@@ -22,7 +22,6 @@ import Mail qualified
 import Network.HTTP.Types.Status (status200)
 import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
-import Web.Scotty.Trans qualified as Scotty
 import Prelude hiding ((**))
 
 
@@ -273,10 +272,10 @@ parseFormBody :: [Param] -> [Shares.ShareUnit]
 parseFormBody form =
   let permissions = form
                     & filter (\ (key, _) -> key == "permission[]")
-                    & fmap (textToPermission . toStrict . snd)
+                    & fmap (textToPermission . snd)
       emails = form
                 & filter (\ (key, _) -> key == "email[]")
-                & fmap (mkEmail . toStrict . snd)
+                & fmap (mkEmail . snd)
   in zip emails permissions
               & mapMaybe (\case
                     (Right email, Just per) -> Just (email, per)
@@ -296,7 +295,7 @@ createGroupStudy
   => AuthUser
   -> ActionT m ()
 createGroupStudy user = do
-  docId <- formParam @T.DocId "documentId"
+  (docId :: T.DocId) <- formParam "documentId"
   doc <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
   groupName <- formParam "name"
   form <- formParams
@@ -510,7 +509,7 @@ getInvite
      )
   => AuthUser
   -> ActionT m ()
-getInvite user = do
+getInvite _ = do
   groupId <- captureParam "groupId"
   html =<< L.renderTextT (getInviteNewMemberHTML groupId)
 

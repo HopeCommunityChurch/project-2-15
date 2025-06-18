@@ -24,15 +24,14 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1,
-        "narHash": "sha256-IUkM37fOIoea+ZVJ/YlLN7phhtn7BfUIzEyqCC8WJnY=",
         "path": "../../backend/",
         "type": "path"
       },
       "original": {
         "path": "../../backend/",
         "type": "path"
-      }
+      },
+      "parent": []
     },
     "crane": {
       "flake": false,
@@ -208,15 +207,14 @@
         "dream2nix": "dream2nix"
       },
       "locked": {
-        "lastModified": 1,
-        "narHash": "sha256-ZPJorAhS1brC7FM0vlEyWj8QlI1L9waxoAd9Y9zx62M=",
         "path": "../../frontend/",
         "type": "path"
       },
       "original": {
         "path": "../../frontend/",
         "type": "path"
-      }
+      },
+      "parent": []
     },
     "ghc-utils": {
       "flake": false,
@@ -376,16 +374,16 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1748448571,
-        "narHash": "sha256-DrexU9CkrA+VlVsXB6wyq1mbyJULozXtU5Y8KCB5HP8=",
+        "lastModified": 1750210419,
+        "narHash": "sha256-T/sSkvIW3g0J6I4cGfYmjSgc+RlMER0GEGjHAdjbsZM=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "0b2a973a7823f9a3c7f04db62d95cd3950a53364",
+        "rev": "77963de55ce8eb654004e5e2ba02103e560d0041",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
-        "ref": "release-24.11",
+        "ref": "release-25.05",
         "repo": "nixpkgs",
         "type": "github"
       }
