@@ -134,7 +134,7 @@
     </header>
     {% for study in studies %}
       <a href="{{base}}/study/{{study.docId}}">
-        <div>
+        <div style="view-transition-name: study-{{study.docId}}">
           {{study.name}}
         </div>
         <div
