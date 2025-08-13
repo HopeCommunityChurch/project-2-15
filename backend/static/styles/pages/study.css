@@ -73,6 +73,12 @@
     .container {
       position: sticky;
       top: 6rem;
+      display: grid;
+      grid-template-rows: 2.2rem 1fr 2.2rem;
+      height: calc(100vh - 6rem);
+    }
+    #collapseSide {
+      display: flex;
     }
     #collapseSide {
       margin-left: 7px;
@@ -84,7 +90,11 @@
       box-sizing: border-box;
       text-overflow: ellipsis;
       color: #757575;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: scroll;
+      mask-image: linear-gradient(180deg, #000 95%, transparent);
+      padding-bottom: 2rem;
+
 
       .moving {
         opacity: 0.5;
@@ -143,7 +153,6 @@
     }
     #bottom {
       display: grid;
-      padding: 20px;
     }
   }
 }

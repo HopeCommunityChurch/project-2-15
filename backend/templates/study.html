@@ -133,7 +133,7 @@
 <body id="studyPage">
 
   <header id="header">
-    <a class="logo" href="{{base}}/">
+    <a class="logo" href="/home">
       <img class="logo" src="{{base}}/static/img/p215-circle.svg" >
     </a>
     <p id="studyName" contenteditable style="view-transition-name: study-{{doc.docId}}">
@@ -328,9 +328,11 @@
 
   <div id="leftSidebar">
     <div class="container">
-      <button id="collapseSide" onclick="collapseSide()">
-        <img src="{{base}}/static/img/arrow2.svg" >
-      </button>
+      <div>
+        <button id="collapseSide" onclick="collapseSide()">
+          <img src="{{base}}/static/img/arrow2.svg" >
+        </button>
+      </div>
       <div id="sectionContainer" >
       </div>
       <div id="bottom">

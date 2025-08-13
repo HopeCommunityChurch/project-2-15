@@ -211,6 +211,12 @@ scottyServer = do
         Nothing -> Home.getHome
         Just user -> Studies.getStudies user
 
+    Scotty.get "/home" $ do
+      mUser <- getUser
+      case mUser of
+        Nothing -> Home.getHome
+        Just user -> Studies.getStudies user
+
     Scotty.get "/api/bible/esv" $ do
       user <- getUserWithRedirect
       q <- Scotty.queryParam "q"
