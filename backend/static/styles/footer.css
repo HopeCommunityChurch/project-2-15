@@ -1,0 +1,33 @@
+#footer {
+  background-color: #fbfbfb;
+  margin-top: 70px;
+  padding: 40px 0;
+  menu {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 0;
+    font-size: 18px;
+    line-height: 1.6;
+    list-style: none;
+    li {
+      padding: 0 15px;
+      display: inline-block;
+
+      a {
+        color: inherit;
+        opacity: .8;
+        text-decoration: none;
+      }
+    }
+  }
+
+  .copyright {
+    text-align: center;
+    color: #aaa;
+    margin-top: 15px;
+    font-size: 13px;
+  }
+
+}
+

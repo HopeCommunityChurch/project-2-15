@@ -60,7 +60,7 @@ toListOfFeatures :: [Param] -> [T.Feature]
 toListOfFeatures =
   L.nub
   . fmap (\ (name, _) ->
-    view T.featureIso (toStrict name)
+    view T.featureIso name
   )
 
 

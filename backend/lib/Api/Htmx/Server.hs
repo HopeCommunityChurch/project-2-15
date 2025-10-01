@@ -31,7 +31,6 @@ import Network.Wai.Middleware.Static (
   unsafeStaticPolicyWithOptions,
  )
 import Network.Wai.Middleware.Static qualified as Static
-import UnliftIO.Concurrent (threadDelay)
 import Web.Scotty.Internal.Types qualified as Scotty
 import Web.Scotty.Trans qualified as Scotty
 import Data.Typeable (cast)
@@ -94,7 +93,7 @@ scottyServer = do
       case cast e of
         Just (Scotty.StatusError status txt) -> do
           Scotty.status status
-          Scotty.text txt
+          Scotty.text (toLazy txt)
         Nothing ->
           case cast e of
             Just (_ :: Scotty.ActionError) ->
@@ -116,8 +115,8 @@ scottyServer = do
                           then baseUrl <> "/studies"
                           else re
                       Nothing  -> baseUrl <> "/studies"
-          Scotty.setHeader "Location" url
-          Scotty.raiseStatus status302 "redirect"
+          Scotty.setHeader "Location" (toLazy url)
+          Scotty.status status302
     Scotty.post "/login" Login.login
     Scotty.get "/signout" Login.signout
 
@@ -128,8 +127,8 @@ scottyServer = do
         Just _ -> do
           logInfo "signed in redirecting"
           let url = baseUrl <> "/studies"
-          Scotty.setHeader "Location" (url)
-          Scotty.raiseStatus status302 "redirect"
+          Scotty.setHeader "Location" url
+          Scotty.status status302
     Scotty.post "/signup" Signup.signup
 
     Scotty.get "/resetpassword" $ do
@@ -207,6 +206,12 @@ scottyServer = do
       Profile.postFeatures user
 
     Scotty.get "/" $ do
+      mUser <- getUser
+      case mUser of
+        Nothing -> Home.getHome
+        Just user -> Studies.getStudies user
+
+    Scotty.get "/home" $ do
       mUser <- getUser
       case mUser of
         Nothing -> Home.getHome

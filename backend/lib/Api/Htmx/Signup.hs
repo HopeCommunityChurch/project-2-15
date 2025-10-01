@@ -141,7 +141,7 @@ signup = do
                 Just re ->
                   if re == "" then baseUrl <> "/studies" else re
                 Nothing  -> baseUrl <> "/studies"
-    setHeader "HX-Redirect" url
+    setHeader "HX-Redirect" (toLazy url)
     cookie <- lift $ setCookie' userId
     let cookieTxt = toLazy (decodeUtf8 (Cookie.renderSetCookieBS cookie))
     setHeader "Set-Cookie" cookieTxt
@@ -157,4 +157,4 @@ signup = do
                   password
                   password2
                   verified
-    signupForm (fmap toStrict mRedirect) errors
+    signupForm mRedirect errors

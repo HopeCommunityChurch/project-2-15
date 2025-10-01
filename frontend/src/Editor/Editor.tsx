@@ -1272,6 +1272,12 @@ export class P215Editor extends EventTarget {
         questionHighlightPlugin,
         otherCursorPlugin,
         hideOnlyOneBibleTextPlugin,
+        keymap({
+          Tab: (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+            return true;
+          }
+        })
+        // referencePlugin,
       ],
     });
   }

@@ -11,7 +11,8 @@
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <!-- <script src="/static/scripts/htmx.js"></script> -->
 
-  <link rel="stylesheet" href="{{base}}/static/styles/styles.css">
+  <link rel="stylesheet" href="{{base}}/static/styles/pages/study.css">
+  <link rel="stylesheet" href="{{base}}/static/styles/header.css">
   <script src="{{base}}/static/scripts/option.js"></script>
   <script src="{{base}}/static/scripts/dialog.js"></script>
   <script src="{{base}}/static/scripts/studyGroup.js"></script>
@@ -132,10 +133,10 @@
 <body id="studyPage">
 
   <header id="header">
-    <a class="logo" href="{{base}}/">
+    <a class="logo" href="/home">
       <img class="logo" src="{{base}}/static/img/p215-circle.svg" >
     </a>
-    <p id="studyName" contenteditable>
+    <p id="studyName" contenteditable style="view-transition-name: study-{{doc.docId}}">
       {{doc.name}}
     </p>
     <p class="divider">|</p>
@@ -330,9 +331,11 @@
 
   <div id="leftSidebar">
     <div class="container">
-      <button id="collapseSide" onclick="collapseSide()">
-        <img src="{{base}}/static/img/arrow2.svg" >
-      </button>
+      <div>
+        <button id="collapseSide" onclick="collapseSide()">
+          <img src="{{base}}/static/img/arrow2.svg" >
+        </button>
+      </div>
       <div id="sectionContainer" >
       </div>
       <div id="bottom">

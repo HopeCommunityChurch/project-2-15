@@ -1,0 +1,159 @@
+@import url("../utils/base.css");
+
+@import url("../component/groupstudy.css");
+@import url("../header.css");
+@import url("../editor/editor.css");
+@import url("../editor/toolbar.css");
+@import url("../component/nav.css");
+
+#studyPage {
+  display: grid;
+  height: 100vh;
+  grid-template-areas: "header header" "toolbar toolbar" "sidebar editor";
+  grid-template-columns: 200px 1fr;
+  grid-template-rows: 52px 34px 1fr;
+  overflow: hidden;
+
+  &.collapseSide{
+    grid-template-columns: 60px 1fr;
+    #collapseSide img{
+      transform: rotate(180deg);
+    }
+
+    #sectionContainer {
+      display: none !important;
+    }
+    #bottom {
+      display: none !important;
+    }
+  }
+
+  &.collapseSide.split {
+    grid-template-columns: 60px 1fr 1fr;
+  }
+  &.split {
+    grid-template-areas:
+      "header header header"
+      "toolbar toolbar toolbar"
+      "sidebar editor sidebyside";
+    grid-template-columns: 200px 1fr 1fr;
+    grid-column-gap: 5px;
+    #splitside {
+      display: block;
+    }
+  }
+
+  #header {
+    grid-area: header;
+    width: 100%;
+  }
+  #editorToolbar {
+    grid-area: toolbar;
+  }
+
+
+  #splitside {
+    overflow-y: auto;
+    align-self: stretch;
+    justify-self: stretch;
+    display: none;
+    position: relative;
+    #splitPicker {
+      position: sticky;
+      top: 10px;
+      left: 10px;
+      z-index: 100;
+    }
+    #sideBySideEditor {
+      margin-top: -30px;
+    }
+  }
+
+  #leftSidebar {
+    .container {
+      position: sticky;
+      top: 6rem;
+      display: grid;
+      grid-template-rows: 2.2rem 1fr 2.2rem;
+      height: calc(100vh - 6rem);
+    }
+    #collapseSide {
+      display: flex;
+    }
+    #collapseSide {
+      margin-left: 7px;
+      img {
+        transition: transform 0.3s;
+      }
+    }
+    #sectionContainer {
+      box-sizing: border-box;
+      text-overflow: ellipsis;
+      color: #757575;
+      overflow-x: hidden;
+      overflow-y: scroll;
+      mask-image: linear-gradient(180deg, #000 95%, transparent);
+      padding-bottom: 2rem;
+
+
+      .moving {
+        opacity: 0.5;
+        background-color: #e9e9e9;
+        transform: scale(1.1);
+        transition: transform 0.2s cubic-bezier(.6,1.36,0,1.99);
+      }
+
+      .swipeOpen {
+        transition: transform 0.2s ease;
+        transform: translateX(-73px);
+      }
+
+      .section {
+        padding: 5px 20px;
+        user-select: none;
+        cursor: pointer;
+        position: relative;
+        text-wrap: nowrap;
+
+        @media (hover: hover) {
+          &:hover {
+            background-color: #e9e9e9;
+            .remove {
+              display: block;
+            }
+          }
+        }
+
+        .remove {
+          position: absolute;
+          top: 0.3em;
+          right: 0px;
+          display: none;
+          width: 30px;
+          text-align: center;
+          background-color: #e9e9e9;
+
+          &:hover {
+            color: #303030;
+          }
+        }
+
+        .deleter {
+          position: absolute;
+          background-color: red;
+          top: 0px;
+          right: 0px;
+          padding: 5px 6px;
+          transform: translateX(100%);
+          width: 300px;
+          color: white;
+        }
+      }
+
+    }
+    #bottom {
+      display: grid;
+    }
+  }
+}
+

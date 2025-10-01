@@ -1,8 +1,8 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/release-25.05";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    haskell-flake.url = "github:srid/haskell-flake?ref=0.5.0";
+    haskell-flake.url = "github:srid/haskell-flake";
 
   };
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
@@ -20,6 +20,11 @@
           # By default, this is pkgs.haskellPackages.
           # You may also create your own. See https://haskell.flake.page/package-set
           basePackages = pkgs.haskellPackages;
+
+          packages = {
+            beam-postgres.source = "0.5.4.1";
+          };
+
 
           # Extra package information. See https://haskell.flake.page/dependency
           #
