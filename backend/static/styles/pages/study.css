@@ -183,7 +183,7 @@
       }
       .studyBlock {
         transform-origin: left;
-        font-size: 2em;
+        font-size: 1.5em;
         user-select: none;
         cursor: move;
         padding: 2px;
