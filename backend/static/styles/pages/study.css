@@ -132,6 +132,9 @@
           width: 30px;
           text-align: center;
           background-color: #e9e9e9;
+          img {
+            height: 50%;
+          }
 
           &:hover {
             color: #303030;
@@ -187,6 +190,15 @@
         user-select: none;
         cursor: move;
         padding: 2px;
+        grid-template-columns: 1fr 30px;
+        display: grid;
+        .remove {
+          color: rgb(117, 117, 117);
+          cursor: pointer;
+          &:hover {
+            color: rgb(48, 48, 48);
+          }
+        }
       }
       .studyBlock {
         &:hover {

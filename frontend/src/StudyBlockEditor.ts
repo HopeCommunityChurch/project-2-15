@@ -15,7 +15,7 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
     container.innerHTML = "";
     window.toggleModal("#studyBlockEditor");
     const studyBlocks = ev.studyBlocks;
-    currentStudyBlock = ev
+    currentStudyBlock = ev;
 
     studyBlocks.forEach( ({node}, index) => {
       const div = document.createElement("div");
@@ -91,7 +91,20 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
           return false;
         })
       }
-      div.innerHTML = name;
+      const div2 = document.createElement("div");
+      div2.innerText = name;
+      div.appendChild(div2);
+
+      if (name != "Questions") {
+        const remove = document.createElement("div");
+        remove.innerHTML = "х";
+        remove.className = "remove"
+        remove.addEventListener("click", (e) => {
+          container.removeChild(div);
+        });
+        div.appendChild(remove);
+      }
+
       container.appendChild(div);
     });
   });
