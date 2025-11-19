@@ -1258,7 +1258,6 @@ export class P215Editor extends EventTarget {
           "Shift-Tab": decreaseLevel,
           "Mod-[": decreaseLevel,
           "Mod-e": this.addQuestionCommand,
-          "Mod-s": addGeneralStudyBlock,
           "Mod-b": toggleMark(textSchema.marks.strong),
           "Mod-i": toggleMark(textSchema.marks.em),
           "Mod-u": toggleMark(textSchema.marks.underline),
