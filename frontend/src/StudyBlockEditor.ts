@@ -95,7 +95,7 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
       div2.innerText = name;
       div.appendChild(div2);
 
-      if (name != "Questions") {
+      if (node.type.name != "questions") {
         const remove = document.createElement("div");
         remove.innerHTML = "х";
         remove.className = "remove"
@@ -113,11 +113,13 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
     const container = document.getElementById("studyBlockEditorContent");
     if (currentStudyBlock === null) return;
     let newPosistions = [];
-    container.querySelectorAll("*").forEach( (child) => {
+    const children = container.children
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
       const currentIndex = Number(child.getAttribute("currentIndex"));
       const originalIndex = Number(child.getAttribute("originalIndex"));
       newPosistions[currentIndex] = currentStudyBlock.studyBlocks[originalIndex].node;
-    });
+    }
     editor.applyDispatch(EditorUtil.reorderStudyBlock(
       currentStudyBlock.studyBlockPos,
       newPosistions

@@ -410,7 +410,6 @@ export const reorderStudyBlock = (
 ) => {
   let sectionNode : Node = null;
   let sectionPos = null;
-  console.log(pos);
   state.doc.nodesBetween(pos, pos, (node, pos) => {
     if (node.type.name === "section") {
       sectionNode = node;
@@ -418,7 +417,6 @@ export const reorderStudyBlock = (
       return true;
     }
   });
-  console.log(sectionNode);
   if (sectionNode === null) {
     console.error("unable to get section for editing study block");
     return;
@@ -431,11 +429,9 @@ export const reorderStudyBlock = (
     }
     return false;
   });
-  console.log(studyBlockNode);
 
   let tr = state.tr;
   let delPos = studyBlockNode.pos + sectionPos;
-  console.log(delPos);
   tr.deleteRange(delPos+1, delPos + studyBlockNode.node.nodeSize-1);
 
   let currentPos = delPos + 1;
