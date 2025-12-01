@@ -77,7 +77,7 @@ scottyServer
   => m ()
 scottyServer = do
   caching <- liftIO $ initCaching $ CustomCaching $ \ f ->
-                [ ("Cache-Control", "no-transform,public,max-age=300,s-maxage=900")
+                [ ("Cache-Control", "no-transform,private,max-age=300,s-maxage=900,no-cache")
                 , ("ETag", f.fm_etag)
                 , ("Vary", "Accept-Encoding")
                 ]
