@@ -40,6 +40,7 @@ import {
   unhighlighQuestion,
 } from "./QuestionHighlightPlugin";
 import { otherCursorPlugin, setSelection } from "./OtherCursorPlugin";
+import { studyBlockArrowPlugin } from "./StudyBlockArrowPlugin";
 import {getRandomStr} from "../Util";
 
 // import CloseXIcon from "../Assets/x.svg";
@@ -1263,6 +1264,7 @@ export class P215Editor extends EventTarget {
           "Mod-i": toggleMark(textSchema.marks.em),
           "Mod-u": toggleMark(textSchema.marks.underline),
         }),
+        studyBlockArrowPlugin,
         keymap(baseKeymap),
         questionMarkPlugin(this.questionMap, (view) => this.currentEditor = view),
         sectionIdPlugin,
