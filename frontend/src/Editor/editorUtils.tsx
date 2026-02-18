@@ -402,16 +402,126 @@ export const deleteSection = (
   }
 }
 
-export const listBackspace = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
-  const sel = state.selection;
-  const $cursor = (sel as any).$cursor;
-  // Only fire when cursor is at the start of a text block
+// For non-first list items: if the current paragraph is empty, lift the item out of the list
+// (removes the bullet, keeps the line as a plain paragraph). If the paragraph has content,
+// merge it into the previous item's paragraph (standard join behavior).
+export const joinListItems = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
+  const $cursor = (state.selection as any).$cursor;
   if (!$cursor || $cursor.parentOffset !== 0) return false;
-  // Only fire when the cursor's parent block is directly inside a listItem
   const depth = $cursor.depth;
-  if (depth < 1) return false;
+  if (depth < 2) return false;
   if ($cursor.node(depth - 1).type !== state.schema.nodes.listItem) return false;
+  // Only handle non-first items — first items are handled by listBackspace
+  if ($cursor.index(depth - 2) === 0) return false;
+
+  // Empty paragraph: lift item out of the list (remove bullet, keep the line).
+  if ($cursor.parent.content.size === 0) {
+    return liftListItem(state.schema.nodes.listItem)(state, dispatch);
+  }
+
+  // Non-empty paragraph: merge into the previous item's paragraph.
+  // Only handle the simple case: prev listItem has exactly one child (a paragraph).
+  const list = $cursor.node(depth - 2);
+  const prevListItem = list.child($cursor.index(depth - 2) - 1);
+  if (prevListItem.childCount !== 1) return false;
+  if (prevListItem.firstChild!.type !== state.schema.nodes.paragraph) return false;
+
+  if (dispatch) {
+    // Delete the 4-token boundary: </prevPara> </prevListItem> <curListItem> <curPara>
+    // This merges the two list items' paragraphs into one paragraph in prevListItem.
+    const tr = state.tr.delete($cursor.pos - 4, $cursor.pos);
+    dispatch(tr.scrollIntoView());
+  }
+  return true;
+};
+
+// For first list items: lift the item out of the list (convert to plain paragraph).
+export const listBackspace = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
+  const $cursor = (state.selection as any).$cursor;
+  if (!$cursor || $cursor.parentOffset !== 0) return false;
+  const depth = $cursor.depth;
+  if (depth < 2) return false;
+  if ($cursor.node(depth - 1).type !== state.schema.nodes.listItem) return false;
+  // Only fire for the first item — non-first items handled by joinListItems
+  if ($cursor.index(depth - 2) !== 0) return false;
   return liftListItem(state.schema.nodes.listItem)(state, dispatch);
+};
+
+// For Delete key: merge the next list item's first paragraph into the current paragraph.
+// Handles two cases:
+//   A) cursor is at end of a listItem's paragraph, and there is a next sibling listItem
+//   B) cursor is at end of a non-list paragraph, and the next sibling node is a list
+export const deleteIntoList = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
+  const $cursor = (state.selection as any).$cursor;
+  if (!$cursor) return false;
+  if ($cursor.parentOffset !== $cursor.parent.content.size) return false;
+
+  const depth = $cursor.depth;
+  const listTypes = [state.schema.nodes.bulletList, state.schema.nodes.orderedList];
+  const curParaContentEnd = $cursor.pos;
+
+  // Case A: cursor is at end of a listItem's last child (paragraph), and there is a
+  // next sibling listItem in the same parent list. Merge next sibling's first paragraph.
+  if (depth >= 2 && $cursor.node(depth - 1).type === state.schema.nodes.listItem) {
+    const listItem = $cursor.node(depth - 1);
+    const paraIndexInItem = $cursor.index(depth - 1);
+
+    // Paragraph must be the last child of the listItem (nothing else to cross into)
+    if (paraIndexInItem === listItem.childCount - 1) {
+      const list = $cursor.node(depth - 2);
+      const listItemIndex = $cursor.index(depth - 2);
+
+      if (listItemIndex < list.childCount - 1) {
+        const nextListItem = list.child(listItemIndex + 1);
+        const nextFirstChild = nextListItem.firstChild;
+        if (nextFirstChild && nextFirstChild.type === state.schema.nodes.paragraph) {
+          const nextPara = nextFirstChild;
+          // Position right after the current listItem's closing token — where nextListItem starts.
+          const listItemAfter = $cursor.after(depth - 1);
+
+          if (dispatch) {
+            let tr = state.tr;
+            // Delete the entire next listItem (including any nested content it may contain).
+            tr = tr.delete(listItemAfter, listItemAfter + nextListItem.nodeSize);
+            // Insert next paragraph's content into the current paragraph.
+            tr = tr.insert(curParaContentEnd, nextPara.content);
+            // Keep cursor at its original position (not at end of inserted content).
+            tr = tr.setSelection(TextSelection.create(tr.doc, curParaContentEnd));
+            dispatch(tr.scrollIntoView());
+          }
+          return true;
+        }
+      }
+    }
+  }
+
+  // Case B: cursor at end of a paragraph whose next sibling is a list.
+  // Merge the first list item's paragraph content into the current paragraph.
+  const container = $cursor.node(depth - 1);
+  const indexInParent = $cursor.index(depth - 1);
+  if (indexInParent >= container.childCount - 1) return false;
+  const nextSibling = container.child(indexInParent + 1);
+  if (!listTypes.includes(nextSibling.type)) return false;
+  const firstItem = nextSibling.firstChild;
+  if (!firstItem || firstItem.type !== state.schema.nodes.listItem) return false;
+  const firstPara = firstItem.firstChild;
+  if (!firstPara || firstPara.type !== state.schema.nodes.paragraph) return false;
+
+  if (dispatch) {
+    let tr = state.tr;
+    if (nextSibling.childCount === 1) {
+      // Single-item list — remove the whole list node
+      tr = tr.delete(curParaContentEnd + 1, curParaContentEnd + 1 + nextSibling.nodeSize);
+    } else {
+      // Multi-item list — remove only firstItem (including any nested content it may contain)
+      tr = tr.delete(curParaContentEnd + 2, curParaContentEnd + 2 + firstItem.nodeSize);
+    }
+    tr = tr.insert(curParaContentEnd, firstPara.content);
+    // Keep cursor at its original position (not at end of inserted content).
+    tr = tr.setSelection(TextSelection.create(tr.doc, curParaContentEnd));
+    dispatch(tr.scrollIntoView());
+  }
+  return true;
 };
 
 // Handles the case where cursor is at the start of a paragraph that immediately follows a
@@ -436,6 +546,21 @@ export const joinAfterList = (state: EditorState, dispatch?: (tr: Transaction) =
 
   const lastItem = prevSibling.lastChild;
   if (!lastItem || lastItem.type !== state.schema.nodes.listItem) return false;
+
+  // If the current paragraph is empty, just delete it entirely (regardless of list nesting depth).
+  // Place cursor at the end of the previous line (last text position before the deleted paragraph).
+  if ($cursor.parent.content.size === 0) {
+    if (dispatch) {
+      const curParaStart = $cursor.before(depth);
+      const curParaEnd = $cursor.after(depth);
+      const tr = state.tr.delete(curParaStart, curParaEnd);
+      // curParaStart still exists in the new doc; search backward for nearest text position.
+      const sel = TextSelection.near(tr.doc.resolve(curParaStart), -1);
+      tr.setSelection(sel);
+      dispatch(tr.scrollIntoView());
+    }
+    return true;
+  }
 
   // Only handle the simple case: lastItem has exactly one child (a paragraph).
   // If there are nested lists, fall through to joinBackward.
@@ -502,4 +627,4 @@ export const makeListInputRules = (schema: any) =>
     ],
   });
 
-export { splitListItem } from "prosemirror-schema-list";
+export { splitListItem, sinkListItem, liftListItem } from "prosemirror-schema-list";
