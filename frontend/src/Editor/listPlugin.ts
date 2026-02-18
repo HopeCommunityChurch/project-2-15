@@ -39,21 +39,15 @@ function findAncestorList(state: EditorState): NodeType | null {
 }
 
 // ---------------------------------------------------------------------------
-// Sink (indent) — only the current item, not its nested children
+// Sink (indent) — only the current item, not its children
 // ---------------------------------------------------------------------------
 
-// Custom sink that, when the current list item has nested sub-lists,
-// only indents the current line's paragraph. The nested children are
-// placed as siblings of the sunk item in the new sub-list so they
-// maintain their visual indentation level.
-//
-// Example — cursor on "B", press Tab:
-//   Before:              After:
+// Standard sinkListItem moves children with the parent. This custom version
+// keeps children at their visual indentation level:
 //   - A                  - A
-//   - B        →           - B
+//   - B|       →           - B
 //     - C                  - C
 //       - D                  - D
-//
 const sinkCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
   const { $from } = state.selection;
   const schema = state.schema;
@@ -73,10 +67,9 @@ const sinkCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => voi
   const list = $from.node(liDepth - 1);
   const itemIndex = $from.index(liDepth - 1);
 
-  // Need a previous sibling to sink into
   if (itemIndex === 0) return false;
 
-  // No nested children — use standard sink
+  // No nested children — standard sinkListItem suffices
   if (listItem.childCount <= 1) {
     return pmSinkListItem(listItemType)(state, dispatch);
   }
@@ -87,9 +80,6 @@ const sinkCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => voi
   const listType = list.type;
   const para = listItem.firstChild!;
 
-  // Collect the nested sub-lists' items from the current item.
-  // These will become siblings of the sunk item in the new sub-list,
-  // preserving their visual indentation level.
   const siblingItems: any[] = [];
   for (let i = 1; i < listItem.childCount; i++) {
     const child = listItem.child(i);
@@ -103,8 +93,7 @@ const sinkCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => voi
   const sunkItem = listItemType.create(null, para);
   const newItems = [sunkItem, ...siblingItems];
 
-  // Build the new previous item. If it already has a trailing sub-list
-  // of the same type, merge into it instead of creating a second one.
+  // Merge into existing trailing sub-list if present, otherwise create one
   const prevChildren: any[] = [];
   for (let i = 0; i < prevItem.childCount; i++) {
     prevChildren.push(prevItem.child(i));
@@ -112,7 +101,6 @@ const sinkCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => voi
 
   const lastPrevChild = prevChildren.length > 0 ? prevChildren[prevChildren.length - 1] : null;
   if (lastPrevChild && lastPrevChild.type === listType) {
-    // Merge: append new items to the existing sub-list
     const existingItems: any[] = [];
     for (let i = 0; i < lastPrevChild.childCount; i++) {
       existingItems.push(lastPrevChild.child(i));
@@ -122,33 +110,28 @@ const sinkCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => voi
       Fragment.from([...existingItems, ...newItems])
     );
   } else {
-    // No existing sub-list — create a new one
     prevChildren.push(listType.create(null, newItems));
   }
 
   const newPrevItem = listItemType.create(prevItem.attrs, Fragment.from(prevChildren));
 
-  // Replace prevItem + currentItem with just newPrevItem
   const liStart = $from.before(liDepth);
   const liEnd = $from.after(liDepth);
   const prevItemStart = liStart - prevItem.nodeSize;
   const cursorOffset = $from.parentOffset;
 
-  // Compute where the sunk paragraph ends up inside newPrevItem.
-  // Walk through prevChildren to find the sub-list, then find sunkItem inside it.
-  let offsetInNewItem = 1; // enter <li>
+  // Walk newPrevItem to find the cursor position inside the sunk paragraph
+  let offsetInNewItem = 1;
   for (let i = 0; i < prevChildren.length - 1; i++) {
     offsetInNewItem += prevChildren[i].nodeSize;
   }
-  // Now at the start of the (possibly merged) sub-list
-  offsetInNewItem += 1; // enter <ul>/<ol>
+  offsetInNewItem += 1; // enter sub-list
   if (lastPrevChild && lastPrevChild.type === listType) {
-    // Merged: skip the existing items that were already in the sub-list
     for (let i = 0; i < lastPrevChild.childCount; i++) {
       offsetInNewItem += lastPrevChild.child(i).nodeSize;
     }
   }
-  offsetInNewItem += 1; // enter sunkItem <li>
+  offsetInNewItem += 1; // enter <li>
   offsetInNewItem += 1; // enter <p>
 
   const newCursorPos = prevItemStart + offsetInNewItem + cursorOffset;
@@ -163,44 +146,30 @@ const sinkCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => voi
 // Backspace commands
 // ---------------------------------------------------------------------------
 
-// For non-first list items: if the current paragraph is empty, lift the item
-// out of the list. If non-empty, merge into the previous item's paragraph.
+// Backspace on non-first list items: empty → lift out, non-empty → merge into previous
 const joinListItems = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
   const $cursor = (state.selection as any).$cursor;
   if (!$cursor || $cursor.parentOffset !== 0) return false;
   const depth = $cursor.depth;
   if (depth < 2) return false;
   if ($cursor.node(depth - 1).type !== state.schema.nodes.listItem) return false;
-  // Only handle non-first items — first items are handled by listBackspace
-  if ($cursor.index(depth - 2) === 0) return false;
+  if ($cursor.index(depth - 2) === 0) return false; // first items handled by listBackspace
 
-  // Empty paragraph: lift item out of the list (remove bullet, keep the line).
   if ($cursor.parent.content.size === 0) {
     return pmLiftListItem(state.schema.nodes.listItem)(state, dispatch);
   }
 
-  // Non-empty paragraph: merge into the previous item's paragraph.
-  // Only handle the simple case: prev listItem has exactly one child (a paragraph).
+  // Only merge when prev item is simple (single paragraph child)
   const list = $cursor.node(depth - 2);
   const prevListItem = list.child($cursor.index(depth - 2) - 1);
   if (prevListItem.childCount !== 1) return false;
   if (prevListItem.firstChild!.type !== state.schema.nodes.paragraph) return false;
 
   if (dispatch) {
-    // Use resolved positions instead of magic token counts.
-    // We need to delete from end-of-prev-paragraph-content to start-of-cur-paragraph-content,
-    // which removes the boundary: </p></li><li><p>
-    const prevParaContentEnd = $cursor.before(depth) - 2; // end of prev para content = before(<li>) - 1 (</p>)
-    // More robustly: resolve structurally
-    const curListItemStart = $cursor.before(depth - 1); // position before current <li>
-    const prevListItemEnd = curListItemStart; // end of previous </li> is the same position
-    // The previous listItem's last child (paragraph) content ends at:
-    // prevListItemEnd - 1 (for </li>) - 1 (for </p>) = prevListItemEnd - 2
-    // But let's compute it properly from the previous item:
-    const prevItemEndPos = curListItemStart; // after prev </li>
-    const prevItemStartPos = prevItemEndPos - prevListItem.nodeSize;
+    // Delete from end of prev paragraph content to start of current, removing </p></li><li><p>
+    const curListItemStart = $cursor.before(depth - 1);
+    const prevItemStartPos = curListItemStart - prevListItem.nodeSize;
     const prevPara = prevListItem.firstChild!;
-    // prevPara content ends at: prevItemStartPos + 1 (enter <li>) + prevPara.nodeSize - 1 (before </p>)
     const prevParaEnd = prevItemStartPos + 1 + prevPara.nodeSize - 1;
 
     const curParaContentStart = $cursor.pos;
@@ -211,15 +180,14 @@ const joinListItems = (state: EditorState, dispatch?: (tr: Transaction) => void)
   return true;
 };
 
-// For first list items: lift the item out of the list (convert to plain paragraph).
+// Backspace on first list item: lift out of list
 const listBackspace = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
   const $cursor = (state.selection as any).$cursor;
   if (!$cursor || $cursor.parentOffset !== 0) return false;
   const depth = $cursor.depth;
   if (depth < 2) return false;
   if ($cursor.node(depth - 1).type !== state.schema.nodes.listItem) return false;
-  // Only fire for the first item — non-first items handled by joinListItems
-  if ($cursor.index(depth - 2) !== 0) return false;
+  if ($cursor.index(depth - 2) !== 0) return false; // non-first items handled by joinListItems
   return pmLiftListItem(state.schema.nodes.listItem)(state, dispatch);
 };
 
@@ -227,20 +195,9 @@ const listBackspace = (state: EditorState, dispatch?: (tr: Transaction) => void)
 // Delete commands
 // ---------------------------------------------------------------------------
 
-// For Delete key: merge the next list item's paragraph text into the current
-// paragraph. Any sub-lists the consumed item had are adopted by the current item
-// (Case A) or promoted into the parent list (Case B).
-//
-// Case A: cursor at end of a listItem's paragraph, next sibling listItem exists.
-//   - A|       →  - AB
-//   - B              - C
-//     - C
-//
-// Case B: cursor at end of a non-list paragraph, next sibling is a list.
-//   A|         →  AB
-//   - B             - C
-//     - C
-//
+// Delete key: merge next item's text into current, adopting its children.
+//   Case A: - A| + - B  →  - AB       Case B: A| + - B  →  AB
+//             - C             - C               - C          - C
 const deleteIntoList = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
   const $cursor = (state.selection as any).$cursor;
   if (!$cursor) return false;
@@ -251,14 +208,12 @@ const deleteIntoList = (state: EditorState, dispatch?: (tr: Transaction) => void
   const listItemType = schema.nodes.listItem;
   const curParaContentEnd = $cursor.pos;
 
-  // Case A: inside a listItem, cursor in the paragraph which is the last child,
-  // and there is a next sibling listItem. Merge next sibling's text, adopt its children.
+  // Case A: inside a listItem, next sibling listItem exists
   if (depth >= 2 && $cursor.node(depth - 1).type === listItemType) {
     const curItem = $cursor.node(depth - 1);
     const paraIndexInItem = $cursor.index(depth - 1);
 
-    // Only handle when paragraph is the last child of the listItem.
-    // If there's a sub-list after the paragraph, fall through to Case B.
+    // Only when paragraph is last child; sub-list after paragraph falls through to Case B
     if (paraIndexInItem === curItem.childCount - 1) {
       const list = $cursor.node(depth - 2);
       const listItemIndex = $cursor.index(depth - 2);
@@ -276,7 +231,6 @@ const deleteIntoList = (state: EditorState, dispatch?: (tr: Transaction) => void
           curPara.content.append(nextPara.content)
         );
 
-        // Collect all children: merged paragraph, current item's sub-lists, next item's sub-lists
         const children: any[] = [mergedPara];
         for (let i = 1; i < curItem.childCount; i++) children.push(curItem.child(i));
         for (let i = 1; i < nextItem.childCount; i++) children.push(nextItem.child(i));
@@ -291,13 +245,9 @@ const deleteIntoList = (state: EditorState, dispatch?: (tr: Transaction) => void
         return true;
       }
     }
-    // Paragraph is not the last child — fall through to Case B which handles
-    // "paragraph followed by a list" within any container, including a listItem.
   }
 
-  // Case B: cursor at end of a paragraph whose next sibling is a list.
-  // Works both for paragraphs inside a listItem (sub-list after paragraph)
-  // and for top-level paragraphs followed by a list.
+  // Case B: paragraph followed by a list (works in any container)
   const container = $cursor.node(depth - 1);
   const indexInParent = $cursor.index(depth - 1);
   if (indexInParent >= container.childCount - 1) return false;
@@ -310,8 +260,6 @@ const deleteIntoList = (state: EditorState, dispatch?: (tr: Transaction) => void
 
   if (!dispatch) return true;
 
-  // Collect what replaces the first item in the list: its sub-lists' items
-  // get promoted to siblings in the parent list.
   const promotedItems: any[] = [];
   for (let i = 1; i < firstItem.childCount; i++) {
     const child = firstItem.child(i);
@@ -326,10 +274,8 @@ const deleteIntoList = (state: EditorState, dispatch?: (tr: Transaction) => void
   const listStart = $cursor.after(depth);
 
   if (nextSibling.childCount === 1 && promotedItems.length === 0) {
-    // Single item, no children — remove the whole list
     tr = tr.delete(listStart, listStart + nextSibling.nodeSize);
   } else {
-    // Rebuild the list: promoted items + remaining siblings
     const newListItems: any[] = [...promotedItems];
     for (let i = 1; i < nextSibling.childCount; i++) {
       newListItems.push(nextSibling.child(i));
@@ -342,23 +288,19 @@ const deleteIntoList = (state: EditorState, dispatch?: (tr: Transaction) => void
     }
   }
 
-  // Insert the consumed paragraph's content at cursor
   tr = tr.insert(curParaContentEnd, firstPara.content);
   tr = tr.setSelection(TextSelection.create(tr.doc, curParaContentEnd));
   dispatch(tr.scrollIntoView());
   return true;
 };
 
-// Handles cursor at start of a paragraph immediately following a list.
-// Merges the paragraph's content into the last list item's paragraph,
-// or deletes it if empty.
+// Backspace on paragraph after a list: merge into the deepest last list item
 const joinAfterList = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
   const $cursor = (state.selection as any).$cursor;
   if (!$cursor || $cursor.parentOffset !== 0) return false;
 
   const depth = $cursor.depth;
   const schema = state.schema;
-  // Not in a list item (listBackspace handles that case)
   if (depth >= 1 && $cursor.node(depth - 1).type === schema.nodes.listItem) return false;
 
   const indexInParent = $cursor.index(depth - 1);
@@ -371,7 +313,6 @@ const joinAfterList = (state: EditorState, dispatch?: (tr: Transaction) => void)
   const lastItem = prevSibling.lastChild;
   if (!lastItem || lastItem.type !== schema.nodes.listItem) return false;
 
-  // Empty paragraph: just delete it, place cursor at end of previous content.
   if ($cursor.parent.content.size === 0) {
     if (dispatch) {
       const curParaStart = $cursor.before(depth);
@@ -384,13 +325,10 @@ const joinAfterList = (state: EditorState, dispatch?: (tr: Transaction) => void)
     return true;
   }
 
-  // Find the deepest last paragraph in the last item's tree. If the last
-  // item has nested sub-lists, walk into them to find the final paragraph.
+  // Walk nested sub-lists to find the deepest last paragraph
   let targetPara = lastItem.firstChild;
   if (!targetPara || targetPara.type !== schema.nodes.paragraph) return false;
   let targetItem = lastItem;
-  // Walk into nested lists: if the lastItem has a trailing sub-list,
-  // descend into its last item recursively.
   let current = lastItem;
   while (current.lastChild && isListNode(schema, current.lastChild.type)) {
     const nestedList = current.lastChild;
@@ -404,13 +342,8 @@ const joinAfterList = (state: EditorState, dispatch?: (tr: Transaction) => void)
 
   if (dispatch) {
     const curParaContentStart = $cursor.pos;
-    // Use doc.resolve to find the end of targetPara's content.
-    // The list ends right before the current paragraph starts.
     const curParaStart = $cursor.before(depth);
-    // Resolve just inside the end of the list to find targetPara structurally.
-    // The position curParaStart - 1 is inside the list's closing token boundary.
-    // Search backward from there for the nearest valid text position, which will
-    // be at the end of targetPara's content.
+    // Resolve backward from end of the list to find the target paragraph's content end
     const targetParaEnd = TextSelection.near(state.doc.resolve(curParaStart - 1), -1).$head.pos;
 
     const tr = state.tr.delete(targetParaEnd, curParaContentStart);
@@ -423,8 +356,7 @@ const joinAfterList = (state: EditorState, dispatch?: (tr: Transaction) => void)
 // Toggle commands (exposed for toolbar buttons)
 // ---------------------------------------------------------------------------
 
-// Convert the nearest ancestor list to a different type using setNodeMarkup,
-// preserving nesting in a single transaction.
+// setNodeMarkup swaps the list type in-place, preserving nesting (preferred over lift+re-wrap)
 function convertListType(state: EditorState, from: NodeType, to: NodeType, dispatch?: (tr: Transaction) => void): boolean {
   const { $from } = state.selection;
   for (let d = $from.depth; d >= 0; d--) {
@@ -492,10 +424,6 @@ function makeListInputRules(schema: Schema) {
 // Plugin factory
 // ---------------------------------------------------------------------------
 
-// Creates the keymap and input rules for list editing.
-// `extraBackspace` is an optional array of commands to prepend to the
-// Backspace chain (e.g. deleteQuestionSelection, deleteAnswerSelection
-// in the main editor).
 export function listPlugins(
   schema: Schema,
   extraBackspace: Array<(state: EditorState, dispatch?: (tr: Transaction) => void) => boolean> = []
