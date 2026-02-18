@@ -48,7 +48,7 @@ function findAncestorList(state: EditorState): NodeType | null {
 //   - B|       →           - B
 //     - C                  - C
 //       - D                  - D
-const sinkCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
+export const sinkCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
   const { $from } = state.selection;
   const schema = state.schema;
   const listItemType = schema.nodes.listItem;
@@ -140,6 +140,10 @@ const sinkCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => voi
   tr.setSelection(TextSelection.create(tr.doc, newCursorPos));
   dispatch(tr.scrollIntoView());
   return true;
+};
+
+export const liftCurrentItem = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
+  return pmLiftListItem(state.schema.nodes.listItem)(state, dispatch);
 };
 
 // ---------------------------------------------------------------------------
