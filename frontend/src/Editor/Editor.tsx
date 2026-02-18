@@ -6,6 +6,10 @@ import {
   toggleItalic,
   decreaseLevel,
   addGeneralStudyBlock,
+  makeListInputRules,
+  splitListItem,
+  listBackspace,
+  joinAfterList,
 } from "./editorUtils";
 
 import {
@@ -635,6 +639,7 @@ const questionPopup = (
         doc: qNode.node,
         plugins: [
           history(),
+          makeListInputRules(textSchema),
           keymap({
             "Mod-z": undo,
             "Mod-y": redo,
@@ -645,6 +650,8 @@ const questionPopup = (
             "Mod-b": toggleBold,
             "Mod-i": toggleItalic,
             "Mod-u": toggleUnderline,
+            "Enter": splitListItem(textSchema.nodes.listItem),
+            "Mod-Backspace": chainCommands(listBackspace, joinAfterList),
           }),
           keymap(baseKeymap),
         ],
@@ -1241,6 +1248,8 @@ export class P215Editor extends EventTarget {
     baseKeymap["Backspace"] = chainCommands(
       deleteQuestionSelection,
       deleteAnswerSelection,
+      listBackspace,
+      joinAfterList,
       joinBackward,
       selectNodeBackward
     );
@@ -1250,6 +1259,7 @@ export class P215Editor extends EventTarget {
       doc: node,
       plugins: [
         history(),
+        makeListInputRules(textSchema),
         keymap({
           "Mod-z": undo,
           "Mod-y": redo,
@@ -1262,6 +1272,8 @@ export class P215Editor extends EventTarget {
           "Mod-b": toggleMark(textSchema.marks.strong),
           "Mod-i": toggleMark(textSchema.marks.em),
           "Mod-u": toggleMark(textSchema.marks.underline),
+          "Enter": splitListItem(textSchema.nodes.listItem),
+          "Mod-Backspace": chainCommands(listBackspace, joinAfterList),
         }),
         keymap(baseKeymap),
         questionMarkPlugin(this.questionMap, (view) => this.currentEditor = view),
