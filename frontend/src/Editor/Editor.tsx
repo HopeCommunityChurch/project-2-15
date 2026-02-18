@@ -6,15 +6,8 @@ import {
   toggleItalic,
   decreaseLevel,
   addGeneralStudyBlock,
-  makeListInputRules,
-  splitListItem,
-  sinkListItem,
-  liftListItem,
-  joinListItems,
-  listBackspace,
-  joinAfterList,
-  deleteIntoList,
 } from "./editorUtils";
+import { listPlugins } from "./listPlugin";
 
 import {
   EditorState,
@@ -31,10 +24,6 @@ import { textSchema } from "./textSchema";
 import {
   chainCommands,
   deleteSelection,
-  joinBackward,
-  selectNodeBackward,
-  joinForward,
-  selectNodeForward,
   toggleMark,
 } from "prosemirror-commands";
 
@@ -802,21 +791,17 @@ const questionPopup = (
         doc: qNode.node,
         plugins: [
           history(),
-          makeListInputRules(textSchema),
+          ...listPlugins(textSchema),
           keymap({
             "Mod-z": undo,
             "Mod-y": redo,
-            Tab: chainCommands(sinkListItem(textSchema.nodes.listItem), increaseLevel),
+            Tab: increaseLevel,
             "Mod-]": increaseLevel,
-            "Shift-Tab": chainCommands(liftListItem(textSchema.nodes.listItem), decreaseLevel, () => true),
+            "Shift-Tab": chainCommands(decreaseLevel, () => true), // () => true prevents focus leaving editor
             "Mod-[": decreaseLevel,
             "Mod-b": toggleBold,
             "Mod-i": toggleItalic,
             "Mod-u": toggleUnderline,
-            "Enter": splitListItem(textSchema.nodes.listItem),
-            "Backspace": chainCommands(joinListItems, listBackspace, joinAfterList, joinBackward, selectNodeBackward),
-            "Mod-Backspace": chainCommands(joinListItems, listBackspace, joinAfterList),
-            "Delete": chainCommands(deleteIntoList, joinForward, selectNodeForward),
           }),
           keymap(baseKeymap),
         ],
@@ -1421,23 +1406,19 @@ export class P215Editor {
       doc: node,
       plugins: [
         history(),
-        makeListInputRules(textSchema),
+        ...listPlugins(textSchema, [deleteQuestionSelection, deleteAnswerSelection]),
         keymap({
           "Mod-z": undo,
           "Mod-y": redo,
-          Tab: chainCommands(sinkListItem(textSchema.nodes.listItem), increaseLevel),
+          Tab: increaseLevel,
           "Mod-]": increaseLevel,
-          "Shift-Tab": chainCommands(liftListItem(textSchema.nodes.listItem), decreaseLevel, () => true),
+          "Shift-Tab": chainCommands(decreaseLevel, () => true), // () => true prevents focus leaving editor
           "Mod-[": decreaseLevel,
           "Mod-e": this.addQuestionCommand,
           "Mod-s": addGeneralStudyBlock,
           "Mod-b": toggleMark(textSchema.marks.strong),
           "Mod-i": toggleMark(textSchema.marks.em),
           "Mod-u": toggleMark(textSchema.marks.underline),
-          "Enter": splitListItem(textSchema.nodes.listItem),
-          "Backspace": chainCommands(deleteQuestionSelection, deleteAnswerSelection, joinListItems, listBackspace, joinAfterList, joinBackward, selectNodeBackward),
-          "Mod-Backspace": chainCommands(joinListItems, listBackspace, joinAfterList),
-          "Delete": chainCommands(deleteIntoList, joinForward, selectNodeForward),
         }),
         keymap(baseKeymap),
         questionMarkPlugin(this.questionMap, (view) => this.currentEditor = view),
