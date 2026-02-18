@@ -8,8 +8,12 @@ import {
   addGeneralStudyBlock,
   makeListInputRules,
   splitListItem,
+  sinkListItem,
+  liftListItem,
+  joinListItems,
   listBackspace,
   joinAfterList,
+  deleteIntoList,
 } from "./editorUtils";
 
 import {
@@ -29,6 +33,8 @@ import {
   deleteSelection,
   joinBackward,
   selectNodeBackward,
+  joinForward,
+  selectNodeForward,
   toggleMark,
 } from "prosemirror-commands";
 
@@ -643,15 +649,17 @@ const questionPopup = (
           keymap({
             "Mod-z": undo,
             "Mod-y": redo,
-            Tab: increaseLevel,
+            Tab: chainCommands(sinkListItem(textSchema.nodes.listItem), increaseLevel),
             "Mod-]": increaseLevel,
-            "Shift-Tab": decreaseLevel,
+            "Shift-Tab": chainCommands(liftListItem(textSchema.nodes.listItem), decreaseLevel, () => true),
             "Mod-[": decreaseLevel,
             "Mod-b": toggleBold,
             "Mod-i": toggleItalic,
             "Mod-u": toggleUnderline,
             "Enter": splitListItem(textSchema.nodes.listItem),
-            "Mod-Backspace": chainCommands(listBackspace, joinAfterList),
+            "Backspace": chainCommands(joinListItems, listBackspace, joinAfterList, joinBackward, selectNodeBackward),
+            "Mod-Backspace": chainCommands(joinListItems, listBackspace, joinAfterList),
+            "Delete": chainCommands(deleteIntoList, joinForward, selectNodeForward),
           }),
           keymap(baseKeymap),
         ],
@@ -1245,15 +1253,6 @@ export class P215Editor extends EventTarget {
     this.questionMap = {};
 
 
-    baseKeymap["Backspace"] = chainCommands(
-      deleteQuestionSelection,
-      deleteAnswerSelection,
-      listBackspace,
-      joinAfterList,
-      joinBackward,
-      selectNodeBackward
-    );
-
     this.state = EditorState.create({
       schema: textSchema,
       doc: node,
@@ -1263,9 +1262,9 @@ export class P215Editor extends EventTarget {
         keymap({
           "Mod-z": undo,
           "Mod-y": redo,
-          Tab: increaseLevel,
+          Tab: chainCommands(sinkListItem(textSchema.nodes.listItem), increaseLevel),
           "Mod-]": increaseLevel,
-          "Shift-Tab": decreaseLevel,
+          "Shift-Tab": chainCommands(liftListItem(textSchema.nodes.listItem), decreaseLevel, () => true),
           "Mod-[": decreaseLevel,
           "Mod-e": this.addQuestionCommand,
           "Mod-s": () => {return true;}, // Have ctrl-s do nothing
@@ -1273,7 +1272,9 @@ export class P215Editor extends EventTarget {
           "Mod-i": toggleMark(textSchema.marks.em),
           "Mod-u": toggleMark(textSchema.marks.underline),
           "Enter": splitListItem(textSchema.nodes.listItem),
-          "Mod-Backspace": chainCommands(listBackspace, joinAfterList),
+          "Backspace": chainCommands(deleteQuestionSelection, deleteAnswerSelection, joinListItems, listBackspace, joinAfterList, joinBackward, selectNodeBackward),
+          "Mod-Backspace": chainCommands(joinListItems, listBackspace, joinAfterList),
+          "Delete": chainCommands(deleteIntoList, joinForward, selectNodeForward),
         }),
         keymap(baseKeymap),
         questionMarkPlugin(this.questionMap, (view) => this.currentEditor = view),
