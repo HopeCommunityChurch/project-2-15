@@ -399,5 +399,5 @@ export const deleteSection = (
   }
 }
 
-// Re-export list toggle commands so they remain available on window.editorActions
+// Re-exported for window.editorActions (toolbar buttons)
 export { toggleBulletList, toggleOrderedList } from "./listPlugin";
