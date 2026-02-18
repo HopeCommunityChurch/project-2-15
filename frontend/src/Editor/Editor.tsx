@@ -351,6 +351,48 @@ export class QuestionView implements NodeView {
   }
 }
 
+export class CheckListItemView implements NodeView {
+  dom: HTMLElement;
+  contentDOM: HTMLElement;
+  private checkbox: HTMLElement;
+
+  constructor(node: Node, view: EditorView, getPos: () => number) {
+    this.dom = document.createElement("li");
+    this.dom.className = "checklist-item" + (node.attrs.checked ? " checked" : "");
+    this.dom.dataset.checked = node.attrs.checked ? "true" : "false";
+
+    this.checkbox = document.createElement("span");
+    this.checkbox.className = "checkbox";
+    this.checkbox.contentEditable = "false";
+    this.checkbox.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const pos = getPos();
+      const currentNode = view.state.doc.nodeAt(pos);
+      if (currentNode) {
+        const tr = view.state.tr.setNodeMarkup(pos, undefined, {
+          ...currentNode.attrs,
+          checked: !currentNode.attrs.checked,
+        });
+        tr.setSelection(view.state.selection.map(tr.doc, tr.mapping));
+        view.dispatch(tr);
+      }
+    });
+    this.dom.appendChild(this.checkbox);
+
+    this.contentDOM = document.createElement("div");
+    this.contentDOM.className = "checklist-item-content";
+    this.dom.appendChild(this.contentDOM);
+  }
+
+  update(node: Node): boolean {
+    if (node.type !== textSchema.nodes.checkListItem) return false;
+    this.dom.className = "checklist-item" + (node.attrs.checked ? " checked" : "");
+    this.dom.dataset.checked = node.attrs.checked ? "true" : "false";
+    return true;
+  }
+}
+
 export class QuestionAnswerView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
@@ -652,6 +694,9 @@ const questionPopup = (
       nodeViews: {
         questionAnswer(node) {
           return new QuestionAnswerView(node);
+        },
+        checkListItem(node, view, getPos) {
+          return new CheckListItemView(node, view, getPos);
         },
       },
       dispatchTransaction: dispatchInner,
@@ -1323,6 +1368,9 @@ export class P215Editor extends EventTarget {
         },
         generalStudyBlockHeader(node) {
           return new GeneralStudyBlockHeader(node);
+        },
+        checkListItem(node, view, getPos) {
+          return new CheckListItemView(node, view, getPos);
         },
       },
       markViews: {

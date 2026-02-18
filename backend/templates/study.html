@@ -123,6 +123,9 @@
     function numberedListClick() {
       window.editor.applyDispatch(window.editorActions.toggleOrderedList);
     }
+    function checkListClick() {
+      window.editor.applyDispatch(window.editorActions.toggleCheckList);
+    }
 
     function collapseSide() {
       const studyContent = document.getElementById("studyPage");
@@ -294,6 +297,9 @@
     </button>
     <button class="toolbarButton" title="Numbered List" onclick="numberedListClick()">
       <img src="{{base}}/static/img/numbered-list-icon.svg" >
+    </button>
+    <button class="toolbarButton" title="Checklist" onclick="checkListClick()">
+      <img src="{{base}}/static/img/checklist-icon.svg" >
     </button>
 
     <div class="seperator">&nbsp;</div>

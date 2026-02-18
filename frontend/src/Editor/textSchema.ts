@@ -177,7 +177,7 @@ export const textSchema = new Schema({
     bulletList: {
       content: "listItem+",
       group: "richText",
-      parseDOM: [{ tag: "ul" }],
+      parseDOM: [{ tag: "ul:not(.checklist)" }],
       toDOM: () => ["ul", 0],
     },
     orderedList: {
@@ -194,10 +194,29 @@ export const textSchema = new Schema({
         node.attrs.order === 1 ? ["ol", 0] : ["ol", { start: node.attrs.order }, 0],
     },
     listItem: {
-      content: "paragraph (bulletList | orderedList)*",
+      content: "paragraph (bulletList | orderedList | checkList)*",
       defining: true,
       parseDOM: [{ tag: "li" }],
       toDOM: () => ["li", 0],
+    },
+    checkList: {
+      content: "checkListItem+",
+      group: "richText",
+      parseDOM: [{ tag: 'ul.checklist' }],
+      toDOM: () => ["ul", { class: "checklist" }, 0],
+    },
+    checkListItem: {
+      content: "paragraph (bulletList | orderedList | checkList)*",
+      defining: true,
+      attrs: { checked: { default: false } },
+      parseDOM: [{
+        tag: 'li.checklist-item',
+        getAttrs: (dom: any) => ({ checked: dom.dataset.checked === "true" }),
+      }],
+      toDOM: (node: any) => ["li", {
+        class: "checklist-item",
+        "data-checked": node.attrs.checked ? "true" : "false",
+      }, 0],
     },
     text: { inline: true },
   },
