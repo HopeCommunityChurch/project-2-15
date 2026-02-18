@@ -132,7 +132,6 @@
 </head>
 <body id="studyPage">
 
-<<<<<<< HEAD
   <header id="header">
     <a class="logo" href="/home">
       <img class="logo" src="{{base}}/static/img/p215-circle.svg" >
@@ -157,113 +156,6 @@
           {% else %}
             + Group Study
           {% endif %}
-=======
-      function underlineClick() {
-        window.editor.applyDispatch(window.editorActions.toggleUnderline);
-      }
-
-      function indentClick() {
-        window.editor.applyDispatch(window.editorActions.increaseLevel);
-      }
-
-      function outdentClick() {
-        window.editor.applyDispatch(window.editorActions.decreaseLevel);
-      }
-
-      function addStudyBlockClick() {
-        window.editor.applyDispatch(window.editorActions.addGeneralStudyBlock);
-      }
-
-      function addQuestionClick() {
-        window.editor.addQuestion();
-      }
-
-      function setColorClick(color) {
-        window.editor.applyDispatch(window.editorActions.setTextColor(color));
-      }
-
-      function removeHighlightClick() {
-        window.editor.applyDispatch(window.editorActions.removeHighlightColor);
-      }
-
-      function setHighlightClick(color) {
-        window.editor.applyDispatch(
-          window.editorActions.setHighlightColor(color)
-        );
-      }
-
-      function clearFormatClick() {
-        window.editor.applyDispatch(window.editorActions.clearFormatting);
-      }
-
-      function toggleTextColor(target, event) {
-        const sel = document.getElementById(target);
-        const isOpen = sel.classList.contains("display");
-        let first = true;
-        if (isOpen) {
-          sel.classList.remove("display");
-        } else {
-          sel.classList.add("display");
-          const clickFunc = (ev) => {
-            if (first) {
-              first = false;
-              return;
-            }
-            var rect = sel.getBoundingClientRect();
-            var isInDialog =
-              rect.top <= event.clientY &&
-              event.clientY <= rect.top + rect.height &&
-              rect.left <= event.clientX &&
-              event.clientX <= rect.left + rect.width;
-            if (!isInDialog) {
-              sel.classList.remove("display");
-            }
-            document.removeEventListener("click", clickFunc);
-          };
-          document.addEventListener("click", clickFunc);
-        }
-      }
-
-      function addSectionClick() {
-        window.editor.applyDispatch(window.editorActions.addSection);
-      }
-
-      function collapseSide() {
-        const studyContent = document.getElementById("studyPage");
-        studyContent.classList.toggle("collapseSide");
-      }
-
-      function split() {
-        const studyContent = document.getElementById("studyPage");
-        studyContent.classList.toggle("split");
-      }
-    </script>
-  </head>
-  <body id="studyPage">
-    <header id="header">
-      <a class="logo" href="{{base}}/">
-        <img class="logo" src="{{base}}/static/img/p215-circle.svg" >
-      </a>
-      <p id="studyName" contenteditable>{{doc.name}}</p>
-      <p class="divider">|</p>
-      <div id="saveThingy" class="notSaving">
-        <p id="saved" class="saveThing">
-          saved <img src="{{base}}/static/img/saved.svg" />
-        </p>
-        <p id="saving" class="saveThing">
-          saving <img src="{{base}}/static/img/saving.svg" />
-        </p>
-      </div>
-      <menu class="menu">
-        {% if contains(features, "GroupStudy") || doc.groupStudyId %}
-        <button
-          class="blue"
-          id="groupStudyButton"
-          onclick="toggleModal('#groupStudy')"
-        >
-          {% if doc.groupStudyId %} Group Study {% else %} + Group Study {%
-          endif %}
->>>>>>> 4092a69 (made Jon's requested changes)
         </button>
       {% endif %}
     </menu>
