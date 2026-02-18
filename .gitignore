@@ -4,4 +4,5 @@ result
 .devenv
 .devenv
 pg-init-*
+.parcel-cache
 .claude
