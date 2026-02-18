@@ -185,6 +185,31 @@ export const textSchema = new Schema({
         },
       ],
     },
+    bulletList: {
+      content: "listItem+",
+      group: "richText",
+      parseDOM: [{ tag: "ul" }],
+      toDOM: () => ["ul", 0],
+    },
+    orderedList: {
+      content: "listItem+",
+      group: "richText",
+      attrs: { order: { default: 1 } },
+      parseDOM: [{
+        tag: "ol",
+        getAttrs: (dom: any) => ({
+          order: dom.hasAttribute("start") ? +dom.getAttribute("start") : 1,
+        }),
+      }],
+      toDOM: (node: any) =>
+        node.attrs.order === 1 ? ["ol", 0] : ["ol", { start: node.attrs.order }, 0],
+    },
+    listItem: {
+      content: "paragraph (bulletList | orderedList)*",
+      defining: true,
+      parseDOM: [{ tag: "li" }],
+      toDOM: () => ["li", 0],
+    },
     text: { inline: true },
   },
   marks: {

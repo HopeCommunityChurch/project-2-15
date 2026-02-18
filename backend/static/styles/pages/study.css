@@ -157,3 +157,17 @@
   }
 }
 
+
+
+/* List styles within the editor */
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5em;
+  margin: 0.25em 0;
+}
+.ProseMirror li {
+  margin: 0.1em 0;
+}
+.ProseMirror li > p {
+  margin: 0;
+}

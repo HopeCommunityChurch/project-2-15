@@ -1,10 +1,12 @@
 import { EditorState, Transaction, TextSelection } from "prosemirror-state";
 import { toggleMark } from "prosemirror-commands";
-import { Schema } from "prosemirror-model";
+import { Schema, NodeType } from "prosemirror-model";
 import { textSchema } from "./textSchema";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";
 import * as phistory from "prosemirror-history";
+import { wrapInList, splitListItem, liftListItem } from "prosemirror-schema-list";
+import { inputRules, wrappingInputRule } from "prosemirror-inputrules";
 
 
 export const undo = phistory.undo;
@@ -399,3 +401,105 @@ export const deleteSection = (
     dispatch(tr);
   }
 }
+
+export const listBackspace = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
+  const sel = state.selection;
+  const $cursor = (sel as any).$cursor;
+  // Only fire when cursor is at the start of a text block
+  if (!$cursor || $cursor.parentOffset !== 0) return false;
+  // Only fire when the cursor's parent block is directly inside a listItem
+  const depth = $cursor.depth;
+  if (depth < 1) return false;
+  if ($cursor.node(depth - 1).type !== state.schema.nodes.listItem) return false;
+  return liftListItem(state.schema.nodes.listItem)(state, dispatch);
+};
+
+// Handles the case where cursor is at the start of a paragraph that immediately follows a
+// list. Without this, joinBackward's deleteBarrier re-wraps the paragraph back into the list.
+// Instead, we merge the paragraph's content into the last item's paragraph.
+export const joinAfterList = (state: EditorState, dispatch?: (tr: Transaction) => void): boolean => {
+  const $cursor = (state.selection as any).$cursor;
+  if (!$cursor || $cursor.parentOffset !== 0) return false;
+
+  const depth = $cursor.depth;
+  // Not in a list item (listBackspace handles that case)
+  if (depth >= 1 && $cursor.node(depth - 1).type === state.schema.nodes.listItem) return false;
+
+  // Check if the sibling immediately before the current paragraph is a list
+  const indexInParent = $cursor.index(depth - 1);
+  if (indexInParent === 0) return false;
+
+  const grandParent = $cursor.node(depth - 1);
+  const prevSibling = grandParent.child(indexInParent - 1);
+  const listTypes = [state.schema.nodes.bulletList, state.schema.nodes.orderedList];
+  if (!listTypes.includes(prevSibling.type)) return false;
+
+  const lastItem = prevSibling.lastChild;
+  if (!lastItem || lastItem.type !== state.schema.nodes.listItem) return false;
+
+  // Only handle the simple case: lastItem has exactly one child (a paragraph).
+  // If there are nested lists, fall through to joinBackward.
+  if (lastItem.childCount !== 1) return false;
+  const lastPara = lastItem.firstChild;
+  if (!lastPara || lastPara.type !== state.schema.nodes.paragraph) return false;
+
+  if (dispatch) {
+    // Position before the opening <p> of the current paragraph.
+    // In the token sequence: ... </lastPara> </lastItem> </list> [curParaStart] <p> [curParaContentStart] ...
+    const curParaStart = $cursor.pos - 1; // = $cursor.before($cursor.depth)
+    const curParaContentStart = $cursor.pos;
+
+    // End of lastPara's content, computed using node sizes.
+    // The token sequence before curParaStart is: ... </lastPara> </lastItem> </list>
+    // lastItem ends at position (curParaStart - 1) inside the list, so:
+    //   lastItemStart = curParaStart - 1 - lastItem.nodeSize
+    //   lastPara starts at lastItemStart + 1
+    //   lastPara content ends at lastItemStart + 1 + lastPara.nodeSize - 1
+    //                         = curParaStart - 1 - lastItem.nodeSize + lastPara.nodeSize
+    const lastParaContentEnd = curParaStart - 1 - lastItem.nodeSize + lastPara.nodeSize;
+
+    // Delete from the end of lastPara's content to the start of the current para's content.
+    // This removes: </lastPara> </lastItem> </list> <p>  (the structural boundary)
+    // and makes lastPara's content and curPara's content adjacent in the same paragraph.
+    const tr = state.tr.delete(lastParaContentEnd, curParaContentStart);
+    dispatch(tr.scrollIntoView());
+  }
+  return true;
+};
+
+function isInList(state: EditorState, listType: NodeType): boolean {
+  const { $from } = state.selection;
+  for (let d = $from.depth; d >= 0; d--) {
+    if ($from.node(d).type === listType) return true;
+  }
+  return false;
+}
+
+export const toggleBulletList = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  if (isInList(state, state.schema.nodes.bulletList)) {
+    return liftListItem(state.schema.nodes.listItem)(state, dispatch);
+  }
+  return wrapInList(state.schema.nodes.bulletList)(state, dispatch);
+};
+
+export const toggleOrderedList = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  if (isInList(state, state.schema.nodes.orderedList)) {
+    return liftListItem(state.schema.nodes.listItem)(state, dispatch);
+  }
+  return wrapInList(state.schema.nodes.orderedList)(state, dispatch);
+};
+
+export const makeListInputRules = (schema: any) =>
+  inputRules({
+    rules: [
+      wrappingInputRule(/^\s*[-]\s$/, schema.nodes.bulletList),
+      wrappingInputRule(
+        /^(\d+)\.\s$/,
+        schema.nodes.orderedList,
+        (match: RegExpMatchArray) => ({ order: +match[1] }),
+        (match: RegExpMatchArray, node: any) => node.childCount + node.attrs.order === +match[1]
+      ),
+    ],
+  });
+
+export { splitListItem } from "prosemirror-schema-list";
