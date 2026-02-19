@@ -34,15 +34,15 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
 
       let startMouseY = 0;
       let startMouseX = 0;
-      let grabOffsetY = 0; // where on the element the user grabbed
-      let initialTop = 0;  // element's top relative to container at drag start
+      let initialTop = 0;
       let initialLeft = 0;
       let swapping = false;
 
       let placeholder: HTMLElement = null;
 
       div.addEventListener("mousedown", (e: MouseEvent) => {
-        if(e.button == 0) {
+        if(e.button === 0) {
+          e.preventDefault();
           startMouseY = e.clientY;
           startMouseX = e.clientX;
           document.addEventListener("mousemove", mousemove);
@@ -111,7 +111,6 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
           const containerRect = div.parentElement.getBoundingClientRect();
           initialTop = rect.top - containerRect.top;
           initialLeft = rect.left - containerRect.left;
-          grabOffsetY = startMouseY - rect.top;
           div.classList.add("moving");
           placeholder = document.createElement("div");
           placeholder.className = "dropPlaceholder";
@@ -153,8 +152,6 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
 
       function doSwap(sibling: HTMLElement, direction: "up" | "down") {
         swapping = true;
-        const siblingHeight = sibling.getBoundingClientRect().height;
-
         // Update indices
         let sIndex = Number(sibling.getAttribute("currentIndex"));
         let dIndex = Number(div.getAttribute("currentIndex"));
@@ -255,19 +252,18 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
   });
 
   document.getElementById("studyBlockUpdate").addEventListener("click", () => {
-    const container = document.getElementById("studyBlockEditorContent");
     if (currentStudyBlock === null) return;
-    let newPosistions = [];
+    let newPositions = [];
     const children = container.children
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
       const currentIndex = Number(child.getAttribute("currentIndex"));
       const originalIndex = Number(child.getAttribute("originalIndex"));
-      newPosistions[currentIndex] = currentStudyBlock.studyBlocks[originalIndex].node;
+      newPositions[currentIndex] = currentStudyBlock.studyBlocks[originalIndex].node;
     }
     editor.applyDispatch(EditorUtil.reorderStudyBlock(
       currentStudyBlock.studyBlockPos,
-      newPosistions
+      newPositions
     ));
     window.toggleModal("#studyBlockEditor");
   });

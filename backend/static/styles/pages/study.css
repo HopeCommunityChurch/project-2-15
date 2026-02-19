@@ -240,6 +240,10 @@
         gap: 8px;
         border-bottom: 1px solid #f0f0f0;
 
+        &:hover {
+          background-color: #f6f6f6;
+        }
+
         .dragHandle {
           width: 16px;
           opacity: 0.9;
@@ -256,11 +260,6 @@
           &:hover {
             opacity: 1;
           }
-        }
-      }
-      .studyBlock {
-        &:hover {
-          background-color: #f6f6f6;
         }
       }
     }
