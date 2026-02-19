@@ -1,5 +1,6 @@
 module Entity.Shares where
 
+import Data.List (nubBy)
 import Data.Time.Lens qualified as TL
 import Database qualified as Db
 import Database.Beam (
@@ -28,6 +29,7 @@ import Database.Beam (
   (==.),
   (==?.),
   (>=.),
+  sqlBool_,
  )
 import DbHelper (MonadDb, runBeam, withTransaction)
 import Entity qualified as E
@@ -110,6 +112,8 @@ data GetMyShareData = MkGetMyShareData
   , groupStudyName :: Text
   , studyTemplateId :: Maybe T.StudyTemplateId
   , studyTemplateName :: Maybe Text
+  , ownerName :: Maybe Text
+  , created :: UTCTime
   }
   deriving (Show, Generic)
   deriving anyclass (FromJSON, ToJSON, ToSchema)
@@ -123,6 +127,7 @@ instance E.Entity GetMyShareData where
     , groupStudyName :: C f Text
     , studyTemplateId :: C f (Maybe T.StudyTemplateId)
     , studyTemplateName :: C f (Maybe Text)
+    , ownerName :: C f (Maybe Text)
     , usedAt :: C f (Maybe UTCTime)
     , expiresAt :: C f UTCTime
     , rejected :: C f Bool
@@ -141,6 +146,8 @@ instance E.Entity GetMyShareData where
       groupStudyName
       studyTemplateId
       studyTemplateName
+      ownerName
+      created
 
   queryEntity mAuthUser = do
     share <- all_ Db.db.groupStudyShare
@@ -149,6 +156,12 @@ instance E.Entity GetMyShareData where
     template <- leftJoin_'
             (all_ Db.db.studyTemplate)
             (\ r -> just_ r.studyTemplateId ==?. gs.studyTemplateId)
+    owner <- leftJoin_'
+            (all_ Db.db.groupStudyOwner)
+            (\r -> sqlBool_ (r.groupStudyId ==. gs.groupStudyId))
+    ownerUser <- leftJoin_'
+            (all_ Db.db.user)
+            (\r -> just_ r.userId ==?. owner.userId)
 
     for_ mAuthUser $ \ user ->
       guard_ $ share.email ==. val_ user.email
@@ -162,6 +175,7 @@ instance E.Entity GetMyShareData where
         gs.name
         template.studyTemplateId
         template.name
+        ownerUser.name
         share.usedAt
         share.expiresAt
         share.rejected
@@ -179,7 +193,7 @@ getSharesForUser
   -> m [GetMyShareData]
 getSharesForUser auth = do
   now <- getCurrentTime
-  fmap (fmap E.toEntity)
+  fmap (nubBy (\a b -> a.token == b.token) . fmap E.toEntity)
     $ runBeam
     $ runSelectReturningList
     $ select

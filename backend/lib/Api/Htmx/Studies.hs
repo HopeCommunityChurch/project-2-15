@@ -4,7 +4,7 @@ import Api.Htmx.AuthHelper (AuthUser)
 import Api.Htmx.Ginger (basicTemplate)
 import Data.Aeson qualified as Aeson
 import Data.HashMap.Strict qualified as HMap
-import Data.List (nubBy)
+import Data.List (nubBy, sortOn)
 import DbHelper (MonadDb)
 import Entity.Document qualified as Doc
 import Entity.Shares qualified as Shares
@@ -34,6 +34,7 @@ getStudies user = do
   shares <- lift $ Shares.getSharesForUser user
   let allShares = (shares <> maybeToList (join mShareData))
                     & nubBy (\ a b -> a.token == b.token)
+                    & sortOn (.created)
   basicTemplate
     "studies.html"
     ( HMap.insert "user" (toGVal (Aeson.toJSON user))
