@@ -33,7 +33,6 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
         document.removeEventListener("mouseup", mouseup);
         document.removeEventListener("mousemove", mousemove);
         div.classList.remove("moving");
-        let currentIndex = Number(div.getAttribute("currentIndex"));
       };
 
       function mousemove (e : MouseEvent) {
@@ -73,9 +72,6 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
           div.setAttribute("currentIndex", currentIndex + "");
         }
       }
-
-
-
 
       div.setAttribute("originalIndex", index + "");
       div.setAttribute("currentIndex", index + "");
@@ -127,5 +123,3 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
     window.toggleModal("#studyBlockEditor");
   });
 });
-
-
