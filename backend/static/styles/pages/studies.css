@@ -129,6 +129,7 @@
   flex-direction: column;
   h4 { margin: 0 0 8px; font-size: 16px; }
   .doc-choice-desc { color: #555; font-size: 14px; margin: 0 0 16px; flex: 1; }
+  .doc-choice-empty { color: #999; font-style: italic; }
   form { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
 }
 
