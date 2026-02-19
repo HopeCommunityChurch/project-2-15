@@ -163,52 +163,162 @@
 
 
 #studyBlockEditor{
-  width: 60vw;
-  min-height: 60vh;
-  padding: 10px;
+  max-width: 520px;
+  width: 90%;
+  padding: 20px;
+  position: relative;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px #0000001a;
+  overflow: visible;
+
+  .closeModalIcon {
+    cursor: pointer;
+    max-width: 20px;
+    padding: 10px;
+    position: absolute;
+    top: 20px;
+    right: 10px;
+  }
+
   .container {
     display: grid;
-    overflow-x: hidden;
-    grid-template-rows: 4em 1fr 3em;
-    height: 60vh;
+    overflow: visible;
+    grid-template-rows: auto 1fr auto;
+
+    header {
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e5e5;
+      margin-bottom: 12px;
+      padding-right: 40px;
+    }
+
     h2 {
       padding: 0px;
       margin: 0px;
     }
 
+    .subtitle {
+      color: #888;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
     #studyBlockEditorContent {
-      padding: 10px;
+      padding: 4px 0;
+      position: relative;
+      overflow: visible;
+      .dropPlaceholder {
+        border-radius: 6px;
+        background: #e8eeff;
+        border: 2px dashed #b0c4ff;
+        box-sizing: border-box;
+        transition: height 0.15s ease;
+      }
       .moving {
-        opacity: 0.5;
-        background-color: #e9e9e9;
-        transform: scale(1.1);
-        transition: transform 0.2s cubic-bezier(.6,1.36,0,1.99);
+        background-color: #eef2ff !important;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        z-index: 10;
+        position: absolute;
+        width: 100%;
+        transition: none !important;
+      }
+      .swapping {
+        transition: transform 0.2s ease;
       }
       .studyBlock {
         transform-origin: left;
-        font-size: 1.5em;
+        font-size: 1.1em;
         user-select: none;
-        cursor: move;
-        padding: 2px;
-        grid-template-columns: 1fr 30px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        cursor: grab;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+        grid-template-columns: 20px 1fr 30px;
         display: grid;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid #f0f0f0;
+
+        .dragHandle {
+          width: 16px;
+          opacity: 0.9;
+          cursor: grab;
+        }
+
         .remove {
-          color: rgb(117, 117, 117);
           cursor: pointer;
+          width: 14px;
+          padding: 4px;
+          opacity: 0.9;
+          justify-self: center;
+          border-radius: 4px;
           &:hover {
-            color: rgb(48, 48, 48);
+            opacity: 1;
           }
         }
       }
       .studyBlock {
         &:hover {
-          background-color: #e9e9e9;
+          background-color: #f6f6f6;
+        }
+      }
+    }
+
+    #studyBlockEditorRemoved {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e5e5;
+
+      .removedHeader {
+        font-size: 13px;
+        color: #888;
+        margin-bottom: 6px;
+      }
+
+      .studyBlock {
+        opacity: 0.5;
+        cursor: default;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-size: 1.1em;
+        &:hover {
+          background-color: #f6f6f6;
+          opacity: 0.7;
+        }
+        .restore {
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          opacity: 1;
+          font-size: 13px;
+          color: #444;
+          padding: 4px 10px;
+          border-radius: 4px;
+          border: 1px solid #ccc;
+          background: #fff;
+          img {
+            width: 18px;
+          }
+          &:hover {
+            background-color: #f0f0f0;
+            border-color: #aaa;
+          }
         }
       }
     }
 
     footer {
-      margin-top: 10px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e5e5;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
     }
 
   }
