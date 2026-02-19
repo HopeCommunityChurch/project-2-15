@@ -115,6 +115,29 @@
 
     function addSectionClick () {
       window.editor.applyDispatch(window.editorActions.addSection);
+
+      // Wait for the sidebar to update, then flash and scroll
+      setTimeout(() => {
+        const container = document.getElementById("sectionContainer");
+        console.log("container children count:", container.children.length);
+        const newItem = container.children[container.children.length - 1];
+        console.log("newItem:", newItem);
+        if (newItem) {
+          console.log("classList before:", newItem.className);
+          newItem.classList.add("flash");
+          console.log("classList after:", newItem.className);
+          console.log("computed bg:", getComputedStyle(newItem).backgroundColor);
+          setTimeout(() => newItem.classList.remove("flash"), 3000);
+        } else {
+          console.log("no newItem found");
+        }
+
+        const newIndex = window.editor.view.state.doc.childCount - 1;
+        const elem = document.getElementById("section-" + newIndex);
+        if (elem) {
+          elem.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 50);
     }
 
     function collapseSide() {
@@ -347,13 +370,13 @@
     <div class="container">
       <div>
         <button id="collapseSide" onclick="collapseSide()">
-          <img src="{{base}}/static/img/arrow2.svg" >
+          <img class="collapseIcon" src="{{base}}/static/img/arrow2.svg" ><img class="expandIcon" src="{{base}}/static/img/hamburger-menu-icon.svg" ><span class="collapseLabel">COLLAPSE</span><span class="expandLabel">SECTIONS</span>
         </button>
       </div>
-      <div id="sectionContainer" >
+      <div id="addSectionRow">
+        <button class="lightBlue" onclick="addSectionClick()">+ Add Section</button>
       </div>
-      <div id="bottom">
-        <button onclick="addSectionClick()">Add Section</button>
+      <div id="sectionContainer" >
       </div>
     </div>
   </div>
