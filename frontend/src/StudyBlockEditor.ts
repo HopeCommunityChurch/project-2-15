@@ -1,4 +1,3 @@
-import { Node } from "prosemirror-model";
 import * as Editor from "./Editor/Editor"
 import * as EditorUtil from "./Editor/editorUtils"
 
@@ -50,13 +49,11 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
         }
       });
 
-
       function mouseup () {
         document.removeEventListener("mouseup", mouseup);
         document.removeEventListener("mousemove", mousemove);
 
         if (placeholder) {
-          // Animate back to placeholder position
           const placeholderRect = placeholder.getBoundingClientRect();
           const containerRect = div.parentElement.getBoundingClientRect();
           const targetTop = placeholderRect.top - containerRect.top;
@@ -120,7 +117,6 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
           div.style.left = initialLeft + "px";
         }
 
-        // Position: initial position + how far the mouse moved
         const dy = e.clientY - startMouseY;
         const dx = e.clientX - startMouseX;
         div.style.top = (initialTop + dy) + "px";
@@ -189,17 +185,14 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
         });
       }
 
-
-
-
       div.setAttribute("originalIndex", index + "");
       div.setAttribute("currentIndex", index + "");
 
       let name = "";
-      if (node.type.name == "questions") {
+      if (node.type.name === "questions") {
         name = "Questions";
       } else {
-        node.descendants( (node: Node) => {
+        node.descendants( (node) => {
           if (node.type.name === "generalStudyBlockHeader") {
             name = node.child(0).text;
           }
@@ -210,14 +203,14 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
       div2.innerText = name;
       div.appendChild(div2);
 
-      if (node.type.name != "questions") {
+      if (node.type.name !== "questions") {
         const remove = document.createElement("img");
         remove.src = "/static/img/x.svg";
         remove.className = "remove";
         remove.draggable = false;
         remove.addEventListener("click", (e) => {
+          e.stopPropagation();
           container.removeChild(div);
-          // Create a removed entry
           const removedDiv = document.createElement("div");
           removedDiv.className = "studyBlock";
           const removedName = document.createElement("div");
@@ -268,5 +261,3 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
     window.toggleModal("#studyBlockEditor");
   });
 });
-
-
