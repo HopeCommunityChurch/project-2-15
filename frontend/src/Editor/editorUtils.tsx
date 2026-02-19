@@ -207,8 +207,7 @@ export const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transac
     // Create the nodes for the new study block
     const header = textSchema.text("Untitled");
     const sbHeader = textSchema.nodes.generalStudyBlockHeader.createChecked(null, header);
-    const bodytxt = textSchema.text("my stuff here");
-    const bodyp = textSchema.nodes.paragraph.createChecked(null, bodytxt);
+    const bodyp = textSchema.nodes.paragraph.createChecked();
     const sbBody = textSchema.nodes.generalStudyBlockBody.create(null, bodyp);
 
     const newStudyBlockId = uuidv4();
