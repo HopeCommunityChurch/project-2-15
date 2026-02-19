@@ -734,15 +734,19 @@ selectDocumentModal user = do
         L.div_ [L.class_ "doc-choice-cards"] $ do
           L.div_ [L.class_ "doc-choice-card"] $ do
             L.h4_ "Use an existing document"
-            L.p_ [L.class_ "doc-choice-desc"] "Link a document you\x2019ve already been working on to this group study."
-            L.form_
-              [ L.hxPost_ ("/group_study/share/" <> unwrap shareToken)
-              ] $ do
-              L.pSelect_ [L.name_ "document", L.id_ "docSelect"] $ do
-                for_ ungroupedDocs $ \d ->
-                  L.option_ [L.value_ (UUID.toText (unwrap d.docId))] (L.toHtml d.name)
-              L.button_ [L.type_ "submit", L.class_ "blue"]
-                "Join with this document"
+            if (length ungroupedDocs == 0) then do
+              L.p_ [L.class_ "doc-choice-desc doc-choice-empty"]
+                "You don\x2019t have any documents that aren\x2019t already part of a group study."
+            else do
+              L.p_ [L.class_ "doc-choice-desc"] "Link a document you\x2019ve already been working on to this group study."
+              L.form_
+                [ L.hxPost_ ("/group_study/share/" <> unwrap shareToken)
+                ] $ do
+                L.pSelect_ [L.name_ "document", L.id_ "docSelect", L.variant_ "modern"] $ do
+                  for_ ungroupedDocs $ \d ->
+                    L.option_ [L.value_ (UUID.toText (unwrap d.docId))] (L.toHtml d.name)
+                L.button_ [L.type_ "submit", L.class_ "blue"]
+                  "Join with this document"
           L.div_ [L.class_ "doc-choice-card"] $ do
             L.h4_ "Create a new document"
             L.p_ [L.class_ "doc-choice-desc"] "Start fresh with a blank document for this study."

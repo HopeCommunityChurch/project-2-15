@@ -47,6 +47,9 @@ timems_ = makeAttribute "time-ms"
 pSelect_ :: Term arg result => arg -> result
 pSelect_ = term "p-select"
 
+variant_ :: Text -> Attribute
+variant_ = makeAttribute "variant"
+
 
 renderScotty
   :: MonadIO m

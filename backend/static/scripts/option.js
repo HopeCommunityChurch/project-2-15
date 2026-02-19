@@ -4,28 +4,20 @@ class PSelect extends HTMLElement {
   static formAssociated = true;
 
   static _styles = `
-    :host {
-      display: block;
-      width: 100%;
-    }
     .p-select {
-      display: grid;
+      display: inline-grid;
       grid-template-columns: 1fr 1.5em;
       position: relative;
-      padding: 6px 12px;
+      padding: 2px 6px;
       box-sizing: border-box;
-      background-color: #fff;
-      border: 1px solid #ccc;
+      background-color: #e9e9ed;
       border-radius: 5px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: border-color .2s;
       span {
         justify-self: start;
         align-self: center;
       }
       &:hover {
-        border-color: #999;
+        background-color: #d0d0d7;
       }
 
       .p-arrow {
@@ -35,27 +27,61 @@ class PSelect extends HTMLElement {
       }
 
       .p-dropbox {
-        position: fixed;
-        background-color: #fff;
-        border: 1px solid #ccc;
-        border-radius: 5px;
+        position: absolute;
+        background-color: #e9e9ed;
+        min-width: 100%;
         display: none;
-        box-shadow: 0 4px 12px #0001, 0 2px 4px #0001;
-        z-index: 9999;
-        overflow: hidden;
+        box-shadow: 0 2px 4px #0003;
+        z-index: 1;
+        top: 100%;
         .option{
-          padding: 8px 12px;
+          padding: 2px 6px;
           display: grid;
           align-content: center;
           white-space: nowrap;
-          cursor: pointer;
-          transition: background-color .15s;
           &:hover {
-            background-color: #eef5ff;
+            background-color: #d0d0d7;
           }
         }
         &.open {
           display: block;
+        }
+      }
+    }
+
+    :host([variant="modern"]) {
+      display: block;
+      width: 100%;
+    }
+    :host([variant="modern"]) .p-select {
+      display: grid;
+      padding: 6px 12px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color .2s;
+      &:hover {
+        background-color: #fff;
+        border-color: #999;
+      }
+    }
+    :host([variant="modern"]) .p-dropbox {
+      position: fixed;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 4px 12px #0001, 0 2px 4px #0001;
+      z-index: 9999;
+      overflow: hidden;
+      top: auto;
+      min-width: auto;
+      .option {
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color .15s;
+        &:hover {
+          background-color: #eef5ff;
         }
       }
     }
@@ -92,7 +118,7 @@ class PSelect extends HTMLElement {
     this.select.addEventListener("click", (e) => {
       e.stopPropagation();
       const isOpen = this.dropbox.classList.toggle("open");
-      if (isOpen) {
+      if (isOpen && this.getAttribute("variant") === "modern") {
         const rect = this.select.getBoundingClientRect();
         const gap = 4;
         this.dropbox.style.left = rect.left + "px";
