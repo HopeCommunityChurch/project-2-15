@@ -46,19 +46,32 @@
   </menu>
 </dialog>
 
-<div id="profileContent">
-  <h1>My Profile</h1>
-  {% include "profile/form.html" %}
+<div id="profileScroll">
+  <div class="profileHeader">
+    <div class="profileAvatar">{{user.nameShort}}</div>
+    <div class="profileHeaderInfo">
+      <h1>{{user.name}}</h1>
+      <p>{{user.email}}</p>
+    </div>
+  </div>
 
-  <br>
-  <h1>Features</h1>
-  {% include "profile/featureForm.html" %}
+  <div id="profileContent">
+    <div class="profileCard">
+      <h2>Profile Info</h2>
+      {% include "profile/form.html" %}
+    </div>
+
+    <div class="profileCard">
+      <h2>Features</h2>
+      {% include "profile/featureForm.html" %}
+    </div>
+  </div>
+
+  {% include "footer.html" %}
 </div>
 
 <script>
   {% include "scripts/inputs.js" %}
 </script>
-
-{% include "footer.html" %}
 
 {% endblock %}
