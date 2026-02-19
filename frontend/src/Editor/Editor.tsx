@@ -76,10 +76,14 @@ class StudyBlocksView implements NodeView {
     const table = document.createElement("table");
     table.className = "studyBlocks";
 
-    // Create and configure the Pencil icon
-    const editIcon = new Image();
-    editIcon.src = "/static/img/gray-pencil-in-circle.svg";
-    editIcon.className = "studyBlockEditPencil";
+    // Create and configure the Edit blocks button
+    const editIcon = document.createElement("button");
+    editIcon.className = "studyBlockEditPencil ghostBlue";
+    const editImg = new Image();
+    editImg.src = "/static/img/gray-pencil-in-circle.svg";
+    editImg.draggable = false;
+    editIcon.appendChild(editImg);
+    editIcon.appendChild(document.createTextNode("Edit blocks"));
 
     editIcon.addEventListener("click", () => {
       let sectionNode : Node = null;

@@ -388,10 +388,19 @@ img.ProseMirror-separator {
       right: 0;
       cursor: pointer;
       z-index: 2;
-      max-width: 28px;
-      transform: translate(13px, -9px);
-      box-shadow: 0 0 4px #00000049;
-      border-radius: 50%;
+      transform: translateX(8px);
+      top: -17px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 3px 10px 3px 4px;
+      border-radius: 18px;
+      font-size: 13px;
+      box-shadow: 0 1px 3px #00000020;
+      img {
+        width: 22px;
+        transform: scale(1.26);
+      }
     }
 
     .studyBlocks {
