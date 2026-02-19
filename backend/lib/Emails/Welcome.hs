@@ -20,8 +20,11 @@ mail toAddr =
 
 welcome :: Html ()
 welcome = do
-  b_ "Welcome to Project 2:15."
+  b_ "Welcome to Project 2:15!"
   br_ []
   br_ []
-  "Right now this email is basically blank. "
-  "We'll fill it in the future and there will be a verification link. "
+  "We're so glad you've joined us! "
+  "Jump in whenever you're ready — there's no wrong way to start. "
+  br_ []
+  br_ []
+  "Happy studying!"

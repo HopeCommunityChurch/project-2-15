@@ -45,7 +45,7 @@ resetEmail = do
   for_ mToken $ \ token -> do
     url <- lift $ asks (.url)
     lift $ Mail.sendMail (Emails.PasswordReset.mail email token url)
-  html "Check your email"
+  html "We've sent you a reset link — check your inbox!"
 
 
 getResetToken

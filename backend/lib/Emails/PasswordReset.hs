@@ -33,7 +33,7 @@ passwordReset token baseUrl = do
   br_ []
   "Click the button below to reset your password."
   br_ []
-  "If you didn't request a password reset ignore this email. The link will expire in 10 minutes."
+  "If you didn't request this, no worries — just ignore this email. The link will expire in 10 minutes."
   br_ []
   br_ []
   a_ [href_ url, style buttonStyle] "Reset Password"
