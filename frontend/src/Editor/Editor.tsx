@@ -48,25 +48,22 @@ import { v4 as uuidv4 } from "uuid";
 // var blockMap : Dictionary<BlockMapItem> = {};
 
 
-function extractAllStudyBlocksAndQuestions(node: Node, allStudyBlocks: Node[] = []) {
-  // Iterate over the children of the node
-  node.forEach((childNode) => {
-    // Check if the child node is of the desired type
-    if (childNode.type.name === "generalStudyBlock" || childNode.type.name === "questions") {
-      allStudyBlocks.push(childNode);
-    } else {
-      // Recursively search in the child node
-      extractAllStudyBlocksAndQuestions(childNode, allStudyBlocks);
-    }
-  });
-
-  return allStudyBlocks;
+export class EditorStudyBlocksEdit extends Event {
+  studyBlocks : Array<{node : Node, pos : number }>;
+  studyBlockPos : number;
+  constructor(studyBlocks : Array<{node : Node, pos : number }>, pos:number) {
+    super("studyblocks-edit");
+    this.studyBlocks = studyBlocks;
+    this.studyBlockPos = pos;
+  }
 }
+
 
 class StudyBlocksView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
   constructor(
+    editor : P215Editor,
     node: Node,
     view: EditorView,
     getPos: () => number,
@@ -79,34 +76,43 @@ class StudyBlocksView implements NodeView {
     const table = document.createElement("table");
     table.className = "studyBlocks";
 
-    // // Create and configure the Pencil icon
-    // const questionIcon = new Image();
-    // questionIcon.src = window.base + "/static/img/gray-pencil-in-circle.svg";
-    // questionIcon.className = "studyBlockEditPencil";
-    // questionIcon.onclick = () => {
-    //   alert("coming soon");
-    // };
+    // Create and configure the Pencil icon
+    const editIcon = new Image();
+    editIcon.src = "/static/img/gray-pencil-in-circle.svg";
+    editIcon.className = "studyBlockEditPencil";
 
-    // questionIcon.addEventListener("click", () => {
-    //   // Find the section node that contains this position
-    //   let sectionNode = null;
-    //   let sectionPos = null;
-    //   view.state.doc.nodesBetween(getPos(), getPos(), (node, pos) => {
-    //     if (node.type.name === "section") {
-    //       sectionNode = node;
-    //       sectionPos = pos;
-    //       return false; // Stop iterating further
-    //     }
-    //   });
+    editIcon.addEventListener("click", () => {
+      let sectionNode : Node = null;
+      let sectionPos = null;
+      view.state.doc.nodesBetween(getPos(), getPos(), (node, pos) => {
+        if (node.type.name === "section") {
+          sectionNode = node;
+          sectionPos = pos;
+          return true;
+        }
+      });
+      if (sectionNode === null) {
+        console.error("unable to get section for editing study block");
+        return;
+      }
+      let studyBlocks = [];
+      sectionNode.descendants((node, pos, parent) => {
+        if(parent.type.name === "section" && node.type.name === "studyBlocks") {
+          return true;
+        } else if(parent.type.name === "section") {
+          return false
+        }
+        if(parent.type.name === "studyBlocks") {
+          studyBlocks.push({node, pos});
+          return false;
+        }
+        return false;
+      });
+      let event = new EditorStudyBlocksEdit(studyBlocks, getPos());
+      editor.dispatchEvent(event);
+    });
 
-    //   let combinedStudyBlocks = extractAllStudyBlocksAndQuestions(sectionNode);
-
-    //   // Update the signal with the combined study blocks and the current position
-    //   // setSelectedStudyBlockArea({ studyBlocks: combinedStudyBlocks, position: getPos() });
-    // });
-
-    // // Position the Question icon at the top right of the table
-    // this.dom.appendChild(questionIcon);
+    this.dom.appendChild(editIcon);
 
     // Set the table as the main content
     this.contentDOM = table;
@@ -319,16 +325,6 @@ export class QuestionView implements NodeView {
       addAnswer.className = "addAnswer";
       this.dom.appendChild(addAnswer);
     }
-
-    // const deleteQuestion = document.createElement("button");
-    // deleteQuestion.onclick = (e) => {
-    //   e.preventDefault();
-    //   removeQuestion(this.questionId, view.state, view.dispatch);
-    //   delete this.questionMap[this.questionId];
-    // };
-    // deleteQuestion.innerText = "delete question";
-    // deleteQuestion.className = "deleteQuestion";
-    // this.dom.appendChild(deleteQuestion);
   }
 
   update(node: Node) {
@@ -392,172 +388,19 @@ export class ChunkView implements NodeView {
     }
     this.contentDOM.setAttribute("level", node.attrs.level);
     this.dom.appendChild(this.contentDOM);
-
-    // this.dom.onmouseenter = (e) => {
-    //   let hasChunkComment = this.hasComment(node);
-
-    //   if (hasChunkComment) return;
-
-    //   e.preventDefault();
-    //   let widget = Decoration.widget(getPos()+1, () => {
-    //     const but = document.createElement("div");
-    //     but.className = "chunkButton";
-    //     but.onclick = () => {
-    //       const chunkCom = textSchema.nodes.chunkComment.create({
-    //         content: Fragment.empty,
-    //       });
-    //       view.dispatch(view.state.tr.insert(getPos()+1, chunkCom));
-    //     };
-    //     return but;
-    //   });
-    //   view.setProps({
-    //     decorations: (state) => {
-    //       return DecorationSet.create(state.doc, [
-    //         widget
-    //       ]);
-    //     },
-    //   });
-    // }
-  }
-
-  hasComment(node: Node) {
-    let hasChunkComment = false;
-    node.descendants((node: Node) => {
-      if (node.type.name == "chunkComment") hasChunkComment = true;
-      return false;
-    });
-    return hasChunkComment;
-  }
-}
-
-export class ChunkCommentView implements NodeView {
-  dom: HTMLElement;
-  contentDOM: HTMLElement;
-  popup: HTMLElement;
-  node: Node;
-  outerView: EditorView;
-  innerView: EditorView;
-  getPos: () => number;
-
-  constructor(node: Node, view: EditorView, getPos: () => number) {
-    this.getPos = getPos;
-    this.outerView = view;
-    this.node = node;
-    this.dom = document.createElement("chunkComment");
-    this.dom.className = "chunkButton";
-    this.popup = null;
-    this.dom.onclick = (e) => {
-      if (!this.popup) this.open();
-    };
-  }
-
-  close() {
-    if (this.popup) {
-      this.innerView.destroy();
-      this.innerView = null;
-      this.dom.textContent = "";
-      // I don't know why I have to do this. Probably because of some magic in
-      // prosemirror.
-      setTimeout(() => {
-        this.popup = null;
-      }, 0);
-    }
-  }
-
-  update(node: Node) {
-    // if (!node.sameMarkup(this.node)) return false
-    this.node = node;
-    if (this.innerView) {
-      let state = this.innerView.state;
-      let start = node.content.findDiffStart(state.doc.content);
-      if (start != null) {
-        let { a: endA, b: endB } = node.content.findDiffEnd(state.doc.content);
-        let overlap = start - Math.min(endA, endB);
-        if (overlap > 0) {
-          endA += overlap;
-          endB += overlap;
-        }
-        this.innerView.dispatch(
-          state.tr.replace(start, endB, node.slice(start, endA)).setMeta("fromOutside", true)
-        );
-      }
-    }
-    return true;
-  }
-
-  open() {
-    let pop = this.dom.appendChild(document.createElement("div"));
-    this.popup = pop;
-    pop.className = "chunkCommentPopup";
-
-    let closeBut = pop.appendChild(document.createElement("button"));
-    closeBut.innerText = "Close";
-    closeBut.onclick = (e) => {
-      e.preventDefault();
-      this.close();
-    };
-
-    let addRefBut = pop.appendChild(document.createElement("button"));
-    addRefBut.innerText = "Add Reference";
-    addRefBut.onclick = (e) => {
-      e.preventDefault();
-      // const rId = crypto.randomUUID();
-      // const meta = {
-      //   addedReference: true,
-      //   currentSelection:null,
-      //   referenceId: rId,
-      // };
-      // const tr =
-      //   this.outerView.state.tr
-      //     .setNodeAttribute(this.getPos(), "referenceId", rId)
-      //     .setMeta(referencePluginKey, meta);
-      // this.outerView.dispatch(tr);
-    };
-
-    let editorHolder = pop.appendChild(document.createElement("div"));
-    this.innerView = new EditorView(editorHolder, {
-      state: EditorState.create({
-        doc: this.node,
-      }),
-      dispatchTransaction: this.dispatchInner.bind(this),
-    });
-  }
-
-  dispatchInner(tr: Transaction) {
-    let { state, transactions } = this.innerView.state.applyTransaction(tr);
-    this.innerView.updateState(state);
-
-    if (!tr.getMeta("fromOutside")) {
-      let outerTr = this.outerView.state.tr,
-        offsetMap = StepMap.offset(this.getPos() + 1);
-      for (let i = 0; i < transactions.length; i++) {
-        let steps = transactions[i].steps;
-        for (let j = 0; j < steps.length; j++) outerTr.step(steps[j].map(offsetMap));
-      }
-      if (outerTr.docChanged) this.outerView.dispatch(outerTr);
-    }
-  }
-}
-
-class CustomEditorView extends EditorView {
-  constructor(place, props) {
-    super(place, props);
-  }
-
-  getCurrentTextAndHighlightColors(setHighlightFillColor, setTextFillColor) {
-    getCurrentTextAndHighlightColors(this.state, setHighlightFillColor, setTextFillColor);
-    this.focus();
   }
 
 }
+
+
 
 const zIndices: { [key: string]: number } = {}; // Object to store z-index values for pop-ups
 let zIndexCounter: number = 17; // Start z-index from 17
 
 const questionPopup = (
-  x,
-  y,
-  qId,
+  x : number,
+  y : number,
+  qId : string,
   questionMap: Dictionary<QuestionMapItem>,
   view: EditorView,
   setCurrentEditor : (view : EditorView) => void
@@ -780,7 +623,7 @@ const questionPopup = (
       }
     };
 
-    qNode.editor = new CustomEditorView(editorHolder, {
+    qNode.editor = new EditorView(editorHolder, {
       editable: () => view.editable,
       handleDOMEvents: {
         focus: () => {
@@ -1377,7 +1220,7 @@ function cleanupExtraStudyBlocks (initDoc : any) : any {
 
 type DispatchFunc = (tr : Transaction) => void;
 
-export class P215Editor {
+export class P215Editor extends EventTarget {
   state: EditorState;
   editable: boolean;
   view: EditorView;
@@ -1393,6 +1236,7 @@ export class P215Editor {
     editable,
     remoteThings,
   }) {
+    super();
     this.editable = editable;
     this.remoteThings = remoteThings;
     let node = Node.fromJSON(textSchema, cleanupExtraStudyBlocks(initDoc));
@@ -1421,7 +1265,7 @@ export class P215Editor {
           "Shift-Tab": decreaseLevel,
           "Mod-[": decreaseLevel,
           "Mod-e": this.addQuestionCommand,
-          "Mod-s": addGeneralStudyBlock,
+          "Mod-s": () => {return true;}, // Have ctrl-s do nothing
           "Mod-b": toggleMark(textSchema.marks.strong),
           "Mod-i": toggleMark(textSchema.marks.em),
           "Mod-u": toggleMark(textSchema.marks.underline),
@@ -1472,6 +1316,7 @@ export class P215Editor {
         },
         studyBlocks(node, view, getPos) {
           return new StudyBlocksView(
+            that,
             node,
             view,
             getPos,
@@ -1482,9 +1327,6 @@ export class P215Editor {
         },
         chunk(node, view, getPos) {
           return new ChunkView(node, view, getPos);
-        },
-        chunkComment(node, view, getPos) {
-          return new ChunkCommentView(node, view, getPos);
         },
         question(node, view, getPos) {
           return new QuestionView(that.questionMap, node, view, getPos);

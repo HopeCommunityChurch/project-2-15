@@ -22,4 +22,5 @@ declare interface Window {
   base: string;
   previewScripture: any;
   isLocal: number;
+  toggleModal: (qs: string) => void;
 }

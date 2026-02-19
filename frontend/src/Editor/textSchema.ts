@@ -149,19 +149,8 @@ export const textSchema = new Schema({
         return ["questionAnswer", 0];
       },
     },
-    chunkComment: {
-      content: "text*",
-      inline: true,
-      atom: true,
-      draggable: false,
-      defining: true,
-      selectable: false,
-      attrs: { referenceId: { default: null }, color: { default: "red" } },
-      toDOM: () => ["chunkComment", 0],
-      parseDOM: [{ tag: "chunkComment" }],
-    },
     chunk: {
-      content: "(chunkComment | text)*",
+      content: "(text)*",
       attrs: { level: { default: 0 } },
       toDOM: (node) => {
         return [

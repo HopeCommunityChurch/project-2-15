@@ -29,7 +29,7 @@ function updateSectionNames (container: HTMLElement, doc : Node) {
     const txt = (sectionText)? sectionText.text : "Untitled";
     const oldTxt = container.children.item(index).innerHTML;
     if (oldTxt != txt) {
-      container.children.item(index).querySelector("span").innerHTML = txt;
+      container.children.item(index).querySelector("span").innerText = txt;
     }
   });
 }
@@ -40,7 +40,7 @@ function initialSetup(editor : Editor.P215Editor, container: HTMLElement, doc : 
     const sectionHeader = node.child(0);
     const sectionText = sectionHeader.maybeChild(0);
     const txt = (sectionText)? sectionText.text : "Untitled";
-    section.querySelector("span").innerHTML = txt;
+    section.querySelector("span").innerText = txt;
     container.appendChild(section);
   });
 }
@@ -60,9 +60,9 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   section.appendChild(sectionText);
 
   const remove = document.createElement("div");
-  remove.innerHTML = "x";
-  const img = document.createElement("img");
-  img.src = "/static/img/x.svg";
+  remove.innerHTML = "х";
+  // const img = document.createElement("img");
+  // img.src = "/static/img/x.svg";
   remove.className = "remove";
   remove.addEventListener("click", (e) => {
     e.stopPropagation();
