@@ -160,6 +160,9 @@ scottyServer = do
     Scotty.delete "/study/:documentId" $ do
       user <- getUserWithRedirect
       Study.deleteStudy user
+    Scotty.post "/study/:documentId/restore" $ do
+      user <- getUserWithRedirect
+      Study.restoreStudy user
 
     Scotty.get "/group_study/:documentId" $ do
       user <- getUserWithRedirect

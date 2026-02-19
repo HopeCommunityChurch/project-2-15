@@ -137,7 +137,20 @@ deleteStudy user = do
   unless (user.userId `elem` fmap (.userId) doc.editors) $ do
     NotAuth.getNotAuth
   lift $ Doc.deleteDocument docId
-  let url = baseUrl <> "/"
+  let url = baseUrl <> "/studies?deleted=" <> UUID.toText (unwrap docId) <> "&name=" <> doc.name
   setHeader "HX-Redirect" (toLazy url)
   status status200
+
+restoreStudy
+  :: ( MonadDb env m
+     )
+  => AuthUser
+  -> ActionT m ()
+restoreStudy user = do
+  docId <- captureParam "documentId"
+  deletedDocs <- lift $ Doc.getDeletedDocs user
+  unless (any (\d -> d.docId == docId) deletedDocs) $ do
+    NotAuth.getNotAuth
+  lift $ Doc.restoreDocument docId
+  redirect (toLazy (baseUrl <> "/study/" <> UUID.toText (unwrap docId)))
 

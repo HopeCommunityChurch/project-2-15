@@ -291,6 +291,64 @@ getAllDocs user =
     E.queryEntity @GetDoc (Just user)
 
 
+getDeletedDocs
+  :: MonadDb env m
+  => AuthUser
+  -> m [GetDoc]
+getDeletedDocs user =
+  fmap (fmap E.toEntity)
+  $ runBeam
+  $ runSelectReturningList
+  $ select
+  $ orderBy_ (desc_ . (.updated))
+  $ do
+    doc <- all_ Db.db.document
+
+    guard_ doc.isDeleted
+
+    guard_ $ exists_ $ do
+      editor <- all_ Db.db.documentEditor
+      guard_ $ editor.docId ==. doc.docId
+      guard_ $ val_ user.userId ==. editor.userId
+      pure editor.docId
+
+    let editors = jsonArraryOf $ do
+                    de <- all_ Db.db.documentEditor
+                    guard_ $ de.docId ==. doc.docId
+                    u <- E.queryEntityBy @User.GetUser Nothing de.userId
+                    pure $ jsonBuildObject u
+
+    sg <- leftJoin_'
+            (all_ Db.db.groupStudy)
+            (\ r -> just_ r.groupStudyId ==?. doc.groupStudyId)
+
+    let result :: E.PgEntity GetDoc _
+        result = MkDbGetDoc
+          doc.docId
+          doc.groupStudyId
+          doc.studyTemplateId
+          sg.name
+          doc.name
+          doc.document
+          editors
+          doc.updated
+          doc.created
+    pure result
+
+
+restoreDocument
+  :: MonadDb env m
+  => T.DocId
+  -> m ()
+restoreDocument docId = do
+  runBeam
+    $ runUpdate
+    $ update
+      Db.db.document
+      (\ r -> r.isDeleted <-. val_ False)
+      (\ r -> r.docId ==. val_ docId)
+
+
 getLastUpdate
   :: MonadDb env m
   => T.DocId

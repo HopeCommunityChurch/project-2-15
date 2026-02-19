@@ -24,10 +24,17 @@ getStudies
   -> ActionT m ()
 getStudies user = do
   docs <- lift $ Doc.getAllDocs user
+  deletedDocs <- lift $ Doc.getDeletedDocs user
   qParams <- queryParams
   let mShareToken = qParams
                     & find (\(key, _) -> key == "share_token")
                     & fmap (T.mkShareToken . snd)
+  let mDeletedDocId = qParams
+                    & find (\(key, _) -> key == "deleted")
+                    & fmap snd
+  let mDeletedName = qParams
+                    & find (\(key, _) -> key == "name")
+                    & fmap snd
   logInfoSH mShareToken
   mShareData <- lift $ forM mShareToken Shares.getShareFromToken
   logInfoSH mShareData
@@ -39,4 +46,7 @@ getStudies user = do
     ( HMap.insert "user" (toGVal (Aeson.toJSON user))
     . HMap.insert "studies" (toGVal (Aeson.toJSON docs))
     . HMap.insert "shares" (toGVal (Aeson.toJSON allShares))
+    . HMap.insert "deletedStudies" (toGVal (Aeson.toJSON deletedDocs))
+    . HMap.insert "deletedDocId" (toGVal mDeletedDocId)
+    . HMap.insert "deletedName" (toGVal mDeletedName)
     )

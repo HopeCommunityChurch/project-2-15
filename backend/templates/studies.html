@@ -59,7 +59,17 @@
   </menu>
 </dialog>
 
+<div id="studiesScroll">
 <div id="studiesContent">
+
+  {% if deletedDocId %}
+  <div class="undoBanner">
+    <span>"{{ deletedName }}" was deleted.</span>
+    <form method="post" action="{{base}}/study/{{deletedDocId}}/restore">
+      <button type="submit" class="undoButton">Undo</button>
+    </form>
+  </div>
+  {% endif %}
 
   {% if length(shares) > 0 %}
   <div id="allShares">
@@ -121,44 +131,94 @@
   </div>
   {% endif %}
 
-  <h1>My Studies</h1>
-  <div class="table3">
-    <header>
-      Study Title
-    </header>
-    <header>
-      Group Study
-    </header>
-    <header>
-      Last Opened By Me
-    </header>
-    {% for study in studies %}
-      <a href="{{base}}/study/{{study.docId}}">
-        <div style="view-transition-name: study-{{study.docId}}">
-          {{study.name}}
-        </div>
-        <div
-          {% if study.groupStudyName %}
-          {% else %}
-            class="shareWith"
-          {% endif %}
-        >
-          {% if study.groupStudyName %}
-            {{study.groupStudyName}}
-          {% else %}
-            Independent
-          {% endif %}
-        </div>
-        <div>
-          {{dateformat(study.updated, "%B %e, %Y")}}
-        </div>
-      </a>
-    {% endfor %}
+  <div class="tabBar">
+    <button class="tab active" onclick="switchTab('myStudies', this)">My Studies</button>
+    <button class="tab" onclick="switchTab('deletedStudies', this)">
+      Trash
+    </button>
+  </div>
+
+  <div id="myStudies" class="tabContent">
+    <div class="table3">
+      <header>
+        Study Title
+      </header>
+      <header>
+        Group Study
+      </header>
+      <header>
+        Last Opened By Me
+      </header>
+      {% for study in studies %}
+        <a href="{{base}}/study/{{study.docId}}">
+          <div style="view-transition-name: study-{{study.docId}}">
+            {{study.name}}
+          </div>
+          <div
+            {% if study.groupStudyName %}
+            {% else %}
+              class="shareWith"
+            {% endif %}
+          >
+            {% if study.groupStudyName %}
+              {{study.groupStudyName}}
+            {% else %}
+              Independent
+            {% endif %}
+          </div>
+          <div>
+            {{dateformat(study.updated, "%B %e, %Y")}}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div id="deletedStudies" class="tabContent" style="display: none;">
+    {% if length(deletedStudies) == 0 %}
+      <p class="emptyTrash">You don't have any deleted studies. If you delete any, they will appear here.</p>
+    {% else %}
+      <div class="table3">
+        <header>
+          Study Title
+        </header>
+        <header>
+          Group Study
+        </header>
+        <header>
+        </header>
+        {% for study in deletedStudies %}
+          <div class="row deletedRow">
+            <div>
+              {{study.name}}
+            </div>
+            <div
+              {% if study.groupStudyName %}
+              {% else %}
+                class="shareWith"
+              {% endif %}
+            >
+              {% if study.groupStudyName %}
+                {{study.groupStudyName}}
+              {% else %}
+                Independent
+              {% endif %}
+            </div>
+            <div>
+              <form method="post" action="{{base}}/study/{{study.docId}}/restore">
+                <button type="submit" class="restoreButton">Restore</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
   </div>
 
 </div>
 
 {% include "footer.html" %}
+</div>
 
 <dialog id="newStudy">
   <h3>Create New Study</h3>
@@ -175,5 +235,14 @@
     </button>
   </form>
 </dialog>
+
+<script>
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tabContent').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).style.display = 'block';
+  btn.classList.add('active');
+}
+</script>
 
 {% endblock %}
