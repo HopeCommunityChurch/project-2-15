@@ -4,20 +4,28 @@ class PSelect extends HTMLElement {
   static formAssociated = true;
 
   static _styles = `
+    :host {
+      display: block;
+      width: 100%;
+    }
     .p-select {
-      display: inline-grid;
+      display: grid;
       grid-template-columns: 1fr 1.5em;
       position: relative;
-      padding: 2px 6px;
+      padding: 6px 12px;
       box-sizing: border-box;
-      background-color: #e9e9ed;
+      background-color: #fff;
+      border: 1px solid #ccc;
       border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color .2s;
       span {
         justify-self: start;
         align-self: center;
       }
       &:hover {
-        background-color: #d0d0d7;
+        border-color: #999;
       }
 
       .p-arrow {
@@ -27,20 +35,23 @@ class PSelect extends HTMLElement {
       }
 
       .p-dropbox {
-        position: absolute;
-        background-color: #e9e9ed;
-        min-width: 100%;
+        position: fixed;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
         display: none;
-        box-shadow: 0 2px 4px #0003;
-        z-index: 1;
-        top: 100%;
+        box-shadow: 0 4px 12px #0001, 0 2px 4px #0001;
+        z-index: 9999;
+        overflow: hidden;
         .option{
-          padding: 2px 6px;
+          padding: 8px 12px;
           display: grid;
           align-content: center;
           white-space: nowrap;
+          cursor: pointer;
+          transition: background-color .15s;
           &:hover {
-            background-color: #d0d0d7;
+            background-color: #eef5ff;
           }
         }
         &.open {
@@ -80,7 +91,36 @@ class PSelect extends HTMLElement {
     this.dropbox.className = "p-dropbox";
     this.select.addEventListener("click", (e) => {
       e.stopPropagation();
-      this.dropbox.classList.toggle("open");
+      const isOpen = this.dropbox.classList.toggle("open");
+      if (isOpen) {
+        const rect = this.select.getBoundingClientRect();
+        const gap = 4;
+        this.dropbox.style.left = rect.left + "px";
+        this.dropbox.style.minWidth = rect.width + "px";
+        this.dropbox.style.maxHeight = "";
+        this.dropbox.style.overflowY = "";
+
+        // Place below first, measure, then adjust
+        this.dropbox.style.top = (rect.bottom + gap) + "px";
+        const dropRect = this.dropbox.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom - gap;
+        const spaceAbove = rect.top - gap;
+
+        if (dropRect.height <= spaceBelow) {
+          // Fits below — keep it
+        } else if (dropRect.height <= spaceAbove) {
+          // Fits above
+          this.dropbox.style.top = (rect.top - gap - dropRect.height) + "px";
+        } else {
+          // Doesn't fit either way — use whichever side is larger and scroll
+          const usedSpace = Math.max(spaceBelow, spaceAbove);
+          if (spaceAbove > spaceBelow) {
+            this.dropbox.style.top = gap + "px";
+          }
+          this.dropbox.style.maxHeight = usedSpace + "px";
+          this.dropbox.style.overflowY = "auto";
+        }
+      }
     });
     document.addEventListener("click", () => {
       this.dropbox.classList.remove("open");

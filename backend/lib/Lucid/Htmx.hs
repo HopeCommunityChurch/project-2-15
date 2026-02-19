@@ -33,6 +33,9 @@ hxIndicator_ :: Text -> Attribute
 hxIndicator_ = makeAttribute "hx-indicator"
 
 
+hxOn_ :: Text -> Text -> Attribute
+hxOn_ event = makeAttribute ("hx-on::" <> event)
+
 -- Not htmx, but I need it somewher
 
 notifcation_ :: Term arg result => arg -> result

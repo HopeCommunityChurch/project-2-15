@@ -63,63 +63,34 @@
 
   {% if length(shares) > 0 %}
   <div id="allShares">
-    <h1>Invites</h1>
-    <div class="table3">
-      <header>
-        Group Study
-      </header>
-      <header>
-        Template Name
-      </header>
-      <header>
-      </header>
-      {% for share in shares %}
-        <div class="row share" id="share-{{share.token}}">
-          <div>
-            {{ share.groupStudyName }}
-          </div>
-          <div
-            {% if share.studyTemplateId %}
-            {% else %}
-              class = "shareWith"
-            {% endif %}
-          >
-            {% if share.studyTemplateId %}
-              {{share.studyTemplateName }}
-            {% else %}
-              Free Hand
-            {% endif %}
-          </div>
-          <div class="options">
-            <form
-               hx-post="/group_study/share/{{share.token}}"
-            >
-              <p-select name="document">
-                <option value="new">New Document</option>
-                {% for study in studies %}
-                  {% if study.groupStudyName %}
-                  {% else %}
-                    <option value="{{study.docId}}">{{study.name}}</option>
-                  {% endif %}
-                {% endfor %}
-              </p-select>
-              <button class="blue" type="submit" class="accept">Accept</button>
-              <button
-                class="red"
-                hx-delete="/group_study/share/{{share.token}}"
-                hx-target="#share-{{share.token}}"
-                hx-swap="delete"
-                class="reject"
-              >
-                Reject
-              </button>
-            </form>
-          </div>
+    {% for share in shares %}
+      <div class="invite-card" id="invite-{{share.token}}">
+        <img src="/static/img/email-message-read-icon-blue.svg" alt="Invite">
+        <div class="invite-text">
+          <h3>You've been invited to join a group study!</h3>
+          <p>
+            {% if share.ownerName %}{{share.ownerName}}{% else %}Someone{% endif %}
+            has invited you to join "{{share.groupStudyName}}"{% if share.studyTemplateName %}, a study based on the "{{share.studyTemplateName}}" template{% endif %}. ❤️
+          </p>
         </div>
-      {% endfor %}
-    </div>
+        <div class="invite-action">
+          <button
+            class="blue"
+            hx-get="/group_study/share/{{share.token}}/select-document"
+            hx-target="#inviteModal"
+            hx-swap="innerHTML"
+            onclick="toggleModal('#inviteModal')"
+          >
+            Review Invite
+          </button>
+        </div>
+      </div>
+    {% endfor %}
   </div>
   {% endif %}
+
+  <dialog id="inviteModal"></dialog>
+  <dialog id="confirmRejectModal"></dialog>
 
   <h1>My Studies</h1>
   <div class="table3">
