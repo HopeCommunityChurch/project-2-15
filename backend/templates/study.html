@@ -119,17 +119,10 @@
       // Wait for the sidebar to update, then flash and scroll
       setTimeout(() => {
         const container = document.getElementById("sectionContainer");
-        console.log("container children count:", container.children.length);
         const newItem = container.children[container.children.length - 1];
-        console.log("newItem:", newItem);
         if (newItem) {
-          console.log("classList before:", newItem.className);
           newItem.classList.add("flash");
-          console.log("classList after:", newItem.className);
-          console.log("computed bg:", getComputedStyle(newItem).backgroundColor);
           setTimeout(() => newItem.classList.remove("flash"), 3000);
-        } else {
-          console.log("no newItem found");
         }
 
         const newIndex = window.editor.view.state.doc.childCount - 1;
