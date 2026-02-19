@@ -21,6 +21,7 @@ import Database.Beam (
   runSelectReturningOne,
   runUpdate,
   select,
+  subquery_,
   update,
   val_,
   (&&.),
@@ -281,6 +282,7 @@ data GetShareData = MkGetShareData
   , isExpired :: Bool
   , rejected :: Bool
   , created :: UTCTime
+  , userName :: Maybe Text
   }
   deriving (Show, Generic)
   deriving anyclass (FromJSON, ToJSON, ToSchema)
@@ -294,7 +296,7 @@ getGroupShareData gsId = do
   now <- getCurrentTime
   fmap
     (fmap
-      (\(ex, token, email, r, cr) ->
+      (\(ex, token, email, r, cr, mName) ->
         MkGetShareData
           email
           token
@@ -302,6 +304,7 @@ getGroupShareData gsId = do
           (ex < now)
           r
           cr
+          mName
       )
     )
     $ runBeam
@@ -311,7 +314,11 @@ getGroupShareData gsId = do
       share <- all_ Db.db.groupStudyShare
       guard_ $ share.groupStudyId ==. val_ gsId
       guard_ $ isNothing_ share.usedAt
-      pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created)
+      let mName = subquery_ $ do
+                    u <- all_ Db.db.user
+                    guard_ $ u.email ==. share.email
+                    pure (just_ (u.name))
+      pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created, mName)
 
 
 getGroupShareDataByToken
@@ -322,7 +329,7 @@ getGroupShareDataByToken shareToken = do
   now <- getCurrentTime
   fmap
     (fmap
-      (\(ex, token, email, r, cr) ->
+      (\(ex, token, email, r, cr, mName) ->
         MkGetShareData
           email
           token
@@ -330,6 +337,7 @@ getGroupShareDataByToken shareToken = do
           (ex < now)
           r
           cr
+          mName
       )
     )
     $ runBeam
@@ -339,7 +347,11 @@ getGroupShareDataByToken shareToken = do
       share <- all_ Db.db.groupStudyShare
       guard_ $ share.shareToken ==. val_ shareToken
       guard_ $ isNothing_ share.usedAt
-      pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created)
+      let mName = subquery_ $ do
+                    u <- all_ Db.db.user
+                    guard_ $ u.email ==. share.email
+                    pure (just_ (u.name))
+      pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created, mName)
 
 
 deleteShare

@@ -93,7 +93,15 @@ createStudyGroupHTML
   -> L.HtmlT m ()
 createStudyGroupHTML doc = do
   L.div_ [L.class_ "groupStudyInner"] $ do
+    L.img_
+      [ L.alt_ "Close"
+      , L.src_ "/static/img/x.svg"
+      , L.class_ "closeModalIcon"
+      , L.onclick_ "toggleModal('#groupStudy')"
+      ]
     L.h3_ "Create Group Study"
+    L.p_ [L.class_ "field-desc"]
+      "A group study lets multiple people work through the same study template together, each with their own document."
     let formUrl = "/group_study"
     L.form_ [ L.hxPost_ formUrl, L.class_ "groupStudyEditorHolder"] $ do
       L.input_
@@ -102,7 +110,7 @@ createStudyGroupHTML doc = do
         , L.type_ "hidden"
         , L.value_ (UUID.toText (unwrap doc.docId))
         ]
-      L.label_ [L.for_ "createName"] "Study Name"
+      L.label_ [L.for_ "createName", L.class_ "field-label"] "Study Name"
       L.input_
         [ L.id_ "createName"
         , L.name_ "name"
@@ -110,7 +118,9 @@ createStudyGroupHTML doc = do
         , L.required_ ""
         , L.placeholder_ "1 Corinthians - Wednesday Guy's Group"
         ]
-      L.label_ [L.for_ "createPeople"] "People"
+      L.label_ [L.for_ "createPeople", L.class_ "field-label"] "Invite people (optional)"
+      L.p_ [L.class_ "field-desc"]
+        "You can also invite people later."
       L.div_ [L.id_ "createPeoples"] createPeopleTemplate
       L.button_ [L.type_ "submit", L.class_ "blue"]
         "Create"
@@ -125,15 +135,25 @@ shareHTML
   -> L.HtmlT m ()
 shareHTML isOwner share groupStudy = do
   let shareId = "share-" <> unwrap share.token
-  L.div_ [L.class_ "share", L.id_ shareId] $ do
-    L.div_ [L.class_ "share-email"] $ do
-      L.toHtml (CI.original (unwrap share.email))
-      when share.rejected $ do
-        L.span_ [L.class_ "expired"] "(rejected)"
-      when share.isExpired $ do
-        L.span_ [L.class_ "expired"] "(expired)"
+  let statusBadge
+        | share.rejected  = L.span_ [L.class_ "badge badge-error"] "Rejected"
+        | share.isExpired = L.span_ [L.class_ "badge badge-error"] "Expired"
+        | otherwise       = L.span_ [L.class_ "badge badge-pending"] "Invited"
+  L.div_ [L.class_ "share person-row", L.id_ shareId] $ do
+    L.div_ [L.class_ "person-info"] $ do
+      case share.userName of
+        Just name -> do
+          L.span_ [L.class_ "person-name"] $ do
+            L.toHtml name
+            statusBadge
+          L.span_ [L.class_ "person-email"] $
+            L.toHtml (CI.original (unwrap share.email))
+        Nothing -> do
+          L.span_ [L.class_ "person-name"] $ do
+            L.toHtml (CI.original (unwrap share.email))
+            statusBadge
     when isOwner $ do
-      L.div_ [L.class_ "buttons"] $ do
+      L.div_ [L.class_ "person-actions"] $ do
         let resendUrl =
               "/group_study/"
               <> UUID.toText (unwrap groupStudy.groupStudyId)
@@ -141,7 +161,7 @@ shareHTML isOwner share groupStudy = do
               <> unwrap share.token
               <> "/resend"
         L.button_
-          [ L.class_ "lightBlue"
+          [ L.class_ "ghost-blue"
           , L.hxPost_ resendUrl
           , L.hxTarget_ ("#" <> shareId)
           , L.hxSwap_ "outerHTML"
@@ -153,12 +173,12 @@ shareHTML isOwner share groupStudy = do
               <> "/share/"
               <> unwrap share.token
         L.button_
-          [ L.class_ "red trash"
+          [ L.class_ "remove-btn"
           , L.hxDelete_ deleteUrl
           , L.hxTarget_ ("#" <> shareId)
           , L.hxSwap_ "outerHTML"
           ]
-          (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
+          "Remove"
 
 
 memberHTML
@@ -171,12 +191,19 @@ memberHTML
 memberHTML isOwner user groupStudy gdoc = do
   let editor = head gdoc.editors
   let memberId = "member-doc-" <> UUID.toText (unwrap gdoc.docId)
-  L.div_ [L.class_ "member", L.id_ memberId] $ do
-    L.div_ $ do
-      L.toHtml editor.name
-      when (editor.userId == user.userId) $
-        L.span_ "(you)"
-    L.div_ [L.class_ "buttons"] $
+  L.div_ [L.class_ "member person-row", L.id_ memberId] $ do
+    L.div_ [L.class_ "person-info"] $ do
+      L.span_ [L.class_ "person-name"] $ do
+        L.toHtml editor.name
+        when (editor.userId == user.userId) $
+          L.span_ [L.class_ "you-label"] " (you)"
+        let editorIsOwner = elem editor.userId (fmap (.userId) groupStudy.owners)
+        unless isOwner $
+          L.span_ [L.class_ "person-role"] $
+            if editorIsOwner then "Owner" else "Member"
+      L.span_ [L.class_ "person-email"] $
+        L.toHtml (CI.original (unwrap editor.email))
+    L.div_ [L.class_ "person-actions"] $ do
       when isOwner $ do
         let optionUrl =
               "/group_study/"
@@ -207,12 +234,12 @@ memberHTML isOwner user groupStudy gdoc = do
               <> "/member/"
               <> UUID.toText (unwrap gdoc.docId)
         L.button_
-          [ L.class_ "red trash"
+          [ L.class_ "remove-btn"
           , L.hxDelete_ deleteUrl
           , L.hxTarget_ ("#" <> memberId)
           , L.hxSwap_ "outerHTML"
           ]
-          (L.img_ [L.src_ "/static/img/gray-trash-icon.svg"])
+          "Remove"
 
 
 groupStudyHTML
@@ -223,43 +250,77 @@ groupStudyHTML
   -> GroupStudy.GetGroupStudy
   -> L.HtmlT m ()
 groupStudyHTML user isOwner shares groupStudy = do
+  let groupIdTxt = UUID.toText (unwrap groupStudy.groupStudyId)
   L.div_ [ L.class_ "groupStudyEditorHolder" , L.id_ "groupStudyInner" ] $ do
-    if isOwner then
-      L.header_ [L.class_ "groupStudyName"] $ do
-        let groupIdTxt = UUID.toText (unwrap groupStudy.groupStudyId)
-        L.input_
-          [ L.contenteditable_ ""
-          , L.hxIndicator_ ".saving"
-          , L.hxTrigger_ "keyup changed delay:1s"
-          , L.hxPost_ ("/group_study/" <> groupIdTxt <> "/name")
-          , L.hxTarget_ ".saved"
-          , L.name_ "groupName"
-          , L.value_ groupStudy.name
-          ]
-        L.div_ [L.class_ "saving-box"] $ do
-          L.span_ [L.class_ "saving saving-indicator"] "saving"
-          L.span_ [L.class_ "saved"] mempty
-    else
-      L.h3_ (L.toHtml groupStudy.name)
+    L.img_
+      [ L.alt_ "Close"
+      , L.src_ "/static/img/x.svg"
+      , L.class_ "closeModalIcon"
+      , L.onclick_ "toggleModal('#groupStudy')"
+      ]
 
-    L.h4_ "Invites"
-    L.div_ [L.id_ "studyGroupInvites"] $
-      for_ shares $ \ share -> do
-        shareHTML isOwner share groupStudy
+    -- Header
+    L.div_ [L.class_ "groupStudy-header"] $ do
+      L.h3_ "Group Study"
+      if isOwner then do
+        L.label_ [L.class_ "field-label"] "Study name"
+        L.div_ [L.class_ "groupStudyName"] $ do
+          L.input_
+            [ L.type_ "text"
+            , L.hxIndicator_ ".saving"
+            , L.hxTrigger_ "keyup changed delay:1s"
+            , L.hxPost_ ("/group_study/" <> groupIdTxt <> "/name")
+            , L.hxTarget_ ".saved"
+            , L.name_ "groupName"
+            , L.value_ groupStudy.name
+            ]
+          L.div_ [L.class_ "saving-box"] $ do
+            L.span_ [L.class_ "saving saving-indicator"] "saving"
+            L.span_ [L.class_ "saved"] mempty
+      else
+        L.p_ [L.class_ "groupStudy-name-readonly"] (L.toHtml groupStudy.name)
 
-    L.h4_ "Members"
-    L.div_ [L.id_ "studyGroupMembers"] $
-      for_ groupStudy.docs $ \ gdoc -> do
-        memberHTML isOwner user groupStudy gdoc
-
+    -- Inline invite form (owners only)
     when isOwner $ do
-      let groupIdTxt = UUID.toText (unwrap groupStudy.groupStudyId)
-      L.button_
-        [ L.class_ "lightBlue"
-        , L.hxGet_ ("/group_study/invite/" <> groupIdTxt)
-        , L.hxTarget_ "#groupStudyInner"
-        ]
-        "Invite New Members"
+      L.div_ [L.class_ "groupStudy-section"] $ do
+        L.label_ [L.class_ "field-label"] "Invite someone"
+        L.p_ [L.class_ "field-desc"]
+          "They'll receive an email with a link to join this study."
+        L.form_
+          [ L.class_ "groupStudy-invite-row"
+          , L.hxPost_ "/group_study/invite/add"
+          , L.hxTarget_ "#groupStudyInner"
+          ] $ do
+            L.input_
+              [ L.name_ "groupId"
+              , L.type_ "hidden"
+              , L.value_ groupIdTxt
+              ]
+            L.input_
+              [ L.name_ "email[]"
+              , L.type_ "email"
+              , L.placeholder_ "Email address"
+              , L.required_ ""
+              ]
+            L.pSelect_ [ L.name_ "permission[]"] $ do
+              L.option_ [ L.value_ "member"] "Member"
+              L.option_ [ L.value_ "owner"] "Owner"
+            L.button_ [L.type_ "submit", L.class_ "blue"] "Invite"
+
+    L.hr_ [L.class_ "groupStudy-divider"]
+
+    -- People with access
+    L.div_ [L.class_ "groupStudy-section"] $ do
+      L.label_ [L.class_ "field-label"] "People with access"
+      when isOwner $
+        L.p_ [L.class_ "field-desc"]
+          "Use the role dropdown to set someone as a Member or Owner."
+      L.div_ [L.class_ "groupStudy-people"] $ do
+        for_ groupStudy.docs $ \ gdoc -> do
+          memberHTML isOwner user groupStudy gdoc
+        unless (Prelude.null shares) $ do
+          for_ shares $ \ share -> do
+            shareHTML isOwner share groupStudy
 
 
 textToPermission :: Text -> Maybe GroupStudy.Permission
@@ -573,7 +634,6 @@ postInvite user = do
 
   form <- formParams
   let shares = parseFormBody form
-  html =<< L.renderTextT (getInviteNewMemberHTML groupId)
   lift $ withTransaction $ do
     result <- Shares.addShares groupId shares
     url <- asks (.url)
