@@ -147,6 +147,8 @@ dialog.popup {
   overflow-y: auto;
   align-self: stretch;
   justify-self: stretch;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
 }
 
 

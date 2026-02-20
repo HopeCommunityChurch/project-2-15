@@ -1,4 +1,5 @@
 
+import { initViewportStabilizer } from "./viewportStabilizer"
 import * as EActions from "./Editor/editorUtils"
 import * as Editor from "./Editor/Editor"
 import * as WS from "./WebsocketTypes"
@@ -150,17 +151,4 @@ function mkSaveObject (ws : WS.MyWebsocket) {
 
 GS.init(ws);
 
-// window.visualViewport.addEventListener("resize", () => {
-//   const viewPort = document.querySelector("meta[name=viewport]");
-//   let map = {};
-//   viewPort.getAttribute("content").split(",").forEach( (t) => {
-//     const [key, value] = t.split("=");
-//     map[key.trim()] = value;
-//   });
-//   map["height"] = window.visualViewport.height + "";
-//   const newContent = Object.keys(map).map( (key) => {
-//     return key + "=" + map[key];
-//   }).join(", ");
-//   viewPort.setAttribute("content", newContent);
-//   console.log(newContent);
-// });
+initViewportStabilizer();
