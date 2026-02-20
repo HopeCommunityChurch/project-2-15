@@ -141,17 +141,9 @@ shareHTML isOwner share groupStudy = do
         | otherwise       = L.span_ [L.class_ "badge badge-pending"] "Invited"
   L.div_ [L.class_ "share person-row", L.id_ shareId] $ do
     L.div_ [L.class_ "person-info"] $ do
-      case share.userName of
-        Just name -> do
-          L.span_ [L.class_ "person-name"] $ do
-            L.toHtml name
-            statusBadge
-          L.span_ [L.class_ "person-email"] $
-            L.toHtml (CI.original (unwrap share.email))
-        Nothing -> do
-          L.span_ [L.class_ "person-name"] $ do
-            L.toHtml (CI.original (unwrap share.email))
-            statusBadge
+      L.span_ [L.class_ "person-name"] $ do
+        L.toHtml (CI.original (unwrap share.email))
+        statusBadge
     when isOwner $ do
       L.div_ [L.class_ "person-actions"] $ do
         let resendUrl =
