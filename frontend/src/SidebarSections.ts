@@ -143,7 +143,6 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   });
 
   section.addEventListener("touchstart", (e : TouchEvent) => {
-    e.preventDefault();
     closeAllDeleters(section);
     const startTime = e.timeStamp;
     let state : TouchStates = {
@@ -165,6 +164,7 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
       clearTimeout(moveTimeout);
       switch (state.currentGesture) {
         case "Moving": {
+          e2.preventDefault();
           const rec = section.getBoundingClientRect();
           const touch = e2.touches[0];
           if (touch.clientY > rec.bottom) {
@@ -175,6 +175,7 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
           break;
         }
         case "Swipe": {
+          e2.preventDefault();
           const touch = e2.touches[0];
           let moveX = touch.clientX - state.swipeState.initialTouch.clientX;
           section.style.transform = `translateX(${moveX}px)`;
@@ -228,8 +229,12 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
         }
         case "None": {
           const endTime = e2.timeStamp;
-          // A tap
-          if(endTime - startTime < 100) {
+          const endTouch = e2.changedTouches[0];
+          const dX = endTouch.clientX - state.swipeState.initialTouch.clientX;
+          const dY = endTouch.clientY - state.swipeState.initialTouch.clientY;
+          const dist = Math.sqrt(dX * dX + dY * dY);
+          // A tap: short duration and barely moved
+          if(endTime - startTime < 300 && dist < 10) {
             const currentIndex = section.getAttribute("currentIndex")
             editor.scrollTo(Number(currentIndex));
           }

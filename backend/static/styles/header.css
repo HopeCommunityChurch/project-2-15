@@ -10,6 +10,7 @@
   position: sticky;
   box-shadow: 0 2px 4px #0003;
   top: 0px;
+  touch-action: none;
   .logo {
     max-height: 40px;
   }

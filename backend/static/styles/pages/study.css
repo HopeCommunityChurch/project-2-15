@@ -23,7 +23,6 @@ html:has(#studyPage) body {
   grid-template-rows: 52px 34px 1fr;
   overflow: hidden;
   overscroll-behavior: none;
-  touch-action: none;
 
   &.collapseSide{
     grid-template-columns: 60px 1fr;
