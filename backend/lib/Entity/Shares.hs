@@ -21,7 +21,6 @@ import Database.Beam (
   runSelectReturningOne,
   runUpdate,
   select,
-  subquery_,
   update,
   val_,
   (&&.),
@@ -314,11 +313,8 @@ getGroupShareData gsId = do
       share <- all_ Db.db.groupStudyShare
       guard_ $ share.groupStudyId ==. val_ gsId
       guard_ $ isNothing_ share.usedAt
-      let mName = subquery_ $ do
-                    u <- all_ Db.db.user
-                    guard_ $ u.email ==. share.email
-                    pure (just_ (u.name))
-      pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created, mName)
+      mUser <- leftJoin_' (all_ Db.db.user) (\ u -> u.email ==?. share.email)
+      pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created, mUser.name)
 
 
 getGroupShareDataByToken
@@ -347,11 +343,8 @@ getGroupShareDataByToken shareToken = do
       share <- all_ Db.db.groupStudyShare
       guard_ $ share.shareToken ==. val_ shareToken
       guard_ $ isNothing_ share.usedAt
-      let mName = subquery_ $ do
-                    u <- all_ Db.db.user
-                    guard_ $ u.email ==. share.email
-                    pure (just_ (u.name))
-      pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created, mName)
+      mUser <- leftJoin_' (all_ Db.db.user) (\ u -> u.email ==?. share.email)
+      pure (share.expiresAt, share.shareToken, share.email, share.rejected, share.created, mUser.name)
 
 
 deleteShare
