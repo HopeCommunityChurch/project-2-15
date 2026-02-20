@@ -1297,6 +1297,8 @@ export class P215Editor extends EventTarget {
     this.view = new EditorView(editorRoot, {
       state: that.state,
       editable: () => that.editable,
+      scrollThreshold: { top: 100, bottom: 100, left: 0, right: 0 },
+      scrollMargin: { top: 100, bottom: 100, left: 0, right: 0 },
       handlePaste: this.handlePaste.bind(this),
       handleDOMEvents: {
         focus: () => {

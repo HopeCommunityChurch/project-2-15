@@ -6,13 +6,23 @@
 @import url("../editor/toolbar.css");
 @import url("../component/nav.css");
 
+html:has(#studyPage),
+html:has(#studyPage) body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  height: 100%;
+}
+
 #studyPage {
   display: grid;
   height: 100vh;
+  height: 100dvh;
+  height: var(--vh-real, 100dvh);
   grid-template-areas: "header header" "toolbar toolbar" "sidebar editor";
   grid-template-columns: 200px 1fr;
   grid-template-rows: 52px 34px 1fr;
   overflow: hidden;
+  overscroll-behavior: none;
 
   &.collapseSide{
     grid-template-columns: 60px 1fr;
@@ -76,6 +86,8 @@
       display: grid;
       grid-template-rows: 2.2rem 1fr 2.2rem;
       height: calc(100vh - 6rem);
+      height: calc(100dvh - 6rem);
+      height: calc(var(--vh-real, 100dvh) - 6rem);
     }
     #collapseSide {
       display: flex;

@@ -8,6 +8,9 @@
   display: flex;
   position: sticky;
   top: 52px;
+  overflow-x: auto;
+  touch-action: pan-x;
+  overscroll-behavior: contain;
 
   .tooltipContainer {
     cursor: pointer;
