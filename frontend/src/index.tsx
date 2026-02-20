@@ -38,17 +38,14 @@ const localDoc = docId + ".doc";
 
 function checkLastUpdate (doc : T.DocRaw) : any {
   if(doc.lastUpdate == null) {
-    console.log("using remote doc");
     return doc.document;
   }
   if (doc.lastUpdate.computerId == computerId) {
-    console.log("using local storage");
     const result = window.localStorage.getItem(localDoc);
     return JSON.parse(result);
   } else {
     // We need to make this nicer in the where if a local update hasn't been
     // saved we can present a choise for the user.
-    console.error("using remote doc");
     return doc.document;
   }
 }
@@ -162,5 +159,4 @@ GS.init(ws);
 //     return key + "=" + map[key];
 //   }).join(", ");
 //   viewPort.setAttribute("content", newContent);
-//   console.log(newContent);
-// });
+
