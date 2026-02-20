@@ -518,6 +518,125 @@ const questionPopup = (
       startDrag(touch.pageX, touch.pageY);
     });
 
+    // Resize handle
+    const resizeHandle = pop.appendChild(document.createElement("div"));
+    resizeHandle.className = "resizeHandle";
+
+    // Edge highlight overlay (no pointer events — purely visual)
+    const edgeOverlay = pop.appendChild(document.createElement("div"));
+    edgeOverlay.style.cssText =
+      "position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:999;border-radius:10px;" +
+      "border-top:4px solid transparent;border-bottom:4px solid transparent;" +
+      "border-left:3px solid transparent;border-right:3px solid transparent;" +
+      "transition:border-color 0.15s ease;";
+
+    let resizing = false;
+
+    const noEdges = { top: false, bottom: false, left: false, right: false };
+
+    const zoneEdges = (zone: HTMLDivElement) => ({
+      top: zone.dataset.edge === "top" || zone.dataset.edgeV === "top",
+      bottom: zone.dataset.edge === "bottom" || zone.dataset.edgeV === "bottom",
+      left: zone.dataset.edge === "left" || zone.dataset.edgeH === "left",
+      right: zone.dataset.edge === "right" || zone.dataset.edgeH === "right",
+    });
+
+    const updateHighlight = (edges: typeof noEdges) => {
+      edgeOverlay.style.borderTopColor = edges.top ? "#ccc" : "transparent";
+      edgeOverlay.style.borderBottomColor = edges.bottom ? "#ccc" : "transparent";
+      edgeOverlay.style.borderLeftColor = edges.left ? "#ccc" : "transparent";
+      edgeOverlay.style.borderRightColor = edges.right ? "#ccc" : "transparent";
+    };
+
+    // Invisible edge zones that sit above all popup content to capture resize events
+    const edgeZones: HTMLDivElement[] = [];
+    for (const side of ["top", "bottom", "left", "right"] as const) {
+      const zone = pop.appendChild(document.createElement("div"));
+      zone.dataset.edge = side;
+      const shared = "position:absolute;z-index:1000;";
+      if (side === "top") zone.style.cssText = shared + "top:0;left:0;right:0;height:6px;cursor:ns-resize;";
+      else if (side === "bottom") zone.style.cssText = shared + "bottom:0;left:0;right:0;height:6px;cursor:ns-resize;";
+      else if (side === "left") zone.style.cssText = shared + "top:0;bottom:0;left:0;width:6px;cursor:ew-resize;";
+      else zone.style.cssText = shared + "top:0;bottom:0;right:0;width:6px;cursor:ew-resize;";
+      edgeZones.push(zone);
+    }
+    for (const corner of [["top","left"],["top","right"],["bottom","left"],["bottom","right"]] as const) {
+      const zone = pop.appendChild(document.createElement("div"));
+      zone.dataset.edgeV = corner[0];
+      zone.dataset.edgeH = corner[1];
+      const cursor = (corner[0] === "top" && corner[1] === "left") || (corner[0] === "bottom" && corner[1] === "right")
+        ? "nwse-resize" : "nesw-resize";
+      zone.style.cssText = `position:absolute;z-index:1001;width:6px;height:6px;${corner[0]}:0;${corner[1]}:0;cursor:${cursor};`;
+      edgeZones.push(zone);
+    }
+
+    for (const zone of edgeZones) {
+      zone.addEventListener("mouseenter", () => {
+        if (!resizing) updateHighlight(zoneEdges(zone));
+      });
+      zone.addEventListener("mouseleave", () => {
+        if (!resizing) updateHighlight(noEdges);
+      });
+      zone.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        startResize(e.pageX, e.pageY, zoneEdges(zone));
+      });
+      zone.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const t = e.touches[0];
+        startResize(t.pageX, t.pageY, zoneEdges(zone));
+      });
+    }
+
+    pop.addEventListener("mouseleave", () => {
+      if (!resizing) updateHighlight(noEdges);
+    });
+
+    const startResize = (
+      startX: number,
+      startY: number,
+      edges: typeof noEdges
+    ) => {
+      resizing = true;
+      const startW = pop.offsetWidth;
+      const startH = pop.offsetHeight;
+      const startL = pop.offsetLeft;
+      const startT = pop.offsetTop;
+
+      const doResize = (cx: number, cy: number) => {
+        const dx = cx - startX;
+        const dy = cy - startY;
+        if (edges.right) pop.style.width = Math.max(200, startW + dx) + "px";
+        if (edges.bottom) pop.style.height = Math.max(150, startH + dy) + "px";
+        if (edges.left) {
+          const newW = Math.max(200, startW - dx);
+          pop.style.width = newW + "px";
+          pop.style.left = startL + (startW - newW) + "px";
+        }
+        if (edges.top) {
+          const newH = Math.max(150, startH - dy);
+          pop.style.height = newH + "px";
+          pop.style.top = startT + (startH - newH) + "px";
+        }
+      };
+
+      const onMouseMove = (e: MouseEvent) => { e.preventDefault(); doResize(e.pageX, e.pageY); };
+      const onTouchMove = (e: TouchEvent) => { e.preventDefault(); doResize(e.touches[0].pageX, e.touches[0].pageY); };
+      const stop = () => {
+        resizing = false;
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", stop);
+        document.removeEventListener("touchmove", onTouchMove);
+        document.removeEventListener("touchend", stop);
+      };
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", stop);
+      document.addEventListener("touchmove", onTouchMove);
+      document.addEventListener("touchend", stop);
+    };
+
     let popUpTitle = mover.appendChild(document.createElement("p"));
     popUpTitle.innerHTML = "Question";
     popUpTitle.className = "QpopUpTitle";
@@ -583,6 +702,7 @@ const questionPopup = (
         tr.setSelection(sel);
 
         qNode.editor.dispatch(tr);
+        qNode.editor.focus();
       };
 
       bottomButtons.appendChild(addAnswerButton);
