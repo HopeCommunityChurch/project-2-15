@@ -60,7 +60,7 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   section.appendChild(sectionText);
 
   const remove = document.createElement("div");
-  remove.innerHTML = "х";
+  remove.innerText = "х";
   // const img = document.createElement("img");
   // img.src = "/static/img/x.svg";
   remove.className = "remove";

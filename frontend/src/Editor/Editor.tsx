@@ -33,7 +33,6 @@ import { keymap } from "prosemirror-keymap";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { StepMap, Step, Transform } from "prosemirror-transform";
 import { baseKeymap } from "prosemirror-commands";
-// import AddScriptureIcon from "../Assets/add-scripture.svg";
 import {
   questionHighlightPlugin,
   highlighQuestion,
@@ -42,7 +41,6 @@ import {
 import { otherCursorPlugin, setSelection } from "./OtherCursorPlugin";
 import {getRandomStr} from "../Util";
 
-// import CloseXIcon from "../Assets/x.svg";
 import { v4 as uuidv4 } from "uuid";
 
 // var blockMap : Dictionary<BlockMapItem> = {};
