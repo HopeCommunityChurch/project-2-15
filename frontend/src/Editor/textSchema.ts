@@ -251,6 +251,7 @@ export const textSchema = new Schema({
     },
     verse: {
       attrs: { book: {}, chapter: {}, verse: {} },
+      inclusive: false,
       toDOM: (mark) => {
         return [
           "span",
