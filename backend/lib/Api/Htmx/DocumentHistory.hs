@@ -60,7 +60,7 @@ getHistoryGroups docId userId =
       \  MAX(version)::integer     AS \"endVersion\", \
       \  MIN(\"createdAt\")        AS \"startedAt\", \
       \  MAX(\"createdAt\")        AS \"endedAt\", \
-      \  COUNT(*)                  AS \"stepCount\" \
+      \  COUNT(DISTINCT floor(extract(epoch FROM \"createdAt\") / 30)) AS \"stepCount\" \
       \FROM \"document_step\" \
       \WHERE \"docId\" = ? \
       \  AND \"userId\" = ? \

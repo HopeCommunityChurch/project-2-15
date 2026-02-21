@@ -187,7 +187,7 @@ async function init() {
       header.className = "historyGroupItem";
       header.innerHTML =
         `<span class="historyTime">${formatDate(group.startedAt)}</span>` +
-        `<span class="historySteps">${group.stepCount} edit${group.stepCount !== 1 ? "s" : ""}</span>`;
+        `<span class="historySteps">${group.stepCount} session${group.stepCount !== 1 ? "s" : ""}</span>`;
 
       const stepsPanel = document.createElement("div");
       stepsPanel.className = "historyStepsPanel";
