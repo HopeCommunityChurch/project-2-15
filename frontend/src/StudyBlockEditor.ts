@@ -33,7 +33,6 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
         document.removeEventListener("mouseup", mouseup);
         document.removeEventListener("mousemove", mousemove);
         div.classList.remove("moving");
-        let currentIndex = Number(div.getAttribute("currentIndex"));
       };
 
       function mousemove (e : MouseEvent) {
