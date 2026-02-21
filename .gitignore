@@ -5,3 +5,5 @@ result
 .devenv
 pg-init-*
 CLAUDE.md
+.claude
+frontend/.parcel-cache
