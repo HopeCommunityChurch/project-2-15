@@ -223,7 +223,7 @@ function navigateToTarget(
 ): boolean {
   if (!dispatch) return true;
   const anchorPos = dir === -1 ? target.end - 1 : target.start + 1;
-  const newPos = resolveLinePos(state, view, cursorLeft, anchorPos, dir === -1 ? -1 : 1, target.start, target.end);
+  const newPos = resolveLinePos(state, view, cursorLeft, anchorPos, dir, target.start, target.end);
   if (newPos === state.selection.head) return false;
   dispatch(state.tr.setSelection(TextSelection.create(state.doc, newPos)).scrollIntoView());
   return true;

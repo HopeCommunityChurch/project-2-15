@@ -79,7 +79,7 @@ class StudyBlocksView implements NodeView {
 
     // Create and configure the Pencil icon
     const editIcon = new Image();
-    editIcon.src = "/static/img/gray-pencil-in-circle.svg";
+    editIcon.src = window.base + "/static/img/gray-pencil-in-circle.svg";
     editIcon.className = "studyBlockEditPencil";
 
     editIcon.addEventListener("click", () => {
