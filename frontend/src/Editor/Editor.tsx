@@ -6,6 +6,9 @@ import {
   toggleItalic,
   decreaseLevel,
   addGeneralStudyBlock,
+  toggleBulletList,
+  toggleOrderedList,
+  toggleCheckList,
 } from "./editorUtils";
 import { listPlugins } from "./listPlugin";
 
@@ -1322,6 +1325,9 @@ export class P215Editor extends EventTarget {
           "Mod-b": toggleMark(textSchema.marks.strong),
           "Mod-i": toggleMark(textSchema.marks.em),
           "Mod-u": toggleMark(textSchema.marks.underline),
+          "Mod-Shift-8": toggleBulletList,
+          "Mod-Shift-7": toggleOrderedList,
+          "Mod-Shift-9": toggleCheckList,
         }),
         keymap(baseKeymap),
         questionMarkPlugin(this.questionMap, (view) => this.currentEditor = view),
