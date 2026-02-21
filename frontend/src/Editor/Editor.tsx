@@ -80,6 +80,11 @@ class StudyBlocksView implements NodeView {
     const editIcon = new Image();
     editIcon.src = "/static/img/gray-pencil-in-circle.svg";
     editIcon.className = "studyBlockEditPencil";
+    // Prevent this non-document UI element from affecting cursor position
+    editIcon.setAttribute("contenteditable", "false");
+    editIcon.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+    });
 
     editIcon.addEventListener("click", () => {
       let sectionNode : Node = null;
@@ -132,6 +137,8 @@ class BibleTextView implements NodeView {
 
     const header = document.createElement("h3");
     header.innerText = node.attrs.verses;
+    // Prevent this non-document UI element from affecting cursor position
+    header.setAttribute("contenteditable", "false");
     this.dom.appendChild(header);
 
     const body = document.createElement("div");
@@ -190,6 +197,8 @@ class QuestionsView implements NodeView {
     if (node.content.size === 0) {
       const noQuestionsText = document.createElement("div");
       noQuestionsText.className = "noQuestionsText";
+      // Prevent this placeholder UI element from being editable or accepting cursor placement
+      noQuestionsText.setAttribute("contenteditable", "false");
       noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
 
       noQuestionsText.onclick = () => {
@@ -311,6 +320,11 @@ export class QuestionView implements NodeView {
 
     if (view.editable) {
       const addAnswer = document.createElement("button");
+      // Prevent this non-document button from affecting cursor position
+      addAnswer.setAttribute("contenteditable", "false");
+      addAnswer.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+      });
       addAnswer.onclick = (e) => {
         e.preventDefault();
         const qnode = newQuestionAnswerNode();
@@ -820,6 +834,7 @@ const verseRefWidget = (verse) => (view: EditorView, getPos: () => number | unde
     view.focus();
   };
   elem.className = "verseRef";
+  elem.setAttribute("contenteditable", "false");
   if (verse.verse === 1) {
     elem.innerHTML = verse.chapter + ":" + verse.verse;
   } else {
@@ -859,7 +874,7 @@ function getDecorations(state: EditorState) {
           key: currentVerseKey,
           ignoreSelection: true,
           side: -1,
-          stopEvent: (e: Event) => e.type === "mousedown" || e.type === "click",
+          stopEvent: (e: Event) => e.type === "mousedown" || e.type === "mouseup" || e.type === "click",
         })
       );
     }

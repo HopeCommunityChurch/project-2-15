@@ -25,7 +25,8 @@
   justify-content: center;
 }
 
-#profileNav menu li a {
+#profileNav menu li a,
+#profileNav menu li .menuButton {
   color: #6c6c6c;
   text-decoration: none;
   display: flex;
@@ -34,7 +35,17 @@
   padding: 8px 26px;
 }
 
-#profileNav menu li a:hover {
+#profileNav menu li a:hover,
+#profileNav menu li .menuButton:hover {
   background-color: #f6f6f6;
 }
 
+#profileNav menu li .menuButton {
+  background: none;
+  border: none;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+}

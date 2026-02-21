@@ -244,6 +244,13 @@ function switchTab(tabId, btn) {
   document.getElementById(tabId).style.display = 'block';
   btn.classList.add('active');
 }
+
+{% if deletedDocId %}
+(function() {
+  var trashBtn = document.querySelector('.tab[onclick*="deletedStudies"]');
+  if (trashBtn) switchTab('deletedStudies', trashBtn);
+})();
+{% endif %}
 </script>
 
 {% endblock %}

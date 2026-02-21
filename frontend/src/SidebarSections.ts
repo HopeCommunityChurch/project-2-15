@@ -59,9 +59,11 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   const sectionText = document.createElement("span");
   section.appendChild(sectionText);
 
-  const remove = document.createElement("div");
+  const remove = document.createElement("button");
+  remove.type = "button";
   remove.innerHTML = "х";
   remove.className = "remove";
+  remove.setAttribute("aria-label", "Remove section");
   remove.addEventListener("click", (e) => {
     e.stopPropagation();
 
@@ -70,7 +72,8 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   });
   section.appendChild(remove);
 
-  const deleter = document.createElement("div");
+  const deleter = document.createElement("button");
+  deleter.type = "button";
   deleter.className = "deleter";
   deleter.innerText = "Remove";
   section.appendChild(deleter);
