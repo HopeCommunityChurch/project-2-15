@@ -55,9 +55,9 @@ function resolveLinePos(
     if ($hit.parent.inlineContent) return hit.pos;
     // hit.pos landed on a boundary between block nodes — snap into the range
     const snapped = Selection.near($hit, 1);
-    if (snapped.head > rangeStart && snapped.head < rangeEnd) return snapped.head;
+    if (snapped.head >= rangeStart && snapped.head <= rangeEnd) return snapped.head;
     const snappedBack = Selection.near($hit, -1);
-    if (snappedBack.head > rangeStart && snappedBack.head < rangeEnd) return snappedBack.head;
+    if (snappedBack.head >= rangeStart && snappedBack.head <= rangeEnd) return snappedBack.head;
   }
   return nearSel.head;
 }
@@ -223,8 +223,8 @@ function navigateToTarget(
 ): boolean {
   if (!dispatch) return true;
   const anchorPos = dir === -1 ? target.end - 1 : target.start + 1;
-  const newPos = resolveLinePos(state, view, cursorLeft, anchorPos, dir === -1 ? -1 : 1, target.start, target.end);
-  if (newPos === state.selection.head) return true;
+  const newPos = resolveLinePos(state, view, cursorLeft, anchorPos, dir, target.start, target.end);
+  if (newPos === state.selection.head) return false;
   dispatch(state.tr.setSelection(TextSelection.create(state.doc, newPos)).scrollIntoView());
   return true;
 }
@@ -302,7 +302,8 @@ function handleSectionHeaderUp(
 
   // Only trigger at the top edge (first line) of the sectionHeader
   const headCoords = view.coordsAtPos(state.selection.head);
-  const firstPosCoords = view.coordsAtPos($head.start(headerDepth));
+  const firstInHeader = Selection.near(state.doc.resolve($head.start(headerDepth)), 1);
+  const firstPosCoords = view.coordsAtPos(firstInHeader.head);
   if (Math.abs(headCoords.top - firstPosCoords.top) > 5) return false;
 
   const sectionDepth = headerDepth - 1;

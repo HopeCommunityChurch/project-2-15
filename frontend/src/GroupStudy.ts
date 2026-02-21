@@ -12,7 +12,8 @@ function makeScrollMemory(container: HTMLElement, pageDocId: string) {
   function restore(docId: T.DocId) {
     const saved = localStorage.getItem(key(docId));
     requestAnimationFrame(() => {
-      container.scrollTop = saved !== null ? parseInt(saved, 10) : 0;
+      const parsed = saved !== null ? parseInt(saved, 10) : NaN;
+      container.scrollTop = isNaN(parsed) ? 0 : parsed;
     });
   }
 
@@ -60,7 +61,6 @@ export function init(ws : WS.MyWebsocket) {
   }
 
   ws.addEventListener("DocListenStart", (ev : WS.DocListenStartEvent) => {
-    console.log(ev.document);
     editor?.removeEditor();
     editor = new Editor.P215Editor({
       initDoc: ev.document,
@@ -68,7 +68,7 @@ export function init(ws : WS.MyWebsocket) {
       remoteThings: null,
     });
     editor.addEditor(document.getElementById("sideBySideEditor"));
-    scroll?.restore(currentDocId);
+    if (currentDocId) scroll?.restore(currentDocId);
   });
 
   ws.addEventListener("DocUpdated", (ev : WS.DocUpdatedEvent) => {

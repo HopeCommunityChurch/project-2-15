@@ -13,8 +13,6 @@ import {
   Plugin,
   PluginKey,
   Transaction,
-  EditorStateConfig,
-  Selection,
   TextSelection,
 } from "prosemirror-state";
 import { EditorView, NodeView, DecorationSet, Decoration } from "prosemirror-view";
