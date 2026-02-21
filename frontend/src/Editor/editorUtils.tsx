@@ -399,3 +399,48 @@ export const deleteSection = (
     dispatch(tr);
   }
 }
+
+// Use the order of the array to say what the new order is
+export const reorderStudyBlock = (
+  pos: number,
+  changes : Array<Node>
+) => (
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+) => {
+  let sectionNode : Node = null;
+  let sectionPos = null;
+  state.doc.nodesBetween(pos, pos, (node, pos) => {
+    if (node.type.name === "section") {
+      sectionNode = node;
+      sectionPos = pos;
+      return true;
+    }
+  });
+  if (sectionNode === null) {
+    console.error("unable to get section for editing study block");
+    return;
+  }
+  let studyBlockNode = null
+  sectionNode.descendants((node, pos, parent) => {
+    if(parent.type.name === "section" && node.type.name === "studyBlocks") {
+      studyBlockNode = {node, pos};
+      return false;
+    }
+    return false;
+  });
+
+  let tr = state.tr;
+  let delPos = studyBlockNode.pos + sectionPos;
+  tr.deleteRange(delPos+1, delPos + studyBlockNode.node.nodeSize-1);
+
+  let currentPos = delPos + 1;
+  changes.forEach((node) => {
+    tr.insert(currentPos, node);
+    currentPos += node.nodeSize;
+  });
+
+  dispatch(tr)
+  return true;
+
+};

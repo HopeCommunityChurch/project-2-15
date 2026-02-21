@@ -32,6 +32,7 @@ data GetUser = MkGetUser
   { userId :: T.UserId
   , name :: Text
   , image :: Maybe Text
+  , email :: T.Email
   }
   deriving (Generic, Show)
   deriving (FromJSON, ToJSON, ToSchema)
@@ -43,6 +44,7 @@ instance E.Entity GetUser where
     { userId :: C f T.UserId
     , name :: C f Text
     , image :: C f (Maybe Text)
+    , email :: C f T.Email
     }
     deriving anyclass (Beamable)
     deriving (Generic)
@@ -54,6 +56,7 @@ instance E.Entity GetUser where
       userId
       name
       image
+      email
 
   queryEntity mAuthUser = do
     user <- all_ Db.db.user
@@ -65,6 +68,7 @@ instance E.Entity GetUser where
         user.userId
         user.name
         user.image
+        user.email
 
 type GetUser' = DbEntity GetUser Identity
 
