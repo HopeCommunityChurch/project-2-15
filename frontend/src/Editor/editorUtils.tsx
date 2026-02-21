@@ -445,16 +445,19 @@ export const reorderStudyBlock = (
 };
 
 // Re-exported for window.editorActions (toolbar buttons)
-export { toggleBulletList, toggleOrderedList } from "./listPlugin";
-import { sinkCurrentItem, liftCurrentItem } from "./listPlugin";
+export { toggleBulletList, toggleOrderedList, toggleCheckList } from "./listPlugin";
+import { sinkCurrentItem, sinkIntoSiblingList, liftCurrentItem, sinkSelectedItems, liftSelectedItems } from "./listPlugin";
 
-// Unified indent/outdent: tries list indent first, falls back to chunk indent
+// Unified indent/outdent: tries range-aware list indent first, then single-item, then chunk indent
 export const indent = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  if (sinkSelectedItems(state, dispatch)) return true;
+  if (sinkIntoSiblingList(state, dispatch)) return true;
   if (sinkCurrentItem(state, dispatch)) return true;
   return increaseLevel(state, dispatch);
 };
 
 export const outdent = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  if (liftSelectedItems(state, dispatch)) return true;
   if (liftCurrentItem(state, dispatch)) return true;
   return decreaseLevel(state, dispatch);
 };

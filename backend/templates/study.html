@@ -119,6 +119,9 @@
     function numberedListClick() {
       window.editor.applyDispatch(window.editorActions.toggleOrderedList);
     }
+    function checkListClick() {
+      window.editor.applyDispatch(window.editorActions.toggleCheckList);
+    }
 
     function collapseSide() {
       const studyContent = document.getElementById("studyPage");
@@ -285,11 +288,14 @@
     
     <div class="seperator">&nbsp;</div>
 
-    <button class="toolbarButton" title="Bullet List" onclick="bulletListClick()">
+    <button class="toolbarButton" title="Bullet List ({{modkey}} + Shift + 8)" onclick="bulletListClick()">
       <img src="{{base}}/static/img/bullet-list-icon.svg" >
     </button>
-    <button class="toolbarButton" title="Numbered List" onclick="numberedListClick()">
+    <button class="toolbarButton" title="Numbered List ({{modkey}} + Shift + 7)" onclick="numberedListClick()">
       <img src="{{base}}/static/img/numbered-list-icon.svg" >
+    </button>
+    <button class="toolbarButton" title="Checklist ({{modkey}} + Shift + 9)" onclick="checkListClick()">
+      <img src="{{base}}/static/img/checklist-icon.svg" >
     </button>
 
     <div class="seperator">&nbsp;</div>

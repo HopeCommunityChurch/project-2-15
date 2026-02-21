@@ -3,7 +3,7 @@
 result
 .devenv
 pg-init-*
-.claude
 CLAUDE.md
+.claude
 .parcel-cache
 frontend/.parcel-cache

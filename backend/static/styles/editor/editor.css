@@ -756,6 +756,62 @@ img.ProseMirror-separator {
     user-select: text;
   }
 
+  ul.checklist {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+
+  li.checklist-item {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  li.checklist-item .checkbox {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    border: 2px solid #999;
+    border-radius: 3px;
+    margin-right: 8px;
+    margin-top: 3px;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  li.checklist-item.checked .checkbox {
+    background: var(--primary-color, #4a90d9);
+    border-color: var(--primary-color, #4a90d9);
+  }
+
+  li.checklist-item.checked .checkbox::after {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 0px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  li.checklist-item.checked > .checklist-item-content {
+    opacity: 0.85;
+  }
+
+  li.checklist-item .checklist-item-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  li.checklist-item .checklist-item-content p {
+    margin: 0;
+  }
+
   .bibleTextPlaceholder {
     user-select: none;
     /* pointer-events: none; */
