@@ -102,7 +102,7 @@ class StudyBlocksView implements NodeView {
         if(parent.type.name === "section" && node.type.name === "studyBlocks") {
           return true;
         } else if(parent.type.name === "section") {
-          return false
+          return false;
         }
         if(parent.type.name === "studyBlocks") {
           studyBlocks.push({node, pos});
@@ -119,6 +119,10 @@ class StudyBlocksView implements NodeView {
     // Set the table as the main content
     this.contentDOM = table;
     this.dom.appendChild(table);
+  }
+
+  stopEvent(e: Event): boolean {
+    return e.type === "mousedown" || e.type === "click";
   }
 }
 

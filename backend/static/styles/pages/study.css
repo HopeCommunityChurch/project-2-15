@@ -227,7 +227,6 @@
         transition: transform 0.2s ease;
       }
       .studyBlock {
-        transform-origin: left;
         font-size: 1.1em;
         user-select: none;
         padding: 8px 10px;

@@ -32,9 +32,7 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
       div.appendChild(handle);
 
       let startMouseY = 0;
-      let startMouseX = 0;
       let initialTop = 0;
-      let initialLeft = 0;
       let swapping = false;
 
       let placeholder: HTMLElement = null;
@@ -43,7 +41,6 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
         if(e.button === 0) {
           e.preventDefault();
           startMouseY = e.clientY;
-          startMouseX = e.clientX;
           document.addEventListener("mousemove", mousemove);
           document.addEventListener("mouseup", mouseup);
         }
@@ -54,51 +51,11 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
         document.removeEventListener("mousemove", mousemove);
 
         if (placeholder) {
-          const placeholderRect = placeholder.getBoundingClientRect();
-          const containerRect = div.parentElement.getBoundingClientRect();
-          const targetTop = placeholderRect.top - containerRect.top;
-          const targetLeft = placeholderRect.left - containerRect.left;
-
-          div.style.transition = "top 0.2s ease, left 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease";
-          div.style.top = targetTop + "px";
-          div.style.left = targetLeft + "px";
-          div.style.transform = "";
-
-          div.addEventListener("transitionend", function settle() {
-            div.removeEventListener("transitionend", settle);
-            div.style.top = "";
-            div.style.left = "";
-            if (placeholder) {
-              placeholder.remove();
-              placeholder = null;
-            }
-            // Fade out the blue background slowly
-            div.style.transition = "background-color 0.5s ease, box-shadow 0.3s ease";
-            div.classList.remove("moving");
-            div.addEventListener("transitionend", function fadeout() {
-              div.removeEventListener("transitionend", fadeout);
-              div.style.transition = "";
-            }, { once: true });
-          }, { once: true });
-
-          // Fallback in case transitionend doesn't fire
-          setTimeout(() => {
-            div.style.top = "";
-            div.style.left = "";
-            div.style.transition = "background-color 0.5s ease, box-shadow 0.3s ease";
-            div.classList.remove("moving");
-            if (placeholder) {
-              placeholder.remove();
-              placeholder = null;
-            }
-            setTimeout(() => { div.style.transition = ""; }, 600);
-          }, 300);
-        } else {
-          div.classList.remove("moving");
-          div.style.transform = "";
-          div.style.top = "";
-          div.style.left = "";
+          placeholder.remove();
+          placeholder = null;
         }
+        div.classList.remove("moving");
+        div.style.top = "";
       };
 
       function mousemove (e : MouseEvent) {
@@ -107,21 +64,16 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
           const rect = div.getBoundingClientRect();
           const containerRect = div.parentElement.getBoundingClientRect();
           initialTop = rect.top - containerRect.top;
-          initialLeft = rect.left - containerRect.left;
           div.classList.add("moving");
           placeholder = document.createElement("div");
           placeholder.className = "dropPlaceholder";
           placeholder.style.height = rect.height + "px";
           div.parentElement.insertBefore(placeholder, div);
           div.style.top = initialTop + "px";
-          div.style.left = initialLeft + "px";
         }
 
         const dy = e.clientY - startMouseY;
-        const dx = e.clientX - startMouseX;
         div.style.top = (initialTop + dy) + "px";
-        div.style.left = (initialLeft + dx) + "px";
-        div.style.transform = `scale(0.96) rotate(1.5deg)`;
 
         if (swapping) return;
 
