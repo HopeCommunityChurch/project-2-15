@@ -61,8 +61,6 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
 
   const remove = document.createElement("div");
   remove.innerHTML = "х";
-  // const img = document.createElement("img");
-  // img.src = "/static/img/x.svg";
   remove.className = "remove";
   remove.addEventListener("click", (e) => {
     e.stopPropagation();
