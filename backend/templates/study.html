@@ -128,6 +128,9 @@
     }
 
     document.addEventListener("editorAttached", function(ev) {
+      var textColorUnderline = document.getElementById('textColorUnderline');
+      var highlightColorUnderline = document.getElementById('highlightColorUnderline');
+      var safeColorRe = /^#[0-9a-fA-F]{3,8}$|^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/;
       ev.editor.onStateUpdate(function(state) {
         var from = state.selection.from;
         var marks = state.doc.resolve(from).marks();
@@ -137,13 +140,17 @@
         var highlightColor = '#54585d';
         for (var i = 0; i < marks.length; i++) {
           if (marks[i].type === textMarkType) {
-            textColor = marks[i].attrs.color;
+            if (safeColorRe.test(marks[i].attrs.color)) {
+              textColor = marks[i].attrs.color;
+            }
           } else if (marks[i].type === highlightMarkType) {
-            highlightColor = marks[i].attrs.color;
+            if (safeColorRe.test(marks[i].attrs.color)) {
+              highlightColor = marks[i].attrs.color;
+            }
           }
         }
-        document.getElementById('textColorUnderline').setAttribute('fill', textColor);
-        document.getElementById('highlightColorUnderline').setAttribute('fill', highlightColor);
+        textColorUnderline.setAttribute('fill', textColor);
+        highlightColorUnderline.setAttribute('fill', highlightColor);
       });
     });
 
@@ -259,7 +266,7 @@
     </button>
     <div class="popupContainer">
       <button class="toolbarButton" title="Text Color" onclick="toggleTextColor('textColorSelector', event)">
-        <svg id="textColorIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" style="min-height:16px;max-height:16px;width:auto;">
+        <svg id="textColorIcon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" style="min-height:16px;max-height:16px;width:auto;">
           <rect id="textColorUnderline" x=".0884" y="23.8309" width="29.8233" height="6.1691" fill="#3b3e3d"/>
           <path fill="#3b3e3d" d="m11.7934,16.3587h6.3985l1.1575,3.9236h4.7398L17.5229,0h-5.0605l-6.5515,20.2804h4.7398l1.1428-3.9217Zm3.1507-10.8656h.0834l2.1188,7.1714h-4.3072l2.105-7.1714Z"/>
         </svg>
@@ -279,7 +286,7 @@
 
     <div class="popupContainer">
       <button class="toolbarButton" title="Highlight Color" onclick="toggleTextColor('highlightColorSelector', event)">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" style="min-height:16px;max-height:16px;width:auto;">
+        <svg id="highlightColorIcon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" style="min-height:16px;max-height:16px;width:auto;">
           <rect id="highlightColorUnderline" x=".0884" y="23.8309" width="29.8233" height="6.1691" fill="#54585d"/>
           <path fill="#3b3e3d" d="m25.931,4.4543l-3.928-3.7782c-.9636-.9269-2.4962-.8971-3.4231.0665L7.3606,12.4065c-.9268.9637-.8971,2.4963.0665,3.4232l-4.1009,4.4526h9.6924l-.0029-.0036c.6413.0046,1.283-.2386,1.7627-.7373l11.2191-11.6639c.927-.9637.8972-2.4963-.0665-3.4232Zm-7.8282,8.8959l-3.3998,3.5345c-.9268.9637-2.4595.9934-3.4231.0665l-1.1951-1.1494c-.9636-.9269-.9934-2.4595-.0665-3.4232l3.3997-3.5346c.927-.9637,2.4596-.9934,3.4233-.0665l1.1949,1.1494c.9637.9269.9934,2.4595.0665,3.4232Z"/>
         </svg>
