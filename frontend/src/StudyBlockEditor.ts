@@ -199,12 +199,10 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
   document.getElementById("studyBlockUpdate").addEventListener("click", () => {
     if (currentStudyBlock === null) return;
     let newPositions = [];
-    const children = container.children
+    const children = container.children;
     for (let i = 0; i < children.length; i++) {
-      const child = children[i];
-      const currentIndex = Number(child.getAttribute("currentIndex"));
-      const originalIndex = Number(child.getAttribute("originalIndex"));
-      newPositions[currentIndex] = currentStudyBlock.studyBlocks[originalIndex].node;
+      const originalIndex = Number(children[i].getAttribute("originalIndex"));
+      newPositions.push(currentStudyBlock.studyBlocks[originalIndex].node);
     }
     editor.applyDispatch(EditorUtil.reorderStudyBlock(
       currentStudyBlock.studyBlockPos,
