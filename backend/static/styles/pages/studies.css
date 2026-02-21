@@ -36,7 +36,7 @@
       transition: background-color .3s;
       box-shadow: 0 4px 7px 1px #00000012;
       margin-top: 10px;
-      a&hover {
+      &:hover {
         background-color: #eef5ff;
       }
       div {
@@ -92,8 +92,9 @@
   }
   .closeModalIcon {
     cursor: pointer;
-    max-width: 20px;
+    background: none;
     padding: 5px;
+    img { max-width: 20px; display: block; }
   }
 }
 

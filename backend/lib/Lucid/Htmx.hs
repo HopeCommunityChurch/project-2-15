@@ -50,6 +50,9 @@ pSelect_ = term "p-select"
 variant_ :: Text -> Attribute
 variant_ = makeAttribute "variant"
 
+ariaLabel_ :: Text -> Attribute
+ariaLabel_ = makeAttribute "aria-label"
+
 
 renderScotty
   :: MonadIO m

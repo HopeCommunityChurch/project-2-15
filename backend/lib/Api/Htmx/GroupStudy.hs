@@ -5,7 +5,6 @@ import Api.Htmx.NotFound qualified as NotFound
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.CaseInsensitive qualified as CI
-import Data.List (head)
 import Data.UUID as UUID
 import DbHelper (MonadDb, withTransaction)
 import Emails.ShareGroupStudy qualified
@@ -93,12 +92,12 @@ createStudyGroupHTML
   -> L.HtmlT m ()
 createStudyGroupHTML doc = do
   L.div_ [L.class_ "groupStudyInner"] $ do
-    L.img_
-      [ L.alt_ "Close"
-      , L.src_ "/static/img/x.svg"
-      , L.class_ "closeModalIcon"
+    L.button_
+      [ L.class_ "closeModalIcon"
+      , L.type_ "button"
       , L.onclick_ "toggleModal('#groupStudy')"
-      ]
+      , L.ariaLabel_ "Close"
+      ] $ L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
     L.h3_ "Create Group Study"
     L.p_ [L.class_ "field-desc"]
       "A group study lets multiple people work through the same study template together, each with their own document."
@@ -181,9 +180,9 @@ memberHTML
   -> GroupStudy.GetDocMeta
   -> L.HtmlT m ()
 memberHTML isOwner user groupStudy gdoc = do
-  let editor = head gdoc.editors
   let memberId = "member-doc-" <> UUID.toText (unwrap gdoc.docId)
-  L.div_ [L.class_ "member person-row", L.id_ memberId] $ do
+  for_ (listToMaybe gdoc.editors) $ \editor ->
+   L.div_ [L.class_ "member person-row", L.id_ memberId] $ do
     L.div_ [L.class_ "person-info"] $ do
       L.span_ [L.class_ "person-name"] $ do
         L.toHtml editor.name
@@ -244,12 +243,12 @@ groupStudyHTML
 groupStudyHTML user isOwner shares groupStudy = do
   let groupIdTxt = UUID.toText (unwrap groupStudy.groupStudyId)
   L.div_ [ L.class_ "groupStudyEditorHolder" , L.id_ "groupStudyInner" ] $ do
-    L.img_
-      [ L.alt_ "Close"
-      , L.src_ "/static/img/x.svg"
-      , L.class_ "closeModalIcon"
+    L.button_
+      [ L.class_ "closeModalIcon"
+      , L.type_ "button"
       , L.onclick_ "toggleModal('#groupStudy')"
-      ]
+      , L.ariaLabel_ "Close"
+      ] $ L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
 
     -- Header
     L.div_ [L.class_ "groupStudy-header"] $ do
@@ -491,24 +490,18 @@ ownershipMemberDoc
   -> ActionT m ()
 ownershipMemberDoc user = do
   groupStudyId <- captureParam "groupId"
-  logInfoSH groupStudyId
   (docId :: T.DocId) <- captureParam "docId"
-  logInfoSH docId
 
   groupStudy <- NotFound.handleNotFound
                   (E.getById @GroupStudy.GetGroupStudy)
                   groupStudyId
   let isOwner = any (\ o -> o.userId == user.userId) groupStudy.owners
-  logInfoSH isOwner
 
   docMeta <- NotFound.handleNotFound
                   (E.getOneEntityBy @GroupStudy.GetDocMeta)
                   docId
-  logInfoSH docMeta
 
   (ownership :: Text) <- formParam "ownership"
-
-  logInfo ownership
 
   permission <- case textToPermission ownership of
                   Nothing -> do
@@ -517,8 +510,6 @@ ownershipMemberDoc user = do
                       L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
                         "You are not an owner. You cannot modify the group."
                   Just p -> pure p
-
-  logInfoSH permission
 
   unless isOwner $
     L.renderScotty $ do
@@ -579,7 +570,7 @@ createPeopleTemplate = do
       L.pSelect_ [ L.name_ "permission[]"] $ do
         L.option_ [ L.value_ "member"] "Member"
         L.option_ [ L.value_ "owner"] "Owner"
-      L.button_ [L.class_ "red"] "-"
+      L.button_ [L.class_ "red", L.type_ "button", L.ariaLabel_ "Remove person"] "-"
 
 
 getInviteNewMemberHTML
@@ -689,11 +680,12 @@ reviewShareModal _ = do
             , L.hxSwap_ "innerHTML"
             ]
             "Accept"
-          L.img_
-            [ L.src_ "/static/img/x.svg"
-            , L.class_ "closeModalIcon"
+          L.button_
+            [ L.class_ "closeModalIcon"
+            , L.type_ "button"
             , L.onclick_ "document.querySelector('#inviteModal').close()"
-            ]
+            , L.ariaLabel_ "Close"
+            ] $ L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
       L.div_ [L.class_ "modal-body"] $ do
         L.p_ $ do
           maybe "Someone" L.toHtml share.ownerName
@@ -722,11 +714,12 @@ confirmRejectModal _ = do
       L.div_ [L.class_ "modal-header"] $ do
         L.h3_ "Are you sure?"
         L.div_ [L.class_ "modal-header-buttons"] $ do
-          L.img_
-            [ L.src_ "/static/img/x.svg"
-            , L.class_ "closeModalIcon"
+          L.button_
+            [ L.class_ "closeModalIcon"
+            , L.type_ "button"
             , L.onclick_ "document.querySelector('#confirmRejectModal').close()"
-            ]
+            , L.ariaLabel_ "Close"
+            ] $ L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
       L.div_ [L.class_ "modal-body"] $ do
         L.p_ $ do
           "Are you sure you want to reject the invite to \x201c"
@@ -772,11 +765,12 @@ selectDocumentModal user = do
             , L.hxOn_ "after-request" "toggleModal('#confirmRejectModal')"
             ]
             "Reject"
-          L.img_
-            [ L.src_ "/static/img/x.svg"
-            , L.class_ "closeModalIcon"
+          L.button_
+            [ L.class_ "closeModalIcon"
+            , L.type_ "button"
             , L.onclick_ "document.querySelector('#inviteModal').close()"
-            ]
+            , L.ariaLabel_ "Close"
+            ] $ L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
       L.div_ [L.class_ "modal-body"] $ do
         L.p_ $ do
           maybe "Someone" L.toHtml share.ownerName
@@ -786,7 +780,7 @@ selectDocumentModal user = do
         L.div_ [L.class_ "doc-choice-cards"] $ do
           L.div_ [L.class_ "doc-choice-card"] $ do
             L.h4_ "Use an existing document"
-            if (length ungroupedDocs == 0) then do
+            if Prelude.null ungroupedDocs then do
               L.p_ [L.class_ "doc-choice-desc doc-choice-empty"]
                 "You don\x2019t have any documents that aren\x2019t already part of a group study."
             else do

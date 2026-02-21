@@ -115,9 +115,20 @@ class PSelect extends HTMLElement {
     this.dropbox = document.createElement("div");
     this.dropbox.part = "p-dropbox";
     this.dropbox.className = "p-dropbox";
+    this.dropbox.setAttribute("role", "listbox");
+    this.select.setAttribute("role", "combobox");
+    this.select.setAttribute("tabindex", "0");
+    this.select.setAttribute("aria-expanded", "false");
+    this.select.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        this.select.click();
+      }
+    });
     this.select.addEventListener("click", (e) => {
       e.stopPropagation();
       const isOpen = this.dropbox.classList.toggle("open");
+      this.select.setAttribute("aria-expanded", isOpen ? "true" : "false");
       if (isOpen && this.getAttribute("variant") === "modern") {
         const rect = this.select.getBoundingClientRect();
         const gap = 4;
@@ -150,6 +161,7 @@ class PSelect extends HTMLElement {
     });
     document.addEventListener("click", () => {
       this.dropbox.classList.remove("open");
+      this.select.setAttribute("aria-expanded", "false");
     });
     this.select.appendChild(this.dropbox);
 
@@ -170,10 +182,19 @@ class PSelect extends HTMLElement {
         const whatever = document.createElement("div");
         whatever.className = "option";
         whatever.part = "p-option";
+        whatever.setAttribute("role", "option");
+        whatever.setAttribute("tabindex", "0");
         whatever.innerHTML = option.innerText;
         whatever.addEventListener("click", (e) => {
           e.stopPropagation();
           this.selected(option, true);
+        });
+        whatever.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            this.selected(option, true);
+          }
         });
         this.dropbox.appendChild(whatever);
       });

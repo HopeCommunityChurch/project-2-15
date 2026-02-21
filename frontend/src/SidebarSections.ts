@@ -59,7 +59,9 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   const sectionText = document.createElement("span");
   section.appendChild(sectionText);
 
-  const remove = document.createElement("div");
+  const remove = document.createElement("button");
+  remove.setAttribute("type", "button");
+  remove.setAttribute("aria-label", "Remove section");
   remove.innerHTML = "x";
   remove.className = "remove";
   remove.addEventListener("click", (e) => {
