@@ -76,9 +76,16 @@ class StudyBlocksView implements NodeView {
     table.className = "studyBlocks";
 
     // Create and configure the Pencil icon
-    const editIcon = new Image();
-    editIcon.src = "/static/img/gray-pencil-in-circle.svg";
+    const editIcon = document.createElement("button");
     editIcon.className = "studyBlockEditPencil";
+    editIcon.setAttribute("aria-label", "Edit study blocks");
+    editIcon.setAttribute("type", "button");
+    editIcon.setAttribute("contenteditable", "false");
+    editIcon.setAttribute("tabindex", "-1");
+    const editIconImg = new Image();
+    editIconImg.src = "/static/img/gray-pencil-in-circle.svg";
+    editIconImg.setAttribute("aria-hidden", "true");
+    editIcon.appendChild(editIconImg);
 
     editIcon.addEventListener("click", () => {
       let sectionNode : Node = null;
@@ -189,6 +196,7 @@ class QuestionsView implements NodeView {
     if (node.content.size === 0) {
       const noQuestionsText = document.createElement("div");
       noQuestionsText.className = "noQuestionsText";
+      noQuestionsText.setAttribute("contenteditable", "false");
       noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
 
       noQuestionsText.onclick = () => {
@@ -322,6 +330,8 @@ export class QuestionView implements NodeView {
       };
       addAnswer.innerText = "+ Answer";
       addAnswer.className = "addAnswer";
+      addAnswer.setAttribute("contenteditable", "false");
+      addAnswer.setAttribute("tabindex", "-1");
       this.dom.appendChild(addAnswer);
     }
   }
@@ -570,10 +580,13 @@ const questionPopup = (
     popUpTitle.prepend(questionIconImg);
 
     // Add close Icon
-    let closer = mover.appendChild(document.createElement("closer"));
+    let closer = mover.appendChild(document.createElement("button")) as HTMLButtonElement;
     let closeImage = document.createElement("img");
     closer.className = "closer";
+    closer.setAttribute("type", "button");
+    closer.setAttribute("aria-label", "Close question");
     closeImage.src = window.base + "/static/img/x.svg";
+    closeImage.setAttribute("aria-hidden", "true");
     closer.appendChild(closeImage);
     closer.onclick = (e) => {
       //turn off ref highlight
@@ -842,23 +855,29 @@ let hideOnlyOneBibleTextPlugin = new Plugin({
 
 
 
-const verseRefWidget = (verse, position) => (view: EditorView) => {
+const verseRefWidget = (verse) => (view: EditorView, getPos: () => number | undefined) => {
   const elem = document.createElement("span");
-  elem.onclick = (e) => {
+  elem.onmousedown = (e) => {
     e.preventDefault();
-    const transaction = view.state.tr.setSelection(TextSelection.create(view.state.doc, position));
-    view.dispatch(transaction);
-    view.focus();
+    e.stopPropagation();
+    const pos = getPos();
+    if (pos != null) {
+      const tr = view.state.tr.setSelection(
+        TextSelection.create(view.state.doc, pos)
+      );
+      view.dispatch(tr);
+      view.focus();
+    }
   };
   elem.ondblclick = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     let book = verse.book.replace(" ", "_").toLowerCase();
     let url = "https://biblehub.com/" + book + "/" + verse.chapter + "-" + verse.verse + ".htm";
     window.open(url, "_blank").focus();
     view.focus();
   };
   elem.className = "verseRef";
-  elem.contentEditable = "true";
   if (verse.verse === 1) {
     elem.innerHTML = verse.chapter + ":" + verse.verse;
   } else {
@@ -894,10 +913,11 @@ function getDecorations(state: EditorState) {
 
       // Create decoration for the first occurrence of this verse
       decorations.push(
-        Decoration.widget(position, verseRefWidget(verse.attrs, position), {
+        Decoration.widget(position, verseRefWidget(verse.attrs), {
           key: currentVerseKey,
           ignoreSelection: true,
           side: -1,
+          stopEvent: (e: Event) => e.type === "mousedown" || e.type === "click",
         })
       );
     }
@@ -1184,7 +1204,8 @@ function createPlaceholderDecorations(doc) {
         if (!hasBibleText) {
           const placeholderDecoration = Decoration.widget(
             pos + contentBetweenQuotes.length + 3,
-            mkPlaceholderElement(pos + headerLength + 2)
+            mkPlaceholderElement(pos + headerLength + 2),
+            { stopEvent: () => true }
           );
           decorations.push(placeholderDecoration);
         }

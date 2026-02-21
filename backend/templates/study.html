@@ -49,10 +49,6 @@
       window.editor.applyDispatch(window.editorActions.toggleUnderline);
     }
 
-    function underlineClick() {
-      window.editor.applyDispatch(window.editorActions.toggleUnderline);
-    }
-
     function indentClick() {
       window.editor.applyDispatch(window.editorActions.indent);
     }
@@ -189,9 +185,9 @@
         </a>
       </li>
       <li>
-        <a onclick="toggleModal('#confirmDelete')">
+        <button onclick="toggleModal('#confirmDelete')">
           Delete Study
-        </a>
+        </button>
       </li>
       <li>
         <a href="https://forms.gle/koJrP31Vh9TfvPcq7" target="_blank">
@@ -254,14 +250,14 @@
       </button>
 
       <div class="popup" id="textColorSelector">
-        <button style="background-color: #292c33" onclick="setColorClick('#292c33')"> </button>
-        <button style="background-color: #91a4b1" onclick="setColorClick('#91a4b1')"> </button>
-        <button style="background-color: #8b4e35" onclick="setColorClick('#8b4e35')"> </button>
-        <button style="background-color: #f13a35" onclick="setColorClick('#f13a35')"> </button>
-        <button style="background-color: #eb732e" onclick="setColorClick('#eb732e')"> </button>
-        <button style="background-color: #f8ac2b" onclick="setColorClick('#f8ac2b')"> </button>
-        <button style="background-color: #00a55b" onclick="setColorClick('#00a55b')"> </button>
-        <button style="background-color: #2d78ed" onclick="setColorClick('#2d78ed')"> </button>
+        <button aria-label="Text color: dark" style="background-color: #292c33" onclick="setColorClick('#292c33')"> </button>
+        <button aria-label="Text color: gray" style="background-color: #91a4b1" onclick="setColorClick('#91a4b1')"> </button>
+        <button aria-label="Text color: brown" style="background-color: #8b4e35" onclick="setColorClick('#8b4e35')"> </button>
+        <button aria-label="Text color: red" style="background-color: #f13a35" onclick="setColorClick('#f13a35')"> </button>
+        <button aria-label="Text color: orange" style="background-color: #eb732e" onclick="setColorClick('#eb732e')"> </button>
+        <button aria-label="Text color: yellow" style="background-color: #f8ac2b" onclick="setColorClick('#f8ac2b')"> </button>
+        <button aria-label="Text color: green" style="background-color: #00a55b" onclick="setColorClick('#00a55b')"> </button>
+        <button aria-label="Text color: blue" style="background-color: #2d78ed" onclick="setColorClick('#2d78ed')"> </button>
       </div>
     </div>
 
@@ -270,14 +266,14 @@
         <img src="{{base}}/static/img/highlight-color-icon.svg" >
       </button>
       <div class="popup" id="highlightColorSelector">
-        <button style="background-color: #fff; border: 1px solid black;" onclick="removeHighlightClick()"> </button>
-        <button style="background-color: #e3d1c9" onclick="setHighlightClick('#e3d1c9')"> </button>
-        <button style="background-color: #fdcbc8" onclick="setHighlightClick('#fdcbc8')"> </button>
-        <button style="background-color: #fbdcc5" onclick="setHighlightClick('#fbdcc5')"> </button>
-        <button style="background-color: #fcf0bf" onclick="setHighlightClick('#fcf0bf')"> </button>
-        <button style="background-color: #c0e9d4" onclick="setHighlightClick('#c0e9d4')"> </button>
-        <button style="background-color: #aedcfd" onclick="setHighlightClick('#aedcfd')"> </button>
-        <button style="background-color: #e8d0e5" onclick="setHighlightClick('#e8d0e5')"> </button>
+        <button aria-label="Remove highlight" style="background-color: #fff; border: 1px solid black;" onclick="removeHighlightClick()"> </button>
+        <button aria-label="Highlight: tan" style="background-color: #e3d1c9" onclick="setHighlightClick('#e3d1c9')"> </button>
+        <button aria-label="Highlight: pink" style="background-color: #fdcbc8" onclick="setHighlightClick('#fdcbc8')"> </button>
+        <button aria-label="Highlight: peach" style="background-color: #fbdcc5" onclick="setHighlightClick('#fbdcc5')"> </button>
+        <button aria-label="Highlight: yellow" style="background-color: #fcf0bf" onclick="setHighlightClick('#fcf0bf')"> </button>
+        <button aria-label="Highlight: green" style="background-color: #c0e9d4" onclick="setHighlightClick('#c0e9d4')"> </button>
+        <button aria-label="Highlight: blue" style="background-color: #aedcfd" onclick="setHighlightClick('#aedcfd')"> </button>
+        <button aria-label="Highlight: lavender" style="background-color: #e8d0e5" onclick="setHighlightClick('#e8d0e5')"> </button>
       </div>
     </div>
 
@@ -353,7 +349,7 @@
       <header>
         <h2>Edit Study Blocks</h2>
         <div style="color:gray">
-          Click and grad to move the study blocks around.
+          Click and drag to move the study blocks around.
         </div>
       </header>
       <div id="studyBlockEditorContent">
