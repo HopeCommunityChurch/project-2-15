@@ -40,6 +40,7 @@ import {
   unhighlighQuestion,
 } from "./QuestionHighlightPlugin";
 import { otherCursorPlugin, setSelection } from "./OtherCursorPlugin";
+import { studyBlockArrowPlugin } from "./StudyBlockArrowPlugin";
 import {getRandomStr} from "../Util";
 
 // import CloseXIcon from "../Assets/x.svg";
@@ -78,7 +79,7 @@ class StudyBlocksView implements NodeView {
 
     // Create and configure the Pencil icon
     const editIcon = new Image();
-    editIcon.src = "/static/img/gray-pencil-in-circle.svg";
+    editIcon.src = window.base + "/static/img/gray-pencil-in-circle.svg";
     editIcon.className = "studyBlockEditPencil";
 
     editIcon.addEventListener("click", () => {
@@ -1270,6 +1271,7 @@ export class P215Editor extends EventTarget {
           "Mod-i": toggleMark(textSchema.marks.em),
           "Mod-u": toggleMark(textSchema.marks.underline),
         }),
+        studyBlockArrowPlugin,
         keymap(baseKeymap),
         questionMarkPlugin(this.questionMap, (view) => this.currentEditor = view),
         sectionIdPlugin,
