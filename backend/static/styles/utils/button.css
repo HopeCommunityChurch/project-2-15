@@ -41,7 +41,7 @@ button.blue {
   }
   &:disabled {
     background-color: var(--blue-75);
-    border: 2px solid var(--red-50);
+    cursor: default;
   }
 }
 
