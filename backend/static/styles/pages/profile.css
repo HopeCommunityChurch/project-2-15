@@ -70,7 +70,7 @@ html, body {
 .profileCard {
   background: #fff;
   border-radius: 9px;
-  box-shadow: 0 4px 7px 1px #00000012;
+  box-shadow: 0 4px 7px 1px rgba(0,0,0,0.07);
   padding: 24px 28px;
 
   h2 {
@@ -96,7 +96,7 @@ html, body {
       margin-bottom: 12px;
     }
 
-    div {
+    .checkboxRow {
       display: flex;
       align-items: center;
       gap: 8px;

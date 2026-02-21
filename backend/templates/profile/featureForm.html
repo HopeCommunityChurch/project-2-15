@@ -1,7 +1,7 @@
 <form hx-post="{{base}}/profile/feature" hx-target="this" hx-swap="outerHTML">
   {% for feature in allFeatures %}
     {% if feature.feature != "Unknown" %}
-    <div>
+    <div class="checkboxRow">
       <input
         type="checkbox"
         id="{{feature.feature}}"
