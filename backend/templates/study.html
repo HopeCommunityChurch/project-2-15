@@ -328,13 +328,18 @@
 
   <dialog class="popup" id="studyBlockEditor">
     <div class="container">
+      <button class="closeModalIcon" onclick="toggleModal('#studyBlockEditor')" aria-label="Close"><img src="{{base}}/static/img/x.svg" alt=""></button>
       <header>
         <h2>Edit Study Blocks</h2>
-        <div style="color:gray">
-          Click and drag to move the study blocks around.
+        <div class="subtitle">
+          Drag to reorder, rename, or remove blocks.
         </div>
       </header>
       <div id="studyBlockEditorContent">
+      </div>
+      <div id="studyBlockEditorRemoved" style="display:none">
+        <div class="removedHeader">Removed</div>
+        <div id="studyBlockEditorRemovedList"></div>
       </div>
       <footer>
         <button class="red" id="studyBlockCancel">Cancel</button>

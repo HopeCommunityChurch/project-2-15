@@ -13,11 +13,16 @@
 
   .closeModalIcon {
     cursor: pointer;
-    max-width: 20px;
+    background: none;
+    border: none;
     padding: 10px;
     position: absolute;
     top: 12px;
     right: 12px;
+    line-height: 0;
+    img {
+      width: 20px;
+    }
   }
 
   .field-label {

@@ -11,7 +11,7 @@ button {
   border-radius: 5px;
   padding: 5px 13px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   transition: background-color .3s;
   &:disabled {
     cursor: not-allowed;
@@ -21,12 +21,22 @@ button {
 button.lightBlue {
   color: var(--blue-100);
   background-color: var(--blue-25);
-  border: 2px solid var(--blue-50);
+  border: 1px solid var(--blue-50);
   &:hover {
-    background-color: var(--blue-50);
+    background-color: var(--blue-35);
   }
   &:disabled {
-    border: 2px solid var(--red-50);
+    border: 1px solid var(--red-50);
+  }
+}
+
+button.ghostBlue {
+  color: var(--blue-100);
+  background-color: #fff;
+  border: 1px solid #ccc;
+  &:hover {
+    background-color: var(--blue-25);
+    border-color: var(--blue-50);
   }
 }
 
@@ -41,7 +51,7 @@ button.blue {
   }
   &:disabled {
     background-color: var(--blue-75);
-    border: 2px solid var(--red-50);
+    border: 1px solid var(--red-50);
   }
 }
 
