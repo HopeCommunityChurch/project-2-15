@@ -87,6 +87,9 @@ class StudyBlocksView implements NodeView {
     editIcon.src = "/static/img/gray-pencil-in-circle.svg";
     editButton.appendChild(editIcon);
 
+    editButton.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+    });
     editButton.addEventListener("click", () => {
       let sectionNode : Node = null;
       let sectionPos = null;
@@ -139,6 +142,7 @@ class BibleTextView implements NodeView {
     const header = document.createElement("h3");
     header.innerText = node.attrs.verses;
     header.setAttribute("contenteditable", "false");
+    header.addEventListener("mousedown", (e) => { e.preventDefault(); });
     this.dom.appendChild(header);
 
     const body = document.createElement("div");
@@ -181,14 +185,15 @@ class QuestionsView implements NodeView {
     headerDiv.innerText = "Questions";
     headerDiv.className = "studyBlockHeaderDiv";
 
-    headerDiv.onclick = () => {
+    headerDiv.addEventListener("mousedown", (e) => { e.preventDefault(); });
+    headerDiv.addEventListener("click", () => {
       // Logic to move the cursor to the previous position
       const transaction = view.state.tr.setSelection(
         TextSelection.near(view.state.doc.resolve(getPos() - 3))
       );
       view.dispatch(transaction);
       view.focus();
-    };
+    });
     header.appendChild(headerDiv);
     this.dom.appendChild(header);
 
@@ -202,14 +207,15 @@ class QuestionsView implements NodeView {
       noQuestionsText.setAttribute("contenteditable", "false");
       noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
 
-      noQuestionsText.onclick = () => {
+      noQuestionsText.addEventListener("mousedown", (e) => { e.preventDefault(); });
+      noQuestionsText.addEventListener("click", () => {
         // Logic to move the cursor to the previous position
         const transaction = view.state.tr.setSelection(
           TextSelection.near(view.state.doc.resolve(getPos() - 3))
         );
         view.dispatch(transaction);
         view.focus();
-      };
+      });
 
       this.dom.appendChild(noQuestionsText);
     }
@@ -321,6 +327,7 @@ export class QuestionView implements NodeView {
       const addAnswer = document.createElement("button");
       addAnswer.setAttribute("contenteditable", "false");
       addAnswer.setAttribute("tabindex", "-1");
+      addAnswer.addEventListener("mousedown", (e) => { e.preventDefault(); });
       addAnswer.onclick = (e) => {
         e.preventDefault();
         const qnode = newQuestionAnswerNode();
@@ -767,7 +774,7 @@ let questionMarkPlugin = (
             Decoration.widget(loc, questionMarkWidget(qId, questionMap, setCurrentEditor), {
               key: "qmark" + qId,
               stopEvent: (e: Event) => {
-                return e.type === "click";
+                return e.type === "click" || e.type === "mousedown";
               },
               side: -1,
             })
@@ -1130,12 +1137,13 @@ const mkPlaceholderElement = (pos) => (view: EditorView) => {
     <em>above to add your verses here</em>
   `;
 
-  placeholderElement.onclick = () => {
+  placeholderElement.addEventListener("mousedown", (e) => { e.preventDefault(); });
+  placeholderElement.addEventListener("click", () => {
     // Logic to move the cursor to the previous position
     const transaction = view.state.tr.setSelection(TextSelection.near(view.state.doc.resolve(pos)));
     view.dispatch(transaction);
     view.focus();
-  };
+  });
   return placeholderElement;
 };
 

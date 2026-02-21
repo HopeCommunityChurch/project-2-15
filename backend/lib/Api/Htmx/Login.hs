@@ -2,6 +2,7 @@ module Api.Htmx.Login where
 
 import Api.Auth (deleteCookie, setCookie')
 import Api.Htmx.Ginger (baseUrl, basicTemplate)
+import Data.Text qualified as Txt
 import Data.CaseInsensitive (original)
 import Data.HashMap.Strict qualified as HMap
 import Data.List qualified as L
@@ -72,6 +73,14 @@ loginForm mRedirect email password = do
     )
 
 
+-- | Accept a redirect target only if it is a same-site relative path.
+-- Rejects empty strings, protocol-relative URLs (\"//\"), and absolute URLs.
+safeRedirect :: Text -> Maybe Text
+safeRedirect r
+  | Txt.isPrefixOf "/" r && not (Txt.isPrefixOf "//" r) = Just r
+  | otherwise = Nothing
+
+
 login
   :: ( MonadDb env m
      , MonadLogger m
@@ -86,12 +95,9 @@ login = do
     Just (userId, hash) -> do
       if comparePassword (passwordFromText password) hash
         then do
-          let url = case mRedirect of
-                      Just re ->
-                        if re == ""
-                          then baseUrl <> "/studies"
-                          else re
-                      Nothing  -> baseUrl <> "/studies"
+          let url = case mRedirect >>= safeRedirect of
+                      Just re -> re
+                      Nothing -> baseUrl <> "/studies"
           logDebugSH url
           setHeader "HX-Redirect" (toLazy url)
           cookie <- lift $ setCookie' userId

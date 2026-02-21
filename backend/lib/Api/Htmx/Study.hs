@@ -13,7 +13,6 @@ import Entity qualified as E
 import Entity.Document qualified as Doc
 import Entity.Feature qualified as Feature
 import Entity.GroupStudy qualified as GroupStudy
-import Entity.User qualified as User
 import EnvFields (EnvType (..), HasUrl)
 import Lucid qualified as L
 import Lucid.Htmx qualified as L

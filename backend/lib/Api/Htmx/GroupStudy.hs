@@ -2,8 +2,6 @@ module Api.Htmx.GroupStudy where
 
 import Api.Htmx.AuthHelper (AuthUser (..))
 import Api.Htmx.NotFound qualified as NotFound
-import Data.Aeson ((.=))
-import Data.Aeson qualified as Aeson
 import Data.CaseInsensitive qualified as CI
 import Data.UUID as UUID
 import DbHelper (MonadDb, withTransaction)
@@ -24,31 +22,6 @@ import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
 
 
-
-unsafeAsObject :: Aeson.Value -> Aeson.Object
-unsafeAsObject (Aeson.Object o) = o
-unsafeAsObject _ = error "not an object"
-
-
-emptyStudy :: Aeson.Object
-emptyStudy = unsafeAsObject $ Aeson.object
-  [ "type" .= ("doc" :: Text)
-  , "content" .=
-    [ Aeson.object
-      [ "type" .= ("section" :: Text)
-      , "content" .=
-        [ Aeson.object
-          [ "type" .= ("sectionHeader" :: Text)
-          , "content" .= [ Aeson.object [ "text" .= ("Untitled" :: Text), "type" .= ("text" :: Text)]]
-          ]
-        , Aeson.object
-          [ "type" .= ("studyBlocks" :: Text)
-          , "content" .= [ Aeson.object [ "type" .= ("questions" :: Text)]]
-          ]
-        ]
-      ]
-    ]
-  ]
 
 
 getGroupStudy'
@@ -138,7 +111,7 @@ createPeopleTemplate = do
       L.pSelect_ [ L.name_ "permission[]"] $ do
         L.option_ [ L.value_ "member"] "Member"
         L.option_ [ L.value_ "owner"] "Owner"
-      L.button_ [L.class_ "red"] "-"
+      L.button_ [L.class_ "red", L.type_ "button", L.ariaLabel_ "Remove"] "-"
 
 
 shareHTML
@@ -448,7 +421,7 @@ acceptShare user = do
   docStuff <- formParam "document"
   docId <-
     if docStuff == ("new" :: Text) then do
-      let crDoc = Doc.CrDoc Nothing "Untitled" emptyStudy user.userId
+      let crDoc = Doc.CrDoc Nothing "Untitled" Doc.emptyStudy user.userId
       lift $ Doc.crDocument crDoc
     else do
       docId <- formParam "document"

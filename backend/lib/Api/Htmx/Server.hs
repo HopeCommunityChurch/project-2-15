@@ -7,6 +7,7 @@ import Api.Htmx.Ginger (baseUrl)
 import Api.Htmx.GroupStudy qualified as GroupStudy
 import Api.Htmx.Home qualified as Home
 import Api.Htmx.Login qualified as Login
+import Api.Htmx.Login (safeRedirect)
 import Api.Htmx.NotFound qualified as NotFound
 import Api.Htmx.PasswordReset qualified as PasswordReset
 import Api.Htmx.Profile qualified as Profile
@@ -109,12 +110,9 @@ scottyServer = do
         Nothing -> Login.getLogin
         Just _ -> do
           mRedirect <- L.lookup "redirect" <$> Scotty.formParams
-          let url = case mRedirect of
-                      Just re ->
-                        if re == ""
-                          then baseUrl <> "/studies"
-                          else re
-                      Nothing  -> baseUrl <> "/studies"
+          let url = case mRedirect >>= safeRedirect of
+                      Just re -> re
+                      Nothing -> baseUrl <> "/studies"
           Scotty.setHeader "Location" (toLazy url)
           Scotty.status status302
     Scotty.post "/login" Login.login
