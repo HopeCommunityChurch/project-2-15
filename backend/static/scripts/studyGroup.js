@@ -84,7 +84,6 @@ document.addEventListener("htmx:afterSettle", function(evt) {
     emailInput.addEventListener("keydown", function(e) {
       if (e.key === "Enter") {
         e.preventDefault();
-        e.stopPropagation();
         htmx.trigger(emailInput.closest("form"), "submit");
       }
     });

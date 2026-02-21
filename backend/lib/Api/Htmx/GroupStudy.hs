@@ -556,54 +556,6 @@ ownershipMemberDoc user = do
 
 
 
-getInvite
-  :: ( MonadDb env m
-     , MonadLogger m
-     )
-  => AuthUser
-  -> ActionT m ()
-getInvite _ = do
-  groupId <- captureParam "groupId"
-  html =<< L.renderTextT (getInviteNewMemberHTML groupId)
-
-
-createPeopleTemplate :: Monad m => L.HtmlT m ()
-createPeopleTemplate = do
-  L.template_ [L.id_ "peopleInputTemplate"] $ do
-    L.div_ [L.class_ "peopleInput"] $ do
-      L.input_
-        [ L.name_ "email[]"
-        , L.type_ "email"
-        , L.placeholder_ "jonny@p215.church"
-        ]
-      L.pSelect_ [ L.name_ "permission[]"] $ do
-        L.option_ [ L.value_ "member"] "Member"
-        L.option_ [ L.value_ "owner"] "Owner"
-      L.button_ [L.class_ "red"] "-"
-
-
-getInviteNewMemberHTML
-  :: Monad m
-  => T.GroupStudyId
-  -> L.HtmlT m ()
-getInviteNewMemberHTML groupId = do
-  L.div_ [L.class_ "groupStudyInner"] $ do
-    L.h3_ "Invite New People"
-    let formUrl = "/group_study/invite/add"
-    L.form_ [ L.hxPost_ formUrl, L.class_ "groupStudyEditorHolder", L.hxTarget_ "#groupStudyInner"] $ do
-      L.input_
-        [ L.id_ "groupId"
-        , L.name_ "groupId"
-        , L.type_ "hidden"
-        , L.value_ (UUID.toText (unwrap groupId))
-        ]
-      L.label_ [L.for_ "createPeople"] "People"
-      L.div_ [L.id_ "createPeoples"] createPeopleTemplate
-      L.button_ [L.type_ "submit", L.class_ "blue"]
-        "Invite"
-  L.script_ "addPeopleInput()";
-
-
 postInvite
   :: ( MonadDb env m
      , MonadLogger m
