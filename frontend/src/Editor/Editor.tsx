@@ -133,7 +133,6 @@ class BibleTextView implements NodeView {
 
     const header = document.createElement("h3");
     header.innerText = node.attrs.verses;
-    header.setAttribute("contenteditable", "false");
     this.dom.appendChild(header);
 
     const body = document.createElement("div");
@@ -704,7 +703,6 @@ const questionMarkWidget = (
 ) => (view: EditorView) => {
   const elem = document.createElement("div");
   elem.className = "questionMark";
-  elem.setAttribute("contenteditable", "false");
   elem.innerHTML = `<img src='${window.base}/static/img/question-icon.svg'/>`;
 
   // Add mouseenter event listener to add a class to questionRef
@@ -756,9 +754,8 @@ let questionMarkPlugin = (
           decorations.push(
             Decoration.widget(loc, questionMarkWidget(qId, questionMap, setCurrentEditor), {
               key: "qmark" + qId,
-              ignoreSelection: true,
               stopEvent: (e: Event) => {
-                return e.type === "click" || e.type === "mousedown";
+                return e.type === "click";
               },
               side: -1,
             })
@@ -804,7 +801,6 @@ let hideOnlyOneBibleTextPlugin = new Plugin({
 
 const verseRefWidget = (verse) => (view: EditorView, getPos: () => number | undefined) => {
   const elem = document.createElement("span");
-  elem.setAttribute("contenteditable", "false");
   elem.onmousedown = (e) => {
     e.preventDefault();
     e.stopPropagation();
