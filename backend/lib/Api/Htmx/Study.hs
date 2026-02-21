@@ -28,6 +28,8 @@ import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
 import Data.CaseInsensitive qualified as CI
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import Network.HTTP.Types (urlEncode)
 
 
 data SystemType = Linux | Mac | Windows | Unknown
@@ -137,7 +139,8 @@ deleteStudy user = do
   unless (user.userId `elem` fmap (.userId) doc.editors) $ do
     NotAuth.getNotAuth
   lift $ Doc.deleteDocument docId
-  let url = baseUrl <> "/studies?deleted=" <> UUID.toText (unwrap docId) <> "&name=" <> doc.name
+  let encodedName = decodeUtf8 (urlEncode True (encodeUtf8 doc.name))
+  let url = baseUrl <> "/studies?deleted=" <> UUID.toText (unwrap docId) <> "&name=" <> encodedName
   setHeader "HX-Redirect" (toLazy url)
   status status200
 

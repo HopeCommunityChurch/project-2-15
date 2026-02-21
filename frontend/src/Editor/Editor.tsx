@@ -77,11 +77,16 @@ class StudyBlocksView implements NodeView {
     table.className = "studyBlocks";
 
     // Create and configure the Pencil icon
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "studyBlockEditPencil";
+    editButton.setAttribute("contenteditable", "false");
+    editButton.setAttribute("aria-label", "Edit study blocks");
     const editIcon = new Image();
     editIcon.src = "/static/img/gray-pencil-in-circle.svg";
-    editIcon.className = "studyBlockEditPencil";
+    editButton.appendChild(editIcon);
 
-    editIcon.addEventListener("click", () => {
+    editButton.addEventListener("click", () => {
       let sectionNode : Node = null;
       let sectionPos = null;
       view.state.doc.nodesBetween(getPos(), getPos(), (node, pos) => {
@@ -112,7 +117,7 @@ class StudyBlocksView implements NodeView {
       editor.dispatchEvent(event);
     });
 
-    this.dom.appendChild(editIcon);
+    this.dom.appendChild(editButton);
 
     // Set the table as the main content
     this.contentDOM = table;
