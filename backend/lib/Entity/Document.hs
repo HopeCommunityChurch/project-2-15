@@ -1,6 +1,7 @@
 module Entity.Document where
 
-import Data.Aeson (Object)
+import Data.Aeson (Object, (.=))
+import Data.Aeson qualified as Aeson
 import Database qualified as Db
 import Database.Beam (
   Beamable,
@@ -334,6 +335,35 @@ getDeletedDocs user =
           doc.updated
           doc.created
     pure result
+
+
+-- | Coerce an Aeson 'Value' to 'Object', erroring on non-objects.
+-- Only use when the input is statically known to be an object literal.
+unsafeAsObject :: Aeson.Value -> Object
+unsafeAsObject (Aeson.Object o) = o
+unsafeAsObject _ = error "unsafeAsObject: not an object"
+
+
+-- | Default empty study document used when creating a new study.
+emptyStudy :: Object
+emptyStudy = unsafeAsObject $ Aeson.object
+  [ "type" .= ("doc" :: Text)
+  , "content" .=
+    [ Aeson.object
+      [ "type" .= ("section" :: Text)
+      , "content" .=
+        [ Aeson.object
+          [ "type" .= ("sectionHeader" :: Text)
+          , "content" .= [ Aeson.object [ "text" .= ("Untitled" :: Text), "type" .= ("text" :: Text)]]
+          ]
+        , Aeson.object
+          [ "type" .= ("studyBlocks" :: Text)
+          , "content" .= [ Aeson.object [ "type" .= ("questions" :: Text)]]
+          ]
+        ]
+      ]
+    ]
+  ]
 
 
 restoreDocument

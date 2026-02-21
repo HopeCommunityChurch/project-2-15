@@ -113,13 +113,12 @@
                   {% endif %}
                 {% endfor %}
               </p-select>
-              <button class="blue" type="submit" class="accept">Accept</button>
+              <button class="blue accept" type="submit">Accept</button>
               <button
-                class="red"
+                class="red reject"
                 hx-delete="/group_study/share/{{share.token}}"
                 hx-target="#share-{{share.token}}"
                 hx-swap="delete"
-                class="reject"
               >
                 Reject
               </button>
@@ -222,7 +221,9 @@
 
 <dialog id="newStudy">
   <h3>Create New Study</h3>
-  <img alt="Close Modal" src="{{base}}/static/img/x.svg" class="closeModalIcon" onclick="toggleModal('#newStudy')">
+  <button type="button" class="closeModalIcon" aria-label="Close" onclick="toggleModal('#newStudy')">
+    <img alt="" src="{{base}}/static/img/x.svg">
+  </button>
   <form hx-post="{{base}}/study">
     <label for="studyTitle">Title</label>
     <input type="text" required name="studyTitle" placeholder="New Title...">

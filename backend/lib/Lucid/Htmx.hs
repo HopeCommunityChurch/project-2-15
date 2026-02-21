@@ -33,6 +33,11 @@ hxIndicator_ :: Text -> Attribute
 hxIndicator_ = makeAttribute "hx-indicator"
 
 
+-- ARIA attributes
+
+ariaLabel_ :: Text -> Attribute
+ariaLabel_ = makeAttribute "aria-label"
+
 -- Not htmx, but I need it somewher
 
 notifcation_ :: Term arg result => arg -> result

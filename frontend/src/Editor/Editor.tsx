@@ -82,6 +82,7 @@ class StudyBlocksView implements NodeView {
     editButton.className = "studyBlockEditPencil";
     editButton.setAttribute("contenteditable", "false");
     editButton.setAttribute("aria-label", "Edit study blocks");
+    editButton.setAttribute("tabindex", "-1");
     const editIcon = new Image();
     editIcon.src = "/static/img/gray-pencil-in-circle.svg";
     editButton.appendChild(editIcon);
@@ -137,6 +138,7 @@ class BibleTextView implements NodeView {
 
     const header = document.createElement("h3");
     header.innerText = node.attrs.verses;
+    header.setAttribute("contenteditable", "false");
     this.dom.appendChild(header);
 
     const body = document.createElement("div");
@@ -192,9 +194,12 @@ class QuestionsView implements NodeView {
 
     this.contentDOM = document.createElement("td");
 
+    this.dom.appendChild(this.contentDOM);
+
     if (node.content.size === 0) {
       const noQuestionsText = document.createElement("div");
       noQuestionsText.className = "noQuestionsText";
+      noQuestionsText.setAttribute("contenteditable", "false");
       noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
 
       noQuestionsText.onclick = () => {
@@ -206,10 +211,8 @@ class QuestionsView implements NodeView {
         view.focus();
       };
 
-      this.contentDOM.appendChild(noQuestionsText);
+      this.dom.appendChild(noQuestionsText);
     }
-
-    this.dom.appendChild(this.contentDOM);
   }
   update(node: Node) {
     this.node = node;
@@ -316,6 +319,8 @@ export class QuestionView implements NodeView {
 
     if (view.editable) {
       const addAnswer = document.createElement("button");
+      addAnswer.setAttribute("contenteditable", "false");
+      addAnswer.setAttribute("tabindex", "-1");
       addAnswer.onclick = (e) => {
         e.preventDefault();
         const qnode = newQuestionAnswerNode();
@@ -534,10 +539,13 @@ const questionPopup = (
     popUpTitle.prepend(questionIconImg);
 
     // Add close Icon
-    let closer = mover.appendChild(document.createElement("closer"));
+    let closer = mover.appendChild(document.createElement("button")) as HTMLButtonElement;
     let closeImage = document.createElement("img");
     closer.className = "closer";
+    closer.type = "button";
+    closer.setAttribute("aria-label", "Close question");
     closeImage.src = window.base + "/static/img/x.svg";
+    closeImage.alt = "";
     closer.appendChild(closeImage);
     closer.onclick = (e) => {
       //turn off ref highlight
@@ -706,6 +714,7 @@ const questionMarkWidget = (
 ) => (view: EditorView) => {
   const elem = document.createElement("div");
   elem.className = "questionMark";
+  elem.setAttribute("contenteditable", "false");
   elem.innerHTML = `<img src='${window.base}/static/img/question-icon.svg'/>`;
 
   // Add mouseenter event listener to add a class to questionRef
@@ -804,6 +813,7 @@ let hideOnlyOneBibleTextPlugin = new Plugin({
 
 const verseRefWidget = (verse) => (view: EditorView, getPos: () => number | undefined) => {
   const elem = document.createElement("span");
+  elem.setAttribute("contenteditable", "false");
   elem.onmousedown = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1111,6 +1121,7 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
 const mkPlaceholderElement = (pos) => (view: EditorView) => {
   const placeholderElement = document.createElement("div");
   placeholderElement.className = "bibleTextPlaceholder";
+  placeholderElement.setAttribute("contenteditable", "false");
   placeholderElement.innerHTML = `
     <em>
       Place your cursor in this section and click the "Add Scripture" button
