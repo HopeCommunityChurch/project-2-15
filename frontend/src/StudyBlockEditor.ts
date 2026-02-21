@@ -100,16 +100,6 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
 
       function doSwap(sibling: HTMLElement, direction: "up" | "down") {
         swapping = true;
-        // Update indices
-        let sIndex = Number(sibling.getAttribute("currentIndex"));
-        let dIndex = Number(div.getAttribute("currentIndex"));
-        if (direction === "down") {
-          sIndex--; dIndex++;
-        } else {
-          sIndex++; dIndex--;
-        }
-        sibling.setAttribute("currentIndex", sIndex + "");
-        div.setAttribute("currentIndex", dIndex + "");
 
         // Move the placeholder (div stays absolute, unaffected by DOM order)
         if (direction === "down") {
@@ -138,7 +128,6 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
       }
 
       div.setAttribute("originalIndex", index + "");
-      div.setAttribute("currentIndex", index + "");
 
       let name = "";
       if (node.type.name === "questions") {
@@ -156,10 +145,13 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
       div.appendChild(div2);
 
       if (node.type.name !== "questions") {
-        const remove = document.createElement("img");
-        remove.src = "/static/img/x.svg";
+        const remove = document.createElement("button");
         remove.className = "remove";
-        remove.draggable = false;
+        const removeImg = document.createElement("img");
+        removeImg.src = "/static/img/x.svg";
+        removeImg.draggable = false;
+        removeImg.alt = "";
+        remove.appendChild(removeImg);
         remove.addEventListener("click", (e) => {
           e.stopPropagation();
           container.removeChild(div);
@@ -169,7 +161,7 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
           removedName.innerText = name;
           removedName.style.textDecoration = "line-through";
           removedDiv.appendChild(removedName);
-          const restoreBtn = document.createElement("div");
+          const restoreBtn = document.createElement("button");
           restoreBtn.className = "restore";
           const restoreIcon = document.createElement("img");
           restoreIcon.src = "/static/img/undo-icon.svg";

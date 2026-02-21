@@ -174,11 +174,16 @@
 
   .closeModalIcon {
     cursor: pointer;
-    max-width: 20px;
+    background: none;
+    border: none;
     padding: 10px;
     position: absolute;
     top: 20px;
     right: 10px;
+    line-height: 0;
+    img {
+      width: 20px;
+    }
   }
 
   .container {
@@ -251,11 +256,16 @@
 
         .remove {
           cursor: pointer;
-          width: 14px;
+          background: none;
+          border: none;
           padding: 4px;
           opacity: 0.9;
           justify-self: center;
           border-radius: 4px;
+          line-height: 0;
+          img {
+            width: 14px;
+          }
           &:hover {
             opacity: 1;
           }
@@ -289,6 +299,7 @@
         }
         .restore {
           cursor: pointer;
+          user-select: none;
           display: flex;
           align-items: center;
           gap: 4px;
