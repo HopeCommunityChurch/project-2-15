@@ -28,7 +28,6 @@ import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
 import Data.CaseInsensitive qualified as CI
-import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Network.HTTP.Types (urlEncode)
 
 
