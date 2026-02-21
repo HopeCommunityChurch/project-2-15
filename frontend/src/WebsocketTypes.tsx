@@ -191,7 +191,6 @@ export class MyWebsocket extends EventTarget {
     }
     this.ws = new WebSocket(this.protocol + this.host + "/api/document/realtime");
     this.ws.onopen = (e) => {
-      console.log("ws open", e);
       let event = new WsOpenEvent();
       this.dispatchEvent(event);
     };
@@ -247,7 +246,6 @@ export class MyWebsocket extends EventTarget {
   close () {
     if(this.ws != null) {
       if(this.ws.readyState == 1) {
-        console.log("closing websocket");
         this.ws.close();
       }
     }
@@ -255,7 +253,7 @@ export class MyWebsocket extends EventTarget {
 
   openDoc(docId : T.DocId) {
     if(this.openedDoc != null) {
-      console.log("needs to be built");
+      // TODO: handle switching documents while one is already open
     }
     this.openedDoc = docId;
     this.send({ tag: "OpenDoc", contents: docId});
