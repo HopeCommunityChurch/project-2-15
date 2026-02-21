@@ -7,7 +7,7 @@ import Data.Aeson qualified as Aeson
 import Data.Map qualified as Map
 import Data.UUID (UUID)
 import Data.UUID.V4 qualified as UUID
-import DbHelper (MonadDb)
+import DbHelper (MonadDb, withTransaction)
 import Entity qualified as E
 import Entity.Document qualified as Doc
 import Entity.User qualified as User
@@ -48,10 +48,19 @@ newtype SaveDoc = MkSaveDoc
   deriving anyclass (FromJSON)
 
 
+data InUpdatedPayload = MkInUpdatedPayload
+  { version  :: Int32
+  , steps    :: [Aeson.Value]
+  , clientId :: Text
+  }
+  deriving (Generic, Show)
+  deriving anyclass (FromJSON)
+
+
 data InMsg
   = InOpenDoc T.DocId -- Call before you send updates and saves
   | InCloseDoc T.DocId -- Call when done sending updates
-  | InUpdated Aeson.Value -- Updating the doc
+  | InUpdated InUpdatedPayload -- Updating the doc via collab steps
   | InUpdateName Text
   | InSaveDoc SaveDoc
   | InListenToDoc T.DocId  -- Call when you want to listen to the updates for a doc
@@ -78,8 +87,29 @@ newtype SavedDoc = MkSavedDoc
   deriving anyclass (ToJSON)
 
 
+-- | Payload for confirmed/broadcast step messages.
+data StepsPayload = MkStepsPayload
+  { version   :: Int32
+  , steps     :: [Aeson.Value]
+  , clientIds :: [Text]
+  }
+  deriving (Generic, Show)
+  deriving anyclass (ToJSON)
+
+
+-- | Payload for conflict messages (no version — client must rebase).
+data ConflictPayload = MkConflictPayload
+  { steps     :: [Aeson.Value]
+  , clientIds :: [Text]
+  }
+  deriving (Generic, Show)
+  deriving anyclass (ToJSON)
+
+
 data OutMsg
-  = OutDocUpdated Aeson.Value
+  = OutDocUpdated StepsPayload   -- broadcast to listeners
+  | OutDocConfirmed StepsPayload -- sent back to the editor who submitted steps
+  | OutDocConflict ConflictPayload -- version mismatch: client must rebase
   | OutDocOpened GetDoc
   | OutDocOpenedOther -- when the doc is opened on another device, you should close your document
   | OutDocListenStart Aeson.Object
@@ -144,8 +174,8 @@ websocketSever user conn = do
             case msg of
               InOpenDoc docId ->
                 prefixLogs "OpenDoc" $ handleOpenDoc user (conn, connId) st docId
-              InUpdated obj ->
-                prefixLogs "Updated" $ handleUpdated st obj
+              InUpdated payload ->
+                prefixLogs "Updated" $ handleUpdated conn user st payload
               InListenToDoc docId ->
                 prefixLogs "ListenToDoc" $ handleListenToDoc user connId st conn docId
               InSaveDoc obj ->
@@ -169,19 +199,42 @@ handleUpdated
   :: ( MonadDb env m
      , HasSubs env
      )
-  => IORef SocketState
-  -> Aeson.Value
+  => Connection
+  -> AuthUser
+  -> IORef SocketState
+  -> InUpdatedPayload
   -> m ()
-handleUpdated rst obj = do
+handleUpdated senderConn user rst payload = do
   st <- readIORef rst
   void $ runMaybeT $ do
     docId <- hoistMaybe st.openDocument
     rsubs <- asks (.subs)
     subs <- readIORef rsubs
     rdDocSt <- hoistMaybe (Map.lookup docId subs)
-    dsubs <- readIORef rdDocSt.subscriptions
-    for_ dsubs $ \ conn ->
-      lift $ sendOut conn (OutDocUpdated obj)
+    result <- lift $ withTransaction $ do
+      currentVersion <- Doc.getDocVersion docId
+      if currentVersion /= payload.version
+        then do
+          stepsSince <- Doc.getStepsSince docId payload.version
+          pure $ Left stepsSince
+        else do
+          let n = fromIntegral (length payload.steps) :: Int32
+          Doc.insertSteps docId currentVersion user.userId (MkNewType payload.clientId) payload.steps
+          let newVersion = currentVersion + n
+          Doc.updateDocVersion docId newVersion
+          pure $ Right newVersion
+    case result of
+      Left stepsSince -> do
+        let conflictSteps     = map (\ (_, s, _) -> s) stepsSince
+            conflictClientIds = map (\ (_, _, MkNewType c) -> c) stepsSince
+        lift $ sendOut senderConn (OutDocConflict (MkConflictPayload conflictSteps conflictClientIds))
+      Right newVersion -> do
+        let n = length payload.steps
+            stepsPayload = MkStepsPayload newVersion payload.steps (replicate n payload.clientId)
+        lift $ sendOut senderConn (OutDocConfirmed stepsPayload)
+        dsubs <- readIORef rdDocSt.subscriptions
+        for_ dsubs $ \ listenerConn ->
+          lift $ sendOut listenerConn (OutDocUpdated stepsPayload)
 
 
 handleUpdateName
@@ -217,6 +270,7 @@ handleSave conn userId rst doc = do
     logDebugSH st
     docId <- hoistMaybe st.openDocument
     updatedTime <- lift $ Doc.updateDocument docId userId st.computerId doc.document
+    lift $ Doc.maybeTakeSnapshot docId doc.document
     lift $ sendOut conn (OutDocSaved (MkSavedDoc updatedTime))
 
 

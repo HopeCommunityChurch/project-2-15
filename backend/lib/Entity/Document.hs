@@ -1,11 +1,12 @@
 module Entity.Document where
 
-import Data.Aeson (Object)
+import Data.Aeson (Object, Value)
 import Database qualified as Db
 import Database.Beam (
   Beamable,
   C,
   all_,
+  asc_,
   default_,
   desc_,
   exists_,
@@ -30,6 +31,7 @@ import Database.Beam (
   (<-.),
   (==.),
   (==?.),
+  (>.)
  )
 import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
 import Database.Beam.Postgres (PgJSONB (..))
@@ -56,6 +58,7 @@ data GetDoc = MkGetDoc
   , editors :: List User.GetUser
   , updated :: UTCTime
   , created :: UTCTime
+  , version :: Int32
   , lastUpdate :: Maybe LastUpdate
   }
   deriving (Generic, Show)
@@ -74,6 +77,7 @@ instance E.Entity GetDoc where
     , editors :: C f (PgJSONB (Vector User.GetUser'))
     , updated :: C f UTCTime
     , created :: C f UTCTime
+    , version :: C f Int32
     }
     deriving anyclass (Beamable)
     deriving (Generic)
@@ -91,6 +95,7 @@ instance E.Entity GetDoc where
       (fmap E.toEntity (toList (Db.unPgJSONB editors)))
       updated
       created
+      version
       Nothing
 
   queryEntity mAuthUser = do
@@ -126,6 +131,7 @@ instance E.Entity GetDoc where
         editors
         doc.updated
         doc.created
+        doc.version
 
 instance E.GuardValue GetDoc T.DocId where
   guardValues ids doc =
@@ -265,6 +271,7 @@ crDocument crDoc = do
           (val_ False)
           (val_ now)
           (val_ now)
+          (val_ (0 :: Int32))
         ]
   runBeam
     $ runInsert
@@ -306,3 +313,117 @@ getLastUpdate docId =
     save <- all_ Db.db.documentSave
     guard_ $ save.docId ==. val_ docId
     pure save
+
+
+getDocVersion
+  :: MonadDb env m
+  => T.DocId
+  -> m Int32
+getDocVersion docId = do
+  mVersion <-
+    runBeam
+    $ runSelectReturningOne
+    $ select
+    $ do
+      doc <- all_ Db.db.document
+      guard_ $ doc.docId ==. val_ docId
+      pure doc.version
+  pure $ fromMaybe 0 mVersion
+
+
+updateDocVersion
+  :: MonadDb env m
+  => T.DocId
+  -> Int32
+  -> m ()
+updateDocVersion docId newVersion =
+  runBeam
+    $ runUpdate
+    $ update
+      Db.db.document
+      (\ r -> r.version <-. val_ newVersion)
+      (\ r -> r.docId ==. val_ docId)
+
+
+insertSteps
+  :: MonadDb env m
+  => T.DocId
+  -> Int32         -- ^ current version (steps are inserted at startVersion+1 .. startVersion+N)
+  -> T.UserId
+  -> T.ComputerId  -- ^ stores the full tab-session clientId
+  -> [Value]
+  -> m ()
+insertSteps _      _            _      _          []    = pure ()
+insertSteps docId  startVersion userId clientId   steps = do
+  now <- getCurrentTime
+  let rows = zipWith
+               (\ i s -> Db.MkDocumentStepT docId (startVersion + i) (PgJSONB s) userId clientId now)
+               [1..]
+               steps
+  runBeam
+    $ runInsert
+    $ insert Db.db.documentStep
+    $ insertValues rows
+
+
+-- | Returns (version, step JSON, clientId) for all steps after fromVersion, ordered ascending.
+getStepsSince
+  :: MonadDb env m
+  => T.DocId
+  -> Int32
+  -> m [(Int32, Value, T.ComputerId)]
+getStepsSince docId fromVersion =
+  fmap (fmap (\ r -> (r.version, Db.unPgJSONB r.step, r.computerId)))
+  $ runBeam
+  $ runSelectReturningList
+  $ select
+  $ orderBy_ (asc_ . (.version))
+  $ do
+    s <- all_ Db.db.documentStep
+    guard_ $ s.docId ==. val_ docId
+    guard_ $ s.version >. val_ fromVersion
+    pure s
+
+
+insertSnapshot
+  :: MonadDb env m
+  => T.DocId
+  -> Int32
+  -> Object
+  -> m ()
+insertSnapshot docId atVer docObj = do
+  now <- getCurrentTime
+  runBeam
+    $ runInsert
+    $ insert Db.db.documentSnapshot
+    $ insertValues
+      [ Db.MkDocumentSnapshotT docId atVer (PgJSONB docObj) now ]
+
+
+getLatestSnapshot
+  :: MonadDb env m
+  => T.DocId
+  -> m (Maybe (Int32, Object))
+getLatestSnapshot docId =
+  fmap (fmap (\ r -> (r.atVersion, Db.unPgJSONB r.document)))
+  $ runBeam
+  $ runSelectReturningOne
+  $ select
+  $ limit_ 1
+  $ orderBy_ (desc_ . (.atVersion))
+  $ do
+    snap <- all_ Db.db.documentSnapshot
+    guard_ $ snap.docId ==. val_ docId
+    pure snap
+
+
+-- | Called from handleSave; takes a snapshot when version is a multiple of 500.
+maybeTakeSnapshot
+  :: MonadDb env m
+  => T.DocId
+  -> Object
+  -> m ()
+maybeTakeSnapshot docId docObj = do
+  v <- getDocVersion docId
+  when (v > 0 && v `mod` 500 == 0) $
+    insertSnapshot docId v docObj
