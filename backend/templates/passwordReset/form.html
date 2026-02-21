@@ -18,13 +18,13 @@
   {% if wasCorrect == 'False' %}
   <ul class="errorText">
     {% if errors.tokenIsValid != 1 %}
-      <li>You took to long try again. The token is only valid for 10 mintues.</li>
+      <li>This link has expired — they're only valid for 10 minutes. No problem, just request a new one!</li>
     {% endif %}
     {% if errors.passwordsMatch != 1 %}
-      <li>Passwords don't match</li>
+      <li>Those passwords don't match — try again!</li>
     {% endif %}
     {% if errors.passwordLength != 1 %}
-      <li>Password needs to be at least 9 characters long</li>
+      <li>Your password needs to be at least 9 characters long.</li>
     {% endif %}
   </ul>
   {% endif %}

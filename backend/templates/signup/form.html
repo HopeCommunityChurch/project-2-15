@@ -30,19 +30,19 @@
   {% if wasCorrect == 'False' %}
   <ul class="errorText">
     {% if errors.nameNotNull != 1 %}
-      <li>Need a name</li>
+      <li>We'll need your name to get started!</li>
     {% endif %}
     {% if errors.isNotTaken != 1 %}
-      <li>Email already taken</li>
+      <li>That email is already in use — try logging in instead?</li>
     {% endif %}
     {% if errors.passwordsMatch != 1 %}
-      <li>Passwords don't match</li>
+      <li>Those passwords don't match — try again!</li>
     {% endif %}
     {% if errors.passwordLength != 1 %}
-      <li>Password needs to be at least 9 characters long</li>
+      <li>Your password needs to be at least 9 characters long.</li>
     {% endif %}
     {% if errors.verified != 1 %}
-      <li>Verification failed</li>
+      <li>Verification failed — please try again.</li>
     {% endif %}
   </ul>
   {% endif %}
