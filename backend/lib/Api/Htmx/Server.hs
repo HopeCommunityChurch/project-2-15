@@ -155,6 +155,9 @@ scottyServer = do
     Scotty.post "/study" $ do
       user <- getUserWithRedirect
       Study.createStudy user
+    Scotty.get "/study/:documentId/history" $ do
+      user <- getUserWithRedirect
+      DocumentHistory.getHistoryPage user
     Scotty.get "/study/:documentId" $ do
       user <- getUserWithRedirect
       Study.getStudy user

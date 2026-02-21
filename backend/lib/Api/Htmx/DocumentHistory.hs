@@ -1,8 +1,13 @@
 module Api.Htmx.DocumentHistory where
 
 import Api.Htmx.AuthHelper (AuthUser (..))
+import Api.Htmx.Ginger (basicTemplate)
 import Api.Htmx.NotFound qualified as NotFound
+import Data.HashMap.Strict qualified as HMap
+import Data.UUID as UUID
+import EnvFields (EnvType (..))
 import Data.Aeson qualified as Aeson
+import Text.Ginger (toGVal)
 import Database.PostgreSQL.Simple qualified as PgS
 import Database.PostgreSQL.Simple.FromRow (FromRow (..), field)
 import DbHelper (MonadDb, withRawConnection)
@@ -109,3 +114,29 @@ getVersionApi user = do
     finish
   result <- lift $ getDocAtVersion docId targetVersion
   json result
+
+
+getHistoryPage
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> ActionT m ()
+getHistoryPage user = do
+  docId <- captureParam "documentId"
+  doc   <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
+  unless (user.userId `elem` fmap (.userId) doc.editors) $ do
+    status status403
+    Scotty.text "Forbidden"
+    finish
+  mHost <- header "X-Forwarded-Host"
+  let host = fromMaybe "local.p215.church" mHost
+  envType <- lift (asks (.envType))
+  let isLocal = envType == Dev "local"
+  basicTemplate
+    "study-history.html"
+    ( HMap.insert "isLocal" (toGVal isLocal)
+    . HMap.insert "docId" (toGVal (UUID.toText (unwrap docId)))
+    . HMap.insert "docName" (toGVal doc.name)
+    . HMap.insert "host" (toGVal host)
+    )

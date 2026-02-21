@@ -38,7 +38,25 @@ const lastRemoveSaveTimeKey = docId +  ".remoteSaveTime"
 const localDoc = docId + ".doc";
 
 
+function checkRestoreDoc(doc: T.DocRaw): any | null {
+  const restoreFlag = new URLSearchParams(location.search).get("restore");
+  if (!restoreFlag) return null;
+  const saved = sessionStorage.getItem(docId + ".restore");
+  if (!saved) return null;
+  sessionStorage.removeItem(docId + ".restore");
+  try {
+    const { docJson } = JSON.parse(saved);
+    console.log("restoring version from sessionStorage");
+    return docJson;
+  } catch (e) {
+    console.error("failed to parse restore data", e);
+    return null;
+  }
+}
+
 function checkLastUpdate (doc : T.DocRaw) : any {
+  const restored = checkRestoreDoc(doc);
+  if (restored !== null) return restored;
   if(doc.lastUpdate == null) {
     console.log("using remote doc");
     return doc.document;

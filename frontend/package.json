@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "parcel src/index.tsx --target=default",
-    "build": "parcel build src/index.tsx"
+    "dev": "parcel src/index.tsx src/history.tsx --target=default",
+    "build": "parcel build src/index.tsx src/history.tsx"
   },
   "author": "",
   "license": "MIT",

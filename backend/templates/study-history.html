@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1, interactive-widget=resizes-content" name="viewport">
+  <title>Version History — Project 2:15</title>
+  <link rel="icon" href="{{base}}/static/favicon.ico" type="image/x-icon">
+
+  <link rel="stylesheet" href="{{base}}/static/styles/pages/study.css">
+  <link rel="stylesheet" href="{{base}}/static/styles/header.css">
+  <script src="{{base}}/static/scripts/option.js"></script>
+  <script src="{{base}}/static/scripts/dialog.js"></script>
+  <script>
+    window.base    = "{{base}}";
+    window.docId   = "{{docId}}";
+    window.docName = "{{docName}}";
+    window.isLocal = {{isLocal}};
+  </script>
+</head>
+<body id="studyPage">
+
+  <header id="header">
+    <a class="logo" href="/home">
+      <img class="logo" src="{{base}}/static/img/p215-circle.svg">
+    </a>
+    <p id="studyName">
+      <a href="{{base}}/study/{{docId}}">{{docName}}</a>
+      &rsaquo; Version History
+    </p>
+  </header>
+
+  <div id="historyLayout">
+    <div id="historyList">
+      <h2>Versions</h2>
+      <div id="historyGroups">Loading&hellip;</div>
+    </div>
+    <div id="historyPreview">
+      <div id="historyPreviewPlaceholder">
+        <p>Select a version on the left to preview it.</p>
+      </div>
+      <div id="historyPreviewActions" style="display:none">
+        <button id="restoreButton" class="blue">Restore this version</button>
+      </div>
+      <div id="editorHolder" class="editorHolder"></div>
+    </div>
+  </div>
+
+{% if isLocal == true %}
+  <script src="http://{{host}}:1234/history.js"></script>
+{% else %}
+  <script src="{{base}}/static/editor/history.js"></script>
+{% endif %}
+</body>
+</html>
