@@ -2,29 +2,99 @@
   background-color: #fff;
   border-radius: 8px;
   width: 100vw;
-  max-width: 520px;
+  max-width: 570px;
   min-height: 10px;
-  padding: 20px;
+  padding: 24px;
   overflow-y: auto;
   box-shadow: 0 4px 6px #0000001a;
   border: none;
   box-sizing: border-box;
+  position: relative;
+
+  .closeModalIcon {
+    cursor: pointer;
+    max-width: 20px;
+    padding: 10px;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+
+  .field-label {
+    color: #666;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: block;
+  }
+
+  .field-desc {
+    color: #aaa;
+    font-size: 14px;
+    margin: -2px 0 8px;
+    line-height: 1.4;
+  }
+
+  /* Shared p-select base styles */
+  p-select::part(p-select) {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  p-select::part(p-select):hover {
+    background-color: #f5f5f5;
+  }
+  p-select::part(p-dropbox) {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px #0000001a;
+    min-width: 220px;
+  }
+  p-select::part(p-option) {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
   .groupStudyEditorHolder {
     flex-direction: column;
     align-items: stretch;
     width: 100%;
     display: flex;
     gap: 5px;
+
+    .groupStudy-header {
+      margin-bottom: 4px;
+      h3 {
+        margin: 0;
+        padding-right: 30px;
+      }
+    }
+
     .groupStudyName {
       display: grid;
-      grid-template-columns: 1fr 100px;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      margin-top: 4px;
       input {
         margin: 0;
+        height: 36px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 0 12px;
+        font-size: 14px;
+        box-sizing: border-box;
+        font-family: inherit;
+        min-width: 0;
       }
-
       .saving-box {
         justify-self: end;
         align-self: center;
+        font-size: 13px;
+        color: #888;
         .saving-indicator {
           display: none;
         }
@@ -36,45 +106,160 @@
         }
       }
     }
-    .trash {
-      align-content: center;
-      display: flex;
-      height: 35px;
+
+    .groupStudy-name-readonly {
+      font-size: 15px;
+      font-weight: 500;
+      color: #222;
+      margin: 4px 0 0;
     }
-    .expired {
-      color: red;
-      font-size: 0.7em;
-    }
-    .buttons {
-      display: flex;
-      justify-content: end;
-      gap: 3px;
-    }
-    .share {
-      display: grid;
-      grid-template-columns: 1fr 150px;
-      padding-bottom: 4px;
-      .share-email {
-        align-content: center;
+
+    .groupStudy-section {
+      margin-top: 4px;
+      .field-label {
+        margin-bottom: 2px;
       }
     }
-    label {
-      color: #666;
-      font-size: 16px;
+
+    .ghost-blue {
+      background: none;
+      color: var(--blue-100, #1a73e8);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+      &:hover {
+        background-color: var(--blue-25, #e8f0fe);
+      }
     }
+
+    .groupStudy-invite-row {
+      display: grid;
+      grid-template-columns: 1fr 110px auto;
+      gap: 5px;
+      align-items: center;
+      input[type="email"] {
+        height: 36px;
+        margin: 0;
+        font-size: 14px;
+      }
+      p-select::part(p-select) {
+        width: 100%;
+        height: 36px;
+      }
+      button {
+        height: 36px;
+        white-space: nowrap;
+      }
+    }
+
+    .groupStudy-divider {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 12px 0 8px;
+    }
+
+    .groupStudy-people {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .person-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      padding: 6px 0;
+      align-items: center;
+    }
+
+    .person-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+    }
+
+    .person-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #222;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .you-label {
+      color: #888;
+      font-weight: 400;
+    }
+
+    .person-role {
+      font-size: 12px;
+      color: #888;
+      font-weight: 400;
+    }
+
+    .person-email {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .person-actions {
+      display: flex;
+      justify-content: end;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    .badge-pending {
+      background-color: #e8f0fe;
+      color: #1a73e8;
+    }
+    .badge-error {
+      background-color: #fce8e6;
+      color: #d93025;
+    }
+
+    .remove-btn {
+      background: none;
+      color: #888;
+      font-size: 13px;
+      font-weight: 400;
+      padding: 4px 8px;
+      border-radius: 4px;
+      &:hover {
+        color: var(--red-100);
+        background-color: var(--red-25);
+      }
+    }
+
+    .share .person-info {
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+
     input {
       margin-bottom: 10px;
     }
 
     .member {
-      display: grid;
-      grid-template-columns: 1fr 150px;
-      padding-bottom: 4px;
-      div {
-        align-content: center;
-      }
       p-select::part(p-select) {
         height: 100%;
+        font-size: 13px;
+      }
+      p-select::part(p-dropbox) {
+        right: 0;
+      }
+      p-select::part(p-option) {
+        font-size: 13px;
       }
     }
   }
@@ -88,10 +273,10 @@
     display: grid;
     grid-row-gap: 10px;
   }
-  .peopleInput{
+  .peopleInput {
     display: grid;
     height: 2em;
-    grid-template-columns: 1fr 100px 40px;
+    grid-template-columns: 1fr 110px 40px;
     grid-column-gap: 3px;
     input {
       height: 100%;
@@ -100,18 +285,9 @@
       width: 100%;
       height: 100%;
     }
-    p-select::part(p-option) {
-      height: 2em;
-    }
-  }
-
-  h4 {
-    margin-top: 10px;
   }
 
   #studyGroupDeletes {
     display: none;
   }
-
 }
-

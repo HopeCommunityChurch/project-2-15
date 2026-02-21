@@ -71,3 +71,22 @@ function findNextInput (elem) {
     nextInput.focus()
   }
 }
+
+// Inline invite form in the group study modal
+document.addEventListener("htmx:afterSettle", function(evt) {
+  const dialog = document.getElementById("groupStudy");
+  if (!dialog || !dialog.open) return;
+  const emailInput = dialog.querySelector('input[name="email[]"]');
+  if (!emailInput) return;
+  emailInput.focus();
+  if (!emailInput._inviteHandlerAttached) {
+    emailInput._inviteHandlerAttached = true;
+    emailInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        htmx.trigger(emailInput.closest("form"), "submit");
+      }
+    });
+  }
+});
