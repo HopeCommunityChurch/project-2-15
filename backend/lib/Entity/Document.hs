@@ -32,7 +32,8 @@ import Database.Beam (
   (==.),
   (==?.),
   (>.)
- )
+  , (<=.)
+  )
 import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
 import Database.Beam.Postgres (PgJSONB (..))
 import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam)
@@ -415,6 +416,43 @@ getLatestSnapshot docId =
     snap <- all_ Db.db.documentSnapshot
     guard_ $ snap.docId ==. val_ docId
     pure snap
+
+
+-- | Like 'getLatestSnapshot' but only considers snapshots at or before the given version.
+getLatestSnapshotBefore
+  :: MonadDb env m
+  => T.DocId
+  -> Int32
+  -> m (Maybe (Int32, Object))
+getLatestSnapshotBefore docId atMost =
+  fmap (fmap (\ r -> (r.atVersion, Db.unPgJSONB r.document)))
+  $ runBeam
+  $ runSelectReturningOne
+  $ select
+  $ limit_ 1
+  $ orderBy_ (desc_ . (.atVersion))
+  $ do
+    snap <- all_ Db.db.documentSnapshot
+    guard_ $ snap.docId ==. val_ docId
+    guard_ $ snap.atVersion <=. val_ atMost
+    pure snap
+
+
+-- | Returns (version, document JSON) from the document table — used as a fallback
+-- | baseline when no collab snapshot has been taken yet.
+getDocBase
+  :: MonadDb env m
+  => T.DocId
+  -> m (Maybe (Int32, Object))
+getDocBase docId =
+  fmap (fmap (\ r -> (r.version, Db.unPgJSONB r.document)))
+  $ runBeam
+  $ runSelectReturningOne
+  $ select
+  $ do
+    doc <- all_ Db.db.document
+    guard_ $ doc.docId ==. val_ docId
+    pure doc
 
 
 -- | Called from handleSave; takes a snapshot when version is a multiple of 500.

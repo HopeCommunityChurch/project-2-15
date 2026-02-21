@@ -72,10 +72,17 @@ getDocAtVersion
   -> Int32
   -> m DocAtVersion
 getDocAtVersion docId targetVersion = do
-  mSnap <- Doc.getLatestSnapshot docId
-  let (snapVersion, snapDoc) = case mSnap of
-        Nothing         -> (0, mempty)
-        Just (v, d)     -> (v, d)
+  -- Prefer a collab snapshot at or before the target version.
+  -- Fall back to the document's saved JSON (+ its version) so that the
+  -- frontend never receives an empty {} as the base document.
+  mSnap <- Doc.getLatestSnapshotBefore docId targetVersion
+  (snapVersion, snapDoc) <- case mSnap of
+    Just (v, d) -> pure (v, d)
+    Nothing     -> do
+      mBase <- Doc.getDocBase docId
+      pure $ case mBase of
+        Nothing     -> (0, mempty)
+        Just (v, d) -> (v, d)
   rawSteps <- Doc.getStepsSince docId snapVersion
   let filtered = [ s | (v, s, _) <- rawSteps, v <= targetVersion ]
   pure $ MkDocAtVersion snapDoc filtered snapVersion targetVersion

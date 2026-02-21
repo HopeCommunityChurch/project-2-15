@@ -53,11 +53,15 @@ function groupByDate(groups: HistoryGroup[]): Map<string, HistoryGroup[]> {
 }
 
 async function loadPreview(group: HistoryGroup) {
-  const res = await fetch(`/api/document/${docId}/at-version/${group.endVersion}`);
+  const res = await fetch(`/document/${docId}/at-version/${group.endVersion}`);
   if (!res.ok) return;
   const data: DocAtVersion = await res.json();
 
-  const snapshotNode = Node.fromJSON(textSchema, data.snapshotDoc);
+  const isEmpty = !data.snapshotDoc || Object.keys(data.snapshotDoc).length === 0;
+  const snapshotNode = isEmpty
+    ? (textSchema.topNodeType.createAndFill() ?? textSchema.nodeFromJSON({ type: "doc", content: [] }))
+    : Node.fromJSON(textSchema, data.snapshotDoc);
+  if (!snapshotNode) return;
   let tr = new Transform(snapshotNode);
   for (const s of data.steps) {
     try {
@@ -96,7 +100,7 @@ async function loadPreview(group: HistoryGroup) {
 }
 
 async function init() {
-  const res = await fetch(`/api/document/${docId}/history`);
+  const res = await fetch(`/document/${docId}/history`);
   if (!res.ok) {
     document.getElementById("historyGroups").textContent = "Failed to load history.";
     return;
