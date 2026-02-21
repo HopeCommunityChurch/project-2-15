@@ -12,7 +12,7 @@ function makeScrollMemory(container: HTMLElement, pageDocId: string) {
   function restore(docId: T.DocId) {
     const saved = localStorage.getItem(key(docId));
     requestAnimationFrame(() => {
-      const parsed = saved !== null ? parseInt(saved, 10) : NaN;
+      const parsed = parseInt(saved ?? '', 10);
       container.scrollTop = isNaN(parsed) ? 0 : parsed;
     });
   }
