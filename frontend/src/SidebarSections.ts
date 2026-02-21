@@ -8,14 +8,22 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
   const doc = editor.view.state.doc;
   initialSetup(editor, container, doc);
   editor.onUpdate( (doc) => {
-    if (doc.childCount > container.children.length) {
-      for (let i = 0; i < doc.childCount - container.children.length; i++) {
-        container.appendChild(createSectionHeader(editor, container.children.length+i));
-      }
-    } else if (doc.childCount < container.children.length) {
-      for (let i = 0; i < container.children.length - doc.childCount; i++) {
-        container.children.item(container.children.length-1-i).remove();
-      }
+    // Fully reconcile the sidebar item count so that deletions from anywhere
+    // in the editor (not just the tail) produce the correct DOM structure.
+    // We rebuild indices on every update to keep currentIndex / oldIndex
+    // in sync with the actual document order.
+    while (container.children.length > doc.childCount) {
+      container.children.item(container.children.length - 1).remove();
+    }
+    while (container.children.length < doc.childCount) {
+      container.appendChild(createSectionHeader(editor, container.children.length));
+    }
+    // Re-assign indices for all existing items so that any mid-document
+    // insertion or deletion doesn't leave stale index attributes.
+    for (let i = 0; i < container.children.length; i++) {
+      const child = container.children.item(i);
+      child.setAttribute("currentIndex", i + "");
+      child.setAttribute("oldIndex", i + "");
     }
     updateSectionNames(container, doc);
   });
@@ -59,11 +67,14 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   const sectionText = document.createElement("span");
   section.appendChild(sectionText);
 
-  const remove = document.createElement("div");
+  const remove = document.createElement("button");
   const img = document.createElement("img");
   img.src = "/static/img/x.svg";
+  img.alt = "";
   remove.appendChild(img);
   remove.className = "remove";
+  remove.type = "button";
+  remove.setAttribute("aria-label", "Remove section");
   remove.addEventListener("click", (e) => {
     e.stopPropagation();
 
@@ -72,8 +83,10 @@ function createSectionHeader(editor : Editor.P215Editor, index : number) {
   });
   section.appendChild(remove);
 
-  const deleter = document.createElement("div");
+  const deleter = document.createElement("button");
   deleter.className = "deleter";
+  deleter.type = "button";
+  deleter.setAttribute("aria-label", "Remove section");
   deleter.innerText = "Remove";
   section.appendChild(deleter);
   deleter.addEventListener("touchstart", (e) => {

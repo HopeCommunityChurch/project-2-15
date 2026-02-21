@@ -136,6 +136,9 @@
     function collapseSide() {
       const studyContent = document.getElementById("studyPage");
       studyContent.classList.toggle("collapseSide");
+      const btn = document.getElementById("collapseSide");
+      const isCollapsed = studyContent.classList.contains("collapseSide");
+      btn.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
     }
 
     function split() {
@@ -362,8 +365,8 @@
   <div id="leftSidebar">
     <div class="container">
       <div>
-        <button id="collapseSide" onclick="collapseSide()">
-          <img class="collapseIcon" src="{{base}}/static/img/arrow2.svg" ><img class="expandIcon" src="{{base}}/static/img/hamburger-menu-icon.svg" ><span class="collapseLabel">COLLAPSE</span><span class="expandLabel">SECTIONS</span>
+        <button id="collapseSide" onclick="collapseSide()" aria-expanded="true" aria-label="Collapse sidebar">
+          <img class="collapseIcon" src="{{base}}/static/img/arrow2.svg" alt=""><img class="expandIcon" src="{{base}}/static/img/hamburger-menu-icon.svg" alt=""><span class="collapseLabel">COLLAPSE</span><span class="expandLabel">SECTIONS</span>
         </button>
       </div>
       <div id="addSectionRow">
