@@ -29,6 +29,7 @@ import {
 } from "prosemirror-commands";
 
 import { undo, redo, history } from "prosemirror-history";
+import { collab, sendableSteps, receiveTransaction } from "prosemirror-collab";
 import { keymap } from "prosemirror-keymap";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { StepMap, Step, Transform } from "prosemirror-transform";
@@ -1228,6 +1229,7 @@ export class P215Editor extends EventTarget {
   updateHanlders: Array<(change: any) => void>;
   updateStateHanlders: Array<(change: EditorState) => void>;
   remoteThings: RemoteThingy;
+  inflight: boolean;
 
   currentEditor : EditorView;
 
@@ -1235,10 +1237,13 @@ export class P215Editor extends EventTarget {
     initDoc,
     editable,
     remoteThings,
+    initialVersion = 0,
+    sessionClientId = null,
   }) {
     super();
     this.editable = editable;
     this.remoteThings = remoteThings;
+    this.inflight = false;
     let node = Node.fromJSON(textSchema, cleanupExtraStudyBlocks(initDoc));
     this.updateHanlders = [];
     this.updateStateHanlders = [];
@@ -1257,6 +1262,7 @@ export class P215Editor extends EventTarget {
       doc: node,
       plugins: [
         history(),
+        ...(sessionClientId !== null ? [collab({ version: initialVersion, clientID: sessionClientId })] : []),
         keymap({
           "Mod-z": undo,
           "Mod-y": redo,
@@ -1346,7 +1352,6 @@ export class P215Editor extends EventTarget {
         let newState = that.view.state.apply(transaction);
         that.view.updateState(newState);
 
-        let steps = null;
         if (transaction.docChanged) {
           this.updateHanlders.forEach((handler) => {
             try {
@@ -1355,9 +1360,7 @@ export class P215Editor extends EventTarget {
               console.error(e);
             }
           });
-          steps = transaction.steps.map((st) => st.toJSON());
         }
-
 
         this.updateStateHanlders.forEach((handler) => {
           try {
@@ -1369,28 +1372,42 @@ export class P215Editor extends EventTarget {
 
         const head = newState.selection.head;
         const anchor = newState.selection.anchor;
-        if (this.remoteThings !== null && this.remoteThings.send) {
-          this.remoteThings.send({
-            steps: steps,
-            selection: {
-              anchor: anchor,
-              head: head,
-            },
-          });
+        if (this.remoteThings !== null && this.remoteThings.send && !this.inflight) {
+          const sendable = sendableSteps(newState);
+          if (sendable) {
+            this.inflight = true;
+            this.remoteThings.send({
+              version: sendable.version,
+              steps: sendable.steps.map((s) => s.toJSON()),
+              clientId: sendable.clientID as string,
+              selection: { anchor, head },
+            });
+          }
         }
       },
     });
     this.currentEditor = this.view;
   }
 
-  dispatchSteps(changeDiff: TransactionDiff) {
-    if (changeDiff.steps != null) {
-      const steps = changeDiff.steps.map((st) => Step.fromJSON(textSchema, st));
-      const tr = this.view.state.tr;
-      steps.forEach((st) => tr.step(st));
+  dispatchSteps(changeDiff: { steps: any[], clientIds: string[], selection?: SectionDiff }) {
+    if (changeDiff.steps?.length) {
+      const steps = changeDiff.steps.map((s) => Step.fromJSON(textSchema, s));
+      const tr = receiveTransaction(this.view.state, steps, changeDiff.clientIds);
       this.view.dispatch(tr);
     }
-    setSelection(changeDiff.selection, this.view.state, this.view.dispatch);
+    if (changeDiff.selection) {
+      setSelection(changeDiff.selection, this.view.state, this.view.dispatch);
+    }
+  }
+
+  confirmSteps(payload: { version: number, steps: any[], clientIds: string[] }) {
+    this.inflight = false;
+    this.dispatchSteps(payload);
+  }
+
+  handleConflict(payload: { steps: any[], clientIds: string[] }) {
+    this.inflight = false;
+    this.dispatchSteps(payload);
   }
 
   applyDispatch(func : (state: EditorState, dispatch : DispatchFunc) => void) {

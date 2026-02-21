@@ -25,6 +25,8 @@ const computerId = (function () : string {
   return computerId;
 })();
 
+const sessionClientId = computerId + "_" + crypto.randomUUID();
+
 
 ws.addEventListener("open", () => {
   ws.sendStrRaw(computerId);
@@ -63,9 +65,11 @@ function initialize (e : WS.DocOpenedEvent) {
   const editor = new Editor.P215Editor({
     initDoc: doc,
     editable: true,
+    initialVersion: e.doc.version,
+    sessionClientId: sessionClientId,
     remoteThings: {
-      send: (steps: any) => {
-        ws.send({ tag: "Updated", contents: steps });
+      send: (payload: any) => {
+        ws.send({ tag: "Updated", contents: payload });
       },
     },
   });
@@ -81,6 +85,14 @@ function initialize (e : WS.DocOpenedEvent) {
     window.localStorage.setItem(docId + ".doc", JSON.stringify(doc));
     window.localStorage.setItem(localSaveTimeKey, (new Date).toISOString());
     saver.save(doc);
+  });
+
+  ws.addEventListener("DocConfirmed", (ev: WS.DocConfirmedEvent) => {
+    editor.confirmSteps(ev.payload);
+  });
+
+  ws.addEventListener("DocConflict", (ev: WS.DocConflictEvent) => {
+    editor.handleConflict(ev.payload);
   });
 
   const studyNameElem = document.getElementById("studyName");
