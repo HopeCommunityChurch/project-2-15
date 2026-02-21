@@ -2,7 +2,10 @@ module Api.Htmx.GroupStudy where
 
 import Api.Htmx.AuthHelper (AuthUser (..))
 import Api.Htmx.NotFound qualified as NotFound
+import Data.Aeson ((.=))
+import Data.Aeson qualified as Aeson
 import Data.CaseInsensitive qualified as CI
+import Data.List (head)
 import Data.UUID as UUID
 import DbHelper (MonadDb, withTransaction)
 import Emails.ShareGroupStudy qualified
@@ -23,6 +26,31 @@ import Prelude hiding ((**))
 
 
 
+unsafeAsObject :: Aeson.Value -> Aeson.Object
+unsafeAsObject (Aeson.Object o) = o
+unsafeAsObject _ = error "not an object"
+
+
+emptyStudy :: Aeson.Object
+emptyStudy = unsafeAsObject $ Aeson.object
+  [ "type" .= ("doc" :: Text)
+  , "content" .=
+    [ Aeson.object
+      [ "type" .= ("section" :: Text)
+      , "content" .=
+        [ Aeson.object
+          [ "type" .= ("sectionHeader" :: Text)
+          , "content" .= [ Aeson.object [ "text" .= ("Untitled" :: Text), "type" .= ("text" :: Text)]]
+          ]
+        , Aeson.object
+          [ "type" .= ("studyBlocks" :: Text)
+          , "content" .= [ Aeson.object [ "type" .= ("questions" :: Text)]]
+          ]
+        ]
+      ]
+    ]
+  ]
+
 
 getGroupStudy'
   :: ( MonadDb env m
@@ -38,6 +66,7 @@ getGroupStudy' user groupStudyId = do
   let isOwner = any (\ o -> o.userId == user.userId) groupStudy.owners
 
   shares <- lift $ Shares.getGroupShareData groupStudy.groupStudyId
+  logDebugSH shares
   html =<< L.renderTextT (groupStudyHTML user isOwner shares groupStudy)
 
 getGroupStudy
@@ -64,13 +93,12 @@ createStudyGroupHTML
   -> L.HtmlT m ()
 createStudyGroupHTML doc = do
   L.div_ [L.class_ "groupStudyInner"] $ do
-    L.button_
-      [ L.class_ "closeModalIcon"
-      , L.type_ "button"
-      , L.ariaLabel_ "Close"
+    L.img_
+      [ L.alt_ "Close"
+      , L.src_ "/static/img/x.svg"
+      , L.class_ "closeModalIcon"
       , L.onclick_ "toggleModal('#groupStudy')"
-      ] $
-        L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
+      ]
     L.h3_ "Create Group Study"
     L.p_ [L.class_ "field-desc"]
       "A group study lets multiple people work through the same study template together, each with their own document."
@@ -97,21 +125,6 @@ createStudyGroupHTML doc = do
       L.button_ [L.type_ "submit", L.class_ "blue"]
         "Create"
   L.script_ "addPeopleInput()";
-
-
-createPeopleTemplate :: Monad m => L.HtmlT m ()
-createPeopleTemplate = do
-  L.template_ [L.id_ "peopleInputTemplate"] $ do
-    L.div_ [L.class_ "peopleInput"] $ do
-      L.input_
-        [ L.name_ "email[]"
-        , L.type_ "email"
-        , L.placeholder_ "jonny@p215.church"
-        ]
-      L.pSelect_ [ L.name_ "permission[]"] $ do
-        L.option_ [ L.value_ "member"] "Member"
-        L.option_ [ L.value_ "owner"] "Owner"
-      L.button_ [L.class_ "red", L.type_ "button", L.ariaLabel_ "Remove"] "-"
 
 
 shareHTML
@@ -168,20 +181,7 @@ memberHTML
   -> GroupStudy.GetDocMeta
   -> L.HtmlT m ()
 memberHTML isOwner user groupStudy gdoc = do
-  case gdoc.editors of
-    [] -> pure ()
-    (editor : _) -> memberHTML' isOwner user groupStudy gdoc editor
-
-
-memberHTML'
-  :: Monad m
-  => Bool
-  -> AuthUser
-  -> GroupStudy.GetGroupStudy
-  -> GroupStudy.GetDocMeta
-  -> User.GetUser
-  -> L.HtmlT m ()
-memberHTML' isOwner user groupStudy gdoc editor = do
+  let editor = head gdoc.editors
   let memberId = "member-doc-" <> UUID.toText (unwrap gdoc.docId)
   L.div_ [L.class_ "member person-row", L.id_ memberId] $ do
     L.div_ [L.class_ "person-info"] $ do
@@ -244,13 +244,12 @@ groupStudyHTML
 groupStudyHTML user isOwner shares groupStudy = do
   let groupIdTxt = UUID.toText (unwrap groupStudy.groupStudyId)
   L.div_ [ L.class_ "groupStudyEditorHolder" , L.id_ "groupStudyInner" ] $ do
-    L.button_
-      [ L.class_ "closeModalIcon"
-      , L.type_ "button"
-      , L.ariaLabel_ "Close"
+    L.img_
+      [ L.alt_ "Close"
+      , L.src_ "/static/img/x.svg"
+      , L.class_ "closeModalIcon"
       , L.onclick_ "toggleModal('#groupStudy')"
-      ] $
-        L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
+      ]
 
     -- Header
     L.div_ [L.class_ "groupStudy-header"] $ do
@@ -389,6 +388,9 @@ resendInvite _ = do
   groupStudy <- NotFound.handleNotFound
                   (E.getOneEntityBy @GroupStudy.GetGroupStudy)
                   shareToken
+  share <- NotFound.handleNotFound
+                  Shares.getGroupShareDataByToken
+                  shareToken
   shareForEmail <- lift $ Shares.expandShareExpire shareToken
 
   lift $ withTransaction $ do
@@ -399,12 +401,6 @@ resendInvite _ = do
                     shareToken
                     url
     Mail.sendMail email
-
-  -- Fetch share data after expanding expiry so the rendered badge
-  -- reflects the updated (non-expired, non-rejected) state.
-  share <- NotFound.handleNotFound
-                  Shares.getGroupShareDataByToken
-                  shareToken
   html $ L.renderText $ do
     shareHTML True share groupStudy
     L.notifcation_ [ L.timems_ "2500" ]
@@ -421,7 +417,7 @@ acceptShare user = do
   docStuff <- formParam "document"
   docId <-
     if docStuff == ("new" :: Text) then do
-      let crDoc = Doc.CrDoc Nothing "Untitled" Doc.emptyStudy user.userId
+      let crDoc = Doc.CrDoc Nothing "Untitled" emptyStudy user.userId
       lift $ Doc.crDocument crDoc
     else do
       docId <- formParam "document"
@@ -495,26 +491,34 @@ ownershipMemberDoc
   -> ActionT m ()
 ownershipMemberDoc user = do
   groupStudyId <- captureParam "groupId"
+  logInfoSH groupStudyId
   (docId :: T.DocId) <- captureParam "docId"
+  logInfoSH docId
 
   groupStudy <- NotFound.handleNotFound
                   (E.getById @GroupStudy.GetGroupStudy)
                   groupStudyId
   let isOwner = any (\ o -> o.userId == user.userId) groupStudy.owners
+  logInfoSH isOwner
 
   docMeta <- NotFound.handleNotFound
                   (E.getOneEntityBy @GroupStudy.GetDocMeta)
                   docId
+  logInfoSH docMeta
 
   (ownership :: Text) <- formParam "ownership"
+
+  logInfo ownership
 
   permission <- case textToPermission ownership of
                   Nothing -> do
                     L.renderScotty $ do
                       memberHTML False user groupStudy docMeta
                       L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
-                        "Invalid permission value."
+                        "You are not an owner. You cannot modify the group."
                   Just p -> pure p
+
+  logInfoSH permission
 
   unless isOwner $
     L.renderScotty $ do
@@ -545,9 +549,59 @@ ownershipMemberDoc user = do
                   docId
 
   L.renderScotty $ do
-    memberHTML isOwner user groupStudy2 docMeta2
+    memberHTML True user groupStudy2 docMeta2
     L.notifcation_ [ L.timems_ "2500" ]
       "Modified ownership"
+
+
+
+
+getInvite
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> ActionT m ()
+getInvite _ = do
+  groupId <- captureParam "groupId"
+  html =<< L.renderTextT (getInviteNewMemberHTML groupId)
+
+
+createPeopleTemplate :: Monad m => L.HtmlT m ()
+createPeopleTemplate = do
+  L.template_ [L.id_ "peopleInputTemplate"] $ do
+    L.div_ [L.class_ "peopleInput"] $ do
+      L.input_
+        [ L.name_ "email[]"
+        , L.type_ "email"
+        , L.placeholder_ "jonny@p215.church"
+        ]
+      L.pSelect_ [ L.name_ "permission[]"] $ do
+        L.option_ [ L.value_ "member"] "Member"
+        L.option_ [ L.value_ "owner"] "Owner"
+      L.button_ [L.class_ "red"] "-"
+
+
+getInviteNewMemberHTML
+  :: Monad m
+  => T.GroupStudyId
+  -> L.HtmlT m ()
+getInviteNewMemberHTML groupId = do
+  L.div_ [L.class_ "groupStudyInner"] $ do
+    L.h3_ "Invite New People"
+    let formUrl = "/group_study/invite/add"
+    L.form_ [ L.hxPost_ formUrl, L.class_ "groupStudyEditorHolder", L.hxTarget_ "#groupStudyInner"] $ do
+      L.input_
+        [ L.id_ "groupId"
+        , L.name_ "groupId"
+        , L.type_ "hidden"
+        , L.value_ (UUID.toText (unwrap groupId))
+        ]
+      L.label_ [L.for_ "createPeople"] "People"
+      L.div_ [L.id_ "createPeoples"] createPeopleTemplate
+      L.button_ [L.type_ "submit", L.class_ "blue"]
+        "Invite"
+  L.script_ "addPeopleInput()";
 
 
 postInvite

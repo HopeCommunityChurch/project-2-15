@@ -4,24 +4,31 @@ import Api.Htmx.AuthHelper (AuthUser (..))
 import Api.Htmx.Ginger (baseUrl, basicTemplate)
 import Api.Htmx.NotAuthorized qualified as NotAuth
 import Api.Htmx.NotFound qualified as NotFound
+import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.HashMap.Strict qualified as HMap
 import Data.Text qualified as Txt
 import Data.UUID as UUID
-import DbHelper (MonadDb)
+import DbHelper (MonadDb, withTransaction)
+import Emails.ShareGroupStudy qualified
 import Entity qualified as E
 import Entity.Document qualified as Doc
 import Entity.Feature qualified as Feature
 import Entity.GroupStudy qualified as GroupStudy
+import Entity.Shares qualified as Shares
+import Entity.User qualified as User
 import EnvFields (EnvType (..), HasUrl)
+import Fields.Email (mkEmail)
 import Lucid qualified as L
 import Lucid.Htmx qualified as L
-import Network.HTTP.Types.Status (status200)
+import Mail qualified
+import Network.HTTP.Types (urlEncode)
+import Network.HTTP.Types.Status (status200, status204)
 import Text.Ginger
 import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
-import Network.HTTP.Types (urlEncode)
+import Data.CaseInsensitive qualified as CI
 
 
 data SystemType = Linux | Mac | Windows | Unknown
@@ -80,6 +87,32 @@ getStudy user = do
     )
 
 
+unsafeAsObject :: Aeson.Value -> Aeson.Object
+unsafeAsObject (Aeson.Object o) = o
+unsafeAsObject _ = error "not an object"
+
+
+emptyStudy :: Aeson.Object
+emptyStudy = unsafeAsObject $ Aeson.object
+  [ "type" .= ("doc" :: Text)
+  , "content" .=
+    [ Aeson.object
+      [ "type" .= ("section" :: Text)
+      , "content" .=
+        [ Aeson.object
+          [ "type" .= ("sectionHeader" :: Text)
+          , "content" .= [ Aeson.object [ "text" .= ("Untitled" :: Text), "type" .= ("text" :: Text)]]
+          ]
+        , Aeson.object
+          [ "type" .= ("studyBlocks" :: Text)
+          , "content" .= [ Aeson.object [ "type" .= ("questions" :: Text)]]
+          ]
+        ]
+      ]
+    ]
+  ]
+
+
 createStudy
   :: ( MonadDb env m
      )
@@ -87,7 +120,7 @@ createStudy
   -> ActionT m ()
 createStudy user = do
   title <- formParam "studyTitle"
-  let crDoc = Doc.CrDoc Nothing title Doc.emptyStudy user.userId
+  let crDoc = Doc.CrDoc Nothing title emptyStudy user.userId
   docId <- lift $ Doc.crDocument crDoc
   let url = baseUrl <> "/study/" <> UUID.toText (unwrap docId)
   setHeader "HX-Redirect" (toLazy url)
@@ -109,6 +142,7 @@ deleteStudy user = do
   let url = baseUrl <> "/studies?deleted=" <> UUID.toText (unwrap docId) <> "&name=" <> encodedName
   setHeader "HX-Redirect" (toLazy url)
   status status200
+
 
 restoreStudy
   :: ( MonadDb env m

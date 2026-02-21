@@ -16,7 +16,6 @@ let otherCursorKey = new PluginKey<Selection>("OtherCursor");
 function makeWidget () {
   const elem = document.createElement("div");
   elem.className = "otherCursorHolder";
-  elem.setAttribute("contenteditable", "false");
 
   const cursor = document.createElement("div");
   cursor.className = "otherCursor";

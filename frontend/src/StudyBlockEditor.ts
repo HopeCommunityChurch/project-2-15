@@ -95,11 +95,9 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
       div.appendChild(div2);
 
       if (node.type.name != "questions") {
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.innerText = "х";
-        remove.className = "remove";
-        remove.setAttribute("aria-label", `Remove ${name || "study block"}`);
+        const remove = document.createElement("div");
+        remove.innerHTML = "х";
+        remove.className = "remove"
         remove.addEventListener("click", (e) => {
           container.removeChild(div);
         });
