@@ -5,7 +5,6 @@ import Api.Htmx.NotFound qualified as NotFound
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
 import Data.CaseInsensitive qualified as CI
-import Data.List (head)
 import Data.UUID as UUID
 import DbHelper (MonadDb, withTransaction)
 import Emails.ShareGroupStudy qualified
@@ -93,12 +92,12 @@ createStudyGroupHTML
   -> L.HtmlT m ()
 createStudyGroupHTML doc = do
   L.div_ [L.class_ "groupStudyInner"] $ do
-    L.img_
-      [ L.alt_ "Close"
-      , L.src_ "/static/img/x.svg"
-      , L.class_ "closeModalIcon"
+    L.button_
+      [ L.class_ "closeModalIcon"
+      , L.type_ "button"
       , L.onclick_ "toggleModal('#groupStudy')"
-      ]
+      , L.ariaLabel_ "Close"
+      ] $ L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
     L.h3_ "Create Group Study"
     L.p_ [L.class_ "field-desc"]
       "A group study lets multiple people work through the same study template together, each with their own document."
@@ -181,9 +180,9 @@ memberHTML
   -> GroupStudy.GetDocMeta
   -> L.HtmlT m ()
 memberHTML isOwner user groupStudy gdoc = do
-  let editor = head gdoc.editors
   let memberId = "member-doc-" <> UUID.toText (unwrap gdoc.docId)
-  L.div_ [L.class_ "member person-row", L.id_ memberId] $ do
+  for_ (listToMaybe gdoc.editors) $ \editor ->
+   L.div_ [L.class_ "member person-row", L.id_ memberId] $ do
     L.div_ [L.class_ "person-info"] $ do
       L.span_ [L.class_ "person-name"] $ do
         L.toHtml editor.name
@@ -244,12 +243,12 @@ groupStudyHTML
 groupStudyHTML user isOwner shares groupStudy = do
   let groupIdTxt = UUID.toText (unwrap groupStudy.groupStudyId)
   L.div_ [ L.class_ "groupStudyEditorHolder" , L.id_ "groupStudyInner" ] $ do
-    L.img_
-      [ L.alt_ "Close"
-      , L.src_ "/static/img/x.svg"
-      , L.class_ "closeModalIcon"
+    L.button_
+      [ L.class_ "closeModalIcon"
+      , L.type_ "button"
       , L.onclick_ "toggleModal('#groupStudy')"
-      ]
+      , L.ariaLabel_ "Close"
+      ] $ L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
 
     -- Header
     L.div_ [L.class_ "groupStudy-header"] $ do
@@ -491,24 +490,18 @@ ownershipMemberDoc
   -> ActionT m ()
 ownershipMemberDoc user = do
   groupStudyId <- captureParam "groupId"
-  logInfoSH groupStudyId
   (docId :: T.DocId) <- captureParam "docId"
-  logInfoSH docId
 
   groupStudy <- NotFound.handleNotFound
                   (E.getById @GroupStudy.GetGroupStudy)
                   groupStudyId
   let isOwner = any (\ o -> o.userId == user.userId) groupStudy.owners
-  logInfoSH isOwner
 
   docMeta <- NotFound.handleNotFound
                   (E.getOneEntityBy @GroupStudy.GetDocMeta)
                   docId
-  logInfoSH docMeta
 
   (ownership :: Text) <- formParam "ownership"
-
-  logInfo ownership
 
   permission <- case textToPermission ownership of
                   Nothing -> do
@@ -517,8 +510,6 @@ ownershipMemberDoc user = do
                       L.notifcation_ [ L.timems_ "2500", L.type_ "error" ]
                         "You are not an owner. You cannot modify the group."
                   Just p -> pure p
-
-  logInfoSH permission
 
   unless isOwner $
     L.renderScotty $ do
@@ -579,7 +570,7 @@ createPeopleTemplate = do
       L.pSelect_ [ L.name_ "permission[]"] $ do
         L.option_ [ L.value_ "member"] "Member"
         L.option_ [ L.value_ "owner"] "Owner"
-      L.button_ [L.class_ "red"] "-"
+      L.button_ [L.class_ "red", L.type_ "button", L.ariaLabel_ "Remove person"] "-"
 
 
 getInviteNewMemberHTML
@@ -659,3 +650,155 @@ nameUpdate user = do
   html $ L.renderText $ do
     L.notifcation_ [ L.timems_ "2500" ]
       "Saved!"
+
+
+reviewShareModal
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> ActionT m ()
+reviewShareModal _ = do
+  shareToken <- captureParam "shareToken"
+  share <- NotFound.handleNotFound Shares.getShareFromToken shareToken
+  L.renderScotty $ do
+    L.div_ [L.class_ "modal-content invite-modal"] $ do
+      L.div_ [L.class_ "modal-header"] $ do
+        L.h3_ "You\x2019ve been invited to study!"
+        L.div_ [L.class_ "modal-header-buttons"] $ do
+          L.button_
+            [ L.class_ "lightBlue"
+            , L.hxGet_ ("/group_study/share/" <> unwrap shareToken <> "/confirm-reject")
+            , L.hxTarget_ "#inviteModal"
+            , L.hxSwap_ "innerHTML"
+            ]
+            "Reject"
+          L.button_
+            [ L.class_ "blue"
+            , L.hxGet_ ("/group_study/share/" <> unwrap shareToken <> "/select-document")
+            , L.hxTarget_ "#inviteModal"
+            , L.hxSwap_ "innerHTML"
+            ]
+            "Accept"
+          L.button_
+            [ L.class_ "closeModalIcon"
+            , L.type_ "button"
+            , L.onclick_ "document.querySelector('#inviteModal').close()"
+            , L.ariaLabel_ "Close"
+            ] $ L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
+      L.div_ [L.class_ "modal-body"] $ do
+        L.p_ $ do
+          maybe "Someone" L.toHtml share.ownerName
+          " has invited you to join \x201c"
+          L.toHtml share.groupStudyName
+          "\x201d"
+          case share.studyTemplateName of
+            Just tName -> do
+              ", a study based on the \x201c"
+              L.toHtml tName
+              "\x201d template."
+            Nothing -> "."
+
+
+confirmRejectModal
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> ActionT m ()
+confirmRejectModal _ = do
+  shareToken <- captureParam "shareToken"
+  share <- NotFound.handleNotFound Shares.getShareFromToken shareToken
+  L.renderScotty $ do
+    L.div_ [L.class_ "modal-content invite-modal"] $ do
+      L.div_ [L.class_ "modal-header"] $ do
+        L.h3_ "Are you sure?"
+        L.div_ [L.class_ "modal-header-buttons"] $ do
+          L.button_
+            [ L.class_ "closeModalIcon"
+            , L.type_ "button"
+            , L.onclick_ "document.querySelector('#confirmRejectModal').close()"
+            , L.ariaLabel_ "Close"
+            ] $ L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
+      L.div_ [L.class_ "modal-body"] $ do
+        L.p_ $ do
+          "Are you sure you want to reject the invite to \x201c"
+          L.toHtml share.groupStudyName
+          "\x201d?"
+        L.div_ [L.class_ "modal-buttons"] $ do
+          L.button_
+            [ L.class_ "lightBlue"
+            , L.onclick_ "document.querySelector('#confirmRejectModal').close()"
+            ]
+            "Cancel"
+          L.button_
+            [ L.class_ "red"
+            , L.hxDelete_ ("/group_study/share/" <> unwrap shareToken)
+            , L.hxTarget_ ("#invite-" <> unwrap shareToken)
+            , L.hxSwap_ "delete"
+            , L.hxOn_ "after-request" "document.querySelector('#confirmRejectModal').close(); document.querySelector('#inviteModal').close()"
+            ]
+            "Reject"
+
+
+selectDocumentModal
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> ActionT m ()
+selectDocumentModal user = do
+  shareToken <- captureParam "shareToken"
+  share <- NotFound.handleNotFound Shares.getShareFromToken shareToken
+  docs <- lift $ Doc.getAllDocs user
+  let ungroupedDocs = filter (\d -> isNothing d.groupStudyId) docs
+  L.renderScotty $ do
+    L.div_ [L.class_ "modal-content invite-modal"] $ do
+      L.div_ [L.class_ "modal-header"] $ do
+        L.h3_ "Join this study"
+        L.div_ [L.class_ "modal-header-buttons"] $ do
+          L.button_
+            [ L.class_ "red"
+            , L.hxGet_ ("/group_study/share/" <> unwrap shareToken <> "/confirm-reject")
+            , L.hxTarget_ "#confirmRejectModal"
+            , L.hxSwap_ "innerHTML"
+            , L.hxOn_ "after-request" "toggleModal('#confirmRejectModal')"
+            ]
+            "Reject"
+          L.button_
+            [ L.class_ "closeModalIcon"
+            , L.type_ "button"
+            , L.onclick_ "document.querySelector('#inviteModal').close()"
+            , L.ariaLabel_ "Close"
+            ] $ L.img_ [L.alt_ "", L.src_ "/static/img/x.svg"]
+      L.div_ [L.class_ "modal-body"] $ do
+        L.p_ $ do
+          maybe "Someone" L.toHtml share.ownerName
+          " has invited you to join \x201c"
+          L.toHtml share.groupStudyName
+          "\x201d. How would you like to join?"
+        L.div_ [L.class_ "doc-choice-cards"] $ do
+          L.div_ [L.class_ "doc-choice-card"] $ do
+            L.h4_ "Use an existing document"
+            if Prelude.null ungroupedDocs then do
+              L.p_ [L.class_ "doc-choice-desc doc-choice-empty"]
+                "You don\x2019t have any documents that aren\x2019t already part of a group study."
+            else do
+              L.p_ [L.class_ "doc-choice-desc"] "Link a document you\x2019ve already been working on to this group study."
+              L.form_
+                [ L.hxPost_ ("/group_study/share/" <> unwrap shareToken)
+                ] $ do
+                L.pSelect_ [L.name_ "document", L.id_ "docSelect", L.variant_ "modern"] $ do
+                  for_ ungroupedDocs $ \d ->
+                    L.option_ [L.value_ (UUID.toText (unwrap d.docId))] (L.toHtml d.name)
+                L.button_ [L.type_ "submit", L.class_ "blue"]
+                  "Join with this document"
+          L.div_ [L.class_ "doc-choice-card"] $ do
+            L.h4_ "Create a new document"
+            L.p_ [L.class_ "doc-choice-desc"] "Start fresh with a blank document for this study."
+            L.form_
+              [ L.hxPost_ ("/group_study/share/" <> unwrap shareToken)
+              ] $ do
+              L.input_ [L.type_ "hidden", L.name_ "document", L.value_ "new"]
+              L.button_ [L.type_ "submit", L.class_ "blue"]
+                "Create & join"

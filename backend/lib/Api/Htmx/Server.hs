@@ -167,6 +167,15 @@ scottyServer = do
     Scotty.post "/group_study" $ errorWrapper $ do
       user <- getUserWithRedirect
       GroupStudy.createGroupStudy user
+    Scotty.get "/group_study/share/:shareToken/review" $ do
+      user <- getUserWithRedirect
+      GroupStudy.reviewShareModal user
+    Scotty.get "/group_study/share/:shareToken/confirm-reject" $ do
+      user <- getUserWithRedirect
+      GroupStudy.confirmRejectModal user
+    Scotty.get "/group_study/share/:shareToken/select-document" $ do
+      user <- getUserWithRedirect
+      GroupStudy.selectDocumentModal user
     Scotty.delete "/group_study/share/:shareToken" $ do
       user <- getUserWithRedirect
       GroupStudy.rejectShare user

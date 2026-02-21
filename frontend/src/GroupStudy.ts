@@ -23,7 +23,7 @@ export function init(ws : WS.MyWebsocket) {
       const docId = groupStudySelector.value as T.DocId;
       if (docId == currentDocId) return;
       if(currentDocId) {
-        ws.send({ tag: "StopListenToDoc", contents: docId });
+        ws.send({ tag: "StopListenToDoc", contents: currentDocId });
       }
       currentDocId = docId;
       ws.send({ tag: "ListenToDoc", contents: docId });

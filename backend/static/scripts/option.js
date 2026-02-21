@@ -48,6 +48,43 @@ class PSelect extends HTMLElement {
         }
       }
     }
+
+    :host([variant="modern"]) {
+      display: block;
+      width: 100%;
+    }
+    :host([variant="modern"]) .p-select {
+      display: grid;
+      padding: 6px 12px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color .2s;
+      &:hover {
+        background-color: #fff;
+        border-color: #999;
+      }
+    }
+    :host([variant="modern"]) .p-dropbox {
+      position: fixed;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 4px 12px #0001, 0 2px 4px #0001;
+      z-index: 9999;
+      overflow: hidden;
+      top: auto;
+      min-width: auto;
+      .option {
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color .15s;
+        &:hover {
+          background-color: #eef5ff;
+        }
+      }
+    }
   `;
 
   constructor () {
@@ -78,12 +115,53 @@ class PSelect extends HTMLElement {
     this.dropbox = document.createElement("div");
     this.dropbox.part = "p-dropbox";
     this.dropbox.className = "p-dropbox";
+    this.dropbox.setAttribute("role", "listbox");
+    this.select.setAttribute("role", "combobox");
+    this.select.setAttribute("tabindex", "0");
+    this.select.setAttribute("aria-expanded", "false");
+    this.select.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        this.select.click();
+      }
+    });
     this.select.addEventListener("click", (e) => {
       e.stopPropagation();
-      this.dropbox.classList.toggle("open");
+      const isOpen = this.dropbox.classList.toggle("open");
+      this.select.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      if (isOpen && this.getAttribute("variant") === "modern") {
+        const rect = this.select.getBoundingClientRect();
+        const gap = 4;
+        this.dropbox.style.left = rect.left + "px";
+        this.dropbox.style.minWidth = rect.width + "px";
+        this.dropbox.style.maxHeight = "";
+        this.dropbox.style.overflowY = "";
+
+        // Place below first, measure, then adjust
+        this.dropbox.style.top = (rect.bottom + gap) + "px";
+        const dropRect = this.dropbox.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom - gap;
+        const spaceAbove = rect.top - gap;
+
+        if (dropRect.height <= spaceBelow) {
+          // Fits below — keep it
+        } else if (dropRect.height <= spaceAbove) {
+          // Fits above
+          this.dropbox.style.top = (rect.top - gap - dropRect.height) + "px";
+        } else {
+          // Doesn't fit either way — use whichever side is larger and scroll
+          const usedSpace = Math.max(spaceBelow, spaceAbove);
+          if (spaceAbove > spaceBelow) {
+            this.dropbox.style.top = gap + "px";
+          }
+          this.dropbox.style.maxHeight = usedSpace + "px";
+          this.dropbox.style.overflowY = "auto";
+        }
+      }
     });
     document.addEventListener("click", () => {
       this.dropbox.classList.remove("open");
+      this.select.setAttribute("aria-expanded", "false");
     });
     this.select.appendChild(this.dropbox);
 
@@ -104,10 +182,19 @@ class PSelect extends HTMLElement {
         const whatever = document.createElement("div");
         whatever.className = "option";
         whatever.part = "p-option";
+        whatever.setAttribute("role", "option");
+        whatever.setAttribute("tabindex", "0");
         whatever.innerHTML = option.innerText;
         whatever.addEventListener("click", (e) => {
           e.stopPropagation();
           this.selected(option, true);
+        });
+        whatever.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            this.selected(option, true);
+          }
         });
         this.dropbox.appendChild(whatever);
       });

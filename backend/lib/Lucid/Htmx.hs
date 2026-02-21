@@ -33,6 +33,9 @@ hxIndicator_ :: Text -> Attribute
 hxIndicator_ = makeAttribute "hx-indicator"
 
 
+hxOn_ :: Text -> Text -> Attribute
+hxOn_ event = makeAttribute ("hx-on::" <> event)
+
 -- Not htmx, but I need it somewher
 
 notifcation_ :: Term arg result => arg -> result
@@ -43,6 +46,12 @@ timems_ = makeAttribute "time-ms"
 
 pSelect_ :: Term arg result => arg -> result
 pSelect_ = term "p-select"
+
+variant_ :: Text -> Attribute
+variant_ = makeAttribute "variant"
+
+ariaLabel_ :: Text -> Attribute
+ariaLabel_ = makeAttribute "aria-label"
 
 
 renderScotty

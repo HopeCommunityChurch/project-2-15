@@ -34,6 +34,7 @@ getStudies user = do
   shares <- lift $ Shares.getSharesForUser user
   let allShares = (shares <> maybeToList (join mShareData))
                     & nubBy (\ a b -> a.token == b.token)
+                    & sortOn (.created)
   basicTemplate
     "studies.html"
     ( HMap.insert "user" (toGVal (Aeson.toJSON user))
