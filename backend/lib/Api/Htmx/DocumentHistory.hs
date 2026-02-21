@@ -34,6 +34,21 @@ instance FromRow HistoryGroup where
   fromRow = MkHistoryGroup <$> field <*> field <*> field <*> field <*> field
 
 
+-- | A finer-grained sub-group (30-second buckets) within a session window.
+data SubHistoryGroup = MkSubHistoryGroup
+  { startVersion :: Int32
+  , endVersion   :: Int32
+  , startedAt    :: UTCTime
+  , endedAt      :: UTCTime
+  , stepCount    :: Int64
+  }
+  deriving (Generic, Show)
+  deriving anyclass (Aeson.ToJSON)
+
+instance FromRow SubHistoryGroup where
+  fromRow = MkSubHistoryGroup <$> field <*> field <*> field <*> field <*> field
+
+
 data DocAtVersion = MkDocAtVersion
   { snapshotDoc  :: Aeson.Object
   , steps        :: [Aeson.Value]
@@ -66,23 +81,46 @@ getHistoryGroups docId userId =
       (docId, userId)
 
 
+-- | Returns 30-second sub-groups within the given version range.
+getSubHistoryGroups
+  :: MonadDb env m
+  => T.DocId
+  -> T.UserId
+  -> Int32   -- ^ startVersion (inclusive)
+  -> Int32   -- ^ endVersion (inclusive)
+  -> m [SubHistoryGroup]
+getSubHistoryGroups docId userId startVer endVer =
+  withRawConnection $ \conn ->
+    liftIO $ PgS.query conn
+      "SELECT \
+      \  MIN(version)::integer     AS \"startVersion\", \
+      \  MAX(version)::integer     AS \"endVersion\", \
+      \  MIN(\"createdAt\")        AS \"startedAt\", \
+      \  MAX(\"createdAt\")        AS \"endedAt\", \
+      \  COUNT(*)                  AS \"stepCount\" \
+      \FROM \"document_step\" \
+      \WHERE \"docId\" = ? \
+      \  AND \"userId\" = ? \
+      \  AND version >= ? \
+      \  AND version <= ? \
+      \GROUP BY to_timestamp(floor(extract(epoch FROM \"createdAt\") / 30) * 30) \
+      \ORDER BY MIN(version) DESC"
+      (docId, userId, startVer, endVer)
+
+
 getDocAtVersion
   :: MonadDb env m
   => T.DocId
   -> Int32
   -> m DocAtVersion
 getDocAtVersion docId targetVersion = do
-  -- Prefer a collab snapshot at or before the target version.
-  -- Fall back to the document's saved JSON (+ its version) so that the
-  -- frontend never receives an empty {} as the base document.
+  -- Find the nearest collab snapshot at or before the target version.
+  -- If none exists, start from version 0 with an empty document and
+  -- replay all steps from the beginning up to the target version.
   mSnap <- Doc.getLatestSnapshotBefore docId targetVersion
-  (snapVersion, snapDoc) <- case mSnap of
-    Just (v, d) -> pure (v, d)
-    Nothing     -> do
-      mBase <- Doc.getDocBase docId
-      pure $ case mBase of
-        Nothing     -> (0, mempty)
+  let (snapVersion, snapDoc) = case mSnap of
         Just (v, d) -> (v, d)
+        Nothing     -> (0, mempty)
   rawSteps <- Doc.getStepsSince docId snapVersion
   let filtered = [ s | (v, s, _) <- rawSteps, v <= targetVersion ]
   pure $ MkDocAtVersion snapDoc filtered snapVersion targetVersion
@@ -102,6 +140,25 @@ getHistoryApi user = do
     Scotty.text "Forbidden"
     finish
   groups <- lift $ getHistoryGroups docId user.userId
+  json groups
+
+
+getSubHistoryApi
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> ActionT m ()
+getSubHistoryApi user = do
+  docId    <- captureParam "documentId"
+  startVer <- captureParam "startVersion"
+  endVer   <- captureParam "endVersion"
+  doc      <- NotFound.handleNotFound (E.getByIdForUser @Doc.GetDoc user) docId
+  unless (user.userId `elem` fmap (.userId) doc.editors) $ do
+    status status403
+    Scotty.text "Forbidden"
+    finish
+  groups <- lift $ getSubHistoryGroups docId user.userId startVer endVer
   json groups
 
 

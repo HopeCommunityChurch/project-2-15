@@ -22,6 +22,14 @@ type HistoryGroup = {
   stepCount: number;
 };
 
+type SubHistoryGroup = {
+  startVersion: number;
+  endVersion: number;
+  startedAt: string;
+  endedAt: string;
+  stepCount: number;
+};
+
 type DocAtVersion = {
   snapshotDoc: any;
   steps: any[];
@@ -40,6 +48,14 @@ function formatDate(iso: string): string {
   }) + " " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 function groupByDate(groups: HistoryGroup[]): Map<string, HistoryGroup[]> {
   const map = new Map<string, HistoryGroup[]>();
   for (const g of groups) {
@@ -52,8 +68,8 @@ function groupByDate(groups: HistoryGroup[]): Map<string, HistoryGroup[]> {
   return map;
 }
 
-async function loadPreview(group: HistoryGroup) {
-  const res = await fetch(`/document/${docId}/at-version/${group.endVersion}`);
+async function loadPreview(targetVersion: number) {
+  const res = await fetch(`/document/${docId}/at-version/${targetVersion}`);
   if (!res.ok) return;
   const data: DocAtVersion = await res.json();
 
@@ -87,16 +103,59 @@ async function loadPreview(group: HistoryGroup) {
   previewEditor.addEditor(holder);
 
   document.getElementById("historyPreviewPlaceholder").style.display = "none";
-  document.getElementById("historyPreviewActions").style.display = "block";
+  document.getElementById("historyPreviewActions").style.display = "flex";
+  document.getElementById("editorHolder").style.display = "block";
 
   const restoreButton = document.getElementById("restoreButton");
   restoreButton.onclick = () => {
     sessionStorage.setItem(
       docId + ".restore",
-      JSON.stringify({ docJson: previewDoc.toJSON(), versionNum: group.endVersion })
+      JSON.stringify({ docJson: previewDoc.toJSON(), versionNum: targetVersion })
     );
     window.location.href = `/study/${docId}?restore=true`;
   };
+}
+
+function selectItem(el: Element) {
+  document.querySelectorAll(".historyGroupItem.selected, .historyStepItem.selected").forEach((e) =>
+    e.classList.remove("selected")
+  );
+  el.classList.add("selected");
+}
+
+async function loadSubGroups(
+  group: HistoryGroup,
+  panel: HTMLElement,
+): Promise<void> {
+  panel.textContent = "Loading…";
+  const res = await fetch(
+    `/document/${docId}/history/sub/${group.startVersion}/${group.endVersion}`
+  );
+  if (!res.ok) {
+    panel.textContent = "Failed to load.";
+    return;
+  }
+  const subGroups: SubHistoryGroup[] = await res.json();
+  panel.textContent = "";
+
+  if (subGroups.length === 0) {
+    panel.textContent = "No sub-items.";
+    return;
+  }
+
+  for (const sub of subGroups) {
+    const btn = document.createElement("button");
+    btn.className = "historyStepItem";
+    btn.innerHTML =
+      `<span class="historyStepTime">${formatTime(sub.startedAt)}</span>` +
+      `<span class="historyStepCount">${sub.stepCount} edit${sub.stepCount !== 1 ? "s" : ""}</span>`;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      selectItem(btn);
+      loadPreview(sub.endVersion);
+    });
+    panel.appendChild(btn);
+  }
 }
 
 async function init() {
@@ -108,6 +167,7 @@ async function init() {
   const groups: HistoryGroup[] = await res.json();
 
   const container = document.getElementById("historyGroups");
+  container.textContent = "";
 
   if (groups.length === 0) {
     container.textContent = "No history yet. Start editing to record versions.";
@@ -126,19 +186,41 @@ async function init() {
     section.appendChild(heading);
 
     for (const group of dayGroups) {
-      const item = document.createElement("button");
-      item.className = "historyGroupItem";
-      item.innerHTML =
+      const accordion = document.createElement("div");
+      accordion.className = "historyAccordion";
+
+      const header = document.createElement("button");
+      header.className = "historyGroupItem";
+      header.innerHTML =
         `<span class="historyTime">${formatDate(group.startedAt)}</span>` +
         `<span class="historySteps">${group.stepCount} edit${group.stepCount !== 1 ? "s" : ""}</span>`;
-      item.addEventListener("click", () => {
-        document.querySelectorAll(".historyGroupItem.selected").forEach((el) =>
-          el.classList.remove("selected")
-        );
-        item.classList.add("selected");
-        loadPreview(group);
+
+      const stepsPanel = document.createElement("div");
+      stepsPanel.className = "historyStepsPanel";
+      stepsPanel.style.display = "none";
+
+      let subLoaded = false;
+
+      header.addEventListener("click", async () => {
+        const isOpen = stepsPanel.style.display !== "none";
+        if (isOpen) {
+          stepsPanel.style.display = "none";
+          header.classList.remove("expanded");
+        } else {
+          stepsPanel.style.display = "block";
+          header.classList.add("expanded");
+          selectItem(header);
+          loadPreview(group.endVersion);
+          if (!subLoaded) {
+            subLoaded = true;
+            await loadSubGroups(group, stepsPanel);
+          }
+        }
       });
-      section.appendChild(item);
+
+      accordion.appendChild(header);
+      accordion.appendChild(stepsPanel);
+      section.appendChild(accordion);
     }
 
     container.appendChild(section);

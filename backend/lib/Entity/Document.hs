@@ -455,7 +455,7 @@ getDocBase docId =
     pure doc
 
 
--- | Called from handleSave; takes a snapshot when version is a multiple of 500.
+-- | Called from handleSave; takes a snapshot when version is a multiple of 50.
 maybeTakeSnapshot
   :: MonadDb env m
   => T.DocId
@@ -463,5 +463,5 @@ maybeTakeSnapshot
   -> m ()
 maybeTakeSnapshot docId docObj = do
   v <- getDocVersion docId
-  when (v > 0 && v `mod` 500 == 0) $
+  when (v > 0 && v `mod` 50 == 0) $
     insertSnapshot docId v docObj

@@ -635,7 +635,7 @@ const questionPopup = (
         schema: textSchema,
         doc: qNode.node,
         plugins: [
-          history(),
+          history({ newGroupDelay: 133 }),
           keymap({
             "Mod-z": undo,
             "Mod-y": redo,
@@ -1204,6 +1204,7 @@ type TransactionDiff = {
 };
 
 function cleanupExtraStudyBlocks (initDoc : any) : any {
+  if (!initDoc.content) return initDoc;
   const newArray = initDoc.content.map( (section) => {
     return {
       type: "section",
@@ -1261,7 +1262,7 @@ export class P215Editor extends EventTarget {
       schema: textSchema,
       doc: node,
       plugins: [
-        history(),
+        history({ newGroupDelay: 133 }),
         ...(sessionClientId !== null ? [collab({ version: initialVersion, clientID: sessionClientId })] : []),
         keymap({
           "Mod-z": undo,

@@ -1,0 +1,227 @@
+@import url("../utils/base.css");
+@import url("../editor/editor.css");
+
+/* ── Page scaffold ─────────────────────────────────────── */
+
+#studyPage {
+  display: grid;
+  height: 100vh;
+  grid-template-rows: 52px 1fr;
+  grid-template-areas:
+    "header"
+    "main";
+  overflow: hidden;
+}
+
+#header {
+  grid-area: header;
+}
+
+/* ── Two-column history layout ─────────────────────────── */
+
+#historyLayout {
+  grid-area: main;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  overflow: hidden;
+}
+
+/* ── Left sidebar – version list ───────────────────────── */
+
+#historyList {
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+
+  h2 {
+    font-size: 11px;
+    font-weight: 600;
+    color: #5f6368;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+  }
+}
+
+#historyGroups {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+
+/* ── Date section headings ─────────────────────────────── */
+
+.historyDateSection {
+  margin-top: 8px;
+}
+
+.historyDateHeading {
+  font-size: 10px;
+  font-weight: 600;
+  color: #80868b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 16px 4px;
+  margin: 0;
+}
+
+/* ── Individual version entry ──────────────────────────── */
+
+.historyGroupItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 8px 16px 8px 14px;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+  transition: background-color 0.1s ease;
+
+  &:hover {
+    background-color: #f1f3f4;
+  }
+
+  &.selected {
+    background-color: var(--blue-25);
+    border-left-color: var(--blue-100);
+  }
+}
+
+.historyTime {
+  font-size: 13px;
+  font-weight: 500;
+  color: #202124;
+  display: block;
+  line-height: 1.4;
+}
+
+.historySteps {
+  font-size: 12px;
+  color: #80868b;
+  display: block;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* ── Right panel – document preview ───────────────────── */
+
+#historyPreview {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+#historyPreviewPlaceholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  p {
+    color: #80868b;
+    font-size: 14px;
+    text-align: center;
+    margin: 0;
+  }
+}
+
+#historyPreviewActions {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #fff;
+  padding: 10px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Editor preview – full width like the study editor ── */
+
+#editorHolder.editorHolder {
+  flex: 1;
+  padding: 32px 48px;
+  box-sizing: border-box;
+}
+
+/* ── Accordion step sub-items ──────────────────────────── */
+
+.historyAccordion {
+  display: flex;
+  flex-direction: column;
+}
+
+.historyGroupItem.expanded {
+  border-left-color: var(--blue-60, #4a90d9);
+  background-color: var(--blue-25);
+}
+
+.historyGroupItem .historyTime::before {
+  content: "▶ ";
+  font-size: 9px;
+  opacity: 0.5;
+  margin-right: 2px;
+}
+
+.historyGroupItem.expanded .historyTime::before {
+  content: "▼ ";
+}
+
+.historyStepsPanel {
+  background: #f8f9fa;
+  border-left: 3px solid #e0e0e0;
+  margin-left: 14px;
+}
+
+.historyStepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 6px 16px 6px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+  transition: background-color 0.1s ease;
+
+  &:hover {
+    background-color: #f1f3f4;
+  }
+
+  &.selected {
+    background-color: var(--blue-25);
+
+    .historyStepTime {
+      color: var(--blue-100, #1a73e8);
+    }
+  }
+}
+
+.historyStepTime {
+  font-size: 12px;
+  font-weight: 500;
+  color: #202124;
+  display: block;
+  line-height: 1.4;
+}
+
+.historyStepCount {
+  font-size: 11px;
+  color: #80868b;
+  display: block;
+  margin-top: 1px;
+}
