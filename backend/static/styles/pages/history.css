@@ -169,14 +169,14 @@
 }
 
 .historyGroupItem .historyTime::before {
-  content: "▶ ";
+  content: "▶ " / "";
   font-size: 9px;
   opacity: 0.5;
   margin-right: 2px;
 }
 
 .historyGroupItem.expanded .historyTime::before {
-  content: "▼ ";
+  content: "▼ " / "";
 }
 
 .historyStepsPanel {

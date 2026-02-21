@@ -22,13 +22,7 @@ type HistoryGroup = {
   stepCount: number;
 };
 
-type SubHistoryGroup = {
-  startVersion: number;
-  endVersion: number;
-  startedAt: string;
-  endedAt: string;
-  stepCount: number;
-};
+type SubHistoryGroup = HistoryGroup;
 
 type DocAtVersion = {
   snapshotDoc: any;
@@ -201,14 +195,23 @@ async function init() {
 
       let subLoaded = false;
 
+      header.setAttribute("aria-expanded", "false");
+      header.setAttribute("aria-controls", stepsPanel.id || (() => {
+        const id = `steps-panel-${group.startVersion}`;
+        stepsPanel.id = id;
+        return id;
+      })());
+
       header.addEventListener("click", async () => {
         const isOpen = stepsPanel.style.display !== "none";
         if (isOpen) {
           stepsPanel.style.display = "none";
           header.classList.remove("expanded");
+          header.setAttribute("aria-expanded", "false");
         } else {
           stepsPanel.style.display = "block";
           header.classList.add("expanded");
+          header.setAttribute("aria-expanded", "true");
           selectItem(header);
           loadPreview(group.endVersion);
           if (!subLoaded) {

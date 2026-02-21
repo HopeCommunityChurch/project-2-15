@@ -45,6 +45,8 @@ function checkRestoreDoc(doc: T.DocRaw): any | null {
   if (!saved) return null;
   sessionStorage.removeItem(docId + ".restore");
   try {
+    // versionNum is also stored here for future use (e.g. display "restored from v42").
+    // Do not remove it from history.tsx without updating this site too.
     const { docJson } = JSON.parse(saved);
     console.log("restoring version from sessionStorage");
     return docJson;
@@ -54,9 +56,7 @@ function checkRestoreDoc(doc: T.DocRaw): any | null {
   }
 }
 
-function checkLastUpdate (doc : T.DocRaw) : any {
-  const restored = checkRestoreDoc(doc);
-  if (restored !== null) return restored;
+function checkLastUpdateFallback (doc : T.DocRaw) : any {
   if(doc.lastUpdate == null) {
     console.log("using remote doc");
     return doc.document;
@@ -78,7 +78,8 @@ let wasInitialized = false;
 function initialize (e : WS.DocOpenedEvent) {
   const saver = mkSaveObject(ws);
 
-  const doc = checkLastUpdate(e.doc)
+  const restoredDoc = checkRestoreDoc(e.doc);
+  const doc = restoredDoc !== null ? restoredDoc : checkLastUpdateFallback(e.doc);
 
   const editor = new Editor.P215Editor({
     initDoc: doc,
@@ -104,6 +105,12 @@ function initialize (e : WS.DocOpenedEvent) {
     window.localStorage.setItem(localSaveTimeKey, (new Date).toISOString());
     saver.save(doc);
   });
+
+  if (restoredDoc !== null) {
+    window.localStorage.setItem(localDoc, JSON.stringify(restoredDoc));
+    window.localStorage.setItem(localSaveTimeKey, (new Date).toISOString());
+    ws.send({ tag: "SaveDoc", contents: { document: restoredDoc } } as WS.SendSaveDoc);
+  }
 
   ws.addEventListener("DocConfirmed", (ev: WS.DocConfirmedEvent) => {
     editor.confirmSteps(ev.payload);
@@ -179,18 +186,3 @@ function mkSaveObject (ws : WS.MyWebsocket) {
 };
 
 GS.init(ws);
-
-// window.visualViewport.addEventListener("resize", () => {
-//   const viewPort = document.querySelector("meta[name=viewport]");
-//   let map = {};
-//   viewPort.getAttribute("content").split(",").forEach( (t) => {
-//     const [key, value] = t.split("=");
-//     map[key.trim()] = value;
-//   });
-//   map["height"] = window.visualViewport.height + "";
-//   const newContent = Object.keys(map).map( (key) => {
-//     return key + "=" + map[key];
-//   }).join(", ");
-//   viewPort.setAttribute("content", newContent);
-//   console.log(newContent);
-// });

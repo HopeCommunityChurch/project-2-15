@@ -34,19 +34,7 @@ instance FromRow HistoryGroup where
   fromRow = MkHistoryGroup <$> field <*> field <*> field <*> field <*> field
 
 
--- | A finer-grained sub-group (30-second buckets) within a session window.
-data SubHistoryGroup = MkSubHistoryGroup
-  { startVersion :: Int32
-  , endVersion   :: Int32
-  , startedAt    :: UTCTime
-  , endedAt      :: UTCTime
-  , stepCount    :: Int64
-  }
-  deriving (Generic, Show)
-  deriving anyclass (Aeson.ToJSON)
-
-instance FromRow SubHistoryGroup where
-  fromRow = MkSubHistoryGroup <$> field <*> field <*> field <*> field <*> field
+type SubHistoryGroup = HistoryGroup
 
 
 data DocAtVersion = MkDocAtVersion
