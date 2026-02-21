@@ -4,7 +4,7 @@ import Api.Htmx.AuthHelper (AuthUser)
 import Api.Htmx.Ginger (basicTemplate)
 import Data.Aeson qualified as Aeson
 import Data.HashMap.Strict qualified as HMap
-import Data.List (nubBy, sortOn)
+import Data.List (nubBy)
 import DbHelper (MonadDb)
 import Entity.Document qualified as Doc
 import Entity.Shares qualified as Shares
