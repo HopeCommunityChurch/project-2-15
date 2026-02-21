@@ -72,6 +72,37 @@
 
 <script>
   {% include "scripts/inputs.js" %}
+
+  function formSnapshot(form) {
+    return new FormData(form);
+  }
+
+  function snapshotsEqual(a, b) {
+    const aEntries = [...a.entries()].sort().toString();
+    const bEntries = [...b.entries()].sort().toString();
+    return aEntries === bEntries;
+  }
+
+  function initFormDirtyTracking(form) {
+    const btn = form.querySelector('button[type="submit"]');
+    if (!btn) return;
+    const baseline = formSnapshot(form);
+    function update() {
+      btn.disabled = snapshotsEqual(baseline, formSnapshot(form));
+    }
+    form.addEventListener("input", update);
+    form.addEventListener("change", update);
+  }
+
+  function initAllForms() {
+    document.querySelectorAll(".profileCard form").forEach(initFormDirtyTracking);
+  }
+
+  window.addEventListener("load", initAllForms);
+  document.addEventListener("htmx:afterSwap", (e) => {
+    const form = e.target.closest && e.target.closest("form") || e.target.querySelector && e.target.querySelector("form");
+    if (form) initFormDirtyTracking(form);
+  });
 </script>
 
 {% endblock %}
