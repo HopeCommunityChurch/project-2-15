@@ -144,7 +144,7 @@
 
 #homeContent {
   .floating-box {
-    transform: translatey(0px);
+    transform: translateY(0px);
     animation: float 4s ease-in-out infinite;
   }
 
@@ -522,10 +522,6 @@
         @media (max-width: 1130px) {
           width: 440px;
         }
-
-        @media (max-width: 1130px) {
-          width: 440px;
-        }
       }
     }
   }
@@ -584,7 +580,6 @@
   }
 
   .page-hero {
-    justify-content: center;
     gap: 0.2rem;
     display: flex;
     justify-content: flex-start;
