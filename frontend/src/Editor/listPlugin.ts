@@ -8,7 +8,7 @@ import {
   liftListItem as pmLiftListItem,
   sinkListItem as pmSinkListItem,
 } from "prosemirror-schema-list";
-import { inputRules, wrappingInputRule, InputRule } from "prosemirror-inputrules";
+import { inputRules, wrappingInputRule, InputRule, undoInputRule } from "prosemirror-inputrules";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1507,10 +1507,12 @@ function makeListInputRules(schema: Schema) {
   return inputRules({
     rules: [
       // Convert rules (must come before wrapping rules)
+      listConvertRule(/^-\[\s?\]\s$/, schema.nodes.checkList, schema.nodes.checkListItem, schema),
       listConvertRule(/^[-*]\s$/, schema.nodes.bulletList, schema.nodes.listItem, schema),
       listConvertRule(/^(\d{1,2})[.)]\s$/, schema.nodes.orderedList, schema.nodes.listItem, schema),
       listConvertRule(/^\[( ?)\]\s$/, schema.nodes.checkList, schema.nodes.checkListItem, schema),
 
+      wrappingInputRule(/^-\[\s?\]\s$/, schema.nodes.checkList),
       wrappingInputRule(/^[-*]\s$/, schema.nodes.bulletList),
       wrappingInputRule(
         /^(\d{1,2})\.\s$/,
@@ -1543,6 +1545,7 @@ export function listPlugins(
   const listItemType = schema.nodes.listItem;
 
   const backspaceChain = [
+    undoInputRule,
     ...extraBackspace,
     joinListItems,
     listBackspace,
@@ -1580,7 +1583,9 @@ export function listPlugins(
           tr = tr.join(joinPos);
         }
       }
-      return tr.docChanged ? tr : null;
+      if (!tr.docChanged) return null;
+      tr.setMeta("addToHistory", false);
+      return tr;
     },
   });
 
