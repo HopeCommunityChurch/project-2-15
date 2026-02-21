@@ -574,7 +574,7 @@ createPeopleTemplate = do
       L.input_
         [ L.name_ "email[]"
         , L.type_ "email"
-        , L.placeholder_ "jonny@p215.church"
+        , L.placeholder_ "name@example.com"
         ]
       L.pSelect_ [ L.name_ "permission[]"] $ do
         L.option_ [ L.value_ "member"] "Member"

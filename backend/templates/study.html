@@ -142,10 +142,10 @@
     <p class="divider">|</p>
     <div id="saveThingy" class="notSaving">
       <p id="saved" class="saveThing">
-        saved <img src="{{base}}/static/img/saved.svg" >
+        Saved <img src="{{base}}/static/img/saved.svg" >
       </p>
       <p id="saving" class="saveThing">
-        saving <img src="{{base}}/static/img/saving.svg" >
+        Saving... <img src="{{base}}/static/img/saving.svg" >
       </p>
     </div>
     <menu class="menu">
@@ -206,8 +206,8 @@
 
 
   <dialog id="confirmDelete">
-    <h3>Are you sure?</h3>
-    <p>Are you sure you want to delete your study?</p>
+    <h3>Delete Study</h3>
+    <p>Are you sure? This action is permanent and cannot be undone.</p>
     <div>
       <button class="lightBlue" onclick="toggleModal('#confirmDelete')">
         Cancel
@@ -331,7 +331,7 @@
       <header>
         <h2>Edit Study Blocks</h2>
         <div style="color:gray">
-          Click and drag to move the study blocks around.
+          Click and drag to reorder study blocks.
         </div>
       </header>
       <div id="studyBlockEditorContent">
