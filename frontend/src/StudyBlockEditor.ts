@@ -8,9 +8,18 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
   const container = document.getElementById("studyBlockEditorContent");
   let currentStudyBlock : Editor.EditorStudyBlocksEdit = null;
 
-  document.getElementById("studyBlockCancel").addEventListener("click", () => {
+  // Track any in-progress drag so it can be aborted when the modal closes
+  let activeDragAbort: (() => void) | null = null;
+
+  function closeModal() {
+    if (activeDragAbort) {
+      activeDragAbort();
+      activeDragAbort = null;
+    }
     window.toggleModal("#studyBlockEditor");
-  });
+  }
+
+  document.getElementById("studyBlockCancel").addEventListener("click", closeModal);
 
   const removedSection = document.getElementById("studyBlockEditorRemoved");
   const removedList = document.getElementById("studyBlockEditorRemovedList");
@@ -52,23 +61,32 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
     handle.draggable = false;
     div.appendChild(handle);
 
+    const isQuestions = node && node.type.name === "questions";
+
+    // removeBtn/restoreBtn declared here so mouseup closure can access them
+    let removeBtn: HTMLButtonElement = null;
+    let restoreBtn: HTMLButtonElement = null;
+
     let startMouseY = 0;
-    let initialTop = 0;
-    let swapping = false;
+    let startFixedTop = 0;
     let placeholder: HTMLElement = null;
+    // Captured at drag-start so mouseup doesn't rely on div.parentElement after moves
+    let dragStartedInRemovedList = false;
 
     div.addEventListener("mousedown", (e: MouseEvent) => {
       if (e.button === 0) {
-        // Don't start drag if clicking on the input
-        if ((e.target as HTMLElement).tagName === "INPUT") return;
+        // Don't start drag if clicking on the input or textarea
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
         e.preventDefault();
         startMouseY = e.clientY;
         document.addEventListener("mousemove", mousemove);
         document.addEventListener("mouseup", mouseup);
+        activeDragAbort = abortDrag;
       }
     });
 
-    function mouseup() {
+    function abortDrag() {
       document.removeEventListener("mouseup", mouseup);
       document.removeEventListener("mousemove", mousemove);
       if (placeholder) {
@@ -76,70 +94,108 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
         placeholder = null;
       }
       div.classList.remove("moving");
+      div.style.position = "";
       div.style.top = "";
+      div.style.left = "";
+      div.style.width = "";
+    }
+
+    function mouseup() {
+      activeDragAbort = null;
+      document.removeEventListener("mouseup", mouseup);
+      document.removeEventListener("mousemove", mousemove);
+      if (placeholder) {
+        const targetList = placeholder.parentElement;
+        targetList.insertBefore(div, placeholder);
+        placeholder.remove();
+        placeholder = null;
+
+        // Clear fixed positioning
+        div.style.position = "";
+        div.style.top = "";
+        div.style.left = "";
+        div.style.width = "";
+        div.classList.remove("moving");
+
+        // Swap remove/restore buttons if div crossed lists
+        if (removeBtn && restoreBtn) {
+          const isNowInRemovedList = targetList === removedList;
+          if (isNowInRemovedList && !dragStartedInRemovedList) {
+            removeBtn.style.display = "none";
+            restoreBtn.style.display = "";
+          } else if (!isNowInRemovedList && dragStartedInRemovedList) {
+            removeBtn.style.display = "";
+            restoreBtn.style.display = "none";
+          }
+        }
+
+        // Sync removedSection visibility
+        removedSection.style.display = removedList.children.length > 0 ? "block" : "none";
+      } else {
+        div.classList.remove("moving");
+        div.style.position = "";
+        div.style.top = "";
+        div.style.left = "";
+        div.style.width = "";
+      }
     }
 
     function mousemove(e: MouseEvent) {
       if (!div.classList.contains("moving")) {
         if (Math.abs(e.clientY - startMouseY) < 3) return;
         const rect = div.getBoundingClientRect();
-        const containerRect = div.parentElement.getBoundingClientRect();
-        initialTop = rect.top - containerRect.top;
+        dragStartedInRemovedList = div.parentElement === removedList;
+        // Adjust startFixedTop so the element doesn't jump when drag begins.
+        // Without this, the initial dy would offset the element by the threshold distance.
+        startFixedTop = rect.top - (e.clientY - startMouseY);
         div.classList.add("moving");
         placeholder = document.createElement("div");
         placeholder.className = "dropPlaceholder";
         placeholder.style.height = rect.height + "px";
         div.parentElement.insertBefore(placeholder, div);
-        div.style.top = initialTop + "px";
+        div.style.position = "fixed";
+        div.style.top = (startFixedTop + (e.clientY - startMouseY)) + "px";
+        div.style.left = rect.left + "px";
+        div.style.width = rect.width + "px";
       }
 
       const dy = e.clientY - startMouseY;
-      div.style.top = (initialTop + dy) + "px";
+      div.style.top = (startFixedTop + dy) + "px";
 
-      if (swapping) return;
-
-      const next = div.nextElementSibling as HTMLElement;
-      const previous = placeholder ? placeholder.previousElementSibling as HTMLElement : null;
-
-      if (next && !next.classList.contains("dropPlaceholder")) {
-        const nextRect = next.getBoundingClientRect();
-        const nextMid = nextRect.top + nextRect.height * 0.2;
-        if (e.clientY > nextMid) {
-          doSwap(next, "down");
-          return;
+      // Determine target list with hysteresis to prevent oscillation.
+      // When placeholder is in removedList the section shifts up, so we only
+      // switch back to container when the mouse is clearly above the new top.
+      let targetList: HTMLElement;
+      if (!isQuestions && removedSection.style.display !== "none") {
+        const sectionTop = removedSection.getBoundingClientRect().top;
+        if (placeholder.parentElement !== removedList) {
+          targetList = e.clientY >= sectionTop ? removedList : container;
+        } else {
+          targetList = e.clientY < sectionTop - 10 ? container : removedList;
         }
-      }
-      if (previous && !previous.classList.contains("dropPlaceholder")) {
-        const prevRect = previous.getBoundingClientRect();
-        const prevMid = prevRect.top + prevRect.height * 0.8;
-        if (e.clientY < prevMid) {
-          doSwap(previous, "up");
-        }
-      }
-    }
-
-    function doSwap(sibling: HTMLElement, direction: "up" | "down") {
-      swapping = true;
-      if (direction === "down") {
-        div.parentElement.insertBefore(sibling, placeholder);
       } else {
-        div.parentElement.insertBefore(placeholder, sibling);
-        div.parentElement.insertBefore(div, sibling);
+        targetList = container;
       }
-      const placeholderHeight = placeholder.getBoundingClientRect().height;
-      const fromOffset = direction === "down" ? placeholderHeight : -placeholderHeight;
-      sibling.classList.add("swapping");
-      sibling.style.transform = `translateY(${fromOffset}px)`;
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          sibling.style.transform = "";
-          sibling.addEventListener("transitionend", () => {
-            sibling.classList.remove("swapping");
-            swapping = false;
-          }, { once: true });
-          setTimeout(() => { swapping = false; }, 250);
-        });
-      });
+
+      // Find insertion point in target list
+      const children = Array.from(targetList.children) as HTMLElement[];
+      let insertBefore: Element | null = null;
+      for (const child of children) {
+        if (child === placeholder || child === div) continue;
+        const childRect = child.getBoundingClientRect();
+        const midY = childRect.top + childRect.height / 2;
+        if (e.clientY < midY) {
+          insertBefore = child;
+          break;
+        }
+      }
+
+      // Move placeholder if position changed
+      if (placeholder.parentElement !== targetList) {
+        targetList.insertBefore(placeholder, insertBefore);
+      } else if (placeholder.nextElementSibling !== insertBefore) {
+        targetList.insertBefore(placeholder, insertBefore);
+      }
     }
 
     if (isNew) {
@@ -154,8 +210,6 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
 
     const headerCell = document.createElement("div");
     headerCell.className = "blockPreviewHeader";
-
-    const isQuestions = node && node.type.name === "questions";
 
     if (isQuestions) {
       headerCell.textContent = "Questions";
@@ -188,7 +242,7 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
         nameInput.placeholder = "Untitled";
       } else {
         nameInput.value = "";
-        nameInput.placeholder = "Block name";
+        nameInput.placeholder = "Block title";
       }
       headerCell.appendChild(nameInput);
       // Focus input for new blocks
@@ -208,50 +262,48 @@ document.addEventListener("editorAttached", (ev : Editor.EditorAttached) => {
     div.appendChild(preview);
 
     if (!isQuestions) {
-      const remove = document.createElement("button");
-      remove.className = "remove";
+      removeBtn = document.createElement("button");
+      removeBtn.className = "remove";
       const removeImg = document.createElement("img");
       removeImg.src = "/static/img/x.svg";
       removeImg.draggable = false;
       removeImg.alt = "";
-      remove.appendChild(removeImg);
-      remove.addEventListener("click", (e) => {
+      removeBtn.appendChild(removeImg);
+
+      restoreBtn = document.createElement("button");
+      restoreBtn.className = "remove";
+      const restoreImg = document.createElement("img");
+      restoreImg.src = "/static/img/undo-icon.svg";
+      restoreImg.draggable = false;
+      restoreImg.alt = "Restore";
+      restoreBtn.appendChild(restoreImg);
+      restoreBtn.style.display = "none";
+
+      removeBtn.addEventListener("mousedown", (e) => e.stopPropagation());
+      restoreBtn.addEventListener("mousedown", (e) => e.stopPropagation());
+
+      removeBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        // For new blocks, just remove entirely — no restore
-        if (isNew) {
-          container.removeChild(div);
-          return;
-        }
-        container.removeChild(div);
-        const name = (headerCell.querySelector("input") as HTMLInputElement)?.value
-          || (node ? node.textContent : "");
-        const removedDiv = document.createElement("div");
-        removedDiv.className = "studyBlock";
-        const removedName = document.createElement("div");
-        removedName.innerText = name || "Untitled";
-        removedName.style.textDecoration = "line-through";
-        removedDiv.appendChild(removedName);
-        const restoreBtn = document.createElement("button");
-        restoreBtn.className = "restore";
-        const restoreIcon = document.createElement("img");
-        restoreIcon.src = "/static/img/undo-icon.svg";
-        restoreIcon.draggable = false;
-        restoreBtn.appendChild(restoreIcon);
-        const restoreText = document.createElement("span");
-        restoreText.innerText = "Restore";
-        restoreBtn.appendChild(restoreText);
-        restoreBtn.addEventListener("click", () => {
-          removedList.removeChild(removedDiv);
-          if (removedList.children.length === 0) {
-            removedSection.style.display = "none";
-          }
-          container.appendChild(div);
-        });
-        removedDiv.appendChild(restoreBtn);
-        removedList.appendChild(removedDiv);
+        div.parentElement.removeChild(div);
+        removeBtn.style.display = "none";
+        restoreBtn.style.display = "";
+        removedList.appendChild(div);
         removedSection.style.display = "block";
       });
-      div.appendChild(remove);
+
+      restoreBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        div.parentElement.removeChild(div);
+        restoreBtn.style.display = "none";
+        removeBtn.style.display = "";
+        container.appendChild(div);
+        if (removedList.children.length === 0) {
+          removedSection.style.display = "none";
+        }
+      });
+
+      div.appendChild(removeBtn);
+      div.appendChild(restoreBtn);
     }
 
     return div;
