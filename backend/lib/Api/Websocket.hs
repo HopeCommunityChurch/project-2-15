@@ -218,12 +218,13 @@ handleUpdated senderConn user rst payload = do
           stepsSince <- Doc.getStepsSince docId payload.version
           pure $ Left stepsSince
         else do
-          -- Capture the document's initial state as a version-0 snapshot the
-          -- first time any steps are applied, so history can replay from it.
-          when (currentVersion == 0) $ do
+          -- If no snapshot exists yet, capture the document's current state
+          -- as a baseline so history can replay forward from this point.
+          mSnap <- Doc.getLatestSnapshot docId
+          when (isNothing mSnap) $ do
             mBase <- Doc.getDocBase docId
             for_ mBase $ \(_, docContent) ->
-              Doc.insertSnapshot docId 0 docContent
+              Doc.insertSnapshot docId currentVersion docContent
           let n = fromIntegral (length payload.steps) :: Int32
           Doc.insertSteps docId currentVersion user.userId (MkNewType payload.clientId) payload.steps
           let newVersion = currentVersion + n

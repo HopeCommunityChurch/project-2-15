@@ -81,7 +81,8 @@ getHistoryGroups docId userId =
       (docId, userId)
 
 
--- | Returns 30-second sub-groups within the given version range.
+-- | Returns sub-groups within the given version range, bucketed by 30-second
+-- windows for a finer-grained view within each 5-minute history group.
 getSubHistoryGroups
   :: MonadDb env m
   => T.DocId

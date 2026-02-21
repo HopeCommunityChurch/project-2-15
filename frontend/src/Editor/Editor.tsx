@@ -635,7 +635,7 @@ const questionPopup = (
         schema: textSchema,
         doc: qNode.node,
         plugins: [
-          history({ newGroupDelay: 133 }),
+          history({ newGroupDelay: 250 }),
           keymap({
             "Mod-z": undo,
             "Mod-y": redo,
@@ -1262,7 +1262,7 @@ export class P215Editor extends EventTarget {
       schema: textSchema,
       doc: node,
       plugins: [
-        history({ newGroupDelay: 133 }),
+        history({ newGroupDelay: 250 }),
         ...(sessionClientId !== null ? [collab({ version: initialVersion, clientID: sessionClientId })] : []),
         keymap({
           "Mod-z": undo,
