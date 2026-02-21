@@ -57,6 +57,12 @@
     </div>
   </section>
 
+  <div class="wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,28 C240,56 480,0 720,28 C960,56 1200,0 1440,28 L1440,56 L0,56 Z" fill="#ffffff"/>
+    </svg>
+  </div>
+
   <section class="community-section">
     <div class="section-content">
       <img
@@ -88,6 +94,12 @@
       </div>
     </div>
   </section>
+
+  <div class="wave-divider wave-divider--down" aria-hidden="true">
+    <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,28 C240,0 480,56 720,28 C960,0 1200,56 1440,28 L1440,0 L0,0 Z" fill="#ffffff"/>
+    </svg>
+  </div>
 
   <section class="study-anywhere-section">
     <div class="study-content">
@@ -189,5 +201,26 @@
   </section>
 </div></div>
 
-{% include "footer.html" %} 
+{% include "footer.html" %}
+
+<script>
+  (function () {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document
+      .querySelectorAll(".community-section, .study-anywhere-section, .custom-study-blocks")
+      .forEach(function (el) {
+        el.classList.add("reveal");
+        observer.observe(el);
+      });
+  })();
+</script>
+
 {% endblock %}

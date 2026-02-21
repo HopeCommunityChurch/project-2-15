@@ -3,6 +3,8 @@
 
 /* Pre-login Pages ---------------------- */
 .pre-login-page {
+  background-color: #f8fbff;
+
   body {
     margin: 0;
     font-family: "Poppins", sans-serif;
@@ -118,6 +120,28 @@
   }
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scroll-reveal (class added by JS) */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 #homeContent {
   .floating-box {
     transform: translatey(0px);
@@ -220,7 +244,25 @@
       display: none;
     }
   }
+  /* Hero entrance animations */
+  .hero-section .hero-text h1 {
+    animation: fadeInUp 0.7s ease both;
+  }
+
+  .hero-section .hero-text > p {
+    animation: fadeInUp 0.7s ease 0.15s both;
+  }
+
+  .hero-section .cta-box {
+    animation: fadeInUp 0.7s ease 0.3s both;
+  }
+
+  .hero-section .hero-image {
+    animation: fadeInUp 0.7s ease 0.2s both;
+  }
+
   .hero-section {
+    background: linear-gradient(155deg, #deeaff 0%, #eef4ff 30%, #f8fbff 65%);
     padding: 9rem 4rem 7rem 4rem !important;
     @media (max-width: 929px) {
       padding: 5rem 4rem 7rem 4rem !important;
@@ -311,7 +353,25 @@
     }
   }
 
+  .wave-divider {
+    display: block;
+    line-height: 0;
+    margin-bottom: -1px;
+
+    &.wave-divider--down {
+      margin-top: -1px;
+      margin-bottom: 0;
+    }
+
+    svg {
+      width: 100%;
+      height: 56px;
+    }
+  }
+
   .community-section {
+    background-color: #ffffff;
+
     @media (max-width: 884px) {
       padding-bottom: 2.3rem !important;
     }
