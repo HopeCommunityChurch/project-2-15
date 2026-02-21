@@ -40,7 +40,7 @@ export function init(ws : WS.MyWebsocket) {
   const pageDocId = window.location.pathname.split('/').pop() ?? '';
 
   let editor : Editor.P215Editor = null;
-  let currentDocId : T.DocId;
+  let currentDocId : T.DocId | undefined;
 
   const scroll = splitside ? makeScrollMemory(splitside, pageDocId) : null;
   scroll?.watch(() => currentDocId);
@@ -72,6 +72,6 @@ export function init(ws : WS.MyWebsocket) {
   });
 
   ws.addEventListener("DocUpdated", (ev : WS.DocUpdatedEvent) => {
-    editor.dispatchSteps(ev.update);
+    editor?.dispatchSteps(ev.update);
   });
 }

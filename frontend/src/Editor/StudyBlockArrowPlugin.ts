@@ -224,7 +224,7 @@ function navigateToTarget(
   if (!dispatch) return true;
   const anchorPos = dir === -1 ? target.end - 1 : target.start + 1;
   const newPos = resolveLinePos(state, view, cursorLeft, anchorPos, dir === -1 ? -1 : 1, target.start, target.end);
-  if (newPos === state.selection.head) return false;
+  if (newPos === state.selection.head) return true;
   dispatch(state.tr.setSelection(TextSelection.create(state.doc, newPos)).scrollIntoView());
   return true;
 }
@@ -275,7 +275,7 @@ function navigateOutOfStudyBlocks(
     if (dispatch) {
       const boundaryPos = dir === -1 ? $head.before(d) : $head.after(d);
       const $boundary = state.doc.resolve(boundaryPos);
-      dispatch(state.tr.setSelection(Selection.near($boundary, dir) as TextSelection).scrollIntoView());
+      dispatch(state.tr.setSelection(Selection.near($boundary, dir)).scrollIntoView());
     }
     return true;
   }
