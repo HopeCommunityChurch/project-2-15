@@ -1,7 +1,7 @@
 <form hx-post="{{base}}/profile/feature" hx-target="this" hx-swap="outerHTML">
   {% for feature in allFeatures %}
     {% if feature.feature != "Unknown" %}
-    <div>
+    <div class="checkboxRow">
       <input
         type="checkbox"
         id="{{feature.feature}}"
@@ -11,7 +11,7 @@
         {% endif %}
       >
       <label for="{{feature.feature}}">
-        {{feature.feature}} - {{feature.description}}
+        {{feature.description}}
       </label>
 
     </div>
@@ -22,6 +22,6 @@
       Saved!
     </p-notification>
   {% endif %}
-  <button class="blue" type="submit">Save</button>
+  <button class="blue" type="submit" disabled>Save</button>
 
 </form>

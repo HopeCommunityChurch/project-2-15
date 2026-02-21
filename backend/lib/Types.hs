@@ -183,7 +183,7 @@ instance FromBackendRow Pg.Postgres Feature
 
 featureDescription :: Feature -> Text
 featureDescription GroupStudy =
-  "(In Development) Study together in groups!"
+  "Group Studies (Beta)"
 featureDescription Unknown =
   "Features we remove will be caught be this one."
 

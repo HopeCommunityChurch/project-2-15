@@ -1,25 +1,116 @@
 @import url("../utils/base.css");
 @import url("../component/nav.css");
 
+html, body {
+  overflow: hidden;
+  height: 100%;
+  margin: 0;
+}
+
+#profileScroll {
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#profileScroll #footer {
+  margin-top: auto;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 44px 28px 0;
+  box-sizing: border-box;
+}
+
+.profileAvatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--blue-100);
+  font-weight: 700;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  flex-shrink: 0;
+}
+
+.profileHeaderInfo h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.profileHeaderInfo p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #666;
+}
 
 #profileContent {
-  margin-top: 10px;
-  display: grid;
-  justify-content: center;
-  h1 {
-    font-size: 27px;
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 30px 28px 44px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+.profileCard {
+  background: #fff;
+  border-radius: 9px;
+  box-shadow: 0 4px 7px 1px rgba(0,0,0,0.07);
+  padding: 24px 28px;
+
+  h2 {
+    font-size: 18px;
+    margin: 0 0 16px;
   }
+
   form {
-    max-width: 400px;
     flex-direction: column;
     align-items: stretch;
     width: 100%;
-    margin-top: 20px;
     display: flex;
+
     label {
       color: #666;
-      margin-bottom: 5px;
-      font-size: 14px;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+      padding: 8px 12px;
+      margin-bottom: 12px;
+    }
+
+    .checkboxRow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+
+      label {
+        margin-bottom: 0;
+        font-size: 14px;
+      }
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      margin-top: 4px;
     }
   }
 }

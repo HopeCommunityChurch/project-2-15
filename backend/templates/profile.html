@@ -46,19 +46,63 @@
   </menu>
 </dialog>
 
-<div id="profileContent">
-  <h1>My Profile</h1>
-  {% include "profile/form.html" %}
+<div id="profileScroll">
+  <div class="profileHeader">
+    <div class="profileAvatar">{{user.nameShort}}</div>
+    <div class="profileHeaderInfo">
+      <h1>{{user.name}}</h1>
+      <p>{{user.email}}</p>
+    </div>
+  </div>
 
-  <br>
-  <h1>Features</h1>
-  {% include "profile/featureForm.html" %}
+  <div id="profileContent">
+    <div class="profileCard">
+      <h2>Profile Info</h2>
+      {% include "profile/form.html" %}
+    </div>
+
+    <div class="profileCard">
+      <h2>Features</h2>
+      {% include "profile/featureForm.html" %}
+    </div>
+  </div>
+
+  {% include "footer.html" %}
 </div>
 
 <script>
   {% include "scripts/inputs.js" %}
-</script>
 
-{% include "footer.html" %}
+  function formSnapshot(form) {
+    return new FormData(form);
+  }
+
+  function snapshotsEqual(a, b) {
+    const aEntries = [...a.entries()].sort().toString();
+    const bEntries = [...b.entries()].sort().toString();
+    return aEntries === bEntries;
+  }
+
+  function initFormDirtyTracking(form) {
+    const btn = form.querySelector('button[type="submit"]');
+    if (!btn) return;
+    const baseline = formSnapshot(form);
+    function update() {
+      btn.disabled = snapshotsEqual(baseline, formSnapshot(form));
+    }
+    form.addEventListener("input", update);
+    form.addEventListener("change", update);
+  }
+
+  function initAllForms() {
+    document.querySelectorAll(".profileCard form").forEach(initFormDirtyTracking);
+  }
+
+  window.addEventListener("load", initAllForms);
+  document.addEventListener("htmx:afterSwap", (e) => {
+    const form = e.target.closest && e.target.closest("form") || e.target.querySelector && e.target.querySelector("form");
+    if (form) initFormDirtyTracking(form);
+  });
+</script>
 
 {% endblock %}
