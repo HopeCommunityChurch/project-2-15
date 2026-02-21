@@ -221,10 +221,10 @@ scottyServer = do
         Nothing -> Home.getHome
         Just user -> Studies.getStudies user
 
-    Scotty.get "/api/document/:documentId/history" $ do
+    Scotty.get "/document/:documentId/history" $ do
       user <- getUserWithRedirect
       DocumentHistory.getHistoryApi user
-    Scotty.get "/api/document/:documentId/at-version/:versionNum" $ do
+    Scotty.get "/document/:documentId/at-version/:versionNum" $ do
       user <- getUserWithRedirect
       DocumentHistory.getVersionApi user
 
