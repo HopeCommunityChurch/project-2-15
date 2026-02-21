@@ -797,23 +797,29 @@ let hideOnlyOneBibleTextPlugin = new Plugin({
 
 
 
-const verseRefWidget = (verse, position) => (view: EditorView) => {
+const verseRefWidget = (verse) => (view: EditorView, getPos: () => number | undefined) => {
   const elem = document.createElement("span");
-  elem.onclick = (e) => {
+  elem.onmousedown = (e) => {
     e.preventDefault();
-    const transaction = view.state.tr.setSelection(TextSelection.create(view.state.doc, position));
-    view.dispatch(transaction);
-    view.focus();
+    e.stopPropagation();
+    const pos = getPos();
+    if (pos != null) {
+      const tr = view.state.tr.setSelection(
+        TextSelection.create(view.state.doc, pos)
+      );
+      view.dispatch(tr);
+      view.focus();
+    }
   };
   elem.ondblclick = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     let book = verse.book.replace(" ", "_").toLowerCase();
     let url = "https://biblehub.com/" + book + "/" + verse.chapter + "-" + verse.verse + ".htm";
     window.open(url, "_blank").focus();
     view.focus();
   };
   elem.className = "verseRef";
-  elem.contentEditable = "true";
   if (verse.verse === 1) {
     elem.innerHTML = verse.chapter + ":" + verse.verse;
   } else {
@@ -849,10 +855,11 @@ function getDecorations(state: EditorState) {
 
       // Create decoration for the first occurrence of this verse
       decorations.push(
-        Decoration.widget(position, verseRefWidget(verse.attrs, position), {
+        Decoration.widget(position, verseRefWidget(verse.attrs), {
           key: currentVerseKey,
           ignoreSelection: true,
           side: -1,
+          stopEvent: (e: Event) => e.type === "mousedown" || e.type === "click",
         })
       );
     }

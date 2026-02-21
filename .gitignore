@@ -5,4 +5,5 @@ result
 pg-init-*
 .claude
 CLAUDE.md
+.parcel-cache
 frontend/.parcel-cache
