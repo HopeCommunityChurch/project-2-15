@@ -163,7 +163,7 @@
 
 
 #studyBlockEditor{
-  max-width: 520px;
+  max-width: 800px;
   width: 90%;
   padding: 20px;
   position: relative;
@@ -234,15 +234,13 @@
       .studyBlock {
         font-size: 1.1em;
         user-select: none;
-        padding: 8px 10px;
-        border-radius: 6px;
+        padding: 0 6px;
         cursor: grab;
         transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
         grid-template-columns: 20px 1fr 30px;
         display: grid;
-        align-items: center;
+        align-items: stretch;
         gap: 8px;
-        border-bottom: 1px solid #f0f0f0;
 
         &:hover {
           background-color: #f6f6f6;
@@ -252,6 +250,7 @@
           width: 16px;
           opacity: 0.9;
           cursor: grab;
+          align-self: center;
         }
 
         .remove {
@@ -261,6 +260,7 @@
           padding: 4px;
           opacity: 0.9;
           justify-self: center;
+          align-self: center;
           border-radius: 4px;
           line-height: 0;
           img {
@@ -269,6 +269,100 @@
           &:hover {
             opacity: 1;
           }
+        }
+
+        .blockPreview {
+          display: flex;
+          border: 1px solid #c0c0c0;
+          border-bottom: none;
+          border-radius: 0;
+          overflow: hidden;
+          font-size: 0.9em;
+          user-select: none;
+        }
+
+        &:last-child .blockPreview {
+          border-bottom: 1px solid #c0c0c0;
+        }
+
+        &:first-child .blockPreview {
+          border-radius: 4px 4px 0 0;
+        }
+
+        &:last-child .blockPreview {
+          border-radius: 0 0 4px 4px;
+        }
+
+        .blockPreviewHeader {
+          background-color: #f0f0f0;
+          font-weight: 700;
+          color: #050020cf;
+          padding: 0;
+          border-right: 1px solid #c0c0c0;
+          display: flex;
+          align-items: stretch;
+          flex: 0 0 220px;
+          width: 220px;
+          box-sizing: border-box;
+
+          textarea.blockName {
+            flex: 1;
+            width: 100%;
+            min-height: 100%;
+            resize: none;
+            overflow: hidden;
+            background: none;
+            border: none;
+            font-weight: 700;
+            color: #050020cf;
+            font-size: inherit;
+            font-family: inherit;
+            line-height: inherit;
+            padding: 10px;
+            box-sizing: border-box;
+            cursor: text;
+            user-select: text;
+            min-width: 0;
+            &:focus {
+              outline: 2px solid #6b8cff;
+              outline-offset: -2px;
+              border-radius: 2px;
+            }
+          }
+        }
+
+        .blockPreviewHeader:not(:has(textarea)) {
+          padding: 10px;
+        }
+
+        .blockPreviewBody {
+          flex: 1;
+          min-width: 0;
+          padding: 10px;
+          color: #555;
+          font-size: 0.88em;
+          overflow: hidden;
+
+          p {
+            margin: 0;
+          }
+        }
+      }
+
+      .addBlockBtn {
+        width: 100%;
+        margin-top: 8px;
+        padding: 8px;
+        border: 2px dashed #c0c0c0;
+        border-radius: 6px;
+        background: none;
+        cursor: pointer;
+        color: #555;
+        font-size: 1em;
+        text-align: center;
+        &:hover {
+          border-color: #6b8cff;
+          color: #3355cc;
         }
       }
     }
