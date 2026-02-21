@@ -80,6 +80,7 @@ class StudyBlocksView implements NodeView {
     const editIcon = new Image();
     editIcon.src = "/static/img/gray-pencil-in-circle.svg";
     editIcon.className = "studyBlockEditPencil";
+    editIcon.setAttribute("contenteditable", "false");
 
     editIcon.addEventListener("click", () => {
       let sectionNode : Node = null;
@@ -190,6 +191,7 @@ class QuestionsView implements NodeView {
     if (node.content.size === 0) {
       const noQuestionsText = document.createElement("div");
       noQuestionsText.className = "noQuestionsText";
+      noQuestionsText.setAttribute("contenteditable", "false");
       noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
 
       noQuestionsText.onclick = () => {
@@ -1106,6 +1108,7 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
 const mkPlaceholderElement = (pos) => (view: EditorView) => {
   const placeholderElement = document.createElement("div");
   placeholderElement.className = "bibleTextPlaceholder";
+  placeholderElement.setAttribute("contenteditable", "false");
   placeholderElement.innerHTML = `
     <em>
       Place your cursor in this section and click the "Add Scripture" button
@@ -1146,7 +1149,11 @@ function createPlaceholderDecorations(doc) {
         if (!hasBibleText) {
           const placeholderDecoration = Decoration.widget(
             pos + contentBetweenQuotes.length + 3,
-            mkPlaceholderElement(pos + headerLength + 2)
+            mkPlaceholderElement(pos + headerLength + 2),
+            {
+              ignoreSelection: true,
+              stopEvent: (e: Event) => e.type === "mousedown" || e.type === "click",
+            }
           );
           decorations.push(placeholderDecoration);
         }

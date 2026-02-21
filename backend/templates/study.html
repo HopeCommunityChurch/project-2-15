@@ -115,11 +115,30 @@
 
     function addSectionClick () {
       window.editor.applyDispatch(window.editorActions.addSection);
+
+      // Wait for the sidebar to update, then flash and scroll
+      setTimeout(() => {
+        const container = document.getElementById("sectionContainer");
+        const newItem = container.children[container.children.length - 1];
+        if (newItem) {
+          newItem.classList.add("flash");
+          setTimeout(() => newItem.classList.remove("flash"), 3000);
+        }
+
+        const newIndex = window.editor.view.state.doc.childCount - 1;
+        const elem = document.getElementById("section-" + newIndex);
+        if (elem) {
+          elem.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 50);
     }
 
     function collapseSide() {
       const studyContent = document.getElementById("studyPage");
       studyContent.classList.toggle("collapseSide");
+      const btn = document.getElementById("collapseSide");
+      const isCollapsed = studyContent.classList.contains("collapseSide");
+      btn.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
     }
 
     function split() {
@@ -346,14 +365,14 @@
   <div id="leftSidebar">
     <div class="container">
       <div>
-        <button id="collapseSide" onclick="collapseSide()">
-          <img src="{{base}}/static/img/arrow2.svg" >
+        <button id="collapseSide" onclick="collapseSide()" aria-expanded="true" aria-label="Collapse sidebar">
+          <img class="collapseIcon" src="{{base}}/static/img/arrow2.svg" alt=""><img class="expandIcon" src="{{base}}/static/img/hamburger-menu-icon.svg" alt=""><span class="collapseLabel">COLLAPSE</span><span class="expandLabel">SECTIONS</span>
         </button>
       </div>
-      <div id="sectionContainer" >
+      <div id="addSectionRow">
+        <button class="lightBlue" onclick="addSectionClick()">+ Add Section</button>
       </div>
-      <div id="bottom">
-        <button onclick="addSectionClick()">Add Section</button>
+      <div id="sectionContainer" >
       </div>
     </div>
   </div>

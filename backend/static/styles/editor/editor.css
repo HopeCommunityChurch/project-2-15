@@ -317,12 +317,13 @@ img.ProseMirror-separator {
     scroll-margin-top: 6rem;
     margin: 0px;
     padding-bottom: 10px;
-    padding: 26px 20px 40px 20px;
+    padding: 26px 20px 26px 20px;
     border: 1px solid #dadada;
     position: relative;
     margin-top: 20px;
     margin-bottom: 10px;
-    border-radius: 5px;
+    border-radius: 12px;
+    background-color: white;
     max-width: 100%;
 
     p {
@@ -331,12 +332,7 @@ img.ProseMirror-separator {
   }
 
   .section::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -21px;
-    border-bottom: 21px solid #f8fafd;
+    display: none;
   }
 
   .section h2 {

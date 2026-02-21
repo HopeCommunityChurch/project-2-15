@@ -305,8 +305,7 @@ export const addSection = (state: EditorState, dispatch?: (tr: Transaction) => v
       tr.doc.resolve(pos),
       tr.doc.resolve(pos+10)
     );
-    tr.setSelection(selection)
-    tr.scrollIntoView();
+    tr.setSelection(selection);
 
     dispatch(tr);
     return true;
