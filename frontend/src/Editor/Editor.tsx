@@ -83,6 +83,7 @@ class StudyBlocksView implements NodeView {
     editIcon.appendChild(editImg);
     editIcon.appendChild(document.createTextNode("Edit blocks"));
 
+    editIcon.addEventListener("mousedown", (e) => { e.preventDefault(); });
     editIcon.addEventListener("click", () => {
       let sectionNode : Node = null;
       let sectionPos = null;
