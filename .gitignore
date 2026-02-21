@@ -2,8 +2,8 @@
 .direnv
 result
 .devenv
-.devenv
 pg-init-*
-CLAUDE.md
 .claude
+CLAUDE.md
 .parcel-cache
+frontend/.parcel-cache

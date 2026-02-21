@@ -25,16 +25,23 @@
   justify-content: center;
 }
 
-#profileNav menu li a {
+#profileNav menu li a,
+#profileNav menu li button {
   color: #6c6c6c;
   text-decoration: none;
   display: flex;
   width: 100%;
   height: 100%;
   padding: 8px 26px;
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
 }
 
-#profileNav menu li a:hover {
+#profileNav menu li a:hover,
+#profileNav menu li button:hover {
   background-color: #f6f6f6;
 }
 

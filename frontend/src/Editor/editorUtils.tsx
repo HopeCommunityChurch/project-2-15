@@ -1,6 +1,5 @@
 import { EditorState, Transaction, TextSelection } from "prosemirror-state";
 import { toggleMark } from "prosemirror-commands";
-import { Schema } from "prosemirror-model";
 import { textSchema } from "./textSchema";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";
@@ -443,4 +442,19 @@ export const reorderStudyBlock = (
   dispatch(tr)
   return true;
 
+};
+
+// Re-exported for window.editorActions (toolbar buttons)
+export { toggleBulletList, toggleOrderedList } from "./listPlugin";
+import { sinkCurrentItem, liftCurrentItem } from "./listPlugin";
+
+// Unified indent/outdent: tries list indent first, falls back to chunk indent
+export const indent = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  if (sinkCurrentItem(state, dispatch)) return true;
+  return increaseLevel(state, dispatch);
+};
+
+export const outdent = (state: EditorState, dispatch?: (tr: Transaction) => void) => {
+  if (liftCurrentItem(state, dispatch)) return true;
+  return decreaseLevel(state, dispatch);
 };
