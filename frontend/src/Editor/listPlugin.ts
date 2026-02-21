@@ -366,7 +366,7 @@ function convertListType(state: EditorState, from: NodeType, to: NodeType, dispa
   for (let d = $from.depth; d >= 0; d--) {
     if ($from.node(d).type === from) {
       if (dispatch) {
-        dispatch(state.tr.setNodeMarkup($from.before(d + 1), to).scrollIntoView());
+        dispatch(state.tr.setNodeMarkup($from.before(d), to).scrollIntoView());
       }
       return true;
     }
@@ -446,8 +446,8 @@ export function listPlugins(
   return [
     makeListInputRules(schema),
     keymap({
-      Tab: chainCommands(sinkCurrentItem),
-      "Shift-Tab": chainCommands(pmLiftListItem(listItemType)),
+      Tab: sinkCurrentItem,
+      "Shift-Tab": pmLiftListItem(listItemType),
       Enter: pmSplitListItem(listItemType),
       Backspace: chainCommands(...backspaceChain),
       "Mod-Backspace": chainCommands(joinListItems, listBackspace, joinAfterList),
