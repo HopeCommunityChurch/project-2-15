@@ -199,6 +199,8 @@ class QuestionsView implements NodeView {
       noQuestionsText.className = "noQuestionsText";
       noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
 
+      noQuestionsText.setAttribute("contenteditable", "false");
+      noQuestionsText.addEventListener("mousedown", (e) => { e.preventDefault(); });
       noQuestionsText.onclick = () => {
         // Logic to move the cursor to the previous position
         const transaction = view.state.tr.setSelection(
@@ -318,6 +320,7 @@ export class QuestionView implements NodeView {
 
     if (view.editable) {
       const addAnswer = document.createElement("button");
+      addAnswer.addEventListener("mousedown", (e) => { e.preventDefault(); });
       addAnswer.onclick = (e) => {
         e.preventDefault();
         const qnode = newQuestionAnswerNode();
@@ -760,7 +763,7 @@ let questionMarkPlugin = (
             Decoration.widget(loc, questionMarkWidget(qId, questionMap, setCurrentEditor), {
               key: "qmark" + qId,
               stopEvent: (e: Event) => {
-                return e.type === "click";
+                return e.type === "mousedown" || e.type === "click";
               },
               side: -1,
             })
@@ -1121,6 +1124,7 @@ const mkPlaceholderElement = (pos) => (view: EditorView) => {
     <em>above to add your verses here</em>
   `;
 
+  placeholderElement.addEventListener("mousedown", (e) => { e.preventDefault(); });
   placeholderElement.onclick = () => {
     // Logic to move the cursor to the previous position
     const transaction = view.state.tr.setSelection(TextSelection.near(view.state.doc.resolve(pos)));

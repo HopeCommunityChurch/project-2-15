@@ -17,6 +17,7 @@ import Entity.User qualified as User
 import EnvFields (HasUrl)
 import Fields.Email (mkEmail)
 import Lucid qualified as L
+import Lucid.Base (makeAttribute)
 import Lucid.Htmx qualified as L
 import Mail qualified
 import Network.HTTP.Types.Status (status200)
@@ -93,12 +94,13 @@ createStudyGroupHTML
   -> L.HtmlT m ()
 createStudyGroupHTML doc = do
   L.div_ [L.class_ "groupStudyInner"] $ do
-    L.img_
-      [ L.alt_ "Close"
-      , L.src_ "/static/img/x.svg"
-      , L.class_ "closeModalIcon"
+    L.button_
+      [ L.class_ "closeModalIcon"
       , L.onclick_ "toggleModal('#groupStudy')"
+      , L.type_ "button"
+      , makeAttribute "aria-label" "Close"
       ]
+      (L.img_ [L.src_ "/static/img/x.svg", L.alt_ ""])
     L.h3_ "Create Group Study"
     L.p_ [L.class_ "field-desc"]
       "A group study lets multiple people work through the same study template together, each with their own document."
@@ -244,12 +246,13 @@ groupStudyHTML
 groupStudyHTML user isOwner shares groupStudy = do
   let groupIdTxt = UUID.toText (unwrap groupStudy.groupStudyId)
   L.div_ [ L.class_ "groupStudyEditorHolder" , L.id_ "groupStudyInner" ] $ do
-    L.img_
-      [ L.alt_ "Close"
-      , L.src_ "/static/img/x.svg"
-      , L.class_ "closeModalIcon"
+    L.button_
+      [ L.class_ "closeModalIcon"
       , L.onclick_ "toggleModal('#groupStudy')"
+      , L.type_ "button"
+      , makeAttribute "aria-label" "Close"
       ]
+      (L.img_ [L.src_ "/static/img/x.svg", L.alt_ ""])
 
     -- Header
     L.div_ [L.class_ "groupStudy-header"] $ do
@@ -556,17 +559,6 @@ ownershipMemberDoc user = do
 
 
 
-getInvite
-  :: ( MonadDb env m
-     , MonadLogger m
-     )
-  => AuthUser
-  -> ActionT m ()
-getInvite _ = do
-  groupId <- captureParam "groupId"
-  html =<< L.renderTextT (getInviteNewMemberHTML groupId)
-
-
 createPeopleTemplate :: Monad m => L.HtmlT m ()
 createPeopleTemplate = do
   L.template_ [L.id_ "peopleInputTemplate"] $ do
@@ -580,28 +572,6 @@ createPeopleTemplate = do
         L.option_ [ L.value_ "member"] "Member"
         L.option_ [ L.value_ "owner"] "Owner"
       L.button_ [L.class_ "red"] "-"
-
-
-getInviteNewMemberHTML
-  :: Monad m
-  => T.GroupStudyId
-  -> L.HtmlT m ()
-getInviteNewMemberHTML groupId = do
-  L.div_ [L.class_ "groupStudyInner"] $ do
-    L.h3_ "Invite New People"
-    let formUrl = "/group_study/invite/add"
-    L.form_ [ L.hxPost_ formUrl, L.class_ "groupStudyEditorHolder", L.hxTarget_ "#groupStudyInner"] $ do
-      L.input_
-        [ L.id_ "groupId"
-        , L.name_ "groupId"
-        , L.type_ "hidden"
-        , L.value_ (UUID.toText (unwrap groupId))
-        ]
-      L.label_ [L.for_ "createPeople"] "People"
-      L.div_ [L.id_ "createPeoples"] createPeopleTemplate
-      L.button_ [L.type_ "submit", L.class_ "blue"]
-        "Invite"
-  L.script_ "addPeopleInput()";
 
 
 postInvite
