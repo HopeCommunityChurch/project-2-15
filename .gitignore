@@ -4,5 +4,6 @@ result
 .devenv
 .devenv
 pg-init-*
-.claude
 CLAUDE.md
+.claude
+.parcel-cache
