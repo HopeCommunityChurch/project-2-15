@@ -187,9 +187,6 @@ scottyServer = do
     Scotty.post "/group_study/:groupId/member/:docId/ownership" $ do
       user <- getUserWithRedirect
       GroupStudy.ownershipMemberDoc user
-    Scotty.get "/group_study/invite/:groupId" $ do
-      user <- getUserWithRedirect
-      GroupStudy.getInvite user
     Scotty.post "/group_study/invite/add" $ do
       user <- getUserWithRedirect
       GroupStudy.postInvite user
