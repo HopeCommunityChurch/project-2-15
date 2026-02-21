@@ -51,6 +51,7 @@ export function init(ws : WS.MyWebsocket) {
 
   function loadEditor() {
     const docId = groupStudySelector.value as T.DocId;
+    if (!docId) return;
     if (docId === currentDocId) return;
     if (currentDocId) {
       scroll?.save(currentDocId);
