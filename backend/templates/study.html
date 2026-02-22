@@ -122,10 +122,6 @@
       studyContent.classList.toggle("collapseSide");
     }
 
-    function split() {
-      const studyContent = document.getElementById("studyPage");
-      studyContent.classList.toggle("split");
-    }
 
 
   </script>
@@ -366,22 +362,18 @@
   </div>
 
   <div id="splitside">
-    <div id="splitPicker">
-      <p-select id="groupStudySelector">
-        {% for gdoc in groupStudy.docs  %}
-          {% if gdoc.docId != doc.docId %}
-            <option value="{{gdoc.docId}}">
-              {{gdoc.editors[0].name}}
-              -
-              {{gdoc.name}}
-            </option>
-          {% endif %}
-        {% endfor %}
-      </p-select>
+    <div id="splitsideHeader">
+      <div id="tabBar">
+        <!-- tabs injected by JS -->
+        <button id="tabAddButton" title="Open another member's document">+</button>
+      </div>
+      <button id="splitsideClose" title="Close side panel">
+        <img src="{{base}}/static/img/x.svg" alt="Close">
+      </button>
     </div>
-    <div id="sideBySideEditor" class="editorHolder">
-    </div>
+    <div id="splitEditorArea"></div>
   </div>
+  <div id="memberPickerPopover" class="hidden"></div>
 
 {% if isLocal == true %}
   <script>
