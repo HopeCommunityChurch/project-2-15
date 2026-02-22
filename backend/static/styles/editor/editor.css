@@ -348,10 +348,11 @@ img.ProseMirror-separator {
     display: inline-block;
     text-align: center;
     cursor: pointer;
-    margin-right: 2px;
     opacity: 0.9;
     background-color: #fff;
     margin-right: 0px;
+    border: none;
+    padding: 0;
     img {
       max-width: 100%;
       transform: translateY(3px);
@@ -362,7 +363,6 @@ img.ProseMirror-separator {
     margin: 0px;
     white-space: pre-wrap;
     box-sizing: border-box;
-    /* border: 1px solid #00f0; */
     position: relative;
     .innerDiv {
       margin: 0px;
@@ -495,7 +495,6 @@ img.ProseMirror-separator {
 
   .questions .studyBlockHeaderDiv {
     user-select: none;
-    /* pointer-events: none; */
   }
 
   .questions h3 {
@@ -630,6 +629,8 @@ img.ProseMirror-separator {
       cursor: pointer;
       margin-left: auto;
       background-color: #eee;
+      border: none;
+      padding: 0;
 
       img {
         max-width: 12px;
@@ -681,7 +682,6 @@ img.ProseMirror-separator {
     grid-area: q;
     font-weight: 500;
     background-color: #ddeafc8c;
-    /*  color: #0057d1; */
     padding: 1px 6px;
     border-radius: 5px;
     height: fit-content;
@@ -783,7 +783,6 @@ img.ProseMirror-separator {
 
   .bibleTextPlaceholder {
     user-select: none;
-    /* pointer-events: none; */
     color: rgb(145, 164, 177);
     margin-top: 5px;
 
@@ -797,7 +796,6 @@ img.ProseMirror-separator {
 
   .noQuestionsText {
     user-select: none;
-    /* pointer-events: none; */
     color: rgb(145, 164, 177);
 
     img {

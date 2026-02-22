@@ -7,10 +7,9 @@ import {
 import { EditorView, NodeView, DecorationSet, Decoration } from "prosemirror-view";
 import { Node, Mark } from "prosemirror-model";
 import { StepMap } from "prosemirror-transform";
-import { history } from "prosemirror-history";
+import { history, undo, redo } from "prosemirror-history";
 import { keymap } from "prosemirror-keymap";
 import { baseKeymap } from "prosemirror-commands";
-import { undo, redo } from "prosemirror-history";
 import {
   toggleBold,
   toggleUnderline,
@@ -67,7 +66,6 @@ export class QuestionsView implements NodeView {
     headerDiv.className = "studyBlockHeaderDiv";
 
     headerDiv.onclick = () => {
-      // Logic to move the cursor to the previous position
       const transaction = view.state.tr.setSelection(
         TextSelection.near(view.state.doc.resolve(getPos() - 3))
       );
@@ -82,10 +80,21 @@ export class QuestionsView implements NodeView {
     if (node.content.size === 0) {
       const noQuestionsText = document.createElement("div");
       noQuestionsText.className = "noQuestionsText";
-      noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+      noQuestionsText.setAttribute("contenteditable", "false");
+      const em1 = document.createElement("em");
+      em1.textContent = 'Insert a question by selecting some text and clicking the "Add Question" button';
+      const icon = document.createElement("img");
+      icon.src = window.base + "/static/img/question-icon.svg";
+      icon.alt = "Add Question Icon";
+      const em2 = document.createElement("em");
+      em2.textContent = "in the toolbar above";
+      noQuestionsText.appendChild(em1);
+      noQuestionsText.appendChild(document.createTextNode(" "));
+      noQuestionsText.appendChild(icon);
+      noQuestionsText.appendChild(document.createTextNode(" "));
+      noQuestionsText.appendChild(em2);
 
       noQuestionsText.onclick = () => {
-        // Logic to move the cursor to the previous position
         const transaction = view.state.tr.setSelection(
           TextSelection.near(view.state.doc.resolve(getPos() - 3))
         );
@@ -293,8 +302,10 @@ export class QuestionView implements NodeView {
       vEnd = verse.attrs;
     });
 
+    // Always assign questionMap so update() can reliably sync the inner editor,
+    // even when a re-mount finds an existing entry (e.g. after undo/redo).
+    this.questionMap = questionMap;
     if (!questionMap[this.questionId]) {
-      this.questionMap = questionMap;
       questionMap[this.questionId] = {
         node: node,
         getPos: getPos,
@@ -390,21 +401,6 @@ export const referenceToMarkView = (mark: Mark, view: EditorView) => {
   const mview = document.createElement("span");
   const rId = mark.attrs.referenceId;
   mview.setAttribute("referenceId", rId);
-  let qselector = 'span[data-type="reference"][referenceId="' + rId + '"]';
-  mview.onmouseenter = (e) => {
-    // e.preventDefault();
-    // var references = document.querySelectorAll(qselector);
-    // references.forEach( (r) => {
-    //   r.classList.add("referenceTo");
-    // })
-  };
-  mview.onmouseleave = (e) => {
-    e.preventDefault();
-    // var references = document.querySelectorAll(qselector);
-    // references.forEach( (r) => {
-    //   r.classList.remove("referenceTo");
-    // })
-  };
   return { dom: mview };
 };
 
@@ -424,27 +420,21 @@ export const questionPopup = (
     const pop = document.createElement("questionRefPopup");
     pop.className = "questionRefPopup";
 
-    // Initially position it off-screen so it doesn't flicker
     pop.style.position = "fixed";
     pop.style.left = "-9999px";
     pop.style.top = "-9999px";
 
-    // Add it to the body so it renders and we can measure it
     const p215EditorHolder = document.getElementById("editorHolder");
     p215EditorHolder.appendChild(pop);
 
-    // Now measure it
     const rect = pop.getBoundingClientRect();
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
 
-    // Calculate initial position based on incoming x, y
-    // x/y are pageX/pageY; since the page itself doesn't scroll (only #mainEditorHolder does),
-    // pageX/pageY equal clientX/clientY, which are correct for fixed positioning.
+    // pageX/pageY equal clientX/clientY here since only #mainEditorHolder scrolls, not the page itself
     let initialLeft = x - 20;
     let initialTop = y + parseInt(getComputedStyle(document.documentElement).fontSize);
 
-    // Check if it would appear off-screen and adjust
     if (initialLeft + rect.width > windowWidth) {
       initialLeft = windowWidth - rect.width;
     }
@@ -452,24 +442,21 @@ export const questionPopup = (
       initialTop = windowHeight - rect.height;
     }
 
-    // Now position it correctly and make it visible
     pop.style.left = initialLeft + "px";
     pop.style.top = initialTop + "px";
     pop.style.visibility = "visible";
 
-    // Clamp popup within viewport, shrinking it if the viewport is too small
     const clampToViewport = () => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const r = pop.getBoundingClientRect();
 
-      // Shrink if wider or taller than viewport (use offsetWidth to account for border/padding)
+      // Account for border/padding when shrinking to viewport
       const borderW = pop.offsetWidth - pop.clientWidth;
       const borderH = pop.offsetHeight - pop.clientHeight;
       if (r.width > vw) pop.style.width = (vw - borderW) + "px";
       if (r.height > vh) pop.style.height = (vh - borderH) + "px";
 
-      // Re-read after possible resize
       const r2 = pop.getBoundingClientRect();
       let l = parseFloat(pop.style.left);
       let t = parseFloat(pop.style.top);
@@ -483,13 +470,11 @@ export const questionPopup = (
 
     window.addEventListener("resize", clampToViewport);
 
-    // Increase the z-index of the current pop-up
     if (!zIndices[qId]) {
       zIndices[qId] = zIndexCounter++;
     }
     pop.style.zIndex = zIndices[qId].toString();
 
-    // Set a higher z-index for the focused pop-up, lower for others
     pop.addEventListener("mousedown", () => {
       const currentZIndex = zIndices[qId];
       const highestZIndex = Math.max(...Object.values(zIndices));
@@ -499,7 +484,6 @@ export const questionPopup = (
       }
     });
 
-    // Add ref highlight class
     highlighQuestion(qId, view.state, view.dispatch);
 
     let mover = pop.appendChild(document.createElement("mover"));
@@ -558,11 +542,10 @@ export const questionPopup = (
       startDrag(touch.pageX, touch.pageY);
     });
 
-    // Resize handle
     const resizeHandle = pop.appendChild(document.createElement("div"));
     resizeHandle.className = "resizeHandle";
 
-    // Edge highlight overlay (no pointer events — purely visual)
+    // Purely visual overlay — no pointer events; highlights active resize edge(s)
     const edgeOverlay = pop.appendChild(document.createElement("div"));
     edgeOverlay.style.cssText =
       "position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:999;border-radius:10px;" +
@@ -685,9 +668,11 @@ export const questionPopup = (
 
     popUpTitle.prepend(questionIconImg);
 
-    let closer = mover.appendChild(document.createElement("closer"));
-    let closeImage = document.createElement("img");
+    // Use a real <button> so the close control is keyboard-accessible
+    const closer = mover.appendChild(document.createElement("button"));
+    const closeImage = document.createElement("img");
     closer.className = "closer";
+    closer.setAttribute("aria-label", "Close question popup");
     closeImage.src = window.base + "/static/img/x.svg";
     closer.appendChild(closeImage);
     const closePopup = () => {
@@ -816,9 +801,14 @@ const questionMarkWidget = (
   questionMap: Dictionary<QuestionMapItem>,
   setCurrentEditor: (view: EditorView) => void
 ) => (view: EditorView) => {
-  const elem = document.createElement("div");
+  // Use a real <button> so this control is keyboard-accessible
+  const elem = document.createElement("button");
   elem.className = "questionMark";
-  elem.innerHTML = `<img src='${window.base}/static/img/question-icon.svg'/>`;
+  elem.setAttribute("aria-label", "Open question");
+  const questionMarkImg = document.createElement("img");
+  questionMarkImg.src = window.base + "/static/img/question-icon.svg";
+  questionMarkImg.setAttribute("aria-hidden", "true");
+  elem.appendChild(questionMarkImg);
 
   elem.addEventListener("mouseenter", (e) => {
     e.preventDefault();
@@ -838,6 +828,15 @@ const questionMarkWidget = (
     e.stopPropagation();
     questionPopup(e.pageX, e.pageY, qId, questionMap, view, setCurrentEditor);
   };
+
+  elem.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      const r = elem.getBoundingClientRect();
+      questionPopup(r.left + window.pageXOffset, r.bottom + window.pageYOffset, qId, questionMap, view, setCurrentEditor);
+    }
+  });
+
   return elem;
 };
 
