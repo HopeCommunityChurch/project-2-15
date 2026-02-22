@@ -34,14 +34,24 @@
 
   <div id="historyLayout">
     <div id="historyList">
-      <h2>Versions</h2>
+      <div id="historyListHeader">
+        <h2>Versions</h2>
+        <p id="historyListHint">Each entry below is a saved snapshot of your document. Click one to preview it.</p>
+      </div>
       <div id="historyGroups">Loading&hellip;</div>
     </div>
     <div id="historyPreview">
       <div id="historyPreviewPlaceholder">
-        <p>Select a version on the left to preview it.</p>
+        <div id="historyEmptyState">
+          <div id="historyEmptyIcon">🕐</div>
+          <h3>Your document's history lives here</h3>
+          <p>Every time you edit your study, Project&nbsp;2:15 automatically saves a snapshot. You can browse those snapshots and restore any earlier version at any time.</p>
+          <p class="historyEmptyHint">← Select a version on the left to get started.</p>
+        </div>
       </div>
-      <div id="historyPreviewActions" style="display:none">
+      <div id="previewToolbar" style="display:none">
+        <button id="backToVersions" aria-label="Back to version list">← Versions</button>
+        <div id="previewToolbarDate" class="versionPill"></div>
         <button id="restoreButton" class="blue">Restore this version</button>
       </div>
       <div id="editorHolder" class="editorHolder" style="display:none"></div>

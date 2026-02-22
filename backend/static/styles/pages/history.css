@@ -34,6 +34,12 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+#historyListHeader {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
 
   h2 {
     font-size: 11px;
@@ -41,11 +47,15 @@
     color: #5f6368;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    padding: 16px 16px 12px;
-    border-bottom: 1px solid #e0e0e0;
     margin-bottom: 4px;
-    flex-shrink: 0;
   }
+}
+
+#historyListHint {
+  font-size: 11px;
+  color: #9aa0a6;
+  margin: 0;
+  line-height: 1.5;
 }
 
 #historyGroups {
@@ -121,38 +131,83 @@
   align-items: stretch;
 }
 
+/* ── Empty state ────────────────────────────────────── */
+
 #historyPreviewPlaceholder {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  p {
-    color: #80868b;
-    font-size: 14px;
-    text-align: center;
-    margin: 0;
-  }
+  padding: 32px;
 }
 
-#historyPreviewActions {
+#historyEmptyState {
+  max-width: 400px;
+  text-align: center;
+}
+
+#historyEmptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+#historyEmptyState h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #202124;
+  margin-bottom: 12px;
+}
+
+#historyEmptyState p {
+  font-size: 13px;
+  color: #5f6368;
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+
+.historyEmptyHint {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0057d1 !important;
+}
+
+/* ── Version pill ───────────────────────────────────── */
+
+.versionPill {
+  padding: 3px 10px;
+  background: #eef5ff;
+  border: 1px solid #c5d8f8;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0057d1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Preview toolbar ────────────────────────────────── */
+
+#previewToolbar {
   position: sticky;
   top: 0;
   z-index: 10;
-  background-color: #fff;
-  padding: 10px 24px;
+  background: #fff;
   border-bottom: 1px solid #e0e0e0;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
 }
 
 /* ── Editor preview – full width like the study editor ── */
 
 #editorHolder.editorHolder {
   flex: 1;
-  padding: 32px 48px;
+  padding: 0px 10px;
   box-sizing: border-box;
 }
 
@@ -169,14 +224,14 @@
 }
 
 .historyGroupItem .historyTime::before {
-  content: "▶ " / "";
+  content: "\25B6\00A0" / "";
   font-size: 9px;
   opacity: 0.5;
   margin-right: 2px;
 }
 
 .historyGroupItem.expanded .historyTime::before {
-  content: "▼ " / "";
+  content: "\25BC\00A0" / "";
 }
 
 .historyStepsPanel {
@@ -224,4 +279,67 @@
   color: #80868b;
   display: block;
   margin-top: 1px;
+}
+
+/* ── Back button (mobile only) ──────────────────────── */
+
+#backToVersions {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0057d1;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-radius: 6px;
+
+  &:hover {
+    background: #f1f3f4;
+  }
+}
+
+/* ── Mobile ─────────────────────────────────────────── */
+
+@media (max-width: 660px) {
+  #studyPage {
+    grid-template-rows: 52px 1fr;
+    overflow: hidden;
+  }
+
+  #historyLayout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  /* By default show the sidebar, hide the preview */
+  #historyPreview {
+    display: none;
+  }
+
+  /* When a version is selected, swap panels */
+  #historyLayout.preview-open #historyList {
+    display: none;
+  }
+
+  #historyLayout.preview-open #historyPreview {
+    display: flex;
+  }
+
+  #backToVersions {
+    display: flex;
+  }
+
+#restoreButton {
+    font-size: 12px;
+    padding: 6px 10px;
+    white-space: nowrap;
+  }
+
+  .historyEmptyHint {
+    display: none; /* arrow hint doesn't apply on mobile */
+  }
 }

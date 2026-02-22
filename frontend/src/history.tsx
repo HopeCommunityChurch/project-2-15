@@ -62,7 +62,7 @@ function groupByDate(groups: HistoryGroup[]): Map<string, HistoryGroup[]> {
   return map;
 }
 
-async function loadPreview(targetVersion: number) {
+async function loadPreview(targetVersion: number, versionLabel?: string) {
   const res = await fetch(`/document/${docId}/at-version/${targetVersion}`);
   if (!res.ok) return;
   const data: DocAtVersion = await res.json();
@@ -97,10 +97,14 @@ async function loadPreview(targetVersion: number) {
   previewEditor.addEditor(holder);
 
   document.getElementById("historyPreviewPlaceholder").style.display = "none";
-  document.getElementById("historyPreviewActions").style.display = "flex";
+  document.getElementById("previewToolbar").style.display = "flex";
   document.getElementById("editorHolder").style.display = "block";
+  document.getElementById("historyLayout").classList.add("preview-open");
 
-  const restoreButton = document.getElementById("restoreButton");
+  document.getElementById("previewToolbarDate").textContent = versionLabel ?? "";
+  updateToolbarPill();
+
+  const restoreButton = document.getElementById("restoreButton") as HTMLButtonElement;
   restoreButton.onclick = () => {
     sessionStorage.setItem(
       docId + ".restore",
@@ -146,10 +150,35 @@ async function loadSubGroups(
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       selectItem(btn);
-      loadPreview(sub.endVersion);
+      loadPreview(sub.endVersion, formatTime(sub.startedAt));
     });
     panel.appendChild(btn);
   }
+}
+
+function updateToolbarPill() {
+  const toolbar = document.getElementById("previewToolbar");
+  const pill = document.getElementById("previewToolbarDate") as HTMLElement;
+  if (toolbar.style.display === "none") return;
+  // Always try to show the pill first, then hide it only if it causes overflow
+  pill.style.display = "";
+  if (toolbar.scrollWidth > toolbar.clientWidth) {
+    pill.style.display = "none";
+  }
+}
+
+function initToolbarPillObserver() {
+  const toolbar = document.getElementById("previewToolbar");
+  new ResizeObserver(updateToolbarPill).observe(toolbar);
+}
+
+function initBackButton() {
+  document.getElementById("backToVersions").addEventListener("click", () => {
+    document.getElementById("historyLayout").classList.remove("preview-open");
+    document.querySelectorAll(".historyGroupItem.selected, .historyStepItem.selected").forEach((e) =>
+      e.classList.remove("selected")
+    );
+  });
 }
 
 async function init() {
@@ -213,7 +242,7 @@ async function init() {
           header.classList.add("expanded");
           header.setAttribute("aria-expanded", "true");
           selectItem(header);
-          loadPreview(group.endVersion);
+          loadPreview(group.endVersion, formatDate(group.startedAt));
           if (!subLoaded) {
             subLoaded = true;
             await loadSubGroups(group, stepsPanel);
@@ -231,3 +260,5 @@ async function init() {
 }
 
 init();
+initBackButton();
+initToolbarPillObserver();
