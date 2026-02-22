@@ -22,6 +22,7 @@ import Fields.Email (mkEmail)
 import Lucid qualified as L
 import Lucid.Htmx qualified as L
 import Mail qualified
+import Network.HTTP.Types (urlEncode)
 import Network.HTTP.Types.Status (status200, status204)
 import Text.Ginger
 import Types qualified as T
@@ -137,7 +138,22 @@ deleteStudy user = do
   unless (user.userId `elem` fmap (.userId) doc.editors) $ do
     NotAuth.getNotAuth
   lift $ Doc.deleteDocument docId
-  let url = baseUrl <> "/"
+  let encodedName = decodeUtf8 (urlEncode True (encodeUtf8 doc.name))
+  let url = baseUrl <> "/studies?deleted=" <> UUID.toText (unwrap docId) <> "&name=" <> encodedName
   setHeader "HX-Redirect" (toLazy url)
   status status200
+
+
+restoreStudy
+  :: ( MonadDb env m
+     )
+  => AuthUser
+  -> ActionT m ()
+restoreStudy user = do
+  docId <- captureParam "documentId"
+  deletedDocs <- lift $ Doc.getDeletedDocs user
+  unless (any (\d -> d.docId == docId) deletedDocs) $ do
+    NotAuth.getNotAuth
+  lift $ Doc.restoreDocument docId
+  redirect (toLazy (baseUrl <> "/study/" <> UUID.toText (unwrap docId)))
 

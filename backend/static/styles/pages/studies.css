@@ -2,6 +2,24 @@
 @import url("../component/nav.css");
 @import url("../component/newstudy.css");
 
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+#studiesScroll {
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  display: flex;
+  flex-direction: column;
+}
+
+#studiesScroll #footer {
+  margin-top: auto;
+}
+
 #studiesContent {
   width: 95%;
   max-width: 1080px;
@@ -33,7 +51,7 @@
       transition: background-color .3s;
       box-shadow: 0 4px 7px 1px #00000012;
       margin-top: 10px;
-      a&hover {
+      &:hover {
         background-color: #eef5ff;
       }
       div {
@@ -46,5 +64,129 @@
     color: #797d80;
   }
 
-}
+  .undoBanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fef9e7;
+    border: 1px solid #f0e4b0;
+    border-radius: 8px;
+    padding: 6px 16px;
+    margin-bottom: 16px;
+    span {
+      font-size: 15px;
+    }
+    .undoButton {
+      background: none;
+      border: none;
+      color: #2563eb;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 15px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      &:hover {
+        background-color: #e8f0fe;
+      }
+    }
+  }
 
+  .tabBar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+    .tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      color: #666;
+      font-weight: 500;
+      &:hover {
+        color: #333;
+      }
+      &.active {
+        color: #2563eb;
+        border-bottom-color: #2563eb;
+      }
+    }
+  }
+
+  .deletedRow {
+    color: black;
+    border-radius: 9px;
+    box-shadow: 0 4px 7px 1px #00000012;
+    margin-top: 10px;
+    opacity: 0.7;
+    div {
+      padding: 10px;
+      align-self: center;
+    }
+    .restoreButton {
+      background: none;
+      border: 1px solid #2563eb;
+      color: #2563eb;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      &:hover {
+        background-color: #e8f0fe;
+      }
+    }
+  }
+
+  .emptyStudies {
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+    background-color: #f0f6ff;
+    border-radius: 16px;
+    margin-top: 16px;
+  }
+
+  .emptyStudiesInner {
+    max-width: 480px;
+    text-align: center;
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 16px 0 12px;
+    }
+    p {
+      color: #555;
+      font-size: 16px;
+      line-height: 1.6;
+      margin: 0 0 24px;
+    }
+  }
+
+  .emptyStudiesIcon {
+    font-size: 52px;
+    line-height: 1;
+  }
+
+  .emptyStudiesCta {
+    font-size: 16px;
+    padding: 12px 28px;
+    border-radius: 8px;
+  }
+
+  .emptyStudiesHint {
+    margin-top: 16px !important;
+    font-size: 14px !important;
+    color: #888 !important;
+  }
+
+  .emptyTrash {
+    color: #888;
+    margin-top: 80px;
+    font-size: 15px;
+    text-align: center;
+  }
+
+}
