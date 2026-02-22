@@ -147,6 +147,7 @@ dialog.popup {
   overflow-y: auto;
   align-self: stretch;
   justify-self: stretch;
+  position: relative;
 }
 
 

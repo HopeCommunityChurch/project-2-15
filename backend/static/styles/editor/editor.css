@@ -685,6 +685,8 @@ img.ProseMirror-separator {
     padding: 1px 6px;
     border-radius: 5px;
     height: fit-content;
+    cursor: default;
+    user-select: none;
   }
   questionouter > button {
     grid-area: a;
@@ -766,6 +768,14 @@ img.ProseMirror-separator {
     cursor: pointer;
   }
 
+  .verseRefClickable {
+    cursor: pointer;
+
+    &:hover {
+      background-color: #c4d9f8 !important;
+    }
+  }
+
   [contenteditable] {
     -webkit-user-select: text;
     user-select: text;
@@ -797,4 +807,45 @@ img.ProseMirror-separator {
       opacity: 0.65;
     }
   }
+}
+
+.verseContextPopover {
+  position: absolute;
+  z-index: 2000;
+  background: white;
+  border: 1px solid #d0d7e3;
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.13);
+  padding: 10px 14px;
+  max-width: 380px;
+  font-size: 0.88em;
+  line-height: 1.55;
+}
+
+.verseContextLine {
+  color: #888;
+  padding: 1px 0;
+}
+
+.verseContextLineSelected {
+  color: #1a1a1a;
+}
+
+.verseContextNum {
+  font-size: 0.72em;
+  font-weight: 600;
+  color: #aaa;
+  vertical-align: super;
+  margin-right: 4px;
+  user-select: none;
+}
+
+.verseContextLineSelected .verseContextNum {
+  color: #6a90d0;
+}
+
+.verseContextHighlight {
+  background-color: #fff3a0;
+  border-radius: 2px;
+  padding: 0 1px;
 }

@@ -104,6 +104,145 @@ export class QuestionsView implements NodeView {
   }
 }
 
+type VerseSeg = {
+  verse: { book: string; chapter: number; verse: number } | null;
+  texts: Array<{ text: string; selected: boolean }>;
+};
+
+function getQuestionContext(questionId: string, view: EditorView): VerseSeg[] | null {
+  const verseSegs: VerseSeg[] = [];
+  let currentVerseKey: string | null = null;
+
+  view.state.doc.descendants((node) => {
+    if (node.type.name === "section") return true;
+    if (node.type.name === "bibleText") return true;
+    if (node.type.name === "chunk") return true;
+    if (node.type.name !== "text") return false;
+
+    const verse = node.marks.find((m) => m.type.name === "verse");
+    const isSelected = !!node.marks.find(
+      (m) => m.type.name === "questionReference" && m.attrs.questionId === questionId
+    );
+
+    if (!verse) return false;
+
+    const verseKey = `${verse.attrs.book}-${verse.attrs.chapter}-${verse.attrs.verse}`;
+
+    if (verseKey !== currentVerseKey) {
+      verseSegs.push({ verse: verse.attrs, texts: [{ text: node.text, selected: isSelected }] });
+      currentVerseKey = verseKey;
+    } else {
+      verseSegs[verseSegs.length - 1].texts.push({ text: node.text, selected: isSelected });
+    }
+    return false;
+  });
+
+  const firstSelected = verseSegs.findIndex((seg) => seg.texts.some((t) => t.selected));
+  const lastSelected = verseSegs.reduce((acc, seg, i) => (seg.texts.some((t) => t.selected) ? i : acc), -1);
+
+  if (firstSelected === -1) return null;
+
+  const selectedBook = verseSegs[firstSelected].verse?.book;
+
+  const prevIdx = firstSelected - 1;
+  const start = (prevIdx >= 0 && verseSegs[prevIdx].verse?.book === selectedBook)
+    ? prevIdx
+    : firstSelected;
+
+  const nextIdx = lastSelected + 1;
+  const end = (nextIdx < verseSegs.length && verseSegs[nextIdx].verse?.book === selectedBook)
+    ? nextIdx
+    : lastSelected;
+
+  return verseSegs.slice(start, end + 1);
+}
+
+function showVerseContextPopover(anchor: HTMLElement, questionId: string, view: EditorView) {
+  const existingId = "verse-context-popover-" + questionId;
+  const existing = document.getElementById(existingId);
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const context = getQuestionContext(questionId, view);
+  if (!context) return;
+
+  const popover = document.createElement("div");
+  popover.id = existingId;
+  popover.className = "verseContextPopover";
+
+  context.forEach((seg) => {
+    const line = document.createElement("div");
+    const isLineSelected = seg.texts.some((t) => t.selected);
+    line.className = "verseContextLine" + (isLineSelected ? " verseContextLineSelected" : "");
+
+    if (seg.verse) {
+      const verseNum = document.createElement("span");
+      verseNum.className = "verseContextNum";
+      verseNum.textContent = `${seg.verse.chapter}:${seg.verse.verse}`;
+      line.appendChild(verseNum);
+    }
+
+    const textSpan = document.createElement("span");
+    seg.texts.forEach((t) => {
+      if (t.selected) {
+        const hl = document.createElement("mark");
+        hl.className = "verseContextHighlight";
+        hl.textContent = t.text;
+        textSpan.appendChild(hl);
+      } else {
+        textSpan.appendChild(document.createTextNode(t.text));
+      }
+    });
+    line.appendChild(textSpan);
+
+    popover.appendChild(line);
+  });
+
+  const container = document.getElementById("mainEditorHolder") || document.body;
+
+  popover.style.position = "absolute";
+  popover.style.visibility = "hidden";
+  container.appendChild(popover);
+
+  const anchorRect = anchor.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  const popRect = popover.getBoundingClientRect();
+  const viewportH = window.innerHeight;
+  const viewportW = window.innerWidth;
+
+  // Convert viewport coords to coords within the scrolling container
+  const anchorTopInContainer = anchorRect.top - containerRect.top + container.scrollTop;
+  const anchorBottomInContainer = anchorRect.bottom - containerRect.top + container.scrollTop;
+  const anchorLeftInContainer = anchorRect.left - containerRect.left + container.scrollLeft;
+
+  let top: number;
+  if (anchorRect.top - 6 - popRect.height >= 10) {
+    top = anchorTopInContainer - popRect.height - 6;
+  } else {
+    top = anchorBottomInContainer + 6;
+  }
+
+  let left = anchorLeftInContainer;
+  if (anchorRect.left + popRect.width > viewportW - 10) {
+    left = anchorLeftInContainer - (anchorRect.left + popRect.width - (viewportW - 10));
+  }
+  if (left < 0) left = 0;
+
+  popover.style.top = top + "px";
+  popover.style.left = left + "px";
+  popover.style.visibility = "visible";
+
+  const closeHandler = (e: MouseEvent) => {
+    if (!popover.contains(e.target as Node) && e.target !== anchor) {
+      popover.remove();
+      document.removeEventListener("mousedown", closeHandler);
+    }
+  };
+  setTimeout(() => document.addEventListener("mousedown", closeHandler), 0);
+}
+
 function formatBibleReference(verse1: any, verse2: any): string {
   if (verse1 == null || verse2 == null) return "Q";
   if (verse1.book !== verse2.book) {
@@ -167,6 +306,14 @@ export class QuestionView implements NodeView {
     const qtext = document.createElement("div");
     qtext.setAttribute("contenteditable", "false");
     qtext.innerText = formatBibleReference(vStart, vEnd);
+    if (vStart !== null) {
+      qtext.classList.add("verseRefClickable");
+      qtext.title = "View passage context";
+      qtext.onclick = (e) => {
+        e.stopPropagation();
+        showVerseContextPopover(qtext, this.questionId, view);
+      };
+    }
     this.dom.appendChild(qtext);
     this.contentDOM = document.createElement("question");
     this.dom.appendChild(this.contentDOM);
@@ -278,7 +425,7 @@ export const questionPopup = (
     pop.className = "questionRefPopup";
 
     // Initially position it off-screen so it doesn't flicker
-    pop.style.position = "absolute";
+    pop.style.position = "fixed";
     pop.style.left = "-9999px";
     pop.style.top = "-9999px";
 
@@ -289,9 +436,11 @@ export const questionPopup = (
     // Now measure it
     const rect = pop.getBoundingClientRect();
     const windowWidth = window.innerWidth;
-    const windowHeight = document.body.scrollHeight;
+    const windowHeight = window.innerHeight;
 
     // Calculate initial position based on incoming x, y
+    // x/y are pageX/pageY; since the page itself doesn't scroll (only #mainEditorHolder does),
+    // pageX/pageY equal clientX/clientY, which are correct for fixed positioning.
     let initialLeft = x - 20;
     let initialTop = y + parseInt(getComputedStyle(document.documentElement).fontSize);
 
@@ -307,6 +456,32 @@ export const questionPopup = (
     pop.style.left = initialLeft + "px";
     pop.style.top = initialTop + "px";
     pop.style.visibility = "visible";
+
+    // Clamp popup within viewport, shrinking it if the viewport is too small
+    const clampToViewport = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const r = pop.getBoundingClientRect();
+
+      // Shrink if wider or taller than viewport (use offsetWidth to account for border/padding)
+      const borderW = pop.offsetWidth - pop.clientWidth;
+      const borderH = pop.offsetHeight - pop.clientHeight;
+      if (r.width > vw) pop.style.width = (vw - borderW) + "px";
+      if (r.height > vh) pop.style.height = (vh - borderH) + "px";
+
+      // Re-read after possible resize
+      const r2 = pop.getBoundingClientRect();
+      let l = parseFloat(pop.style.left);
+      let t = parseFloat(pop.style.top);
+      if (l + r2.width > vw) l = vw - r2.width;
+      if (t + r2.height > vh) t = vh - r2.height;
+      if (l < 0) l = 0;
+      if (t < 0) t = 0;
+      pop.style.left = l + "px";
+      pop.style.top = t + "px";
+    };
+
+    window.addEventListener("resize", clampToViewport);
 
     // Increase the z-index of the current pop-up
     if (!zIndices[qId]) {
@@ -339,7 +514,7 @@ export const questionPopup = (
         let newY = clientY - diffY;
 
         const windowWidth = window.innerWidth;
-        const windowHeight = document.body.scrollHeight;
+        const windowHeight = window.innerHeight;
         const rect = pop.getBoundingClientRect();
         if (newX < 0) newX = 0;
         if (newY < 0) newY = 0;
@@ -472,10 +647,10 @@ export const questionPopup = (
       const doResize = (cx: number, cy: number) => {
         const dx = cx - startX;
         const dy = cy - startY;
-        if (edges.right) pop.style.width = Math.max(200, startW + dx) + "px";
+        if (edges.right) pop.style.width = Math.max(250, startW + dx) + "px";
         if (edges.bottom) pop.style.height = Math.max(150, startH + dy) + "px";
         if (edges.left) {
-          const newW = Math.max(200, startW - dx);
+          const newW = Math.max(250, startW - dx);
           pop.style.width = newW + "px";
           pop.style.left = startL + (startW - newW) + "px";
         }
@@ -515,25 +690,26 @@ export const questionPopup = (
     closer.className = "closer";
     closeImage.src = window.base + "/static/img/x.svg";
     closer.appendChild(closeImage);
-    closer.onclick = (e) => {
-      unhighlighQuestion(qId, view.state, view.dispatch);
+    const closePopup = () => {
+      window.removeEventListener("resize", clampToViewport);
       qNode.editor.destroy();
       qNode.editor = null;
       pop.parentNode.removeChild(pop);
     };
+
+    closer.onclick = (e) => {
+      unhighlighQuestion(qId, view.state, view.dispatch);
+      closePopup();
+    };
     closer.addEventListener("touchstart", (e) => {
       e.stopPropagation();
-      qNode.editor.destroy();
-      qNode.editor = null;
-      pop.parentNode.removeChild(pop);
+      closePopup();
     });
 
     pop.onkeydown = (event) => {
       if (event.key === "Escape") {
         unhighlighQuestion(qId, view.state, view.dispatch);
-        qNode.editor.destroy();
-        qNode.editor = null;
-        pop.parentNode.removeChild(pop);
+        closePopup();
       }
     };
 
@@ -574,10 +750,7 @@ export const questionPopup = (
         e.preventDefault();
         const questionId = qNode.node.attrs.questionId;
         removeQuestion(questionId, view.state, view.dispatch);
-
-        qNode.editor.destroy();
-        qNode.editor = null;
-        pop.parentNode.removeChild(pop);
+        closePopup();
       };
 
       bottomButtons.appendChild(trashButton);
