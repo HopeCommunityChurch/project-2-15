@@ -302,8 +302,6 @@ export class QuestionView implements NodeView {
       vEnd = verse.attrs;
     });
 
-    // Always assign questionMap so update() can reliably sync the inner editor,
-    // even when a re-mount finds an existing entry (e.g. after undo/redo).
     this.questionMap = questionMap;
     if (!questionMap[this.questionId]) {
       questionMap[this.questionId] = {
@@ -311,6 +309,11 @@ export class QuestionView implements NodeView {
         getPos: getPos,
         editor: null,
       };
+    } else {
+      // On remount (e.g. after undo), refresh node and getPos so dispatchInner
+      // always calls the live position callback rather than a stale one.
+      questionMap[this.questionId].node = node;
+      questionMap[this.questionId].getPos = getPos;
     }
 
     this.dom = document.createElement("questionOuter");
@@ -458,8 +461,9 @@ export const questionPopup = (
       if (r.height > vh) pop.style.height = (vh - borderH) + "px";
 
       const r2 = pop.getBoundingClientRect();
-      let l = parseFloat(pop.style.left);
-      let t = parseFloat(pop.style.top);
+      // Use getBoundingClientRect for position since style.left may be "calc(...)" after drag
+      let l = r2.left;
+      let t = r2.top;
       if (l + r2.width > vw) l = vw - r2.width;
       if (t + r2.height > vh) t = vh - r2.height;
       if (l < 0) l = 0;
