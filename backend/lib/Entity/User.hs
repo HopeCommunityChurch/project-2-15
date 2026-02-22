@@ -79,42 +79,6 @@ instance E.GuardValue GetUser T.UserId where
     guard_ $ user.userId `in_` ids
 
 
-data GetUserPublic = MkGetUserPublic
-  { userId :: T.UserId
-  , name   :: Text
-  , image  :: Maybe Text
-  }
-  deriving (Generic, Show)
-  deriving (FromJSON, ToJSON, ToSchema)
-
-instance E.Entity GetUserPublic where
-  data DbEntity GetUserPublic f = MkDbGetUserPublic
-    { userId :: C f T.UserId
-    , name   :: C f Text
-    , image  :: C f (Maybe Text)
-    }
-    deriving anyclass (Beamable)
-    deriving (Generic)
-
-  type EntityDatabase GetUserPublic = Db.Db
-
-  toEntity MkDbGetUserPublic{..} = MkGetUserPublic userId name image
-
-  queryEntity mAuthUser = do
-    user <- all_ Db.db.user
-    for_ mAuthUser $ \ authUser ->
-      guard_ $ user.churchId ==. val_ authUser.churchId
-    pure $ MkDbGetUserPublic user.userId user.name user.image
-
-type GetUserPublic' = DbEntity GetUserPublic Identity
-
-instance FromJSON GetUserPublic'
-
-instance E.GuardValue GetUserPublic T.UserId where
-  guardValues ids user =
-    guard_ $ user.userId `in_` ids
-
-
 data NewUser = MkNewUser
   { email :: T.Email
   , name :: Text
