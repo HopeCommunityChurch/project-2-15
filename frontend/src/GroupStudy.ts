@@ -19,7 +19,6 @@ type TabEntry = {
 
 let tabs: TabEntry[] = [];
 let activeDocId: T.DocId | undefined;
-let listenQueue: T.DocId[] = [];
 let allDocs: T.DocMetaRaw[] = [];
 let labelMap: Map<T.DocId, string> = new Map();
 
@@ -29,7 +28,6 @@ function computeLabels(docs: T.DocMetaRaw[]): Map<T.DocId, string> {
   const map = new Map<T.DocId, string>();
   if (docs.length === 0) return map;
 
-  // Parse names
   const parsed = docs.map(doc => {
     const parts = doc.editors[0]?.name?.split(" ") ?? ["?"];
     const firstName = parts[0] ?? "?";
@@ -38,7 +36,6 @@ function computeLabels(docs: T.DocMetaRaw[]): Map<T.DocId, string> {
     return { doc, firstName, lastName, lastInitial };
   });
 
-  // Group by firstName
   const byFirst = groupBy(parsed, p => p.firstName);
 
   for (const [firstName, group] of byFirst.entries()) {
@@ -48,7 +45,7 @@ function computeLabels(docs: T.DocMetaRaw[]): Map<T.DocId, string> {
     }
     // Duplicate first names — try firstName + lastInitial
     const byFirstAndInitial = groupBy(group, p => firstName + p.lastInitial);
-    for (const [key, subGroup] of byFirstAndInitial.entries()) {
+    for (const [, subGroup] of byFirstAndInitial.entries()) {
       if (subGroup.length === 1) {
         const p = subGroup[0];
         map.set(p.doc.docId, p.lastInitial ? `${firstName} ${p.lastInitial}` : firstName);
@@ -324,20 +321,30 @@ function openTab(docId: T.DocId, ws: WS.MyWebsocket, pageDocId: string) {
   editorContainerEl.className = "splitTabEditor editorHolder";
   splitEditorArea.appendChild(editorContainerEl);
 
-  // Create tab element
-  const tabEl = document.createElement("button");
+  // Create tab element — use a div (not a button) so we never have a nested
+  // <button> inside a <button>, which is invalid HTML and causes browsers to
+  // eject the inner element from the DOM, breaking close-tab and focus.
+  const tabEl = document.createElement("div");
   tabEl.className = "splitTab";
+  tabEl.setAttribute("role", "tab");
+  tabEl.setAttribute("tabindex", "0");
   tabEl.innerHTML = `
     <span class="tabLabel">${escapeHtml(label)}</span>
-    <button class="tabClose" title="Close tab">
-      <img src="/static/img/x.svg" alt="Close">
+    <button class="tabClose" title="Close ${escapeHtml(label)} tab" aria-label="Close ${escapeHtml(label)} tab">
+      <img src="/static/img/x.svg" alt="">
     </button>
   `;
 
-  // Click on tab → activate
+  // Click or keyboard activation on tab → activate
   tabEl.addEventListener("click", (e) => {
     if ((e.target as HTMLElement).closest(".tabClose")) return;
     activateTab(docId, pageDocId);
+  });
+  tabEl.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      activateTab(docId, pageDocId);
+    }
   });
 
   // Click on close button
@@ -373,7 +380,6 @@ function openTab(docId: T.DocId, ws: WS.MyWebsocket, pageDocId: string) {
   activateTab(docId, pageDocId);
 
   // Subscribe via WS
-  listenQueue.push(docId);
   ws.send({ tag: "ListenToDoc", contents: docId });
 
   updateAddButtonVisibility();
@@ -390,9 +396,6 @@ function closeTab(docId: T.DocId, ws: WS.MyWebsocket, pageDocId: string) {
   const entry = tabs[idx];
 
   ws.send({ tag: "StopListenToDoc", contents: docId });
-
-  // Remove from listenQueue if still pending
-  listenQueue = listenQueue.filter(id => id !== docId);
 
   entry.editor?.removeEditor();
   entry.tabEl.remove();
@@ -421,7 +424,6 @@ function closeSidePanel(ws: WS.MyWebsocket) {
   }
   tabs = [];
   activeDocId = undefined;
-  listenQueue = [];
 
   const splitEditorArea = document.getElementById("splitEditorArea");
   if (splitEditorArea) splitEditorArea.innerHTML = "";
@@ -469,7 +471,7 @@ function renderMemberPicker(ws: WS.MyWebsocket, pageDocId: string, filterOpen: b
   popover.innerHTML = "";
 
   // Build rows for each owner in the group
-  const groupStudyData = loadGroupStudyData(pageDocId);
+  const groupStudyData = loadGroupStudyData();
 
   // Show docs for owners (filtered to non-self, which allDocs already is)
   for (const doc of allDocs) {
@@ -480,8 +482,13 @@ function renderMemberPicker(ws: WS.MyWebsocket, pageDocId: string, filterOpen: b
 
     const label = labelMap.get(doc.docId) ?? doc.editors[0]?.name ?? "?";
 
-    const row = document.createElement("div");
+    // Use <button> for interactive rows, <div> only for non-interactive ones.
+    const isClickable = !isOpen || !filterOpen;
+    const row = document.createElement(isClickable ? "button" : "div") as HTMLElement;
     row.className = "memberPickerRow" + (isOpen ? " open" : "");
+    if (isClickable) {
+      (row as HTMLButtonElement).type = "button";
+    }
 
     const avatar = document.createElement("span");
     avatar.className = "memberPickerAvatar";
@@ -504,7 +511,6 @@ function renderMemberPicker(ws: WS.MyWebsocket, pageDocId: string, filterOpen: b
           closeTab(doc.docId, ws, pageDocId);
           renderMemberPicker(ws, pageDocId, false);
         });
-        row.style.cursor = "pointer";
       }
     } else {
       row.addEventListener("click", () => {
@@ -589,7 +595,7 @@ function closeMemberPicker() {
 
 // ── Data loading ─────────────────────────────────────────────────────
 
-function loadGroupStudyData(pageDocId: string): T.GroupStudyRaw {
+function loadGroupStudyData(): T.GroupStudyRaw {
   const el = document.getElementById("groupStudyData");
   if (!el) return { name: "", studyId: "" as T.GroupStudyId, studyTemplateId: "" as T.StudyTemplateId, docs: [], owners: [] };
   const raw = JSON.parse(el.textContent ?? "{}") as T.GroupStudyRaw;
@@ -605,7 +611,7 @@ export function init(ws: WS.MyWebsocket) {
   const pageDocId = window.pageDocId ?? window.location.pathname.split('/').pop() ?? '';
 
   // Load group study data and compute labels (exclude own doc)
-  const groupStudy = loadGroupStudyData(pageDocId);
+  const groupStudy = loadGroupStudyData();
   allDocs = groupStudy.docs.filter(d => d.docId !== (pageDocId as T.DocId));
   labelMap = computeLabels(allDocs);
 
@@ -626,11 +632,9 @@ export function init(ws: WS.MyWebsocket) {
 
   initTabDrag(pageDocId);
 
-  // WS: DocListenStart — FIFO queue routes response to correct tab
+  // WS: DocListenStart — route by docId from payload
   ws.addEventListener("DocListenStart", (ev: WS.DocListenStartEvent) => {
-    const docId = listenQueue.shift();
-    if (!docId) return;
-    const entry = tabs.find(t => t.docId === docId);
+    const entry = tabs.find(t => t.docId === ev.docId);
     if (!entry) return; // Tab was closed before response arrived
 
     entry.isLoading = false;
@@ -641,7 +645,7 @@ export function init(ws: WS.MyWebsocket) {
     });
     entry.editor.addEditor(entry.editorContainerEl);
 
-    if (docId === activeDocId) {
+    if (ev.docId === activeDocId) {
       requestAnimationFrame(() => restoreScrollPos(entry.editorContainerEl, entry, pageDocId));
     }
   });
@@ -653,12 +657,15 @@ export function init(ws: WS.MyWebsocket) {
     entry?.editor?.dispatchSteps(update);
   });
 
-  // WS: Reconnect — re-subscribe all open tabs
+  // WS: Reconnect — tear down stale editors and re-subscribe all open tabs.
+  // Without removing the old editor first, DocListenStart would mount a second
+  // editor into the same container while the previous one leaks.
   ws.addEventListener("open", () => {
     if (tabs.length === 0) return;
-    // Re-populate queue and re-send ListenToDoc for each tab
     for (const entry of tabs) {
-      listenQueue.push(entry.docId);
+      entry.editor?.removeEditor();
+      entry.editor = null;
+      entry.isLoading = true;
       ws.send({ tag: "ListenToDoc", contents: entry.docId });
     }
   });

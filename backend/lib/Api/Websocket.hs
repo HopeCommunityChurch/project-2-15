@@ -84,11 +84,18 @@ data DocUpdatedMsg = MkDocUpdatedMsg
   }
   deriving (Show, Generic, ToJSON)
 
+data DocListenStartMsg = MkDocListenStartMsg
+  { docId    :: T.DocId
+  , document :: Aeson.Object
+  }
+  deriving (Show, Generic)
+  deriving anyclass (ToJSON, FromJSON)
+
 data OutMsg
   = OutDocUpdated DocUpdatedMsg
   | OutDocOpened GetDoc
   | OutDocOpenedOther -- when the doc is opened on another device, you should close your document
-  | OutDocListenStart Aeson.Object
+  | OutDocListenStart DocListenStartMsg
   | OutDocSaved SavedDoc
   | OutDocNameUpdated
   | OutUnauthorized
@@ -159,7 +166,7 @@ websocketSever user conn = do
               InUpdateName txt ->
                 prefixLogs "UpdateName" $ handleUpdateName conn st txt
               InStopListenToDoc docId ->
-                prefixLogs "StopListenToDoc" $ handleStopListenToDoc connId st docId
+                prefixLogs "StopListenToDoc" $ closeSideDoc connId st docId
               other -> prefixLogs "other" $
                 logInfo $ show other
       case result of
@@ -254,8 +261,11 @@ handleListenToDoc user connId st conn docId = do
         Nothing -> mkDocSt Nothing docId
         Just docSt -> pure docSt
     atomicModifyIORef_ docSt.subscriptions (Map.insert connId conn)
-    sendOut conn (OutDocListenStart doc.document)
-    atomicModifyIORef_ st (\ st' -> st' { sideDocs = docId : st'.sideDocs })
+    sendOut conn (OutDocListenStart (MkDocListenStartMsg docId doc.document))
+    atomicModifyIORef_ st (\ st' ->
+      if docId `elem` st'.sideDocs
+        then st'
+        else st' { sideDocs = docId : st'.sideDocs })
 
 
 closeSideDoc
@@ -273,17 +283,6 @@ closeSideDoc connId rst docId = prefixLogs ("closing side doc " <> show docId) $
   for_ mdocSt $ \ docSt -> do
     atomicModifyIORef_ docSt.subscriptions (Map.delete connId)
   atomicModifyIORef_ rst (\ st -> st { sideDocs = filter (/= docId) st.sideDocs })
-
-
-handleStopListenToDoc
-  :: ( MonadDb env m
-     , HasSubs env
-     )
-  => ConnId
-  -> IORef SocketState
-  -> T.DocId
-  -> m ()
-handleStopListenToDoc connId st docId = closeSideDoc connId st docId
 
 
 mkDocSt

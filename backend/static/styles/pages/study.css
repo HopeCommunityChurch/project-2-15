@@ -290,12 +290,14 @@
     cursor: pointer;
     gap: 10px;
     font-size: 0.9em;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    font-family: inherit;
+    color: inherit;
 
     &:hover:not(.noDoc) { background: #f5f5f5; }
-
-    &.open {
-      cursor: pointer;
-    }
 
     &.noDoc {
       cursor: default;

@@ -6,6 +6,7 @@ import Api.Htmx.NotAuthorized qualified as NotAuth
 import Api.Htmx.NotFound qualified as NotFound
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
+import Data.Aeson.KeyMap qualified as AKM
 import Data.ByteString.Lazy.Char8 qualified as BLC
 import Data.HashMap.Strict qualified as HMap
 import Data.Text qualified as Txt
@@ -83,17 +84,20 @@ getStudy user = do
     . HMap.insert "docName" (toGVal doc.name)
     . HMap.insert "doc" (toGVal (Aeson.toJSON doc))
     . HMap.insert "groupStudy" (toGVal (Aeson.toJSON (join groupStudy)))
-    -- unsafeRawHtml is required because Ginger's `| safe` filter produces empty
-    -- output for Text GVals in ginger-0.10.5.2 (asText is not used by the filter).
-    -- Safety: Aeson.encode produces valid JSON with all user-supplied strings
-    -- escaped as JSON string literals (e.g. quotes become \"). The one remaining
-    -- HTML risk is "</script>" in a user name breaking out of the <script> tag,
-    -- so we replace it with the JSON-equivalent "<\/script>" which is
-    -- semantically identical to a JSON parser but safe to the HTML parser.
-    . HMap.insert "groupStudyJson" (toGVal (unsafeRawHtml (Txt.replace "</script>" "<\\/script>" (Txt.pack (BLC.unpack (Aeson.encode (join groupStudy)))))))
+    -- unsafeRawHtml is required: Ginger's `| safe` filter is broken in
+    -- ginger-0.10.5.2. The </script> replacement prevents tag breakout.
+    . HMap.insert "groupStudyJson" (toGVal (unsafeRawHtml (Txt.replace "</script>" "<\\/script>" (Txt.pack (BLC.unpack (Aeson.encode (fmap (stripEmails . Aeson.toJSON) (join groupStudy))))))))
     . HMap.insert "host" (toGVal host)
     . HMap.insert "features" (toGVal (Aeson.toJSON userFeatures))
     )
+
+
+-- | Recursively remove the "email" field from all JSON objects in a value.
+-- Used to strip emails before embedding group study data in the page for JS.
+stripEmails :: Aeson.Value -> Aeson.Value
+stripEmails (Aeson.Object o) = Aeson.Object (fmap stripEmails (AKM.delete "email" o))
+stripEmails (Aeson.Array a)  = Aeson.Array (fmap stripEmails a)
+stripEmails v                = v
 
 
 unsafeAsObject :: Aeson.Value -> Aeson.Object
