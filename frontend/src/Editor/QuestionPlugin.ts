@@ -359,7 +359,9 @@ export class QuestionView implements NodeView {
         let state = innerView.state;
         let start = node.content.findDiffStart(state.doc.content);
         if (start != null) {
-          let { a: endA, b: endB } = node.content.findDiffEnd(state.doc.content);
+          const diffEnd = node.content.findDiffEnd(state.doc.content);
+          if (diffEnd == null) return true;
+          let { a: endA, b: endB } = diffEnd;
           let overlap = start - Math.min(endA, endB);
           if (overlap > 0) {
             endA += overlap;
@@ -750,11 +752,16 @@ export const questionPopup = (
       qNode.editor.updateState(state);
 
       if (!tr.getMeta("fromOutside")) {
+        const pos = qNode.getPos();
+        if (pos === undefined) return;
         let outerTr = view.state.tr;
-        let offsetMap = StepMap.offset(qNode.getPos() + 1);
+        let offsetMap = StepMap.offset(pos + 1);
         for (let i = 0; i < transactions.length; i++) {
           let steps = transactions[i].steps;
-          for (let j = 0; j < steps.length; j++) outerTr.step(steps[j].map(offsetMap));
+          for (let j = 0; j < steps.length; j++) {
+            const mapped = steps[j].map(offsetMap);
+            if (mapped) outerTr.step(mapped);
+          }
         }
         if (outerTr.docChanged) view.dispatch(outerTr);
       }
@@ -775,6 +782,7 @@ export const questionPopup = (
           keymap({
             "Mod-z": undo,
             "Mod-y": redo,
+            "Mod-Shift-z": redo,
             Tab: increaseLevel,
             "Mod-]": increaseLevel,
             "Shift-Tab": decreaseLevel,
