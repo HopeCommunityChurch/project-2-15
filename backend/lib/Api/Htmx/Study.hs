@@ -6,6 +6,8 @@ import Api.Htmx.NotAuthorized qualified as NotAuth
 import Api.Htmx.NotFound qualified as NotFound
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
+import Data.Aeson.KeyMap qualified as AKM
+import Data.ByteString.Lazy.Char8 qualified as BLC
 import Data.HashMap.Strict qualified as HMap
 import Data.Text qualified as Txt
 import Data.UUID as UUID
@@ -24,6 +26,7 @@ import Lucid.Htmx qualified as L
 import Mail qualified
 import Network.HTTP.Types.Status (status200, status204)
 import Text.Ginger
+import Text.Ginger.Html (unsafeRawHtml)
 import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
@@ -81,9 +84,20 @@ getStudy user = do
     . HMap.insert "docName" (toGVal doc.name)
     . HMap.insert "doc" (toGVal (Aeson.toJSON doc))
     . HMap.insert "groupStudy" (toGVal (Aeson.toJSON (join groupStudy)))
+    -- unsafeRawHtml is required: Ginger's `| safe` filter is broken in
+    -- ginger-0.10.5.2. The </script> replacement prevents tag breakout.
+    . HMap.insert "groupStudyJson" (toGVal (unsafeRawHtml (Txt.replace "</script>" "<\\/script>" (Txt.pack (BLC.unpack (Aeson.encode (fmap (stripEmails . Aeson.toJSON) (join groupStudy))))))))
     . HMap.insert "host" (toGVal host)
     . HMap.insert "features" (toGVal (Aeson.toJSON userFeatures))
     )
+
+
+-- | Recursively remove the "email" field from all JSON objects in a value.
+-- Used to strip emails before embedding group study data in the page for JS.
+stripEmails :: Aeson.Value -> Aeson.Value
+stripEmails (Aeson.Object o) = Aeson.Object (fmap stripEmails (AKM.delete "email" o))
+stripEmails (Aeson.Array a)  = Aeson.Array (fmap stripEmails a)
+stripEmails v                = v
 
 
 unsafeAsObject :: Aeson.Value -> Aeson.Object

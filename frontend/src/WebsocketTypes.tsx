@@ -47,7 +47,7 @@ export type SendMsg =
 
 type RecDocListenStart = {
   tag: "DocListenStart",
-  contents: any,
+  contents: { docId: T.DocId, document: any },
 };
 
 type RecDocOpened = {
@@ -62,7 +62,7 @@ type RecDocOpenedOther = {
 
 type RecDocUpdated = {
   tag: "DocUpdated",
-  contents: any,
+  contents: { docId: T.DocId; update: any },
 };
 
 type RecDocSaved = {
@@ -109,9 +109,11 @@ export class WsOpenEvent extends Event {
 }
 
 export class DocListenStartEvent extends Event {
+  docId: T.DocId;
   document : any;
-  constructor(document : any) {
+  constructor(docId: T.DocId, document : any) {
     super("DocListenStart");
+    this.docId = docId;
     this.document = document;
   }
 }
@@ -126,10 +128,10 @@ export class DocSavedEvent extends Event {
 }
 
 export class DocUpdatedEvent extends Event {
-  update : any
-  constructor(update : any) {
+  contents : { docId: T.DocId; update: any }
+  constructor(contents : { docId: T.DocId; update: any }) {
     super("DocUpdated");
-    this.update = update;
+    this.contents = contents;
   }
 }
 
@@ -211,7 +213,7 @@ export class MyWebsocket extends EventTarget {
       const rec = JSON.parse(msg.data) as RecMsg;
       switch (rec.tag) {
         case "DocListenStart": {
-          let event = new DocListenStartEvent(rec.contents);
+          let event = new DocListenStartEvent(rec.contents.docId, rec.contents.document);
           this.dispatchEvent(event);
           break;
         }
