@@ -110,6 +110,153 @@ function makeScrollSaver(container: HTMLElement, pageDocId: string, docId: T.Doc
   };
 }
 
+// ── Tab drag-to-reorder ──────────────────────────────────────────────
+
+function initTabDrag(pageDocId: string) {
+  const tabBar = document.getElementById("tabBar");
+  if (!tabBar) return;
+
+  let dragEl: HTMLElement | null = null;
+  let dragOffsetX = 0;   // cursor x offset from tab's left edge at drag start
+  let naturalLeft = 0;   // tab's left in bar-coords (no transform), kept up to date on reinsert
+  let startClientX = 0;
+  let isDragging = false;
+  let barLeft = 0;
+
+  // After a DOM reinsert, animate siblings from their old positions back to
+  // their new natural positions using the FLIP technique.
+  function flipSiblings(snapshots: { el: HTMLElement; left: number }[]) {
+    for (const { el, left: oldLeft } of snapshots) {
+      const newLeft = el.getBoundingClientRect().left;
+      const diff = oldLeft - newLeft;
+      if (Math.abs(diff) < 0.5) continue;
+      el.style.transition = "none";
+      el.style.transform = `translateX(${diff}px)`;
+      el.getBoundingClientRect(); // force reflow so transition fires
+      el.style.transition = "transform 0.15s ease";
+      el.style.transform = "";
+    }
+  }
+
+  // Reinsert dragEl before `anchor` and update naturalLeft.
+  function reinsertBefore(anchor: HTMLElement | null) {
+    if (!dragEl) return;
+    const addBtn = document.getElementById("tabAddButton");
+
+    // Snapshot non-drag tab positions before the DOM change.
+    const snapshots = tabs
+      .filter(t => t.tabEl !== dragEl)
+      .map(t => ({ el: t.tabEl, left: t.tabEl.getBoundingClientRect().left }));
+
+    tabBar.insertBefore(dragEl, anchor ?? addBtn);
+
+    // Measure natural position via offsetLeft (unaffected by CSS transforms).
+    dragEl.style.transform = "";
+    naturalLeft = dragEl.offsetLeft - tabBar.offsetLeft;
+
+    flipSiblings(snapshots);
+  }
+
+  tabBar.addEventListener("pointerdown", (e: PointerEvent) => {
+    const tab = (e.target as HTMLElement).closest(".splitTab") as HTMLElement | null;
+    if (!tab) return;
+    if ((e.target as HTMLElement).closest(".tabClose")) return;
+
+    // Activate tab immediately on press.
+    const entry = tabs.find(t => t.tabEl === tab);
+    if (entry) activateTab(entry.docId, pageDocId);
+
+    dragEl = tab;
+    startClientX = e.clientX;
+    barLeft = tabBar.getBoundingClientRect().left;
+    const tabRect = tab.getBoundingClientRect();
+    dragOffsetX = e.clientX - tabRect.left;
+    naturalLeft = tab.offsetLeft - tabBar.offsetLeft;
+    isDragging = false;
+
+    tab.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  tabBar.addEventListener("pointermove", (e: PointerEvent) => {
+    if (!dragEl) return;
+    if (!isDragging) {
+      if (Math.abs(e.clientX - startClientX) < 4) return;
+      isDragging = true;
+      dragEl.classList.add("dragging");
+    }
+
+    const tabWidth = dragEl.offsetWidth;
+    const barWidth = tabBar.offsetWidth;
+    const desiredLeft = Math.max(
+      0,
+      Math.min(barWidth - tabWidth, e.clientX - barLeft - dragOffsetX)
+    );
+
+    dragEl.style.transition = "none";
+    dragEl.style.transform = `translateX(${desiredLeft - naturalLeft}px)`;
+
+    const dragIdx = tabs.findIndex(t => t.tabEl === dragEl);
+
+    // Swap with left neighbour?
+    if (dragIdx > 0) {
+      const leftEl = tabs[dragIdx - 1].tabEl;
+      const leftThreshold = leftEl.offsetLeft - tabBar.offsetLeft + leftEl.offsetWidth * 0.50;
+      if (desiredLeft < leftThreshold) {
+        const [moved] = tabs.splice(dragIdx, 1);
+        tabs.splice(dragIdx - 1, 0, moved);
+        reinsertBefore(leftEl);
+        dragEl.style.transition = "none";
+        dragEl.style.transform = `translateX(${desiredLeft - naturalLeft}px)`;
+        return;
+      }
+    }
+
+    // Swap with right neighbour?
+    const curIdx = tabs.findIndex(t => t.tabEl === dragEl);
+    if (curIdx < tabs.length - 1) {
+      const rightEl = tabs[curIdx + 1].tabEl;
+      const rightThreshold = rightEl.offsetLeft - tabBar.offsetLeft + rightEl.offsetWidth * 0.50;
+      if (desiredLeft + tabWidth > rightThreshold) {
+        const [moved] = tabs.splice(curIdx, 1);
+        tabs.splice(curIdx + 1, 0, moved);
+        const nextAnchor = (tabs[curIdx + 2]?.tabEl ?? document.getElementById("tabAddButton")) as HTMLElement;
+        reinsertBefore(nextAnchor);
+        dragEl.style.transition = "none";
+        dragEl.style.transform = `translateX(${desiredLeft - naturalLeft}px)`;
+      }
+    }
+  });
+
+  const endDrag = () => {
+    if (!dragEl) return;
+    const el = dragEl;
+    dragEl = null;
+    isDragging = false;
+    el.classList.remove("dragging");
+    el.style.transition = "transform 0.15s ease";
+    el.style.transform = "";
+    el.addEventListener("transitionend", () => { el.style.transition = ""; }, { once: true });
+  };
+
+  const cancelDrag = () => {
+    if (!dragEl) return;
+    dragEl.classList.remove("dragging");
+    dragEl.style.transition = "";
+    dragEl.style.transform = "";
+    // Also clear any in-flight sibling transitions
+    for (const t of tabs) {
+      t.tabEl.style.transition = "";
+      t.tabEl.style.transform = "";
+    }
+    dragEl = null;
+    isDragging = false;
+  };
+
+  tabBar.addEventListener("pointerup", endDrag);
+  tabBar.addEventListener("pointercancel", cancelDrag);
+}
+
 // ── Tab management ───────────────────────────────────────────────────
 
 function activateTab(docId: T.DocId, pageDocId: string) {
@@ -453,7 +600,7 @@ export function init(ws: WS.MyWebsocket) {
   const tabAddButton = document.getElementById("tabAddButton");
 
   splitscreenButton.addEventListener("click", () => {
-    openMemberPicker(splitscreenButton, ws, pageDocId, false, true);
+    openMemberPicker(splitscreenButton, ws, pageDocId, false, false);
   });
 
   tabAddButton?.addEventListener("click", () => {
@@ -463,6 +610,8 @@ export function init(ws: WS.MyWebsocket) {
   splitsideClose?.addEventListener("click", () => {
     closeSidePanel(ws);
   });
+
+  initTabDrag(pageDocId);
 
   // WS: DocListenStart — FIFO queue routes response to correct tab
   ws.addEventListener("DocListenStart", (ev: WS.DocListenStartEvent) => {

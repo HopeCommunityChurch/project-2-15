@@ -61,8 +61,8 @@
       display: flex;
       align-items: center;
       flex-shrink: 0;
-      border-bottom: 1px solid #e0e0e0;
-      background: #f5f5f5;
+      border-bottom: 1px solid #c9cdd3;
+      background: #e8eaed;
       padding: 0 8px 0 4px;
       gap: 4px;
       min-height: 34px;
@@ -82,21 +82,30 @@
         align-items: center;
         gap: 4px;
         padding: 7px 12px;
-        background: #e0e0e0;
+        background: #d2d5db;
         border-radius: 6px 6px 0 0;
-        border: 1px solid #ccc;
+        border: 1px solid #c9cdd3;
         border-bottom: none;
         cursor: pointer;
         white-space: nowrap;
         font-size: 0.85em;
         max-width: 160px;
         user-select: none;
+        position: relative;
 
         &.active {
           background: #fff;
+          border-color: #c9cdd3;
           border-bottom: 1px solid #fff;
           margin-bottom: -1px;
           z-index: 1;
+        }
+
+        &.dragging {
+          cursor: grabbing !important;
+          opacity: 0.9;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+          z-index: 10;
         }
 
         .tabLabel {
@@ -110,7 +119,7 @@
           opacity: 0.5;
           background: none;
           border: none;
-          cursor: pointer;
+          cursor: pointer !important;
           display: flex;
           align-items: center;
           &:hover { opacity: 1; }
@@ -124,12 +133,15 @@
       background: none;
       border: none;
       cursor: pointer;
-      padding: 2px 8px;
+      padding: 0;
+      width: 34px;
+      height: 34px;
       border-radius: 4px;
       align-self: center;
+      justify-content: center;
       display: flex;
       align-items: center;
-      &:hover { background: #e0e0e0; }
+      &:hover { background: #d2d5db; }
       &.hidden { display: none; }
       img { width: 12px; height: 12px; opacity: 0.5; }
     }
@@ -146,8 +158,8 @@
       justify-content: center;
       width: 34px;
       height: 34px;
-      &:hover { background: #e0e0e0; }
-      img { width: 13px; height: 13px; }
+      &:hover { background: #d2d5db; }
+      img { width: 12px; height: 12px; }
     }
 
     #splitEditorArea {
