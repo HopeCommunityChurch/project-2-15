@@ -139,6 +139,49 @@ html, body {
     }
   }
 
+  .emptyStudies {
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+    background-color: #f0f6ff;
+    border-radius: 16px;
+    margin-top: 16px;
+  }
+
+  .emptyStudiesInner {
+    max-width: 480px;
+    text-align: center;
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 16px 0 12px;
+    }
+    p {
+      color: #555;
+      font-size: 16px;
+      line-height: 1.6;
+      margin: 0 0 24px;
+    }
+  }
+
+  .emptyStudiesIcon {
+    font-size: 52px;
+    line-height: 1;
+  }
+
+  .emptyStudiesCta {
+    font-size: 16px;
+    padding: 12px 28px;
+    border-radius: 8px;
+  }
+
+  .emptyStudiesHint {
+    margin-top: 16px !important;
+    font-size: 14px !important;
+    color: #888 !important;
+  }
+
   .emptyTrash {
     color: #888;
     margin-top: 80px;

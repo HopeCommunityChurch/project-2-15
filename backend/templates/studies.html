@@ -138,6 +138,24 @@
   </div>
 
   <div id="myStudies" class="tabContent">
+    {% if length(studies) == 0 %}
+    <div class="emptyStudies">
+      <div class="emptyStudiesInner">
+        <div class="emptyStudiesIcon">📖</div>
+        <h2>Welcome! Your journey starts here.</h2>
+        <p>
+          Just an open heart and a desire to dig into God's Word.
+          Create your first study and you'll be reading and reflecting in seconds.
+        </p>
+        <button class="blue emptyStudiesCta" onclick="toggleModal('#newStudy')">
+          + Start Your First Study
+        </button>
+        <p class="emptyStudiesHint">
+          Study on your own or invite others to explore together.
+        </p>
+      </div>
+    </div>
+    {% else %}
     <div class="table3">
       <header>
         Study Title
@@ -171,6 +189,7 @@
         </a>
       {% endfor %}
     </div>
+    {% endif %}
   </div>
 
   <div id="deletedStudies" class="tabContent" style="display: none;">
