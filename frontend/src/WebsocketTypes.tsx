@@ -62,7 +62,7 @@ type RecDocOpenedOther = {
 
 type RecDocUpdated = {
   tag: "DocUpdated",
-  contents: any,
+  contents: { docId: T.DocId; update: any },
 };
 
 type RecDocSaved = {
@@ -126,10 +126,10 @@ export class DocSavedEvent extends Event {
 }
 
 export class DocUpdatedEvent extends Event {
-  update : any
-  constructor(update : any) {
+  contents : { docId: T.DocId; update: any }
+  constructor(contents : { docId: T.DocId; update: any }) {
     super("DocUpdated");
-    this.update = update;
+    this.contents = contents;
   }
 }
 

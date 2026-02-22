@@ -73,6 +73,6 @@ export function init(ws : WS.MyWebsocket) {
   });
 
   ws.addEventListener("DocUpdated", (ev : WS.DocUpdatedEvent) => {
-    editor?.dispatchSteps(ev.update);
+    editor?.dispatchSteps(ev.contents.update);
   });
 }

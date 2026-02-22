@@ -294,9 +294,11 @@
 
     {% if doc.groupStudyId  %}
       <div class="seperator">&nbsp;</div>
-      <button class="toolbarButton" id="splitscreenButton" onclick="split()">
+      <button class="toolbarButton" id="splitscreenButton">
         <img src="{{base}}/static/img/parallel-view-icon.svg" >
       </button>
+      <script type="application/json" id="groupStudyData">{{ groupStudy }}</script>
+      <script>window.pageDocId = "{{ doc.docId }}";</script>
     {% endif %}
 
     <div class="seperator">&nbsp;</div>

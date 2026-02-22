@@ -78,8 +78,14 @@ newtype SavedDoc = MkSavedDoc
   deriving anyclass (ToJSON)
 
 
+data DocUpdatedMsg = MkDocUpdatedMsg
+  { docId :: T.DocId
+  , update :: Aeson.Value
+  }
+  deriving (Show, Generic, ToJSON)
+
 data OutMsg
-  = OutDocUpdated Aeson.Value
+  = OutDocUpdated DocUpdatedMsg
   | OutDocOpened GetDoc
   | OutDocOpenedOther -- when the doc is opened on another device, you should close your document
   | OutDocListenStart Aeson.Object
@@ -105,8 +111,8 @@ sendOut conn msg = do
 
 data SocketState = MkSocketState
   { openDocument :: Maybe T.DocId
-  , sideDoc :: Maybe T.DocId
-  , computerId :: T.ComputerId
+  , sideDocs     :: [T.DocId]
+  , computerId   :: T.ComputerId
   }
   deriving (Show, Generic)
 
@@ -133,7 +139,7 @@ websocketSever user conn = do
   withRunInIO $ \ runInIO -> do
     withPingThread conn 20 (pure ()) $ runInIO $ prefixLogs (show connId) $ do
       computerId <- getComputerId conn
-      st <- newIORef (MkSocketState Nothing Nothing computerId)
+      st <- newIORef (MkSocketState Nothing [] computerId)
       result <- try $ forever $ do
         str <- liftIO $ WS.receiveData conn
         case Aeson.eitherDecode' str of
@@ -152,6 +158,8 @@ websocketSever user conn = do
                 prefixLogs "SaveDoc" $ handleSave conn user.userId st obj
               InUpdateName txt ->
                 prefixLogs "UpdateName" $ handleUpdateName conn st txt
+              InStopListenToDoc docId ->
+                prefixLogs "StopListenToDoc" $ handleStopListenToDoc connId st docId
               other -> prefixLogs "other" $
                 logInfo $ show other
       case result of
@@ -163,6 +171,9 @@ websocketSever user conn = do
             Nothing -> pure ()
             Just previousDocId -> do
               closeDoc connId st previousDocId
+          mst2 <- readIORef st
+          for_ mst2.sideDocs $ \ sideDocId ->
+            closeSideDoc connId st sideDocId
 
 
 handleUpdated
@@ -181,7 +192,7 @@ handleUpdated rst obj = do
     rdDocSt <- hoistMaybe (Map.lookup docId subs)
     dsubs <- readIORef rdDocSt.subscriptions
     for_ dsubs $ \ conn ->
-      lift $ sendOut conn (OutDocUpdated obj)
+      lift $ sendOut conn (OutDocUpdated (MkDocUpdatedMsg docId obj))
 
 
 handleUpdateName
@@ -232,17 +243,6 @@ handleListenToDoc
   -> m ()
 handleListenToDoc user connId st conn docId = do
   logInfo $ "user " <> show user.name <> " listening to " <> show docId
-  mSideDoc <- (.sideDoc) <$> readIORef st
-  for_ mSideDoc $ \ sideDoc -> do
-    rsubs <- asks (.subs)
-    subs <- readIORef rsubs
-    let mdocSt = Map.lookup sideDoc subs
-    for_ mdocSt $ \ docSt -> do
-      logInfo "closing doc"
-      atomicModifyIORef_ docSt.subscriptions (Map.delete connId)
-      test <- readIORef docSt.subscriptions
-      logInfoSH (Map.keys test)
-
   mDoc <- Doc.getDocInStudyGroup user docId
   for_ mDoc $ \ doc -> do
     logInfo "found doc"
@@ -255,7 +255,35 @@ handleListenToDoc user connId st conn docId = do
         Just docSt -> pure docSt
     atomicModifyIORef_ docSt.subscriptions (Map.insert connId conn)
     sendOut conn (OutDocListenStart doc.document)
-    atomicModifyIORef_ st (\ st' -> st' & #sideDoc ?~ docId)
+    atomicModifyIORef_ st (\ st' -> st' { sideDocs = docId : st'.sideDocs })
+
+
+closeSideDoc
+  :: ( MonadDb env m
+     , HasSubs env
+     )
+  => ConnId
+  -> IORef SocketState
+  -> T.DocId
+  -> m ()
+closeSideDoc connId rst docId = prefixLogs ("closing side doc " <> show docId) $ do
+  rsubs <- asks (.subs)
+  subs <- readIORef rsubs
+  let mdocSt = Map.lookup docId subs
+  for_ mdocSt $ \ docSt -> do
+    atomicModifyIORef_ docSt.subscriptions (Map.delete connId)
+  atomicModifyIORef_ rst (\ st -> st { sideDocs = filter (/= docId) st.sideDocs })
+
+
+handleStopListenToDoc
+  :: ( MonadDb env m
+     , HasSubs env
+     )
+  => ConnId
+  -> IORef SocketState
+  -> T.DocId
+  -> m ()
+handleStopListenToDoc connId st docId = closeSideDoc connId st docId
 
 
 mkDocSt
