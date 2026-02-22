@@ -161,7 +161,7 @@ function openTab(docId: T.DocId, ws: WS.MyWebsocket, pageDocId: string) {
   const splitEditorArea = document.getElementById("splitEditorArea");
   if (!splitEditorArea) return;
   const editorContainerEl = document.createElement("div");
-  editorContainerEl.className = "splitTabEditor";
+  editorContainerEl.className = "splitTabEditor editorHolder";
   splitEditorArea.appendChild(editorContainerEl);
 
   // Create tab element
