@@ -325,8 +325,14 @@ function renderMemberPicker(ws: WS.MyWebsocket, pageDocId: string) {
     popover.appendChild(row);
   }
 
-  // Owners without a doc
+  // Owners without a doc (skip the current user — their doc is excluded from allDocs)
+  const currentUserIds = new Set(
+    groupStudyData.docs
+      .filter(d => d.docId === (pageDocId as T.DocId))
+      .flatMap(d => d.editors.map(e => e.userId))
+  );
   for (const owner of groupStudyData.owners) {
+    if (currentUserIds.has(owner.userId)) continue;
     const hasDocs = allDocs.some(d => d.editors.some(e => e.userId === owner.userId));
     if (!hasDocs) {
       const row = document.createElement("div");

@@ -6,6 +6,7 @@ import Api.Htmx.NotAuthorized qualified as NotAuth
 import Api.Htmx.NotFound qualified as NotFound
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Aeson
+import Data.ByteString.Lazy.Char8 qualified as BLC
 import Data.HashMap.Strict qualified as HMap
 import Data.Text qualified as Txt
 import Data.UUID as UUID
@@ -24,6 +25,7 @@ import Lucid.Htmx qualified as L
 import Mail qualified
 import Network.HTTP.Types.Status (status200, status204)
 import Text.Ginger
+import Text.Ginger.Html (unsafeRawHtml)
 import Types qualified as T
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
@@ -81,6 +83,14 @@ getStudy user = do
     . HMap.insert "docName" (toGVal doc.name)
     . HMap.insert "doc" (toGVal (Aeson.toJSON doc))
     . HMap.insert "groupStudy" (toGVal (Aeson.toJSON (join groupStudy)))
+    -- unsafeRawHtml is required because Ginger's `| safe` filter produces empty
+    -- output for Text GVals in ginger-0.10.5.2 (asText is not used by the filter).
+    -- Safety: Aeson.encode produces valid JSON with all user-supplied strings
+    -- escaped as JSON string literals (e.g. quotes become \"). The one remaining
+    -- HTML risk is "</script>" in a user name breaking out of the <script> tag,
+    -- so we replace it with the JSON-equivalent "<\/script>" which is
+    -- semantically identical to a JSON parser but safe to the HTML parser.
+    . HMap.insert "groupStudyJson" (toGVal (unsafeRawHtml (Txt.replace "</script>" "<\\/script>" (Txt.pack (BLC.unpack (Aeson.encode (join groupStudy)))))))
     . HMap.insert "host" (toGVal host)
     . HMap.insert "features" (toGVal (Aeson.toJSON userFeatures))
     )
