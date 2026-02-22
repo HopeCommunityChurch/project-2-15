@@ -348,10 +348,11 @@ img.ProseMirror-separator {
     display: inline-block;
     text-align: center;
     cursor: pointer;
-    margin-right: 2px;
     opacity: 0.9;
     background-color: #fff;
     margin-right: 0px;
+    border: none;
+    padding: 0;
     img {
       max-width: 100%;
       transform: translateY(3px);
@@ -362,7 +363,6 @@ img.ProseMirror-separator {
     margin: 0px;
     white-space: pre-wrap;
     box-sizing: border-box;
-    /* border: 1px solid #00f0; */
     position: relative;
     .innerDiv {
       margin: 0px;
@@ -495,7 +495,6 @@ img.ProseMirror-separator {
 
   .questions .studyBlockHeaderDiv {
     user-select: none;
-    /* pointer-events: none; */
   }
 
   .questions h3 {
@@ -559,11 +558,36 @@ img.ProseMirror-separator {
     flex-direction: column;
     width: 300px;
     height: 200px;
+    min-width: 250px;
+    min-height: 150px;
     background-color: white;
     border-radius: 10px;
     border: 1.5px solid #eeeeee;
     box-shadow: 0 0 10px #00000029;
+    overflow: hidden;
     z-index: 17;
+  }
+
+  .questionRefPopup .resizeHandle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    cursor: nwse-resize;
+    z-index: 1;
+  }
+
+  .questionRefPopup .resizeHandle::before {
+    content: "";
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 8px 8px;
+    border-color: transparent transparent #bbb transparent;
   }
 
   .questionEditorHolder {
@@ -576,7 +600,8 @@ img.ProseMirror-separator {
   .questionRefPopup mover {
     display: flex;
     width: calc(100% - 20px);
-    height: 40px;
+    height: 36px;
+    flex-shrink: 0;
     cursor: grab;
     background-color: #eee;
     align-items: center;
@@ -604,6 +629,8 @@ img.ProseMirror-separator {
       cursor: pointer;
       margin-left: auto;
       background-color: #eee;
+      border: none;
+      padding: 0;
 
       img {
         max-width: 12px;
@@ -655,10 +682,11 @@ img.ProseMirror-separator {
     grid-area: q;
     font-weight: 500;
     background-color: #ddeafc8c;
-    /*  color: #0057d1; */
     padding: 1px 6px;
     border-radius: 5px;
     height: fit-content;
+    cursor: default;
+    user-select: none;
   }
   questionouter > button {
     grid-area: a;
@@ -740,6 +768,14 @@ img.ProseMirror-separator {
     cursor: pointer;
   }
 
+  .verseRefClickable {
+    cursor: pointer;
+
+    &:hover {
+      background-color: #c4d9f8 !important;
+    }
+  }
+
   [contenteditable] {
     -webkit-user-select: text;
     user-select: text;
@@ -747,7 +783,6 @@ img.ProseMirror-separator {
 
   .bibleTextPlaceholder {
     user-select: none;
-    /* pointer-events: none; */
     color: rgb(145, 164, 177);
     margin-top: 5px;
 
@@ -761,7 +796,6 @@ img.ProseMirror-separator {
 
   .noQuestionsText {
     user-select: none;
-    /* pointer-events: none; */
     color: rgb(145, 164, 177);
 
     img {
@@ -771,4 +805,45 @@ img.ProseMirror-separator {
       opacity: 0.65;
     }
   }
+}
+
+.verseContextPopover {
+  position: absolute;
+  z-index: 2000;
+  background: white;
+  border: 1px solid #d0d7e3;
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.13);
+  padding: 10px 14px;
+  max-width: 380px;
+  font-size: 0.88em;
+  line-height: 1.55;
+}
+
+.verseContextLine {
+  color: #888;
+  padding: 1px 0;
+}
+
+.verseContextLineSelected {
+  color: #1a1a1a;
+}
+
+.verseContextNum {
+  font-size: 0.72em;
+  font-weight: 600;
+  color: #aaa;
+  vertical-align: super;
+  margin-right: 4px;
+  user-select: none;
+}
+
+.verseContextLineSelected .verseContextNum {
+  color: #6a90d0;
+}
+
+.verseContextHighlight {
+  background-color: #fff3a0;
+  border-radius: 2px;
+  padding: 0 1px;
 }

@@ -125,9 +125,6 @@ h4 {
 
 
 
-
-
-
 dialog.popup {
   border: none;
   background-color: #fff;
@@ -136,7 +133,6 @@ dialog.popup {
   box-shadow: 0 4px 6px #0000001a;
   z-index: 1;
 }
-
 
 /* .ProseMirror p {
   margin: 0px;
@@ -147,8 +143,8 @@ dialog.popup {
   overflow-y: auto;
   align-self: stretch;
   justify-self: stretch;
+  position: relative;
 }
-
 
 #addScripturePopup {
   max-width: 70%;
@@ -163,9 +159,6 @@ dialog.popup {
     color: grey;
   }
 }
-
-
-
 
 @keyframes blinker {
   50% {
