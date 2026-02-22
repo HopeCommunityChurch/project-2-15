@@ -22,18 +22,11 @@
 
 #newStudy .closeModalIcon {
   cursor: pointer;
-  background: none;
-  border: none;
+  max-width: 20px;
   padding: 10px;
   position: absolute;
   top: 20px;
   right: 10px;
-  line-height: 0;
-  img {
-    display: block;
-    width: 20px;
-    height: 20px;
-  }
 }
 
 #newStudy label {

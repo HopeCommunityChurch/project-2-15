@@ -103,7 +103,7 @@ createStudyGroupHTML doc = do
     L.p_ [L.class_ "field-desc"]
       "A group study lets multiple people work through the same study template together, each with their own document."
     let formUrl = "/group_study"
-    L.form_ [ L.hxPost_ formUrl, L.hxTarget_ "#groupStudy", L.class_ "groupStudyEditorHolder"] $ do
+    L.form_ [ L.hxPost_ formUrl, L.class_ "groupStudyEditorHolder"] $ do
       L.input_
         [ L.id_ "documentId"
         , L.name_ "documentId"
@@ -554,6 +554,19 @@ ownershipMemberDoc user = do
       "Modified ownership"
 
 
+
+
+getInvite
+  :: ( MonadDb env m
+     , MonadLogger m
+     )
+  => AuthUser
+  -> ActionT m ()
+getInvite _ = do
+  groupId <- captureParam "groupId"
+  html =<< L.renderTextT (getInviteNewMemberHTML groupId)
+
+
 createPeopleTemplate :: Monad m => L.HtmlT m ()
 createPeopleTemplate = do
   L.template_ [L.id_ "peopleInputTemplate"] $ do
@@ -567,6 +580,28 @@ createPeopleTemplate = do
         L.option_ [ L.value_ "member"] "Member"
         L.option_ [ L.value_ "owner"] "Owner"
       L.button_ [L.class_ "red"] "-"
+
+
+getInviteNewMemberHTML
+  :: Monad m
+  => T.GroupStudyId
+  -> L.HtmlT m ()
+getInviteNewMemberHTML groupId = do
+  L.div_ [L.class_ "groupStudyInner"] $ do
+    L.h3_ "Invite New People"
+    let formUrl = "/group_study/invite/add"
+    L.form_ [ L.hxPost_ formUrl, L.class_ "groupStudyEditorHolder", L.hxTarget_ "#groupStudyInner"] $ do
+      L.input_
+        [ L.id_ "groupId"
+        , L.name_ "groupId"
+        , L.type_ "hidden"
+        , L.value_ (UUID.toText (unwrap groupId))
+        ]
+      L.label_ [L.for_ "createPeople"] "People"
+      L.div_ [L.id_ "createPeoples"] createPeopleTemplate
+      L.button_ [L.type_ "submit", L.class_ "blue"]
+        "Invite"
+  L.script_ "addPeopleInput()";
 
 
 postInvite

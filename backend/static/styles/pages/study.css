@@ -132,12 +132,6 @@
           width: 30px;
           text-align: center;
           background-color: #e9e9e9;
-          /* reset button defaults */
-          border: none;
-          padding: 0;
-          font-size: inherit;
-          font-family: inherit;
-          line-height: inherit;
           img {
             height: 50%;
           }
@@ -156,11 +150,6 @@
           transform: translateX(100%);
           width: 300px;
           color: white;
-          /* reset button defaults */
-          border: none;
-          font-size: inherit;
-          font-family: inherit;
-          cursor: pointer;
         }
       }
 
@@ -206,12 +195,6 @@
         .remove {
           color: rgb(117, 117, 117);
           cursor: pointer;
-          /* reset button defaults */
-          background: none;
-          border: none;
-          padding: 0;
-          font-size: inherit;
-          font-family: inherit;
           &:hover {
             color: rgb(48, 48, 48);
           }
