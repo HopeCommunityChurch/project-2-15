@@ -63,7 +63,7 @@
       flex-shrink: 0;
       border-bottom: 1px solid #e0e0e0;
       background: #f5f5f5;
-      padding: 0 4px;
+      padding: 0 8px 0 4px;
       gap: 4px;
       min-height: 34px;
     }
@@ -81,7 +81,7 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        padding: 4px 10px 4px 12px;
+        padding: 7px 12px;
         background: #e0e0e0;
         border-radius: 6px 6px 0 0;
         border: 1px solid #ccc;
@@ -123,14 +123,15 @@
       flex-shrink: 0;
       background: none;
       border: none;
-      font-size: 1.2em;
       cursor: pointer;
       padding: 2px 8px;
       border-radius: 4px;
-      color: #555;
       align-self: center;
+      display: flex;
+      align-items: center;
       &:hover { background: #e0e0e0; }
       &.hidden { display: none; }
+      img { width: 12px; height: 12px; opacity: 0.5; }
     }
 
     #splitsideClose {
@@ -138,12 +139,15 @@
       background: none;
       border: none;
       cursor: pointer;
-      padding: 4px;
+      padding: 0;
       border-radius: 4px;
       display: flex;
       align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
       &:hover { background: #e0e0e0; }
-      img { width: 14px; height: 14px; }
+      img { width: 13px; height: 13px; }
     }
 
     #splitEditorArea {
@@ -259,34 +263,62 @@
   position: fixed;
   background: #fff;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
   z-index: 200;
-  min-width: 200px;
-  padding: 8px 0;
+  min-width: 220px;
+  padding: 6px 0;
 
   &.hidden { display: none; }
 
   .memberPickerRow {
     display: flex;
     align-items: center;
-    padding: 8px 14px;
+    padding: 8px 12px;
     cursor: pointer;
-    gap: 8px;
+    gap: 10px;
     font-size: 0.9em;
 
-    &:hover { background: #f0f0f0; }
+    &:hover:not(.noDoc) { background: #f5f5f5; }
+
+    &.open {
+      cursor: pointer;
+    }
 
     &.noDoc {
-      color: #aaa;
       cursor: default;
-      font-style: italic;
       &:hover { background: none; }
     }
 
+    .memberPickerAvatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #eee;
+      color: #333;
+      font-size: 0.8em;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .memberPickerName {
+      flex: 1;
+      color: #222;
+    }
+
+    &.noDoc .memberPickerName { color: #aaa; font-style: italic; }
+
     .memberPickerCheck {
-      width: 16px;
+      font-size: 0.75em;
+      font-weight: 500;
       color: #1a73e8;
+      background: #e8f0fe;
+      border-radius: 10px;
+      padding: 2px 8px;
+      white-space: nowrap;
     }
   }
 }

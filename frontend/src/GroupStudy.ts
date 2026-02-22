@@ -151,7 +151,7 @@ function openTab(docId: T.DocId, ws: WS.MyWebsocket, pageDocId: string) {
   // Don't open duplicate tabs
   if (tabs.some(t => t.docId === docId)) {
     activateTab(docId, pageDocId);
-    closeMemberPicker();
+    if (!pickerMultiSelect) closeMemberPicker();
     return;
   }
 
@@ -203,6 +203,9 @@ function openTab(docId: T.DocId, ws: WS.MyWebsocket, pageDocId: string) {
   };
   tabs.push(entry);
 
+  // Attach scroll listener so position is saved continuously
+  makeScrollSaver(editorContainerEl, pageDocId, docId);
+
   // Open the panel if not already
   const studyPage = document.getElementById("studyPage");
   studyPage?.classList.add("split");
@@ -214,7 +217,11 @@ function openTab(docId: T.DocId, ws: WS.MyWebsocket, pageDocId: string) {
   ws.send({ tag: "ListenToDoc", contents: docId });
 
   updateAddButtonVisibility();
-  closeMemberPicker();
+  if (pickerMultiSelect) {
+    renderMemberPicker(pickerWs!, pickerPageDocId, false);
+  } else {
+    closeMemberPicker();
+  }
 }
 
 function closeTab(docId: T.DocId, ws: WS.MyWebsocket, pageDocId: string) {
@@ -276,6 +283,13 @@ function closeSidePanel(ws: WS.MyWebsocket) {
 
 // ── Member picker ────────────────────────────────────────────────────
 
+function nameShort(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  const first = parts[0]?.[0] ?? "?";
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
+  return (first + last).toUpperCase();
+}
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
@@ -285,41 +299,57 @@ function escapeHtml(str: string): string {
 }
 
 let pickerDismissHandler: ((e: MouseEvent) => void) | null = null;
+let pickerMultiSelect = false;
+let pickerWs: WS.MyWebsocket | null = null;
+let pickerPageDocId: string = "";
 
-function renderMemberPicker(ws: WS.MyWebsocket, pageDocId: string) {
+function renderMemberPicker(ws: WS.MyWebsocket, pageDocId: string, filterOpen: boolean = false) {
   const popover = document.getElementById("memberPickerPopover");
   if (!popover) return;
   popover.innerHTML = "";
 
   // Build rows for each owner in the group
   const groupStudyData = loadGroupStudyData(pageDocId);
-  const ownerIds = new Set(groupStudyData.owners.map(o => o.userId));
 
   // Show docs for owners (filtered to non-self, which allDocs already is)
   for (const doc of allDocs) {
     const isOpen = tabs.some(t => t.docId === doc.docId);
+
+    // When opened from the plus button, skip already-open docs
+    if (filterOpen && isOpen) continue;
+
     const label = labelMap.get(doc.docId) ?? doc.editors[0]?.name ?? "?";
 
     const row = document.createElement("div");
     row.className = "memberPickerRow" + (isOpen ? " open" : "");
 
-    const check = document.createElement("span");
-    check.className = "memberPickerCheck";
-    check.textContent = isOpen ? "✓" : "";
+    const avatar = document.createElement("span");
+    avatar.className = "memberPickerAvatar";
+    avatar.textContent = nameShort(doc.editors[0]?.name ?? label);
 
     const name = document.createElement("span");
+    name.className = "memberPickerName";
     name.textContent = label;
 
-    row.appendChild(check);
+    row.appendChild(avatar);
     row.appendChild(name);
 
-    if (!isOpen) {
+    if (isOpen) {
+      const check = document.createElement("span");
+      check.className = "memberPickerCheck";
+      check.textContent = "Viewing";
+      row.appendChild(check);
+      if (!filterOpen) {
+        row.addEventListener("click", () => {
+          closeTab(doc.docId, ws, pageDocId);
+          renderMemberPicker(ws, pageDocId, false);
+        });
+        row.style.cursor = "pointer";
+      }
+    } else {
       row.addEventListener("click", () => {
         openTab(doc.docId, ws, pageDocId);
       });
-    } else {
-      row.style.cursor = "default";
-      row.style.color = "#888";
     }
 
     popover.appendChild(row);
@@ -335,19 +365,34 @@ function renderMemberPicker(ws: WS.MyWebsocket, pageDocId: string) {
     if (currentUserIds.has(owner.userId)) continue;
     const hasDocs = allDocs.some(d => d.editors.some(e => e.userId === owner.userId));
     if (!hasDocs) {
+      if (filterOpen) continue; // no doc = can't open, skip in filter mode
       const row = document.createElement("div");
       row.className = "memberPickerRow noDoc";
-      row.textContent = `${owner.name} — No document yet`;
+
+      const avatar = document.createElement("span");
+      avatar.className = "memberPickerAvatar";
+      avatar.textContent = nameShort(owner.name);
+
+      const noDocName = document.createElement("span");
+      noDocName.className = "memberPickerName";
+      noDocName.textContent = `${owner.name} — No document yet`;
+
+      row.appendChild(avatar);
+      row.appendChild(noDocName);
       popover.appendChild(row);
     }
   }
 }
 
-function openMemberPicker(anchorEl: HTMLElement, ws: WS.MyWebsocket, pageDocId: string) {
+function openMemberPicker(anchorEl: HTMLElement, ws: WS.MyWebsocket, pageDocId: string, filterOpen: boolean = false, multiSelect: boolean = false) {
   const popover = document.getElementById("memberPickerPopover");
   if (!popover) return;
 
-  renderMemberPicker(ws, pageDocId);
+  pickerMultiSelect = multiSelect;
+  pickerWs = ws;
+  pickerPageDocId = pageDocId;
+
+  renderMemberPicker(ws, pageDocId, filterOpen);
   popover.classList.remove("hidden");
 
   const rect = anchorEl.getBoundingClientRect();
@@ -359,7 +404,10 @@ function openMemberPicker(anchorEl: HTMLElement, ws: WS.MyWebsocket, pageDocId: 
     document.removeEventListener("click", pickerDismissHandler);
   }
   pickerDismissHandler = (e: MouseEvent) => {
-    if (!popover.contains(e.target as Node) && e.target !== anchorEl) {
+    const target = e.target as Node;
+    // Ignore clicks on elements that were removed from DOM during re-render
+    if (!document.contains(target)) return;
+    if (!popover.contains(target) && target !== anchorEl) {
       closeMemberPicker();
     }
   };
@@ -376,6 +424,7 @@ function closeMemberPicker() {
     document.removeEventListener("click", pickerDismissHandler);
     pickerDismissHandler = null;
   }
+  pickerMultiSelect = false;
 }
 
 // ── Data loading ─────────────────────────────────────────────────────
@@ -404,11 +453,11 @@ export function init(ws: WS.MyWebsocket) {
   const tabAddButton = document.getElementById("tabAddButton");
 
   splitscreenButton.addEventListener("click", () => {
-    openMemberPicker(splitscreenButton, ws, pageDocId);
+    openMemberPicker(splitscreenButton, ws, pageDocId, false, true);
   });
 
   tabAddButton?.addEventListener("click", () => {
-    openMemberPicker(tabAddButton, ws, pageDocId);
+    openMemberPicker(tabAddButton, ws, pageDocId, true);
   });
 
   splitsideClose?.addEventListener("click", () => {
