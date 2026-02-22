@@ -85,29 +85,49 @@ function groupBy<T>(arr: T[], key: (item: T) => string): Map<string, T[]> {
 }
 
 // ── Scroll memory ────────────────────────────────────────────────────
+//
+// We store the ProseMirror document position nearest the top of the visible
+// area rather than a raw scrollTop pixel value. This makes the saved position
+// resolution-independent: the same paragraph is scrolled into view regardless
+// of how the text reflows at different screen widths.
 
-function makeScrollSaver(container: HTMLElement, pageDocId: string, docId: T.DocId) {
-  const key = `split-scroll:${pageDocId}:${docId}`;
+function scrollKey(pageDocId: string, docId: T.DocId) {
+  return `split-scroll-pos:${pageDocId}:${docId}`;
+}
+
+function saveScrollPos(container: HTMLElement, entry: TabEntry, pageDocId: string) {
+  const view = entry.editor?.view;
+  if (!view) return;
+  const rect = container.getBoundingClientRect();
+  // Sample a point just inside the top of the visible area.
+  const pos = view.posAtCoords({ left: rect.left + 1, top: rect.top + 1 });
+  if (pos == null) return;
+  localStorage.setItem(scrollKey(pageDocId, entry.docId), pos.pos.toString());
+}
+
+function restoreScrollPos(container: HTMLElement, entry: TabEntry, pageDocId: string) {
+  const view = entry.editor?.view;
+  if (!view) return;
+  const raw = localStorage.getItem(scrollKey(pageDocId, entry.docId));
+  if (raw == null) return;
+  const savedPos = parseInt(raw, 10);
+  const docSize = view.state.doc.content.size;
+  const clampedPos = isNaN(savedPos) ? 0 : Math.min(savedPos, docSize);
+  const coords = view.coordsAtPos(clampedPos);
+  const containerRect = container.getBoundingClientRect();
+  container.scrollTop += coords.top - containerRect.top;
+}
+
+function makeScrollSaver(container: HTMLElement, getEntry: () => TabEntry | undefined, pageDocId: string) {
   let timer: ReturnType<typeof setTimeout> | null = null;
 
   container.addEventListener("scroll", () => {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
-      localStorage.setItem(key, container.scrollTop.toString());
+      const entry = getEntry();
+      if (entry) saveScrollPos(container, entry, pageDocId);
     }, 200);
   });
-
-  return {
-    restore() {
-      const saved = parseInt(localStorage.getItem(key) ?? '', 10);
-      requestAnimationFrame(() => {
-        container.scrollTop = isNaN(saved) ? 0 : saved;
-      });
-    },
-    save() {
-      localStorage.setItem(key, container.scrollTop.toString());
-    },
-  };
 }
 
 // ── Tab drag-to-reorder ──────────────────────────────────────────────
@@ -263,10 +283,7 @@ function activateTab(docId: T.DocId, pageDocId: string) {
   // Save scroll of currently active tab
   if (activeDocId && activeDocId !== docId) {
     const prev = tabs.find(t => t.docId === activeDocId);
-    if (prev) {
-      const key = `split-scroll:${pageDocId}:${activeDocId}`;
-      localStorage.setItem(key, prev.editorContainerEl.scrollTop.toString());
-    }
+    if (prev) saveScrollPos(prev.editorContainerEl, prev, pageDocId);
   }
 
   activeDocId = docId;
@@ -276,14 +293,10 @@ function activateTab(docId: T.DocId, pageDocId: string) {
     t.editorContainerEl.classList.toggle("active", t.docId === docId);
   }
 
-  // Restore scroll for newly active tab
+  // Restore scroll for newly active tab (editor already loaded)
   const entry = tabs.find(t => t.docId === docId);
-  if (entry) {
-    const key = `split-scroll:${pageDocId}:${docId}`;
-    const saved = parseInt(localStorage.getItem(key) ?? '', 10);
-    requestAnimationFrame(() => {
-      entry.editorContainerEl.scrollTop = isNaN(saved) ? 0 : saved;
-    });
+  if (entry && entry.editor) {
+    requestAnimationFrame(() => restoreScrollPos(entry.editorContainerEl, entry, pageDocId));
   }
 }
 
@@ -351,7 +364,7 @@ function openTab(docId: T.DocId, ws: WS.MyWebsocket, pageDocId: string) {
   tabs.push(entry);
 
   // Attach scroll listener so position is saved continuously
-  makeScrollSaver(editorContainerEl, pageDocId, docId);
+  makeScrollSaver(editorContainerEl, () => tabs.find(t => t.docId === docId), pageDocId);
 
   // Open the panel if not already
   const studyPage = document.getElementById("studyPage");
@@ -629,11 +642,7 @@ export function init(ws: WS.MyWebsocket) {
     entry.editor.addEditor(entry.editorContainerEl);
 
     if (docId === activeDocId) {
-      const key = `split-scroll:${pageDocId}:${docId}`;
-      const saved = parseInt(localStorage.getItem(key) ?? '', 10);
-      requestAnimationFrame(() => {
-        entry.editorContainerEl.scrollTop = isNaN(saved) ? 0 : saved;
-      });
+      requestAnimationFrame(() => restoreScrollPos(entry.editorContainerEl, entry, pageDocId));
     }
   });
 
