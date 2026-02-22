@@ -686,6 +686,7 @@ export const questionPopup = (
       qNode.editor.destroy();
       qNode.editor = null;
       pop.parentNode.removeChild(pop);
+      view.focus();
     };
 
     closer.onclick = (e) => {
