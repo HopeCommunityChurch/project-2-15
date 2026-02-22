@@ -2,7 +2,6 @@
 .direnv
 result
 .devenv
-.devenv
 pg-init-*
 CLAUDE.md
 .claude

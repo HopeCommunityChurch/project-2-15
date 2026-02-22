@@ -1,6 +1,6 @@
 module Database where
 
-import Data.Aeson (Object)
+import Data.Aeson (Object, Value)
 import Database.Beam (
   Beamable,
   C,
@@ -360,6 +360,7 @@ data DocumentT f = MkDocumentT
   , isDeleted :: C f Bool
   , created :: C f UTCTime
   , updated :: C f UTCTime
+  , version :: C f Int32
   }
   deriving (Generic)
   deriving anyclass (Beamable)
@@ -383,6 +384,7 @@ documentTable =
       , isDeleted = fieldNamed "isDeleted"
       , updated = fieldNamed "updated"
       , created = fieldNamed "created"
+      , version = fieldNamed "version"
       }
 
 
@@ -438,6 +440,64 @@ documentEditorTable =
 
 
 
+data DocumentStepT f = MkDocumentStepT
+  { docId :: C f T.DocId
+  , version :: C f Int32
+  , step :: C f (PgJSONB Value)
+  , userId :: C f T.UserId
+  , computerId :: C f T.ComputerId
+  , createdAt :: C f UTCTime
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table DocumentStepT where
+  data PrimaryKey DocumentStepT f = DocumentStepKey (C f T.DocId) (C f Int32)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = DocumentStepKey <$> (.docId) <*> (.version)
+
+documentStepTable :: TableMod DocumentStepT
+documentStepTable =
+  modifyTable
+    "document_step"
+    MkDocumentStepT
+      { docId = fieldNamed "docId"
+      , version = fieldNamed "version"
+      , step = fieldNamed "step"
+      , userId = fieldNamed "userId"
+      , computerId = fieldNamed "computerId"
+      , createdAt = fieldNamed "createdAt"
+      }
+
+
+data DocumentSnapshotT f = MkDocumentSnapshotT
+  { docId :: C f T.DocId
+  , atVersion :: C f Int32
+  , document :: C f (PgJSONB Object)
+  , createdAt :: C f UTCTime
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table DocumentSnapshotT where
+  data PrimaryKey DocumentSnapshotT f = DocumentSnapshotKey (C f T.DocId) (C f Int32)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = DocumentSnapshotKey <$> (.docId) <*> (.atVersion)
+
+documentSnapshotTable :: TableMod DocumentSnapshotT
+documentSnapshotTable =
+  modifyTable
+    "document_snapshot"
+    MkDocumentSnapshotT
+      { docId = fieldNamed "docId"
+      , atVersion = fieldNamed "atVersion"
+      , document = fieldNamed "document"
+      , createdAt = fieldNamed "createdAt"
+      }
+
+
 data Db f = MkDb
   { user :: f (TableEntity UserT)
   , userPassword :: f (TableEntity UserPasswordT)
@@ -453,6 +513,8 @@ data Db f = MkDb
   , document :: f (TableEntity DocumentT)
   , documentSave :: f (TableEntity DocumentSaveT)
   , documentEditor :: f (TableEntity DocumentEditorT)
+  , documentStep :: f (TableEntity DocumentStepT)
+  , documentSnapshot :: f (TableEntity DocumentSnapshotT)
   }
   deriving (Generic)
 
@@ -475,4 +537,6 @@ db = defaultDbSettings `withDbModification`
           , document = documentTable
           , documentSave = documentSaveTable
           , documentEditor = documentEditorTable
+          , documentStep = documentStepTable
+          , documentSnapshot = documentSnapshotTable
           }

@@ -8,7 +8,12 @@ export type SendOpenDoc = {
 
 export type SendUpdated = {
   tag: "Updated",
-  contents: any,
+  contents: {
+    version: number,
+    steps: any[],
+    clientId: string,
+    selection?: { anchor: number, head: number },
+  },
 };
 
 export type SendListenToDoc = {
@@ -62,7 +67,17 @@ type RecDocOpenedOther = {
 
 type RecDocUpdated = {
   tag: "DocUpdated",
-  contents: any,
+  contents: { version: number, steps: any[], clientIds: string[] },
+};
+
+type RecDocConfirmed = {
+  tag: "DocConfirmed",
+  contents: { version: number, steps: any[], clientIds: string[] },
+};
+
+type RecDocConflict = {
+  tag: "DocConflict",
+  contents: { steps: any[], clientIds: string[] },
 };
 
 type RecDocSaved = {
@@ -93,6 +108,8 @@ type RecParseError = {
 type RecMsg =
   | RecDocListenStart
   | RecDocUpdated
+  | RecDocConfirmed
+  | RecDocConflict
   | RecDocSaved
   | RecDocOpenedOther
   | RecDocOpened
@@ -144,6 +161,22 @@ export class DocOpenedEvent extends Event {
 export class DocNameUpdated extends Event {
   constructor() {
     super("DocNameUpdated");
+  }
+}
+
+export class DocConfirmedEvent extends Event {
+  payload: { version: number, steps: any[], clientIds: string[] };
+  constructor(payload: { version: number, steps: any[], clientIds: string[] }) {
+    super("DocConfirmed");
+    this.payload = payload;
+  }
+}
+
+export class DocConflictEvent extends Event {
+  payload: { steps: any[], clientIds: string[] };
+  constructor(payload: { steps: any[], clientIds: string[] }) {
+    super("DocConflict");
+    this.payload = payload;
   }
 }
 
@@ -222,6 +255,16 @@ export class MyWebsocket extends EventTarget {
         }
         case "DocUpdated": {
           let event = new DocUpdatedEvent(rec.contents);
+          this.dispatchEvent(event);
+          break;
+        }
+        case "DocConfirmed": {
+          let event = new DocConfirmedEvent(rec.contents);
+          this.dispatchEvent(event);
+          break;
+        }
+        case "DocConflict": {
+          let event = new DocConflictEvent(rec.contents);
           this.dispatchEvent(event);
           break;
         }

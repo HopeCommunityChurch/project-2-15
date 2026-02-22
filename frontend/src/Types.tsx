@@ -50,6 +50,7 @@ export type GroupStudy = {
 export type LastUpdate = {
   computerId: string,
   time: string,
+  version: number,
 };
 
 export type DocRaw = {
@@ -62,6 +63,7 @@ export type DocRaw = {
   studyTemplateId?: StudyTemplateId;
   created: string;
   updated: string;
+  version: number;
   lastUpdate?: LastUpdate
 };
 

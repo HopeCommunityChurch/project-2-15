@@ -1,0 +1,388 @@
+@import url("../utils/base.css");
+@import url("../editor/editor.css");
+
+/* ── Page scaffold ─────────────────────────────────────── */
+
+#studyPage {
+  display: grid;
+  height: 100vh;
+  grid-template-rows: 52px 1fr;
+  grid-template-areas:
+    "header"
+    "main";
+  overflow: hidden;
+}
+
+#header {
+  grid-area: header;
+}
+
+#historyBackButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  text-decoration: none;
+  margin-left: 8px;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+
+  img {
+    width: 15px;
+    height: 15px;
+    opacity: 0.5;
+    transition: opacity 0.15s ease;
+  }
+
+  &:hover {
+    background-color: #e8eaed;
+    transform: scale(1.1);
+
+    img {
+      opacity: 0.9;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1D6BD7;
+    outline-offset: 2px;
+  }
+}
+
+#historyPageTitle {
+  margin-left: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Two-column history layout ─────────────────────────── */
+
+#historyLayout {
+  grid-area: main;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  overflow: hidden;
+}
+
+/* ── Left sidebar – version list ───────────────────────── */
+
+#historyList {
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#historyListHeader {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+
+  h2 {
+    font-size: 11px;
+    font-weight: 600;
+    color: #5f6368;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 4px;
+  }
+}
+
+#historyListHint {
+  font-size: 11px;
+  color: #9aa0a6;
+  margin: 0;
+  line-height: 1.5;
+}
+
+#historyGroups {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+
+/* ── Date section headings ─────────────────────────────── */
+
+.historyDateSection {
+  margin-top: 8px;
+}
+
+.historyDateHeading {
+  font-size: 10px;
+  font-weight: 600;
+  color: #80868b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 16px 4px;
+  margin: 0;
+}
+
+/* ── Individual version entry ──────────────────────────── */
+
+.historyGroupItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 8px 16px 8px 14px;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+  transition: background-color 0.1s ease;
+
+  &:hover {
+    background-color: #f1f3f4;
+  }
+
+  &.selected {
+    background-color: var(--blue-25);
+    border-left-color: var(--blue-100);
+  }
+}
+
+.historyTime {
+  font-size: 13px;
+  font-weight: 500;
+  color: #202124;
+  display: block;
+  line-height: 1.4;
+}
+
+.historySteps {
+  font-size: 12px;
+  color: #80868b;
+  display: block;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* ── Right panel – document preview ───────────────────── */
+
+#historyPreview {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* ── Empty state ────────────────────────────────────── */
+
+#historyPreviewPlaceholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+#historyEmptyState {
+  max-width: 400px;
+  text-align: center;
+}
+
+#historyEmptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+#historyEmptyState h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #202124;
+  margin-bottom: 12px;
+}
+
+#historyEmptyState p {
+  font-size: 13px;
+  color: #5f6368;
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+
+.historyEmptyHint {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0057d1 !important;
+}
+
+/* ── Version pill ───────────────────────────────────── */
+
+.versionPill {
+  padding: 3px 10px;
+  background: #eef5ff;
+  border: 1px solid #c5d8f8;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0057d1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Preview toolbar ────────────────────────────────── */
+
+#previewToolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+/* ── Editor preview – full width like the study editor ── */
+
+#editorHolder.editorHolder {
+  flex: 1;
+  padding: 0px 10px;
+  box-sizing: border-box;
+}
+
+/* ── Accordion step sub-items ──────────────────────────── */
+
+.historyAccordion {
+  display: flex;
+  flex-direction: column;
+}
+
+.historyGroupItem.expanded {
+  border-left-color: var(--blue-60, #4a90d9);
+  background-color: var(--blue-25);
+}
+
+.historyGroupItem .historyTime::before {
+  content: "\25B6\00A0" / "";
+  font-size: 9px;
+  opacity: 0.5;
+  margin-right: 2px;
+}
+
+.historyGroupItem.expanded .historyTime::before {
+  content: "\25BC\00A0" / "";
+}
+
+.historyStepsPanel {
+  background: #f8f9fa;
+  border-left: 3px solid #e0e0e0;
+  margin-left: 14px;
+}
+
+.historyStepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 6px 16px 6px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+  transition: background-color 0.1s ease;
+
+  &:hover {
+    background-color: #f1f3f4;
+  }
+
+  &.selected {
+    background-color: var(--blue-25);
+
+    .historyStepTime {
+      color: var(--blue-100, #1a73e8);
+    }
+  }
+}
+
+.historyStepTime {
+  font-size: 12px;
+  font-weight: 500;
+  color: #202124;
+  display: block;
+  line-height: 1.4;
+}
+
+.historyStepCount {
+  font-size: 11px;
+  color: #80868b;
+  display: block;
+  margin-top: 1px;
+}
+
+/* ── Back button (mobile only) ──────────────────────── */
+
+#backToVersions {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0057d1;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-radius: 6px;
+
+  &:hover {
+    background: #f1f3f4;
+  }
+}
+
+/* ── Mobile ─────────────────────────────────────────── */
+
+@media (max-width: 660px) {
+  #studyPage {
+    grid-template-rows: 52px 1fr;
+    overflow: hidden;
+  }
+
+  #historyLayout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  /* By default show the sidebar, hide the preview */
+  #historyPreview {
+    display: none;
+  }
+
+  /* When a version is selected, swap panels */
+  #historyLayout.preview-open #historyList {
+    display: none;
+  }
+
+  #historyLayout.preview-open #historyPreview {
+    display: flex;
+  }
+
+  #backToVersions {
+    display: flex;
+  }
+
+#restoreButton {
+    font-size: 12px;
+    padding: 6px 10px;
+    white-space: nowrap;
+  }
+
+  .historyEmptyHint {
+    display: none; /* arrow hint doesn't apply on mobile */
+  }
+}

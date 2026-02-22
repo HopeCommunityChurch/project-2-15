@@ -25,6 +25,8 @@ const computerId = (function () : string {
   return computerId;
 })();
 
+const sessionClientId = computerId + "_" + crypto.randomUUID();
+
 
 ws.addEventListener("open", () => {
   ws.sendStrRaw(computerId);
@@ -36,7 +38,25 @@ const lastRemoveSaveTimeKey = docId +  ".remoteSaveTime"
 const localDoc = docId + ".doc";
 
 
-function checkLastUpdate (doc : T.DocRaw) : any {
+function checkRestoreDoc(doc: T.DocRaw): any | null {
+  const restoreFlag = new URLSearchParams(location.search).get("restore");
+  if (!restoreFlag) return null;
+  const saved = sessionStorage.getItem(docId + ".restore");
+  if (!saved) return null;
+  sessionStorage.removeItem(docId + ".restore");
+  try {
+    // versionNum is also stored here for future use (e.g. display "restored from v42").
+    // Do not remove it from history.tsx without updating this site too.
+    const { docJson } = JSON.parse(saved);
+    console.log("restoring version from sessionStorage");
+    return docJson;
+  } catch (e) {
+    console.error("failed to parse restore data", e);
+    return null;
+  }
+}
+
+function checkLastUpdateFallback (doc : T.DocRaw) : any {
   if(doc.lastUpdate == null) {
     console.log("using remote doc");
     return doc.document;
@@ -58,14 +78,17 @@ let wasInitialized = false;
 function initialize (e : WS.DocOpenedEvent) {
   const saver = mkSaveObject(ws);
 
-  const doc = checkLastUpdate(e.doc)
+  const restoredDoc = checkRestoreDoc(e.doc);
+  const doc = restoredDoc !== null ? restoredDoc : checkLastUpdateFallback(e.doc);
 
   const editor = new Editor.P215Editor({
     initDoc: doc,
     editable: true,
+    initialVersion: e.doc.version,
+    sessionClientId: sessionClientId,
     remoteThings: {
-      send: (steps: any) => {
-        ws.send({ tag: "Updated", contents: steps });
+      send: (payload: any) => {
+        ws.send({ tag: "Updated", contents: payload });
       },
     },
   });
@@ -81,6 +104,20 @@ function initialize (e : WS.DocOpenedEvent) {
     window.localStorage.setItem(docId + ".doc", JSON.stringify(doc));
     window.localStorage.setItem(localSaveTimeKey, (new Date).toISOString());
     saver.save(doc);
+  });
+
+  if (restoredDoc !== null) {
+    window.localStorage.setItem(localDoc, JSON.stringify(restoredDoc));
+    window.localStorage.setItem(localSaveTimeKey, (new Date).toISOString());
+    ws.send({ tag: "SaveDoc", contents: { document: restoredDoc } } as WS.SendSaveDoc);
+  }
+
+  ws.addEventListener("DocConfirmed", (ev: WS.DocConfirmedEvent) => {
+    editor.confirmSteps(ev.payload);
+  });
+
+  ws.addEventListener("DocConflict", (ev: WS.DocConflictEvent) => {
+    editor.handleConflict(ev.payload);
   });
 
   const studyNameElem = document.getElementById("studyName");
@@ -149,18 +186,3 @@ function mkSaveObject (ws : WS.MyWebsocket) {
 };
 
 GS.init(ws);
-
-// window.visualViewport.addEventListener("resize", () => {
-//   const viewPort = document.querySelector("meta[name=viewport]");
-//   let map = {};
-//   viewPort.getAttribute("content").split(",").forEach( (t) => {
-//     const [key, value] = t.split("=");
-//     map[key.trim()] = value;
-//   });
-//   map["height"] = window.visualViewport.height + "";
-//   const newContent = Object.keys(map).map( (key) => {
-//     return key + "=" + map[key];
-//   }).join(", ");
-//   viewPort.setAttribute("content", newContent);
-//   console.log(newContent);
-// });
