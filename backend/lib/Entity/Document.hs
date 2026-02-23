@@ -282,6 +282,7 @@ crDocument crDoc = do
         doc.docId
         crDoc.editor
       ]
+  insertSnapshot doc.docId 0 crDoc.document
   pure doc.docId
 
 

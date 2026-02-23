@@ -34,7 +34,17 @@ instance FromRow HistoryGroup where
   fromRow = MkHistoryGroup <$> field <*> field <*> field <*> field <*> field
 
 
-type SubHistoryGroup = HistoryGroup
+data SubHistoryGroup = MkSubHistoryGroup
+  { startVersion :: Int32
+  , endVersion   :: Int32
+  , startedAt    :: UTCTime
+  , endedAt      :: UTCTime
+  }
+  deriving (Generic, Show)
+  deriving anyclass (Aeson.ToJSON)
+
+instance FromRow SubHistoryGroup where
+  fromRow = MkSubHistoryGroup <$> field <*> field <*> field <*> field
 
 
 data DocAtVersion = MkDocAtVersion
@@ -78,7 +88,7 @@ getHistoryGroups docId userId =
       \  MAX(version)::integer  AS \"endVersion\", \
       \  MIN(\"createdAt\")     AS \"startedAt\", \
       \  MAX(\"createdAt\")     AS \"endedAt\", \
-      \  COUNT(*)               AS \"stepCount\" \
+      \  COUNT(DISTINCT floor(extract(epoch FROM \"createdAt\") / 60))::bigint AS \"stepCount\" \
       \FROM sessions \
       \GROUP BY session_id \
       \ORDER BY MIN(version) DESC"
@@ -101,8 +111,7 @@ getSubHistoryGroups docId userId startVer endVer =
       \  MIN(version)::integer     AS \"startVersion\", \
       \  MAX(version)::integer     AS \"endVersion\", \
       \  MIN(\"createdAt\")        AS \"startedAt\", \
-      \  MAX(\"createdAt\")        AS \"endedAt\", \
-      \  COUNT(*)                  AS \"stepCount\" \
+      \  MAX(\"createdAt\")        AS \"endedAt\" \
       \FROM \"document_step\" \
       \WHERE \"docId\" = ? \
       \  AND \"userId\" = ? \
