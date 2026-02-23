@@ -147,6 +147,20 @@ updateUser userId up =
       (\ user -> user.userId ==. val_ userId)
 
 
+updateUserName
+  :: MonadDb env m
+  => T.UserId
+  -> Text
+  -> m ()
+updateUserName userId name =
+  runBeam
+  $ runUpdate
+  $ update
+      Db.db.user
+      (\ user -> user.name <-. val_ name)
+      (\ user -> user.userId ==. val_ userId)
+
+
 passwordResetToken
   :: MonadDb env m
   => T.Email

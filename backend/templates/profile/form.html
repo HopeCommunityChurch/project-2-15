@@ -8,5 +8,10 @@
         Saved!
       </p-notification>
     {% endif %}
+    {% if emailChangePending %}
+      <p-notification time-ms="6000">
+        Verification email sent to {{emailChangePending}}. Your email will update once confirmed.
+      </p-notification>
+    {% endif %}
     <button class="blue" type="submit">Save</button>
 </form>

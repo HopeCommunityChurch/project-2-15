@@ -196,27 +196,14 @@ Block unverified users from logging in; show resend UI with countdown timer.
 When a user changes their email on the profile page, send verification to new address and notification to old address. Email swap only happens when link is clicked.
 
 ### Checklist
-- [ ] In `Entity/User.hs`:
-  - Add `initiateEmailChange :: MonadDb env m => T.UserId -> T.Email -> T.Email -> m T.EmailVerificationToken`
-    - Creates a verification token for `(userId, newEmail)` (same `createVerificationToken`)
-    - Returns token (caller sends both emails)
-  - Modify `updateUser` (or add `updateUserName`) to only update `name` (not email directly)
-    - Email update now only happens via `verifyEmailToken`
-- [ ] In `Api/Htmx/Profile.hs`:
-  - In `putProfile`: compare submitted email to current `user.email`
-  - If email unchanged: update name only (as before)
-  - If email changed:
-    1. Update name (if changed)
-    2. Call `initiateEmailChange userId oldEmail newEmail`
-    3. Send `Emails.EmailChangeNotification.mail` to old email
-    4. Send `Emails.EmailVerification.mail` to new email (with token)
-    5. Render profile form with `<p-notification>`: "Verification email sent to {newEmail}. Your email will update once confirmed."
-- [ ] Run `cabal build`
-- [ ] Test:
-  - Change email on profile → notification shown, both emails sent
-  - Old email shows informational notice
-  - New email has verification link
-  - Clicking link updates user.email and redirects to login
+- [x] Add `updateUserName` to `Entity/User.hs` (name-only update, used when email is changing)
+- [x] In `Profile.hs` `putProfile`: compare submitted email to `user.email`
+  - If unchanged: call `updateUser` as before (shows "Saved!")
+  - If changed: call `updateUserName`, `createVerificationToken`, send both emails, show pending notification
+- [x] Add `Mail.HasSmtp env` and `HasUrl env` constraints to `putProfile`
+- [x] In `profile/form.html`: add `emailChangePending` notification block
+- [x] Run `cabal build` — passes
+- [ ] Test: change email → both emails sent → link verifies → email swapped
 
 ---
 
