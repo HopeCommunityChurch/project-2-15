@@ -105,6 +105,7 @@ createUser newUser = do
           (val_ newUser.name)
           (val_ Nothing)
           (val_ newUser.churchId)
+          (val_ False)
           default_
         ]
   hash <- liftIO $ getHash newUser.password
