@@ -439,8 +439,9 @@ getLatestSnapshotBefore docId atMost =
     pure snap
 
 
--- | Returns (version, document JSON) from the document table — used as a fallback
--- | baseline when no collab snapshot has been taken yet.
+-- | Returns the document's current version and content from the documents
+-- table. Used as a fallback baseline for history reconstruction when no
+-- collab snapshot has been recorded yet (e.g. legacy documents).
 getDocBase
   :: MonadDb env m
   => T.DocId

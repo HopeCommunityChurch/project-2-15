@@ -74,9 +74,9 @@
 #historyList {
   background: #f0f2f5;
   border-right: 1px solid #dde1e7;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 #historyListHeader {
@@ -220,6 +220,12 @@
   text-align: left;
   box-sizing: border-box;
   min-width: 0;
+
+  &:focus-visible {
+    outline: 2px solid #1D6BD7;
+    outline-offset: -2px;
+    border-radius: 8px;
+  }
 }
 
 .historyTime {
@@ -378,6 +384,11 @@
   &.selected:hover {
     background-color: rgba(255, 255, 255, 0.5);
   }
+
+  &:focus-visible {
+    outline: 2px solid #1D6BD7;
+    outline-offset: -2px;
+  }
 }
 
 .historyStepTime {
@@ -386,13 +397,6 @@
   color: #202124;
   display: block;
   line-height: 1.4;
-}
-
-.historyStepCount {
-  font-size: 11px;
-  color: #80868b;
-  display: block;
-  margin-top: 1px;
 }
 
 /* ── Back button (mobile only) ──────────────────────── */
@@ -447,7 +451,7 @@
     display: flex;
   }
 
-#restoreButton {
+  #restoreButton {
     font-size: 12px;
     padding: 6px 10px;
     white-space: nowrap;

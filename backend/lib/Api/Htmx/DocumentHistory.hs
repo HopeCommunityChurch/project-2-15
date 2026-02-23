@@ -1,5 +1,6 @@
 module Api.Htmx.DocumentHistory where
 
+import Data.Maybe (fromMaybe)
 import Api.Htmx.AuthHelper (AuthUser (..))
 import Api.Htmx.Ginger (basicTemplate)
 import Api.Htmx.NotFound qualified as NotFound
@@ -132,9 +133,14 @@ getDocAtVersion docId targetVersion = do
   -- If none exists, start from version 0 with an empty document and
   -- replay all steps from the beginning up to the target version.
   mSnap <- Doc.getLatestSnapshotBefore docId targetVersion
-  let (snapVersion, snapDoc) = case mSnap of
-        Just (v, d) -> (v, d)
-        Nothing     -> (0, mempty)
+  (snapVersion, snapDoc) <- case mSnap of
+    Just (v, d) -> pure (v, d)
+    Nothing     -> do
+      -- No collab snapshot exists yet (e.g. a legacy document). Fall back to
+      -- the raw document content so history reconstruction starts from the
+      -- actual saved state rather than an empty document.
+      mBase <- Doc.getDocBase docId
+      pure $ fromMaybe (0, mempty) mBase
   rawSteps <- Doc.getStepsSince docId snapVersion
   let filtered = [ s | (v, s, _) <- rawSteps, v <= targetVersion ]
   pure $ MkDocAtVersion snapDoc filtered snapVersion targetVersion

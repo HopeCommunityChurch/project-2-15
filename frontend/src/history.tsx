@@ -188,21 +188,21 @@ function selectItem(el: Element) {
 async function loadSubGroups(
   group: HistoryGroup,
   panel: HTMLElement,
-): Promise<void> {
+): Promise<boolean> {
   panel.textContent = "Loading…";
   const res = await fetch(
     `/document/${docId}/history/sub/${group.startVersion}/${group.endVersion}`
   );
   if (!res.ok) {
-    panel.textContent = "Failed to load.";
-    return;
+    panel.textContent = "Failed to load. Collapse and try again.";
+    return false;
   }
   const subGroups: SubHistoryGroup[] = await res.json();
   panel.textContent = "";
 
   if (subGroups.length === 0) {
     panel.textContent = "No sub-items.";
-    return;
+    return true;
   }
 
   for (const sub of subGroups) {
@@ -217,6 +217,7 @@ async function loadSubGroups(
     });
     panel.appendChild(btn);
   }
+  return true;
 }
 
 function updateToolbarPill() {
@@ -316,8 +317,8 @@ async function init() {
           expandBtn.classList.add("expanded");
           expandBtn.setAttribute("aria-expanded", "true");
           if (!subLoaded) {
-            subLoaded = true;
-            await loadSubGroups(group, stepsPanel);
+            const ok = await loadSubGroups(group, stepsPanel);
+            if (ok) subLoaded = true;
           }
         }
       });

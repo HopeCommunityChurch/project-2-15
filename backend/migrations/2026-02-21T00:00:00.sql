@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS "document_step"
 CREATE INDEX IF NOT EXISTS "idx_document_step_created"
   ON "document_step" ("docId", "createdAt");
 
--- Periodic full-doc snapshots (every 500 steps)
+-- Periodic full-doc snapshots (every 50 steps)
 CREATE TABLE IF NOT EXISTS "document_snapshot"
   ( "docId"      uuid        NOT NULL
   , "atVersion"  integer     NOT NULL
