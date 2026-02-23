@@ -9,7 +9,6 @@ module Types (
   GroupStudyId,
   StudyTemplateId,
   DocId,
-  DocVersionNum,
   CookieToken,
   genCookieToken,
   PasswordResetToken,
@@ -106,10 +105,6 @@ type GroupStudyId = NewType GroupStudyId' UUID
 
 data DocId'
 type DocId = NewType DocId' UUID
-
-
-data DocVersionNum'
-type DocVersionNum = NewType DocVersionNum' Int32
 
 
 data CookieToken'

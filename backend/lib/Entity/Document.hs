@@ -402,24 +402,6 @@ insertSnapshot docId atVer docObj = do
       [ Db.MkDocumentSnapshotT docId atVer (PgJSONB docObj) now ]
 
 
-getLatestSnapshot
-  :: MonadDb env m
-  => T.DocId
-  -> m (Maybe (Int32, Object))
-getLatestSnapshot docId =
-  fmap (fmap (\ r -> (r.atVersion, Db.unPgJSONB r.document)))
-  $ runBeam
-  $ runSelectReturningOne
-  $ select
-  $ limit_ 1
-  $ orderBy_ (desc_ . (.atVersion))
-  $ do
-    snap <- all_ Db.db.documentSnapshot
-    guard_ $ snap.docId ==. val_ docId
-    pure snap
-
-
--- | Like 'getLatestSnapshot' but only considers snapshots at or before the given version.
 getLatestSnapshotBefore
   :: MonadDb env m
   => T.DocId

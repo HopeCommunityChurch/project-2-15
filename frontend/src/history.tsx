@@ -283,7 +283,7 @@ async function init() {
       previewBtn.className = "historyGroupPreviewBtn";
       previewBtn.innerHTML =
         `<span class="historyTime">${formatGroupLabel(group.endedAt)}</span>` +
-        `<span class="historySteps">${group.stepCount} session${group.stepCount !== 1 ? "s" : ""}</span>`;
+        `<span class="historySteps">${group.stepCount} item${group.stepCount !== 1 ? "s" : ""}</span>`;
 
       const expandBtn = document.createElement("button");
       expandBtn.className = "historyExpandBtn";
