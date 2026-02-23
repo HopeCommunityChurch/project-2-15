@@ -1,6 +1,6 @@
 <form hx-post="{{base}}/login" hx-target="this" hx-swap="outerHTML" >
   <label for="email">Email</label>
-  <input required type="email" name="email" {% if email %} value="{{email}}" {% endif %} placeholder="example@example.com">
+  <input required id="email" type="email" name="email" {% if email %} value="{{email}}" {% endif %} placeholder="example@example.com">
 
   <label for="password">Password</label>
   <input required id="password" value="{{password}}" type="password" name="password" >
@@ -29,14 +29,16 @@
   {% if unverified %}
   <div class="errorText">Please verify your email address before logging in.</div>
   <div class="resendVerification">
-    <form hx-post="{{base}}/resend_verification"
-          hx-target="#resend-result"
-          hx-swap="outerHTML">
-      <input type="hidden" name="email" value="{{email}}">
-      <button type="submit" id="resend-btn" class="linkBtn" onclick="startResendCooldown()">
-        Resend verification email
-      </button>
-    </form>
+    <button type="button"
+            id="resend-btn"
+            class="linkBtn"
+            hx-post="{{base}}/resend_verification"
+            hx-vals='{"email": "{{email}}"}'
+            hx-target="#resend-result"
+            hx-swap="outerHTML"
+            onclick="startResendCooldown()">
+      Resend verification email
+    </button>
     <div id="resend-result"></div>
   </div>
   <script>

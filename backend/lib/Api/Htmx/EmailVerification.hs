@@ -43,8 +43,8 @@ postResendVerification = do
   mUserId <- lift $ User.getUnverifiedUserId emailParam
   case mUserId of
     Nothing ->
-      -- Don't reveal whether the email exists; silently return success
-      html "<div class=\"successText\">If that address has a pending verification, we sent a new email.</div>"
+      -- Don't reveal whether the email exists; silently return success.
+      html "<div class=\"successText\" id=\"resend-result\">If that address has a pending verification, we sent a new email.</div>"
     Just userId -> do
       mSecondsRemaining <- lift $ User.checkVerificationRateLimit userId
       case mSecondsRemaining of

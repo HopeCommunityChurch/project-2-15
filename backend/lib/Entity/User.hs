@@ -308,9 +308,7 @@ verifyEmailToken token = do
     pure v.userId
 
 
--- Returns `Just secondsRemaining` if the user is still within the 5-minute resend
--- cooldown window, or `Nothing` if they may resend (either no pending token exists,
--- or the cooldown has expired). Both cases are treated identically by the caller.
+-- Returns `Just secondsRemaining` if within the 5-minute resend cooldown, `Nothing` otherwise.
 checkVerificationRateLimit
   :: MonadDb env m
   => T.UserId
