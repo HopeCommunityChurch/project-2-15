@@ -329,3 +329,18 @@ updateVerificationSentAt userId = do
         (\ v -> v.sentAt <-. val_ now)
         (\ v -> v.userId ==. val_ userId &&. isNothing_ v.usedAt)
 
+
+getUnverifiedUserId
+  :: MonadDb env m
+  => T.Email
+  -> m (Maybe T.UserId)
+getUnverifiedUserId email =
+  runBeam
+  $ runSelectReturningOne
+  $ select
+  $ do
+    user <- all_ Db.db.user
+    guard_ $ user.email ==. val_ email
+    guard_ $ user.emailVerified ==. val_ False
+    pure user.userId
+

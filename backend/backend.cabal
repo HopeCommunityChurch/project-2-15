@@ -101,6 +101,7 @@ library
     Api.Htmx.Login,
     Api.Htmx.Signup,
     Api.Htmx.PasswordReset,
+    Api.Htmx.EmailVerification,
     Api.Htmx.Home,
     Api.Htmx.NotFound,
     Api.Htmx.NotAuthorized,

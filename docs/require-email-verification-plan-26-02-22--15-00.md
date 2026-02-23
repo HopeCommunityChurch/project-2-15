@@ -142,26 +142,17 @@ Create the new HTTP handlers and wire them into the server.
     - On failure (invalid/expired): render `templates/verifyEmail.html` with error message
   - `postResendVerification :: (MonadDb env m, HasSmtp env, HasBaseUrl env, MonadLogger m) => ActionT m ()`
     - Reads `email` form param
-    - Looks up user by email, checks they exist and are unverified
+    - Looks up user by email via `getUnverifiedUserId`, checks they exist and are unverified
     - Calls `checkVerificationRateLimit userId`
     - If rate limited: return HTMX partial with error showing seconds remaining
     - If OK: call `createVerificationToken`, send verification email, return HTMX partial with "Email sent!"
-- [ ] Create `templates/verifyEmail.html`:
-  - Extends base.html
-  - Shows success or error message
-  - On error: "This verification link has expired or is invalid. Please try logging in to request a new one."
-  - Link back to `/login`
-- [ ] Create `templates/signup/checkEmail.html`:
-  - HTMX partial (no base extension needed — replaces form `outerHTML`)
-  - "Check your inbox! We sent a verification email to {email}."
-  - "Once verified, you can log in."
-  - Link to `/login`
-- [ ] In `Api/Htmx/Server.hs`, add routes:
-  ```haskell
-  get  "/verify_email"         EmailVerification.getVerifyEmail
-  post "/resend_verification"  EmailVerification.postResendVerification
-  ```
-- [ ] Run `cabal build`
+- [x] Create `Api/Htmx/EmailVerification.hs` with `getVerifyEmail` and `postResendVerification`
+- [x] Add `getUnverifiedUserId` to `Entity/User.hs`
+- [x] Create `templates/verifyEmail.html` — expired/invalid link page (extends base.html)
+- [x] Create `templates/signup/checkEmail.html` — post-signup check-inbox partial
+- [x] Register `Api.Htmx.EmailVerification` in `backend.cabal`
+- [x] Wire `GET /verify_email` and `POST /resend_verification` in `Server.hs`
+- [x] Run `cabal build` — passes
 
 ---
 
