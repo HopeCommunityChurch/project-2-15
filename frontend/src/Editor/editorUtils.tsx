@@ -226,6 +226,27 @@ export const addGeneralStudyBlock = (state: EditorState, dispatch?: (tr: Transac
   }
 };
 
+// Create a brand-new generalStudyBlock node with a given name and empty body
+export const createGeneralStudyBlockNode = (name: string): Node => {
+  const headerText = name ? [textSchema.text(name)] : [];
+  const sbHeader = textSchema.nodes.generalStudyBlockHeader.createChecked(null, headerText);
+  const bodyp = textSchema.nodes.paragraph.createChecked(null, []);
+  const sbBody = textSchema.nodes.generalStudyBlockBody.create(null, bodyp);
+  return textSchema.nodes.generalStudyBlock.createChecked({ id: uuidv4() }, [sbHeader, sbBody]);
+};
+
+// Return a copy of a generalStudyBlock node with a new header name
+export const withRenamedHeader = (node: Node, newName: string): Node => {
+  const headerText = newName ? [textSchema.text(newName)] : [];
+  const newHeader = textSchema.nodes.generalStudyBlockHeader.createChecked(null, headerText);
+  let body: Node | null = null;
+  node.forEach(child => {
+    if (child.type.name === "generalStudyBlockBody") body = child;
+  });
+  const children = body ? [newHeader, body] : [newHeader];
+  return textSchema.nodes.generalStudyBlock.createChecked(node.attrs, children);
+};
+
 const nodeIsChunk = (node: Node) => {
   if (node.type.name === "section") return true;
   if (node.type.name === "bibleText") return true;

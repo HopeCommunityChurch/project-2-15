@@ -33,7 +33,6 @@ import { keymap } from "prosemirror-keymap";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { StepMap, Step, Transform } from "prosemirror-transform";
 import { baseKeymap } from "prosemirror-commands";
-// import AddScriptureIcon from "../Assets/add-scripture.svg";
 import {
   questionHighlightPlugin,
   highlighQuestion,
@@ -42,7 +41,6 @@ import {
 import { otherCursorPlugin, setSelection } from "./OtherCursorPlugin";
 import {getRandomStr} from "../Util";
 
-// import CloseXIcon from "../Assets/x.svg";
 import { v4 as uuidv4 } from "uuid";
 
 // var blockMap : Dictionary<BlockMapItem> = {};
@@ -76,11 +74,16 @@ class StudyBlocksView implements NodeView {
     const table = document.createElement("table");
     table.className = "studyBlocks";
 
-    // Create and configure the Pencil icon
-    const editIcon = new Image();
-    editIcon.src = "/static/img/gray-pencil-in-circle.svg";
-    editIcon.className = "studyBlockEditPencil";
+    // Create and configure the Edit blocks button
+    const editIcon = document.createElement("button");
+    editIcon.className = "studyBlockEditPencil ghostBlue";
+    const editImg = new Image();
+    editImg.src = "/static/img/gray-pencil-in-circle.svg";
+    editImg.draggable = false;
+    editIcon.appendChild(editImg);
+    editIcon.appendChild(document.createTextNode("Edit blocks"));
 
+    editIcon.addEventListener("mousedown", (e) => { e.preventDefault(); });
     editIcon.addEventListener("click", () => {
       let sectionNode : Node = null;
       let sectionPos = null;
@@ -100,7 +103,7 @@ class StudyBlocksView implements NodeView {
         if(parent.type.name === "section" && node.type.name === "studyBlocks") {
           return true;
         } else if(parent.type.name === "section") {
-          return false
+          return false;
         }
         if(parent.type.name === "studyBlocks") {
           studyBlocks.push({node, pos});
@@ -117,6 +120,10 @@ class StudyBlocksView implements NodeView {
     // Set the table as the main content
     this.contentDOM = table;
     this.dom.appendChild(table);
+  }
+
+  stopEvent(e: Event): boolean {
+    return e.type === "mousedown" || e.type === "click";
   }
 }
 
@@ -192,6 +199,8 @@ class QuestionsView implements NodeView {
       noQuestionsText.className = "noQuestionsText";
       noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
 
+      noQuestionsText.setAttribute("contenteditable", "false");
+      noQuestionsText.addEventListener("mousedown", (e) => { e.preventDefault(); });
       noQuestionsText.onclick = () => {
         // Logic to move the cursor to the previous position
         const transaction = view.state.tr.setSelection(
@@ -311,6 +320,7 @@ export class QuestionView implements NodeView {
 
     if (view.editable) {
       const addAnswer = document.createElement("button");
+      addAnswer.addEventListener("mousedown", (e) => { e.preventDefault(); });
       addAnswer.onclick = (e) => {
         e.preventDefault();
         const qnode = newQuestionAnswerNode();
@@ -753,7 +763,7 @@ let questionMarkPlugin = (
             Decoration.widget(loc, questionMarkWidget(qId, questionMap, setCurrentEditor), {
               key: "qmark" + qId,
               stopEvent: (e: Event) => {
-                return e.type === "click";
+                return e.type === "mousedown" || e.type === "click";
               },
               side: -1,
             })
@@ -1114,6 +1124,7 @@ const mkPlaceholderElement = (pos) => (view: EditorView) => {
     <em>above to add your verses here</em>
   `;
 
+  placeholderElement.addEventListener("mousedown", (e) => { e.preventDefault(); });
   placeholderElement.onclick = () => {
     // Logic to move the cursor to the previous position
     const transaction = view.state.tr.setSelection(TextSelection.near(view.state.doc.resolve(pos)));
