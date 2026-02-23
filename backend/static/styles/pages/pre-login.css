@@ -79,6 +79,7 @@
     align-items: center;
     flex-wrap: wrap;
     position: relative;
+    z-index: 0;
   }
 
   .button-3d {
@@ -91,7 +92,6 @@
     box-shadow: 0 4px 0 #0056d2;
     border: #0056d2 solid 1px;
     cursor: pointer;
-    transition: transform 0.1s ease;
     display: inline-flex;
     align-items: center;
     gap: 15px;
@@ -102,10 +102,18 @@
     }
 
     &:hover {
-      transform: translateY(2px);
+      animation: button-bounce 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
       box-shadow: 0 2px 0 #0056d2;
+      transform: translateY(2px);
     }
   }
+}
+
+@keyframes button-bounce {
+  0%   { transform: translateY(0);   box-shadow: 0 4px 0 #0056d2; }
+  40%  { transform: translateY(4px); box-shadow: 0 0px 0 #0056d2; }
+  70%  { transform: translateY(1px); box-shadow: 0 3px 0 #0056d2; }
+  100% { transform: translateY(2px); box-shadow: 0 2px 0 #0056d2; }
 }
 
 @keyframes float {
