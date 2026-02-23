@@ -19,6 +19,9 @@ module Types (
   mkShareToken,
   genShareToken,
 
+  EmailVerificationToken,
+  genEmailVerificationToken,
+
   genToken,
 
   Feature(..),
@@ -156,6 +159,13 @@ genPasswordResetToken = MkNewType <$> genToken 32
 
 genShareToken :: (MonadIO m) => m ShareToken
 genShareToken = MkNewType <$> genToken 32
+
+
+data EmailVerificationToken'
+type EmailVerificationToken = NewType EmailVerificationToken' Text
+
+genEmailVerificationToken :: (MonadIO m) => m EmailVerificationToken
+genEmailVerificationToken = MkNewType <$> genToken 32
 
 
 data Feature

@@ -8,6 +8,7 @@ import Api.Htmx.GroupStudy qualified as GroupStudy
 import Api.Htmx.Home qualified as Home
 import Api.Htmx.Login qualified as Login
 import Api.Htmx.NotFound qualified as NotFound
+import Api.Htmx.EmailVerification qualified as EmailVerification
 import Api.Htmx.PasswordReset qualified as PasswordReset
 import Api.Htmx.Profile qualified as Profile
 import Api.Htmx.Signup qualified as Signup
@@ -145,6 +146,11 @@ scottyServer = do
       PasswordReset.getResetToken
     Scotty.post "/reset_token" $ do
       PasswordReset.postResetToken
+
+    Scotty.get "/verify_email" $ do
+      EmailVerification.getVerifyEmail
+    Scotty.post "/resend_verification" $ do
+      EmailVerification.postResendVerification
 
 
     Scotty.get "/studies" $ do

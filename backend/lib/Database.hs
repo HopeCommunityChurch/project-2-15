@@ -46,6 +46,7 @@ data UserT f = MkUserT
   , name :: C f Text
   , image :: C f (Maybe Text)
   , churchId :: C f T.ChurchId
+  , emailVerified :: C f Bool
   , created :: C f UTCTime
   }
   deriving (Generic)
@@ -67,6 +68,7 @@ userTable =
       , name = fieldNamed "name"
       , image = fieldNamed "image"
       , churchId = fieldNamed "churchId"
+      , emailVerified = fieldNamed "emailVerified"
       , created = fieldNamed "created"
       }
 
@@ -149,6 +151,40 @@ userPasswordResetTable =
       , created = fieldNamed "created"
       }
 
+
+
+data UserEmailVerificationT f = MkUserEmailVerificationT
+  { token :: C f T.EmailVerificationToken
+  , userId :: C f T.UserId
+  , email :: C f T.Email
+  , expiresAt :: C f UTCTime
+  , usedAt :: C f (Maybe UTCTime)
+  , sentAt :: C f UTCTime
+  , created :: C f UTCTime
+  }
+  deriving (Generic)
+  deriving anyclass (Beamable)
+
+instance Table UserEmailVerificationT where
+  data PrimaryKey UserEmailVerificationT f =
+    UserEmailVerificationKey (C f T.EmailVerificationToken)
+    deriving Generic
+    deriving anyclass (Beamable)
+  primaryKey = UserEmailVerificationKey <$> (.token)
+
+userEmailVerificationTable :: TableMod UserEmailVerificationT
+userEmailVerificationTable =
+  modifyTable
+    "user_email_verification"
+    MkUserEmailVerificationT
+      { token = fieldNamed "token"
+      , userId = fieldNamed "userId"
+      , email = fieldNamed "email"
+      , expiresAt = fieldNamed "expiresAt"
+      , usedAt = fieldNamed "usedAt"
+      , sentAt = fieldNamed "sentAt"
+      , created = fieldNamed "created"
+      }
 
 
 data UserSessionT f = MkUserSessionT
@@ -443,6 +479,7 @@ data Db f = MkDb
   , userPassword :: f (TableEntity UserPasswordT)
   , userFeature :: f (TableEntity UserFeatureT)
   , userPasswordReset :: f (TableEntity UserPasswordResetT)
+  , userEmailVerification :: f (TableEntity UserEmailVerificationT)
   , userSession :: f (TableEntity UserSessionT)
   , church :: f (TableEntity ChurchT)
   , churchElder :: f (TableEntity ChurchElderT)
@@ -465,6 +502,7 @@ db = defaultDbSettings `withDbModification`
           , userPassword = userPasswordTable
           , userFeature = userFeatureTable
           , userPasswordReset = userPasswordResetTable
+          , userEmailVerification = userEmailVerificationTable
           , userSession = userSessionTable
           , church = churchTable
           , churchElder = churchElderTable

@@ -1,8 +1,9 @@
 module Api.Htmx.Signup where
 
-import Api.Auth (setCookie')
-import Api.Htmx.Ginger (baseUrl, basicTemplate)
+import Api.Htmx.Ginger (basicTemplate)
+import Altcha qualified
 import Data.Aeson qualified as Aeson
+import Data.CaseInsensitive (original)
 import Data.HashMap.Strict qualified as HMap
 import Data.List qualified as L
 import Data.Text qualified as T
@@ -16,17 +17,16 @@ import Database.Beam (
   (==.),
  )
 import DbHelper (MonadDb, runBeam)
-import Emails.Welcome qualified
+import Emails.EmailVerification qualified
 import Entity.User qualified as User
+import EnvFields (HasUrl)
 import Mail qualified
-import Network.HTTP.Types.Status (status200)
 import Password (newPassword)
 import Text.Ginger
 import Types qualified as T
-import Web.Cookie qualified as Cookie
 import Web.Scotty.Trans hiding (scottyT)
 import Prelude hiding ((**))
-import Altcha qualified
+
 
 
 
@@ -107,6 +107,7 @@ signup
      , MonadLogger m
      , Mail.HasSmtp env
      , Altcha.HasAltchaKey env
+     , HasUrl env
      )
   => ActionT m ()
 signup = do
@@ -136,16 +137,12 @@ signup = do
                     (newPassword password)
                     churchId
     userId <- lift $ User.createUser newUser
-    lift $ Mail.sendMail (Emails.Welcome.mail newUser.email)
-    let url = case mRedirect of
-                Just re ->
-                  if re == "" then baseUrl <> "/studies" else re
-                Nothing  -> baseUrl <> "/studies"
-    setHeader "HX-Redirect" (toLazy url)
-    cookie <- lift $ setCookie' userId
-    let cookieTxt = toLazy (decodeUtf8 (Cookie.renderSetCookieBS cookie))
-    setHeader "Set-Cookie" cookieTxt
-    status status200
+    token <- lift $ User.createVerificationToken userId email
+    url <- lift $ asks (.url)
+    lift $ Mail.sendMail (Emails.EmailVerification.mail email token url)
+    basicTemplate
+      "signup/checkEmail.html"
+      (HMap.insert "email" (toGVal (original (unwrap email))))
   else do
     let errors = MkSignupErrors
                   isNotTaken

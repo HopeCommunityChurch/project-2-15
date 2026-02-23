@@ -1,6 +1,6 @@
 <form hx-post="{{base}}/login" hx-target="this" hx-swap="outerHTML" >
   <label for="email">Email</label>
-  <input required type="email" name="email" {% if email %} value="{{email}}" {% endif %} placeholder="example@example.com">
+  <input required id="email" type="email" name="email" {% if email %} value="{{email}}" {% endif %} placeholder="example@example.com">
 
   <label for="password">Password</label>
   <input required id="password" value="{{password}}" type="password" name="password" >
@@ -25,6 +25,40 @@
   </p>
   {% if wasCorrect == 'False' %}
   <div class="errorText"> Email or password incorrect</div>
+  {% endif %}
+  {% if unverified %}
+  <div class="errorText">Please verify your email address before logging in.</div>
+  <div class="resendVerification">
+    <button type="button"
+            id="resend-btn"
+            class="linkBtn"
+            hx-post="{{base}}/resend_verification"
+            hx-vals='{"email": "{{email}}"}'
+            hx-target="#resend-result"
+            hx-swap="outerHTML"
+            onclick="startResendCooldown()">
+      Resend verification email
+    </button>
+    <div id="resend-result"></div>
+  </div>
+  <script>
+    function startResendCooldown() {
+      const btn = document.getElementById('resend-btn');
+      btn.disabled = true;
+      let seconds = 300;
+      const tick = setInterval(function() {
+        seconds--;
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        btn.textContent = 'Resend in ' + m + ':' + (s < 10 ? '0' : '') + s;
+        if (seconds <= 0) {
+          clearInterval(tick);
+          btn.disabled = false;
+          btn.textContent = 'Resend verification email';
+        }
+      }, 1000);
+    }
+  </script>
   {% endif %}
   <button class="blue" type="submit" onclick="clearErrors()">Log In</button>
 </form>
