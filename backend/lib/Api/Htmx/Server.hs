@@ -6,6 +6,8 @@ import Api.Htmx.AuthHelper (getUser, getUserWithRedirect)
 import Api.Htmx.Ginger (baseUrl)
 import Api.Htmx.GroupStudy qualified as GroupStudy
 import Api.Htmx.Home qualified as Home
+import Api.Htmx.BlogArticleHistoryOfOutlining qualified as BlogArticleHistoryOfOutlining
+import Api.Htmx.Contribute qualified as Contribute
 import Api.Htmx.Login qualified as Login
 import Api.Htmx.NotFound qualified as NotFound
 import Api.Htmx.PasswordReset qualified as PasswordReset
@@ -216,6 +218,12 @@ scottyServer = do
       case mUser of
         Nothing -> Home.getHome
         Just user -> Studies.getStudies user
+
+    Scotty.get "/blog/the-rise-of-outline-method" $ do
+      BlogArticleHistoryOfOutlining.getBlogArticleHistoryOfOutlining
+
+    Scotty.get "/contribute" $ do
+      Contribute.getContribute
 
     Scotty.get "/api/bible/esv" $ do
       user <- getUserWithRedirect

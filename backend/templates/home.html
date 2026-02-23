@@ -2,128 +2,231 @@
 {% block content %}
 <link rel="stylesheet" href="/static/styles/pages/home.css">
 <link rel="stylesheet" href="/static/styles/header.css">
-<header id="header">
-  <img src="{{base}}/static/img/p215-circle.svg" class="logo">
-  <menu class="menu mobileHidden">
-    <li>
-      <a href="https://experiencethehope.com/teaching" target="_blank">
-        Teachings
-      </a>
-    </li>
-    <li>
-      <a href="https://experiencethehope.com/equipping" target="_blank">
-        Equipping
-      </a>
-    </li>
-    <li>
-      <a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">
-        Messaging
-      </a>
-    </li>
-  </menu>
 
-  <div class="buttons mobileHidden">
-    <a href="{{base}}/login">
-      <button class="lightBlue">Log In</button>
-    </a>
-    <a href="{{base}}/signup">
-      <button class="blue">Sign Up</button>
-    </a>
-  </div>
+{% include "pre-login-header.html" %}
 
-  <div class="hamburger" onclick="toggleModal('#mobileNav')">
-    <svg xmlns="http://www.w3.org/2000/svg" width="52" height="24" viewBox="0 0 52 24">
-      <g id="Group_9" data-name="Group 9" transform="translate(-294 -47)">
-        <rect id="Rectangle_3" data-name="Rectangle 3" width="42" height="4" rx="2" transform="translate(304 47)" fill="#574c4c"></rect>
-        <rect id="Rectangle_5" data-name="Rectangle 5" width="42" height="4" rx="2" transform="translate(304 67)" fill="#574c4c"></rect>
-        <rect id="Rectangle_4" data-name="Rectangle 4" width="52" height="4" rx="2" transform="translate(294 57)" fill="#574c4c"></rect>
-      </g>
+<div id="homeContent" class="pre-login-page">
+  <section class="hero-section">
+    <div class="section-content">
+      <img
+        class="box-1 floating-box"
+        src="{{base}}/static/img/pre-login-pages/floating-box-1.png"
+        alt="Floating box"
+      />
+      <img
+        class="box-3 floating-box"
+        src="{{base}}/static/img/pre-login-pages/floating-box-3.png"
+        alt="Floating box"
+      />
+
+      <div class="hero-text">
+        <h1>Making Bible Study Simpler than Ever!</h1>
+        <p>
+          Take the complexity out of Bible study and delve deeper into the Word
+          with others
+        </p>
+        <div class="cta-box">
+          <div class="cta-text">
+            <h3>Intuitive Study Tools</h3>
+            <p>Unlock the treasures of God’s word</p>
+          </div>
+          <div class="button-3d-wrapper">
+            <a href="{{base}}/signup">
+              <button class="button-3d">
+                BEGIN YOUR JOURNEY
+                <img
+                  src="{{base}}/static/img/pre-login-pages/right-arrow.png"
+                  alt="right arrow"
+                />
+              </button>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img
+          class="box-2 floating-box"
+          src="{{base}}/static/img/pre-login-pages/floating-box-2.png"
+          alt="Floating box"
+        />
+
+        <img
+          class="book-face-girl"
+          src="{{base}}/static/img/pre-login-pages/book-face-girl.png"
+          alt="Overwhelmed with Bible study"
+        />
+      </div>
+    </div>
+  </section>
+
+  <div class="wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 56" preserveAspectRatio="none" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,28 C240,56 480,0 720,28 C960,56 1200,0 1440,28 L1440,56 L0,56 Z" fill="#ffffff"/>
     </svg>
   </div>
 
-</header>
-<dialog id="mobileNav">
-  <menu>
-    <li>
-      <a href="https://experiencethehope.com/teaching" target="_blank">
-        Teachings
-      </a>
-    </li>
-    <li>
-      <a href="https://experiencethehope.com/equipping" target="_blank">
-        Equipping
-      </a>
-    </li>
-    <li>
-      <a href="https://messaging.subsplash.com/25FXCW/auth" target="_blank">
-        Messaging
-      </a>
-    </li>
-    <li>
-      <a href="{{base}}/login">
-        <button class="lightBlue">Log In
-        </button>
-      </a>
-    </li>
-    <li>
-      <a href="{{base}}/signup">
-        <button class="blue">
-          Sign Up
-        </button>
-      </a>
-    </li>
-  </menu>
-</dialog>
+  <section class="community-section">
+    <div class="section-content">
+      <img
+        src="{{base}}/static/img/pre-login-pages/people-talking-at-table.png"
+        alt="Overwhelmed with Bible study"
+      />
+      <div>
+        <img
+          class="box-4 floating-box"
+          src="{{base}}/static/img/pre-login-pages/floating-box-4.png"
+          alt="Floating box"
+        />
 
-<div id="homeContent">
-  <div class="section1">
-    <div class="leftText">
-      <h1>Making Bible <br>Study Simple!</h1>
-      <p class="description">
-        Take the complexity out of Bible study and delve deeper into the Word with others
-      </p>
-      <div class="blueRoundedContainer">
-        <div>
-          <h3>Intuitive Study Tools</h3>
-          <p>Unlock the treasures of God’s word</p>
-        </div>
-        <div>
-          <a href="{{base}}/signup">
-            <button class="buttonContainer">
-              BEGIN YOUR JOURNEY
-              <img src="{{base}}/static/img/arrow-icon.svg">
-            </button>
-          </a>
-        </div>
+        <h2>
+          Dive in with<br /><span style="color: #0057d1">Community!</span>
+        </h2>
+        <p>
+          When we seek His truth together, we experience fresh insights, renewed
+          convictions, and surprising encouragement—evidence of a God who still
+          speaks powerfully through His Word.
+        </p>
+        <a href="{{base}}/signup">
+          <button class="button-3d">
+            SIGN UP
+            <img
+              src="{{base}}/static/img/pre-login-pages/right-arrow.png"
+              alt="right arrow"
+            />
+          </button>
+        </a>
       </div>
     </div>
-    <div class="rightImage">
-      <img src="{{base}}/static/img/book-face-girl.jpg">
-    </div>
+  </section>
+
+  <div class="wave-divider wave-divider--down" aria-hidden="true">
+    <svg viewBox="0 0 1440 56" preserveAspectRatio="none" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,28 C240,0 480,56 720,28 C960,0 1200,56 1440,28 L1440,0 L0,0 Z" fill="#ffffff"/>
+    </svg>
   </div>
 
-  <!-- <div class="section2"> -->
-    <!--   <div class="leftImage"><img src="{{base}}/static/img/people-talking.png"></div> -->
-  <!--   <div class="rightText"> -->
-  <!--     <h1 class="sectionTitle"> -->
-  <!--       Dive in with -->
-  <!--       <div style="color: rgb(0, 87, 209);">Community!</div> -->
-  <!--     </h1> -->
-  <!--     <p class="sectionDescription"> -->
-  <!--       Disciple each other and seek God’s Truth through His Word -->
-  <!--     </p> -->
-  <!--     <div> -->
-    <!--       <a href="{{base}}/signup"> -->
-  <!--         <button class="buttonContainer"> -->
-  <!--           SIGN UP -->
-    <!--           <img src="{{base}}/static/img/arrow-icon.svg"> -->
-  <!--         </button> -->
-  <!--       </a> -->
-  <!--     </div> -->
-  <!--   </div> -->
-  <!-- </div> -->
+  <section class="study-anywhere-section">
+    <div class="study-content">
+      <img
+        class="box-5 floating-box"
+        src="{{base}}/static/img/pre-login-pages/floating-box-5.png"
+        alt="Floating box"
+      />
 
+      <h2>Study Anytime<br /><span style="color: #0057d1">Anywhere</span></h2>
+      <p>
+        Access your studies from your laptop, tablet, or smartphone, and study
+        the Word of God on the go.
+      </p>
+      <a href="{{base}}/signup">
+        <button class="button-3d">
+          CREATE A STUDY
+          <img
+            src="{{base}}/static/img/pre-login-pages/right-arrow.png"
+            alt="right arrow"
+          />
+        </button>
+      </a>
+    </div>
+    <div class="study-image">
+      <img
+        class="box-6 floating-box"
+        src="{{base}}/static/img/pre-login-pages/floating-box-6.png"
+        alt="Floating box"
+      />
+
+      <img
+        class="three-d-photo"
+        src="{{base}}/static/img/pre-login-pages/study-mobile-3d-box.png"
+        alt="The app on a phone"
+      />
+    </div>
+  </section>
+
+  <section class="custom-study-blocks">
+    <div class="title-area">
+      <p class="coming-soon-tag">Coming Soon 🚀</p>
+      <img
+        class="box-7 floating-box"
+        src="{{base}}/static/img/pre-login-pages/floating-box-7.png"
+        alt="Floating box"
+      />
+      <h2>Custom Study Blocks</h2>
+      <p>Personalize your approach with a drag and drop study block builder</p>
+    </div>
+    <div class="block-methods">
+      <div class="left-side">
+        <div class="observation">
+          <h3 style="color: #dda300 !important" class="observation">
+            Observation
+          </h3>
+          <p style="color: #dda300 !important" class="large-text">
+            Examine details such as words, phrases, and literary devices
+          </p>
+          <p>
+            Focus on what the passage is saying by noticing specific words,
+            repeated ideas, structure, and anything that stands out in the text.
+          </p>
+        </div>
+        <div class="interpretation">
+          <h3 style="color: #0057d1 !important">Interpretation</h3>
+          <p style="color: #0057d1 !important" class="large-text">
+            Seek to understand the original meaning in historical context
+          </p>
+          <p>
+            Explore what the author meant when the passage was first written and
+            how the original audience would have understood it.
+          </p>
+        </div>
+        <div class="application">
+          <h3 style="color: #2d9463 !important">Application</h3>
+          <p style="color: #2d9463 !important" class="large-text">
+            Apply the principles we discover in our daily lives
+          </p>
+          <p>
+            Ask what truth you can live out, what encouragement or challenge
+            you’re receiving, and how you can respond to it.
+          </p>
+        </div>
+        <a href="{{base}}/blog/the-rise-of-outline-method"
+          ><button class="button-3d">
+            HISTORY OF OUTLINING
+            <img
+              src="{{base}}/static/img/pre-login-pages/right-arrow.png"
+              alt="right arrow"
+            /></button
+        ></a>
+      </div>
+      <div class="right-side">
+        <img
+          src="{{base}}/static/img/pre-login-pages/study-block-editor-preview.png"
+          alt="Study block editor preview"
+        />
+      </div>
+    </div>
+  </section>
 </div>
 
 {% include "footer.html" %}
+
+<script>
+  (function () {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document
+      .querySelectorAll(".community-section, .study-anywhere-section, .custom-study-blocks")
+      .forEach(function (el) {
+        el.classList.add("reveal");
+        observer.observe(el);
+      });
+  })();
+</script>
+
 {% endblock %}

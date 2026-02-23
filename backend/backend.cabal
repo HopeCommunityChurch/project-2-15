@@ -102,6 +102,8 @@ library
     Api.Htmx.Signup,
     Api.Htmx.PasswordReset,
     Api.Htmx.Home,
+    Api.Htmx.BlogArticleHistoryOfOutlining,
+    Api.Htmx.Contribute,
     Api.Htmx.NotFound,
     Api.Htmx.NotAuthorized,
     Api.Htmx.Ginger,

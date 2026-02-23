@@ -5,28 +5,25 @@
 
 <script async defer src="https://cdn.jsdelivr.net/npm/altcha/dist/altcha.min.js" type="module"></script>
 <div id="loginContent">
-
   <div class="leftColumn">
-     <div class="innerLeftColumn">
-        <a link="" href="/app/" aria-current="page">
-          <img alt="Logo" src="{{base}}/static/img/p215-circle.svg">
-        </a>
-        <h1>Sign Up</h1>
-        <p>
-          Join the people studying.
-        </p>
-        {% include "signup/form.html" %}
-     </div>
+    <div class="innerLeftColumn">
+      <a link="" href="/app/" aria-current="page">
+        <img alt="Logo" src="{{base}}/static/img/p215-circle.svg" >
+      </a>
+      <h1>Sign Up</h1>
+      <p>Join the people studying.</p>
+      {% include "signup/form.html" %}
+    </div>
   </div>
 
   <div class="rightColumn">
     <div class="centeredDiv">
-       <h2>Making Bible Study Simpler than Ever!</h2>
-       <p>
-         Take the complexity out of Bible study and delve deeper
-         into the Word with others
-       </p>
-       <img src="{{base}}/static/img/laptop-mockup.png">
+      <h2>Making Bible Study Simpler than Ever!</h2>
+      <p>
+        Take the complexity out of Bible study and delve deeper into the Word
+        with others
+      </p>
+      <img src="{{base}}/static/img/laptop-mockup.png" >
     </div>
   </div>
 
@@ -34,8 +31,8 @@
     function togglePassword() {
       const target = document.querySelector("#viewPassword");
       const pss = document.querySelectorAll("#password, #password2");
-      pss.forEach( (ps) => {
-        if(target.checked) {
+      pss.forEach((ps) => {
+        if (target.checked) {
           ps.type = "input";
         } else {
           ps.type = "password";
@@ -45,6 +42,5 @@
     // make sure the value is correct on a refresh
     togglePassword();
   </script>
-
- </div>
+</div>
 {% endblock %}
