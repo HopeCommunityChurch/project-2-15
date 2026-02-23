@@ -1,5 +1,6 @@
 module Entity.User where
 
+import Data.Time.Clock (diffUTCTime)
 import Data.Time.Lens qualified as TL
 import Database qualified as Db
 import Database.Beam (
@@ -7,16 +8,19 @@ import Database.Beam (
   C,
   all_,
   default_,
+  delete,
   guard_,
   in_,
   insert,
   insertExpressions,
   insertValues,
+  runDelete,
   runInsert,
   runSelectReturningOne,
   select,
   val_,
   (==.),
+  (&&.),
   (<-.),
   (>=.), runUpdate, update, SqlDeconstructMaybe (isNothing_),
  )
@@ -225,4 +229,103 @@ updatePassword userId pwd = do
         Db.db.userPassword
         (\ r -> r.password <-. val_ hash)
         (\ r -> r.userId ==. val_ userId)
+
+
+createVerificationToken
+  :: MonadDb env m
+  => T.UserId
+  -> T.Email
+  -> m T.EmailVerificationToken
+createVerificationToken userId email = do
+  runBeam
+    $ runDelete
+    $ delete
+        Db.db.userEmailVerification
+        (\ v -> v.userId ==. val_ userId &&. isNothing_ v.usedAt)
+  now <- getCurrentTime
+  token <- T.genEmailVerificationToken
+  let expiresAt = now & (TL.flexDT . TL.hours) +~ 24
+  runBeam
+    $ runInsert
+    $ insert Db.db.userEmailVerification
+    $ insertValues
+      [ Db.MkUserEmailVerificationT
+          token
+          userId
+          email
+          expiresAt
+          Nothing
+          now
+          now
+      ]
+  pure token
+
+
+verifyEmailToken
+  :: MonadDb env m
+  => T.EmailVerificationToken
+  -> m (Maybe T.UserId)
+verifyEmailToken token = do
+  now <- getCurrentTime
+  mVerification <- runBeam
+    $ runSelectReturningOne
+    $ select
+    $ do
+      v <- all_ Db.db.userEmailVerification
+      guard_ $ v.token ==. val_ token
+      guard_ $ v.expiresAt >=. val_ now
+      guard_ $ isNothing_ v.usedAt
+      pure v
+  forM mVerification $ \ v -> do
+    runBeam
+      $ runUpdate
+      $ update
+          Db.db.user
+          (\ u -> (u.email <-. val_ v.email)
+               <> (u.emailVerified <-. val_ True)
+          )
+          (\ u -> u.userId ==. val_ v.userId)
+    runBeam
+      $ runUpdate
+      $ update
+          Db.db.userEmailVerification
+          (\ r -> r.usedAt <-. val_ (Just now))
+          (\ r -> r.token ==. val_ token)
+    pure v.userId
+
+
+checkVerificationRateLimit
+  :: MonadDb env m
+  => T.UserId
+  -> m (Maybe Int)
+checkVerificationRateLimit userId = do
+  now <- getCurrentTime
+  mVerification <- runBeam
+    $ runSelectReturningOne
+    $ select
+    $ do
+      v <- all_ Db.db.userEmailVerification
+      guard_ $ v.userId ==. val_ userId
+      guard_ $ isNothing_ v.usedAt
+      pure v
+  pure $ do
+    v <- mVerification
+    let cooldownSeconds = 300 :: Int
+        elapsed = round (diffUTCTime now v.sentAt) :: Int
+        remaining = cooldownSeconds - elapsed
+    if remaining > 0 then Just remaining else Nothing
+
+
+updateVerificationSentAt
+  :: MonadDb env m
+  => T.UserId
+  -> m ()
+updateVerificationSentAt userId = do
+  now <- getCurrentTime
+  runBeam
+    $ runUpdate
+    $ update
+        Db.db.userEmailVerification
+        (\ v -> v.sentAt <-. val_ now)
+        (\ v -> v.userId ==. val_ userId &&. isNothing_ v.usedAt)
 

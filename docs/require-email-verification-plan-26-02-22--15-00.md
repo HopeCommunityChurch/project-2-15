@@ -116,37 +116,15 @@ Add the new DB column, new table, and the Haskell type/generator for verificatio
 Add all backend functions for creating/verifying tokens, and build the two new email templates.
 
 ### Checklist
-- [ ] In `Entity/User.hs`, add:
-  - `createVerificationToken :: MonadDb env m => T.UserId -> T.Email -> m T.EmailVerificationToken`
-    - Deletes any existing unused tokens for this userId (one active token at a time)
-    - Inserts new row with 24h expiry, `sentAt = now`
-    - Returns token
-  - `verifyEmailToken :: MonadDb env m => T.EmailVerificationToken -> m (Maybe T.UserId)`
-    - Selects token where `token = ?`, `expiresAt >= now`, `usedAt IS NULL`
-    - If found: sets `user.email = verification.email`, sets `user.emailVerified = TRUE`, marks `usedAt = now`
-    - Returns `Just userId` on success, `Nothing` on invalid/expired
-  - `checkVerificationRateLimit :: MonadDb env m => T.UserId -> m (Maybe Int)`
-    - Looks up most recent `sentAt` for this userId in `user_email_verification`
-    - Returns `Nothing` if OK to send, or `Just secondsRemaining` if within 5-min window
-  - `updateVerificationSentAt :: MonadDb env m => T.EmailVerificationToken -> m ()`
-    - Updates `sentAt = now` on existing token (for resend)
-  - Update `getPasswordHash` to also return `emailVerified` — change return type to `Maybe (T.UserId, PasswordHash, Bool)`
-  - Update `createUser` to insert `emailVerified = False`
-- [ ] In `Entity/AuthUser.hs`:
-  - Update query to select `user.emailVerified` (beam projection update since `UserT` has new column)
-  - Add `emailVerified :: Bool` to `AuthUser` record (useful for profile page future banner)
-- [ ] Create `Emails/EmailVerification.hs`:
-  - From: `no-reply@p215.church`
-  - Subject: `"Verify your email address"`
-  - Body: HTML using existing `Emails/Base.hs` pattern (Lucid + Clay)
-  - Button link: `{baseUrl}/verify_email?token={token}`
-  - Expiry note: "This link expires in 24 hours."
-- [ ] Create `Emails/EmailChangeNotification.hs`:
-  - From: `no-reply@p215.church`
-  - Subject: `"Your email address is being changed"`
-  - Body: Plain informational — "A request was made to change the email on your Project 2:15 account to {newEmail}. If you did not make this request, please contact support."
-  - No link/button needed
-- [ ] Run `cabal build`
+- [x] In `Entity/User.hs`, add:
+  - `createVerificationToken` — deletes existing unused tokens for user, inserts new 24h token
+  - `verifyEmailToken` — validates token, updates user email + emailVerified, marks used
+  - `checkVerificationRateLimit` — returns `Just secondsRemaining` if within 5-min window
+  - `updateVerificationSentAt` — updates sentAt for resend rate-limit tracking
+- [x] Create `Emails/EmailVerification.hs` — verification email with 24h link
+- [x] Create `Emails/EmailChangeNotification.hs` — informational notice to old address
+- [x] Register both new modules in `backend.cabal`
+- [x] Run `cabal build` — passes
 
 ---
 

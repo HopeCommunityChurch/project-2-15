@@ -117,6 +117,8 @@ library
     Emails.Welcome,
     Emails.PasswordReset,
     Emails.ShareGroupStudy,
+    Emails.EmailVerification,
+    Emails.EmailChangeNotification,
     WebsocketServant,
     Lucid.Htmx,
     Altcha,
