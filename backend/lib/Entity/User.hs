@@ -308,6 +308,9 @@ verifyEmailToken token = do
     pure v.userId
 
 
+-- Returns `Just secondsRemaining` if the user is still within the 5-minute resend
+-- cooldown window, or `Nothing` if they may resend (either no pending token exists,
+-- or the cooldown has expired). Both cases are treated identically by the caller.
 checkVerificationRateLimit
   :: MonadDb env m
   => T.UserId
@@ -328,20 +331,6 @@ checkVerificationRateLimit userId = do
         elapsed = round (diffUTCTime now v.sentAt) :: Int
         remaining = cooldownSeconds - elapsed
     if remaining > 0 then Just remaining else Nothing
-
-
-updateVerificationSentAt
-  :: MonadDb env m
-  => T.UserId
-  -> m ()
-updateVerificationSentAt userId = do
-  now <- getCurrentTime
-  runBeam
-    $ runUpdate
-    $ update
-        Db.db.userEmailVerification
-        (\ v -> v.sentAt <-. val_ now)
-        (\ v -> v.userId ==. val_ userId &&. isNothing_ v.usedAt)
 
 
 getUnverifiedUserId

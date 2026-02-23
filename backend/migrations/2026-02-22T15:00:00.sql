@@ -1,3 +1,6 @@
+-- DEFAULT TRUE grandfathers existing users as verified.
+-- TODO: This default should be changed to FALSE (with a follow-up migration) so that
+-- future user inserts that omit this column don't silently bypass email verification.
 ALTER TABLE "user" ADD COLUMN "emailVerified" boolean NOT NULL DEFAULT TRUE;
 
 CREATE TABLE "user_email_verification" (
