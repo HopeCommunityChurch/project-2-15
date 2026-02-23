@@ -179,42 +179,14 @@ Change signup to NOT auto-login; instead send verification email and show check-
 Block unverified users from logging in; show resend UI with countdown timer.
 
 ### Checklist
-- [ ] In `Api/Htmx/Login.hs`:
-  - Update `getPasswordHash` call sites — handle new return type `(UserId, PasswordHash, Bool)`
-  - After password validates successfully:
-    - If `emailVerified == True`: proceed as before (create session, redirect)
-    - If `emailVerified == False`: call `loginForm` with a new `unverified` flag
-  - Add `Unverified` state to the template context (boolean or a separate render path)
-- [ ] In `templates/login/form.html`:
-  - Add conditional block: when `unverified` is set, show:
-    ```html
-    <div class="errorText">
-      Please verify your email address before logging in.
-    </div>
-    <div class="resendVerification">
-      <form hx-post="{{base}}/resend_verification"
-            hx-target="#resend-result"
-            hx-swap="innerHTML">
-        <input type="hidden" name="email" value="{{email}}">
-        <button type="submit" id="resend-btn">Resend verification email</button>
-      </form>
-      <div id="resend-result"></div>
-    </div>
-    ```
-  - Add countdown timer JavaScript (inline `<script>` in the partial):
-    - When resend succeeds, start a 5-minute countdown
-    - Disable resend button during countdown, show "Resend in M:SS"
-    - On expiry, re-enable button
-- [ ] In `templates/login.html` (or `login/form.html`):
-  - Add conditional success banner: if `?verified=1` query param present on page load, show `<p-notification time-ms="4000">Email verified! You can now log in.</p-notification>`
-  - This can be handled in `Api/Htmx/Login.hs` `getLogin` handler — check query param and pass to template context
-- [ ] Update `getLogin` handler (Login.hs) to read `?verified=1` and pass to template
-- [ ] Run `cabal build`
-- [ ] Test:
-  - Try logging in with unverified account → should see error + resend button
-  - Click resend → should receive email + button disabled with countdown
-  - Click countdown resend again too soon → should show time remaining
-  - Verify email → login with success banner
+- [x] Update `getPasswordHash` return type to `(UserId, PasswordHash, Bool)` (emailVerified)
+- [x] In `login` handler: branch on `emailVerified`; call `loginFormUnverified` if false
+- [x] Add `loginFormUnverified` helper that passes `unverified = True` to template
+- [x] Update `getLogin` to read `?verified=1` and pass `justVerified` to template
+- [x] In `templates/login/form.html`: add unverified error block with resend form + 5-min countdown timer JS
+- [x] In `templates/login.html`: show `<p-notification>` when `justVerified` is true
+- [x] Run `cabal build` — passes
+- [ ] Test: unverified login → resend → countdown → verify → success banner
 
 ---
 

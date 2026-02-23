@@ -26,6 +26,38 @@
   {% if wasCorrect == 'False' %}
   <div class="errorText"> Email or password incorrect</div>
   {% endif %}
+  {% if unverified %}
+  <div class="errorText">Please verify your email address before logging in.</div>
+  <div class="resendVerification">
+    <form hx-post="{{base}}/resend_verification"
+          hx-target="#resend-result"
+          hx-swap="outerHTML">
+      <input type="hidden" name="email" value="{{email}}">
+      <button type="submit" id="resend-btn" class="linkBtn" onclick="startResendCooldown()">
+        Resend verification email
+      </button>
+    </form>
+    <div id="resend-result"></div>
+  </div>
+  <script>
+    function startResendCooldown() {
+      const btn = document.getElementById('resend-btn');
+      btn.disabled = true;
+      let seconds = 300;
+      const tick = setInterval(function() {
+        seconds--;
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        btn.textContent = 'Resend in ' + m + ':' + (s < 10 ? '0' : '') + s;
+        if (seconds <= 0) {
+          clearInterval(tick);
+          btn.disabled = false;
+          btn.textContent = 'Resend verification email';
+        }
+      }, 1000);
+    }
+  </script>
+  {% endif %}
   <button class="blue" type="submit" onclick="clearErrors()">Log In</button>
 </form>
 

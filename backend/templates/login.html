@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 <link rel="stylesheet" href="/static/styles/pages/login.css">
+{% if justVerified %}
+<p-notification time-ms="5000">Email verified! You can now log in.</p-notification>
+{% endif %}
 <div id="loginContent">
 
   <div class="leftColumn">
