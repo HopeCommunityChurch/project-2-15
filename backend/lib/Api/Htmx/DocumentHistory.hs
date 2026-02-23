@@ -55,22 +55,38 @@ getHistoryGroups
 getHistoryGroups docId userId =
   withRawConnection $ \conn ->
     liftIO $ PgS.query conn
-      "SELECT \
-      \  MIN(version)::integer     AS \"startVersion\", \
-      \  MAX(version)::integer     AS \"endVersion\", \
-      \  MIN(\"createdAt\")        AS \"startedAt\", \
-      \  MAX(\"createdAt\")        AS \"endedAt\", \
-      \  COUNT(DISTINCT floor(extract(epoch FROM \"createdAt\") / 30)) AS \"stepCount\" \
-      \FROM \"document_step\" \
-      \WHERE \"docId\" = ? \
-      \  AND \"userId\" = ? \
-      \GROUP BY to_timestamp(floor(extract(epoch FROM \"createdAt\") / 300) * 300) \
+      "WITH gaps AS ( \
+      \  SELECT \
+      \    version, \
+      \    \"createdAt\", \
+      \    CASE \
+      \      WHEN extract(epoch FROM (\"createdAt\" - LAG(\"createdAt\") OVER (ORDER BY \"createdAt\"))) > 1800 \
+      \      THEN 1 ELSE 0 \
+      \    END AS is_new_session \
+      \  FROM \"document_step\" \
+      \  WHERE \"docId\" = ? AND \"userId\" = ? \
+      \), \
+      \sessions AS ( \
+      \  SELECT \
+      \    version, \
+      \    \"createdAt\", \
+      \    SUM(is_new_session) OVER (ORDER BY \"createdAt\") AS session_id \
+      \  FROM gaps \
+      \) \
+      \SELECT \
+      \  MIN(version)::integer  AS \"startVersion\", \
+      \  MAX(version)::integer  AS \"endVersion\", \
+      \  MIN(\"createdAt\")     AS \"startedAt\", \
+      \  MAX(\"createdAt\")     AS \"endedAt\", \
+      \  COUNT(*)               AS \"stepCount\" \
+      \FROM sessions \
+      \GROUP BY session_id \
       \ORDER BY MIN(version) DESC"
       (docId, userId)
 
 
--- | Returns sub-groups within the given version range, bucketed by 30-second
--- windows for a finer-grained view within each 5-minute history group.
+-- | Returns sub-groups within the given version range, bucketed by 1-minute
+-- windows for a finer-grained view within each session group.
 getSubHistoryGroups
   :: MonadDb env m
   => T.DocId
@@ -92,7 +108,7 @@ getSubHistoryGroups docId userId startVer endVer =
       \  AND \"userId\" = ? \
       \  AND version >= ? \
       \  AND version <= ? \
-      \GROUP BY to_timestamp(floor(extract(epoch FROM \"createdAt\") / 30) * 30) \
+      \GROUP BY to_timestamp(floor(extract(epoch FROM \"createdAt\") / 60) * 60) \
       \ORDER BY MIN(version) DESC"
       (docId, userId, startVer, endVer)
 

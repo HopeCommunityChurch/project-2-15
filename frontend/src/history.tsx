@@ -33,33 +33,92 @@ type DocAtVersion = {
 
 let previewEditor: Editor.P215Editor | null = null;
 
-function formatDate(iso: string): string {
+function formatGroupLabel(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }) + " " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  return (
+    d.toLocaleDateString(undefined, { month: "long", day: "numeric" }) +
+    ", " +
+    d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+  );
 }
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, {
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
-    second: "2-digit",
   });
 }
 
-function groupByDate(groups: HistoryGroup[]): Map<string, HistoryGroup[]> {
+function getPeriodLabel(startedAt: string): string {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const d = new Date(startedAt);
+  const dStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const daysDiff = Math.floor((todayStart.getTime() - dStart.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (daysDiff === 0) return "Today";
+  if (daysDiff >= 1 && daysDiff <= 6) {
+    return d.toLocaleDateString(undefined, { weekday: "long" });
+  }
+  if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
+    return "This Month";
+  }
+  if (d.getFullYear() === now.getFullYear()) {
+    return d.toLocaleDateString(undefined, { month: "long" });
+  }
+  return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+}
+
+function groupByPeriod(groups: HistoryGroup[]): Map<string, HistoryGroup[]> {
   const map = new Map<string, HistoryGroup[]>();
   for (const g of groups) {
-    const date = new Date(g.startedAt).toLocaleDateString(undefined, {
-      weekday: "long", month: "long", day: "numeric", year: "numeric",
-    });
-    if (!map.has(date)) map.set(date, []);
-    map.get(date).push(g);
+    const label = getPeriodLabel(g.startedAt);
+    if (!map.has(label)) map.set(label, []);
+    map.get(label)!.push(g);
   }
-  return map;
+
+  const now = new Date();
+
+  // Day labels: yesterday first, counting back 6 days
+  const dynamicDayLabels: string[] = [];
+  for (let i = 1; i <= 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    dynamicDayLabels.push(d.toLocaleDateString(undefined, { weekday: "long" }));
+  }
+
+  // Month labels: last month going back to the oldest item
+  const oldest = groups.reduce((min, g) => {
+    const d = new Date(g.startedAt);
+    return d < min ? d : min;
+  }, new Date());
+
+  const monthLabels: string[] = [];
+  let year = now.getFullYear();
+  let month = now.getMonth() - 1;
+  if (month < 0) { month = 11; year--; }
+
+  while (year > oldest.getFullYear() || (year === oldest.getFullYear() && month >= oldest.getMonth())) {
+    const d = new Date(year, month, 1);
+    monthLabels.push(
+      year === now.getFullYear()
+        ? d.toLocaleDateString(undefined, { month: "long" })
+        : d.toLocaleDateString(undefined, { month: "long", year: "numeric" })
+    );
+    month--;
+    if (month < 0) { month = 11; year--; }
+  }
+
+  const orderedLabels = ["Today", ...dynamicDayLabels, "This Month", ...monthLabels];
+  const sorted = new Map<string, HistoryGroup[]>();
+  for (const label of orderedLabels) {
+    if (map.has(label)) {
+      const items = map.get(label)!.slice().sort((a, b) =>
+        new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+      );
+      sorted.set(label, items);
+    }
+  }
+  return sorted;
 }
 
 async function loadPreview(targetVersion: number, versionLabel?: string) {
@@ -160,7 +219,6 @@ function updateToolbarPill() {
   const toolbar = document.getElementById("previewToolbar");
   const pill = document.getElementById("previewToolbarDate") as HTMLElement;
   if (toolbar.style.display === "none") return;
-  // Always try to show the pill first, then hide it only if it causes overflow
   pill.style.display = "";
   if (toolbar.scrollWidth > toolbar.clientWidth) {
     pill.style.display = "none";
@@ -197,52 +255,62 @@ async function init() {
     return;
   }
 
-  const byDate = groupByDate(groups);
+  const byPeriod = groupByPeriod(groups);
 
-  for (const [dateLabel, dayGroups] of byDate) {
+  for (const [periodLabel, periodGroups] of byPeriod) {
     const section = document.createElement("div");
     section.className = "historyDateSection";
 
     const heading = document.createElement("h3");
     heading.className = "historyDateHeading";
-    heading.textContent = dateLabel;
+    heading.textContent = periodLabel;
     section.appendChild(heading);
 
-    for (const group of dayGroups) {
+    for (const group of periodGroups) {
       const accordion = document.createElement("div");
       accordion.className = "historyAccordion";
 
-      const header = document.createElement("button");
-      header.className = "historyGroupItem";
-      header.innerHTML =
-        `<span class="historyTime">${formatDate(group.startedAt)}</span>` +
-        `<span class="historySteps">${group.stepCount} session${group.stepCount !== 1 ? "s" : ""}</span>`;
+      // The row: clickable area (preview) + chevron button (expand)
+      const row = document.createElement("div");
+      row.className = "historyGroupItem";
+
+      const previewBtn = document.createElement("button");
+      previewBtn.className = "historyGroupPreviewBtn";
+      previewBtn.innerHTML =
+        `<span class="historyTime">${formatGroupLabel(group.endedAt)}</span>` +
+        `<span class="historySteps">${group.stepCount} edit${group.stepCount !== 1 ? "s" : ""}</span>`;
+
+      const expandBtn = document.createElement("button");
+      expandBtn.className = "historyExpandBtn";
+      expandBtn.setAttribute("aria-label", "Expand version details");
+      expandBtn.setAttribute("aria-expanded", "false");
+      expandBtn.innerHTML = `<img src="${window.base}/static/img/chevron-down.svg" alt="" aria-hidden="true">`;
 
       const stepsPanel = document.createElement("div");
       stepsPanel.className = "historyStepsPanel";
       stepsPanel.style.display = "none";
+      const panelId = `steps-panel-${group.startVersion}`;
+      stepsPanel.id = panelId;
+      expandBtn.setAttribute("aria-controls", panelId);
 
       let subLoaded = false;
 
-      header.setAttribute("aria-expanded", "false");
-      header.setAttribute("aria-controls", stepsPanel.id || (() => {
-        const id = `steps-panel-${group.startVersion}`;
-        stepsPanel.id = id;
-        return id;
-      })());
+      previewBtn.addEventListener("click", () => {
+        selectItem(row);
+        loadPreview(group.endVersion, formatGroupLabel(group.endedAt));
+      });
 
-      header.addEventListener("click", async () => {
+      expandBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
         const isOpen = stepsPanel.style.display !== "none";
         if (isOpen) {
           stepsPanel.style.display = "none";
-          header.classList.remove("expanded");
-          header.setAttribute("aria-expanded", "false");
+          expandBtn.classList.remove("expanded");
+          expandBtn.setAttribute("aria-expanded", "false");
         } else {
           stepsPanel.style.display = "block";
-          header.classList.add("expanded");
-          header.setAttribute("aria-expanded", "true");
-          selectItem(header);
-          loadPreview(group.endVersion, formatDate(group.startedAt));
+          expandBtn.classList.add("expanded");
+          expandBtn.setAttribute("aria-expanded", "true");
           if (!subLoaded) {
             subLoaded = true;
             await loadSubGroups(group, stepsPanel);
@@ -250,7 +318,9 @@ async function init() {
         }
       });
 
-      accordion.appendChild(header);
+      row.appendChild(previewBtn);
+      row.appendChild(expandBtn);
+      accordion.appendChild(row);
       accordion.appendChild(stepsPanel);
       section.appendChild(accordion);
     }
