@@ -162,18 +162,13 @@ Create the new HTTP handlers and wire them into the server.
 Change signup to NOT auto-login; instead send verification email and show check-your-inbox page.
 
 ### Checklist
-- [ ] In `Api/Htmx/Signup.hs`:
-  - Remove `setCookie'` call after user creation
-  - Remove `HX-Redirect` to `/studies`
-  - After `createUser`:
-    1. Call `createVerificationToken userId userEmail`
-    2. Call `sendMail (Emails.EmailVerification.mail baseUrl email token)`
-    3. Replace welcome email call (or keep it — or fold into verification email)
-    4. Render `signup/checkEmail.html` partial with the user's email
-  - Add `email` to template context so `checkEmail.html` can display it
-- [ ] In `templates/signup/form.html`:
-  - Add a small note below the submit button: "You'll receive a verification email after signing up."
-- [ ] Run `cabal build`
+- [x] In `Api/Htmx/Signup.hs`:
+  - Remove `setCookie'` / `HX-Redirect` after user creation
+  - Replace welcome email with `createVerificationToken` + `Emails.EmailVerification.mail`
+  - Render `signup/checkEmail.html` partial with user's email
+  - Add `HasUrl env` constraint; remove now-unused imports
+- [x] In `templates/signup/form.html`: add "You'll receive a verification email" note
+- [x] Run `cabal build` — passes
 - [ ] Test: sign up with a new account → should NOT be logged in → should see "check your inbox"
 
 ---
