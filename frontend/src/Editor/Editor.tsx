@@ -638,6 +638,7 @@ const questionPopup = (
           keymap({
             "Mod-z": undo,
             "Mod-y": redo,
+            "Mod-Shift-z": redo,
             Tab: increaseLevel,
             "Mod-]": increaseLevel,
             "Shift-Tab": decreaseLevel,
@@ -1260,6 +1261,7 @@ export class P215Editor extends EventTarget {
         keymap({
           "Mod-z": undo,
           "Mod-y": redo,
+          "Mod-Shift-z": redo,
           Tab: increaseLevel,
           "Mod-]": increaseLevel,
           "Shift-Tab": decreaseLevel,
