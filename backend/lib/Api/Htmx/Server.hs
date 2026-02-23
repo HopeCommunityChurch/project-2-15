@@ -220,16 +220,10 @@ scottyServer = do
         Just user -> Studies.getStudies user
 
     Scotty.get "/blog/the-rise-of-outline-method" $ do
-      mUser <- getUser
-      case mUser of
-        Nothing -> BlogArticleHistoryOfOutlining.getBlogArticleHistoryOfOutlining
-        Just user -> Studies.getStudies user
+      BlogArticleHistoryOfOutlining.getBlogArticleHistoryOfOutlining
 
     Scotty.get "/contribute" $ do
-      mUser <- getUser
-      case mUser of
-        Nothing -> Contribute.getContribute
-        Just user -> Studies.getStudies user
+      Contribute.getContribute
 
     Scotty.get "/api/bible/esv" $ do
       user <- getUserWithRedirect
