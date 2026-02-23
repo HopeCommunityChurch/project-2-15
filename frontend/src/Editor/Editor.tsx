@@ -186,29 +186,37 @@ class QuestionsView implements NodeView {
     header.appendChild(headerDiv);
     this.dom.appendChild(header);
 
-    this.contentDOM = document.createElement("td");
+    // Wrap the content cell so noQuestionsText can live outside contentDOM.
+    // If noQuestionsText were inside contentDOM, ProseMirror's DOM reconciler
+    // would parse it as document content and generate spurious question nodes.
+    const contentCell = document.createElement("td");
 
-    if (node.content.size === 0) {
-      const noQuestionsText = document.createElement("div");
-      noQuestionsText.className = "noQuestionsText";
-      noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+    const noQuestionsText = document.createElement("div");
+    noQuestionsText.className = "noQuestionsText";
+    noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+    noQuestionsText.style.display = node.content.size === 0 ? "" : "none";
 
-      noQuestionsText.onclick = () => {
-        // Logic to move the cursor to the previous position
-        const transaction = view.state.tr.setSelection(
-          TextSelection.near(view.state.doc.resolve(getPos() - 3))
-        );
-        view.dispatch(transaction);
-        view.focus();
-      };
+    noQuestionsText.onclick = () => {
+      // Logic to move the cursor to the previous position
+      const transaction = view.state.tr.setSelection(
+        TextSelection.near(view.state.doc.resolve(getPos() - 3))
+      );
+      view.dispatch(transaction);
+      view.focus();
+    };
 
-      this.contentDOM.appendChild(noQuestionsText);
-    }
+    contentCell.appendChild(noQuestionsText);
 
-    this.dom.appendChild(this.contentDOM);
+    this.contentDOM = document.createElement("div");
+    contentCell.appendChild(this.contentDOM);
+    this.dom.appendChild(contentCell);
   }
   update(node: Node) {
     this.node = node;
+    const placeholder = this.dom.querySelector(".noQuestionsText") as HTMLElement | null;
+    if (placeholder) {
+      placeholder.style.display = node.content.size === 0 ? "" : "none";
+    }
     return true;
   }
 }
