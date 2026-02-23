@@ -136,11 +136,14 @@ getDocAtVersion docId targetVersion = do
   (snapVersion, snapDoc) <- case mSnap of
     Just (v, d) -> pure (v, d)
     Nothing     -> do
-      -- No collab snapshot exists yet (e.g. a legacy document). Fall back to
-      -- the raw document content so history reconstruction starts from the
-      -- actual saved state rather than an empty document.
+      -- No collab snapshot exists yet. Fall back to the raw document content.
+      -- If the document's current version is already past targetVersion (legacy
+      -- document whose pre-step state was never snapshotted), use version 0 with
+      -- an empty doc so we don't silently return the wrong content.
       mBase <- Doc.getDocBase docId
-      pure $ fromMaybe (0, mempty) mBase
+      case mBase of
+        Just (v, d) | v <= targetVersion -> pure (v, d)
+        _                                -> pure (0, mempty)
   rawSteps <- Doc.getStepsSince docId snapVersion
   let filtered = [ s | (v, s, _) <- rawSteps, v <= targetVersion ]
   pure $ MkDocAtVersion snapDoc filtered snapVersion targetVersion

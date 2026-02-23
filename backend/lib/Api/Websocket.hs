@@ -219,6 +219,13 @@ handleUpdated senderConn user rst payload = do
           pure $ Left stepsSince
         else do
           let n = fromIntegral (length payload.steps) :: Int32
+          -- If no snapshot exists yet, save the current document content as a
+          -- baseline so version history can replay steps from a known starting point.
+          mSnap <- Doc.getLatestSnapshotBefore docId currentVersion
+          when (isNothing mSnap) $ do
+            mBase <- Doc.getDocBase docId
+            forM_ mBase $ \(_, baseDoc) ->
+              Doc.insertSnapshot docId currentVersion baseDoc
           Doc.insertSteps docId currentVersion user.userId (MkNewType payload.clientId) payload.steps
           let newVersion = currentVersion + n
           Doc.updateDocVersion docId newVersion
