@@ -16,7 +16,7 @@
   <script>
     window.base    = "{{base}}";
     window.docId   = "{{docId}}";
-    window.docName = "{{docName}}";
+    window.docName = {{docName}};
     window.isLocal = {{isLocal}};
   </script>
 </head>
@@ -24,7 +24,7 @@
 
   <header id="header">
     <a class="logo" href="/home">
-      <img class="logo" src="{{base}}/static/img/p215-circle.svg">
+      <img class="logo" src="{{base}}/static/img/p215-circle.svg" alt="Project 2:15">
     </a>
     <a id="historyBackButton" href="{{base}}/study/{{docId}}" aria-label="Back to document">
       <img src="{{base}}/static/img/arrow2.svg" alt="">

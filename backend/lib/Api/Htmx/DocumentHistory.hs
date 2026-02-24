@@ -8,7 +8,10 @@ import Data.HashMap.Strict qualified as HMap
 import Data.UUID as UUID
 import EnvFields (EnvType (..))
 import Data.Aeson qualified as Aeson
+import Data.Text qualified as Txt
+import Data.ByteString.Lazy.Char8 qualified as BLC
 import Text.Ginger (toGVal)
+import Text.Ginger.Html (unsafeRawHtml)
 import Database.PostgreSQL.Simple qualified as PgS
 import Database.PostgreSQL.Simple.FromRow (FromRow (..), field)
 import DbHelper (MonadDb, withRawConnection)
@@ -129,17 +132,13 @@ getDocAtVersion
   -> Int32
   -> m DocAtVersion
 getDocAtVersion docId targetVersion = do
-  -- Find the nearest collab snapshot at or before the target version.
-  -- If none exists, start from version 0 with an empty document and
-  -- replay all steps from the beginning up to the target version.
   mSnap <- Doc.getLatestSnapshotBefore docId targetVersion
   (snapVersion, snapDoc) <- case mSnap of
     Just (v, d) -> pure (v, d)
     Nothing     -> do
-      -- No collab snapshot exists yet. Fall back to the raw document content.
-      -- If the document's current version is already past targetVersion (legacy
-      -- document whose pre-step state was never snapshotted), use version 0 with
-      -- an empty doc so we don't silently return the wrong content.
+      -- No collab snapshot exists. Fall back to the raw document content.
+      -- For legacy documents whose pre-step state was never snapshotted,
+      -- use an empty doc so we don't silently return wrong content.
       mBase <- Doc.getDocBase docId
       case mBase of
         Just (v, d) | v <= targetVersion -> pure (v, d)
@@ -224,6 +223,6 @@ getHistoryPage user = do
     "study-history.html"
     ( HMap.insert "isLocal" (toGVal isLocal)
     . HMap.insert "docId" (toGVal (UUID.toText (unwrap docId)))
-    . HMap.insert "docName" (toGVal doc.name)
+    . HMap.insert "docName" (toGVal (unsafeRawHtml (Txt.replace "</script>" "<\\/script>" (Txt.pack (BLC.unpack (Aeson.encode doc.name))))))
     . HMap.insert "host" (toGVal host)
     )

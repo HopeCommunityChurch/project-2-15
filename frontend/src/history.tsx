@@ -160,22 +160,29 @@ async function loadPreview(targetVersion: number, versionLabel?: string) {
   });
   previewEditor.addEditor(holder);
 
-  document.getElementById("historyPreviewPlaceholder").style.display = "none";
-  document.getElementById("previewToolbar").style.display = "flex";
-  document.getElementById("editorHolder").style.display = "block";
-  document.getElementById("historyLayout").classList.add("preview-open");
+  const previewPlaceholder = document.getElementById("historyPreviewPlaceholder");
+  const previewToolbar = document.getElementById("previewToolbar");
+  const editorHolderEl = document.getElementById("editorHolder");
+  const historyLayout = document.getElementById("historyLayout");
+  const previewToolbarDate = document.getElementById("previewToolbarDate");
 
-  document.getElementById("previewToolbarDate").textContent = versionLabel ?? "";
+  if (previewPlaceholder) previewPlaceholder.style.display = "none";
+  if (previewToolbar) previewToolbar.style.display = "flex";
+  if (editorHolderEl) editorHolderEl.style.display = "block";
+  if (historyLayout) historyLayout.classList.add("preview-open");
+  if (previewToolbarDate) previewToolbarDate.textContent = versionLabel ?? "";
   updateToolbarPill();
 
-  const restoreButton = document.getElementById("restoreButton") as HTMLButtonElement;
-  restoreButton.onclick = () => {
-    sessionStorage.setItem(
-      docId + ".restore",
-      JSON.stringify({ docJson: previewDoc.toJSON(), versionNum: targetVersion })
-    );
-    window.location.href = `/study/${docId}?restore=true`;
-  };
+  const restoreButton = document.getElementById("restoreButton") as HTMLButtonElement | null;
+  if (restoreButton) {
+    restoreButton.onclick = () => {
+      sessionStorage.setItem(
+        docId + ".restore",
+        JSON.stringify({ docJson: previewDoc.toJSON(), versionNum: targetVersion })
+      );
+      window.location.href = `/study/${docId}?restore=true`;
+    };
+  }
 }
 
 function selectItem(el: Element) {
@@ -222,7 +229,8 @@ async function loadSubGroups(
 
 function updateToolbarPill() {
   const toolbar = document.getElementById("previewToolbar");
-  const pill = document.getElementById("previewToolbarDate") as HTMLElement;
+  const pill = document.getElementById("previewToolbarDate") as HTMLElement | null;
+  if (!toolbar || !pill) return;
   if (toolbar.style.display === "none") return;
   pill.style.display = "";
   if (toolbar.scrollWidth > toolbar.clientWidth) {
@@ -232,13 +240,13 @@ function updateToolbarPill() {
 
 function initToolbarPillObserver() {
   const toolbar = document.getElementById("previewToolbar");
-  new ResizeObserver(updateToolbarPill).observe(toolbar);
+  if (toolbar) new ResizeObserver(updateToolbarPill).observe(toolbar);
 }
 
 function initBackButton() {
-  document.getElementById("backToVersions").addEventListener("click", () => {
+  document.getElementById("backToVersions")?.addEventListener("click", () => {
     document.getElementById("historyLayout").classList.remove("preview-open");
-    document.querySelectorAll(".historyGroupItem.selected, .historyStepItem.selected").forEach((e) =>
+    document.querySelectorAll(".historyGroupItem.selected, .historyStepItem.selected, .historyFirstVersion.selected").forEach((e) =>
       e.classList.remove("selected")
     );
   });
@@ -246,13 +254,14 @@ function initBackButton() {
 
 async function init() {
   const res = await fetch(`/document/${docId}/history`);
+  const container = document.getElementById("historyGroups");
+  if (!container) return;
   if (!res.ok) {
-    document.getElementById("historyGroups").textContent = "Failed to load history.";
+    container.textContent = "Failed to load history.";
     return;
   }
   const groups: HistoryGroup[] = await res.json();
 
-  const container = document.getElementById("historyGroups");
   container.textContent = "";
 
   if (groups.length === 0) {
@@ -352,7 +361,7 @@ async function init() {
   firstBtn.className = "historyFirstVersion";
   firstBtn.innerHTML =
     `<span class="historyTime">${formatGroupLabel(firstGroup.startedAt)}</span>` +
-    `<span class="historySteps">${firstGroup.stepCount} item${firstGroup.stepCount !== 1 ? "s" : ""}</span>`;
+    `<span class="historySteps">Original</span>`;
   firstBtn.addEventListener("click", () => {
     selectItem(firstBtn);
     loadPreview(firstGroup.startVersion - 1, formatGroupLabel(firstGroup.startedAt));

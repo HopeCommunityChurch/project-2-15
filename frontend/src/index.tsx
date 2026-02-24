@@ -45,8 +45,6 @@ function checkRestoreDoc(doc: T.DocRaw): any | null {
   if (!saved) return null;
   sessionStorage.removeItem(docId + ".restore");
   try {
-    // versionNum is also stored here for future use (e.g. display "restored from v42").
-    // Do not remove it from history.tsx without updating this site too.
     const { docJson } = JSON.parse(saved);
     return docJson;
   } catch (e) {
@@ -62,8 +60,6 @@ function initialize (e : WS.DocOpenedEvent) {
 
   const restoredDoc = checkRestoreDoc(e.doc);
 
-  // Always use the server-provided snapshot document. For restores, use the
-  // restored content at the current server version.
   const initDoc = restoredDoc !== null ? restoredDoc : e.doc.document;
   const initVersion = restoredDoc !== null ? e.doc.version : e.snapVersion;
 
@@ -138,7 +134,6 @@ ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
     initialize(e)
   } else {
     // WS reconnect: the collab plugin retransmits any inflight steps automatically.
-    // No user action needed.
   }
 });
 
