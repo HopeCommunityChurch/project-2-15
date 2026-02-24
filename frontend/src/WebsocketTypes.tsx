@@ -67,7 +67,7 @@ type RecDocOpenedOther = {
 
 type RecDocUpdated = {
   tag: "DocUpdated",
-  contents: { version: number, steps: any[], clientIds: string[] },
+  contents: { version: number, steps: any[], clientIds: string[], docId: string },
 };
 
 type RecDocConfirmed = {

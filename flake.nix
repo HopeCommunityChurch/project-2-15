@@ -42,6 +42,7 @@
             createDatabase = true;
             initialDatabases = [
               { name = "p215"; }
+              { name = "p215_e2e"; }
             ];
             listen_addresses = "127.0.0.1";
             initialScript = ''

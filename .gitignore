@@ -6,6 +6,7 @@ pg-init-*
 CLAUDE.md
 .claude
 .parcel-cache
+
 # E2E test secrets
 e2e-secrets.json
 local-secrets.json

@@ -1,0 +1,154 @@
+name: E2E Tests
+
+on:
+  push:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: p215_e2e
+          POSTGRES_USER: p215_user
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U p215_user -d p215_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Nix + Cachix binary cache (matches main.yml pattern) ──────────────
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - uses: cachix/cachix-action@v14
+        with:
+          name: devenv
+
+      # ── Node (frontend + Playwright) ──────────────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── Backend: build, migrate, and start ────────────────────────────────
+      # The backend runs migrations automatically on startup via its built-in
+      # postgresql-migration runner (schema_migrations tracking table).
+      # We point it at the CI Postgres via SECRETS_FILE.
+      - name: Write CI secrets file
+        run: |
+          cat > /tmp/ci-secrets.json <<'EOF'
+          {
+            "db": {
+              "host": "127.0.0.1",
+              "port": 5432,
+              "username": "p215_user",
+              "password": "password",
+              "database": "p215_e2e"
+            },
+            "env": { "tag": "Dev", "contents": "ci" },
+            "smtp": { "host": "127.0.0.1", "port": 1025 },
+            "esvToken": "${{ secrets.ESV_TOKEN }}",
+            "url": "http://127.0.0.1:8080",
+            "altchaKey": "key_secret_key"
+          }
+          EOF
+
+      - name: Build backend
+        run: cd backend && nix develop --command cabal build -O0 2>&1
+
+      - name: Start backend (runs migrations then serves on :3000)
+        run: |
+          cd backend
+          SECRETS_FILE=/tmp/ci-secrets.json \
+          MIGRATION_PATH=./migrations/ \
+          nix develop --command cabal run -O0 &
+          # Wait up to 60s for backend to be ready
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/health && break || sleep 2
+          done
+
+      # ── Frontend: install deps and start dev server ───────────────────────
+      - name: Install frontend deps
+        run: cd frontend && npm install
+
+      - name: Start frontend dev server
+        run: cd frontend && npm run dev &
+
+      - name: Wait for frontend to be ready
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3001 && break || sleep 2
+          done
+
+      # ── Nginx: reverse proxy mirroring the local devenv setup ─────────────
+      - name: Install and configure Nginx
+        run: |
+          sudo apt-get install -y nginx
+          sudo tee /etc/nginx/sites-available/default > /dev/null <<'NGINXCONF'
+          server {
+            listen 8080;
+
+            location /api/ {
+              proxy_pass http://127.0.0.1:3000/;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+            }
+
+            location / {
+              proxy_pass http://127.0.0.1:3001/;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
+              proxy_set_header Host $host;
+            }
+          }
+          NGINXCONF
+          sudo nginx -t
+          sudo systemctl start nginx
+
+      - name: Wait for Nginx to be ready
+        run: |
+          for i in $(seq 1 15); do
+            curl -sf http://localhost:8080 && break || sleep 2
+          done
+
+      # ── Seed test fixtures ────────────────────────────────────────────────
+      - name: Seed E2E fixtures
+        run: |
+          PGPASSWORD=password psql -h localhost -U p215_user -d p215_e2e \
+            -f e2e/fixtures/seed.sql
+
+      # ── Playwright ────────────────────────────────────────────────────────
+      - name: Install Playwright browsers
+        run: cd e2e && npm install && npm run install:browsers
+
+      - name: Check flaky tags
+        run: cd e2e && npm run check:flaky
+
+      - name: Run tests
+        run: cd e2e && npm test
+        env:
+          BASE_URL: http://localhost:8080
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      # ── Artifacts ─────────────────────────────────────────────────────────
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7
