@@ -35,6 +35,13 @@ jobs:
         with:
           name: devenv
 
+      # Cache the Nix store so dev-shell packages (HLS, hoogle, hlint, etc.)
+      # aren't re-fetched from cache.nixos.org on every run.
+      - uses: nix-community/cache-nix-action@v5
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+
       # ── Node (frontend + Playwright) ──────────────────────────────────────
       - uses: actions/setup-node@v4
         with:
