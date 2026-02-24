@@ -31,7 +31,6 @@ export function init(ws : WS.MyWebsocket) {
     }
 
     ws.addEventListener("DocListenStart", (ev : WS.DocListenStartEvent) => {
-      console.log("DocListenStart", ev);
       if(editor) {
         editor.removeEditor();
       }

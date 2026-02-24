@@ -48,7 +48,6 @@ function checkRestoreDoc(doc: T.DocRaw): any | null {
     // versionNum is also stored here for future use (e.g. display "restored from v42").
     // Do not remove it from history.tsx without updating this site too.
     const { docJson } = JSON.parse(saved);
-    console.log("restoring version from sessionStorage");
     return docJson;
   } catch (e) {
     console.error("failed to parse restore data", e);
@@ -140,7 +139,6 @@ ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
   } else {
     // WS reconnect: the collab plugin retransmits any inflight steps automatically.
     // No user action needed.
-    console.log("DocOpened on reconnect — collab plugin will resync");
   }
 });
 
