@@ -218,6 +218,15 @@ handleUpdated senderConn user rst payload = do
           stepsSince <- Doc.getStepsSince docId payload.version
           pure $ Left stepsSince
         else do
+          -- If no snapshot exists yet (legacy doc), capture the current DB
+          -- content as the baseline *before* inserting any steps, so history
+          -- replay starts from the server-authoritative pre-edit state rather
+          -- than the client's potentially-ahead localStorage content.
+          mSnap <- Doc.getLatestSnapshotBefore docId currentVersion
+          when (isNothing mSnap) $ do
+            mBase <- Doc.getDocBase docId
+            for_ mBase $ \ (_, dbDoc) ->
+              Doc.insertSnapshot docId currentVersion dbDoc
           let n = fromIntegral (length payload.steps) :: Int32
           Doc.insertSteps docId currentVersion user.userId (MkNewType payload.clientId) payload.steps
           let newVersion = currentVersion + n
@@ -270,14 +279,6 @@ handleSave conn userId rst doc = do
     logDebugSH st
     docId <- hoistMaybe st.openDocument
     updatedTime <- lift $ Doc.updateDocument docId userId st.computerId doc.document
-    currentVersion <- lift $ Doc.getDocVersion docId
-    -- If no snapshot exists yet, save the client-sent content as a baseline so
-    -- version history can correctly replay steps from a known starting point.
-    -- We use the client-sent content (not document.document) because the client
-    -- may have loaded from localStorage which can differ from the DB's stored doc.
-    mSnap <- lift $ Doc.getLatestSnapshotBefore docId currentVersion
-    when (isNothing mSnap) $
-      lift $ Doc.insertSnapshot docId currentVersion doc.document
     lift $ Doc.maybeTakeSnapshot docId doc.document
     lift $ sendOut conn (OutDocSaved (MkSavedDoc updatedTime))
 
