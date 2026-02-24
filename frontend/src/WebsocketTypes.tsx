@@ -126,10 +126,19 @@ export class WsOpenEvent extends Event {
 }
 
 export class DocListenStartEvent extends Event {
-  document : any;
-  constructor(document : any) {
+  document: any;
+  version: number;
+  snapVersion: number;
+  pendingSteps: any[];
+  pendingClientIds: string[];
+  constructor(contents: { document: any, version: number, snapVersion: number,
+                           pendingSteps?: any[], pendingClientIds?: string[] }) {
     super("DocListenStart");
-    this.document = document;
+    this.document = contents.document;
+    this.version = contents.version;
+    this.snapVersion = contents.snapVersion;
+    this.pendingSteps = contents.pendingSteps ?? [];
+    this.pendingClientIds = contents.pendingClientIds ?? [];
   }
 }
 
@@ -143,18 +152,24 @@ export class DocSavedEvent extends Event {
 }
 
 export class DocUpdatedEvent extends Event {
-  update : any
-  constructor(update : any) {
+  update: { version: number, steps: any[], clientIds: string[], docId: string };
+  constructor(update: { version: number, steps: any[], clientIds: string[], docId: string }) {
     super("DocUpdated");
     this.update = update;
   }
 }
 
 export class DocOpenedEvent extends Event {
-  doc : T.DocRaw
-  constructor(doc : T.DocRaw) {
+  doc : T.DocRaw;
+  snapVersion : number;
+  pendingSteps : any[];
+  pendingClientIds : string[];
+  constructor(contents : { doc: T.DocRaw, snapVersion: number, pendingSteps?: any[], pendingClientIds?: string[] }) {
     super("DocOpened");
-    this.doc = doc;
+    this.doc = contents.doc;
+    this.snapVersion = contents.snapVersion;
+    this.pendingSteps = contents.pendingSteps ?? [];
+    this.pendingClientIds = contents.pendingClientIds ?? [];
   }
 }
 

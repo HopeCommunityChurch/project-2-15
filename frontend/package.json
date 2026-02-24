@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "parcel src/index.tsx src/history.tsx --target=default",
+    "dev": "parcel src/index.tsx src/history.tsx --target=default --host 0.0.0.0",
     "build": "parcel build src/index.tsx src/history.tsx"
   },
   "author": "",

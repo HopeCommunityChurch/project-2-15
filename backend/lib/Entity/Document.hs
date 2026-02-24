@@ -38,6 +38,7 @@ import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
 import Database.Beam.Postgres (PgJSONB (..))
 import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam, withRawConnection)
 import Database.PostgreSQL.Simple qualified as PgS
+import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Aeson qualified as Aeson
 import Entity qualified as E
 import Entity.AuthUser
@@ -420,7 +421,7 @@ insertSnapshotIfAbsent docId atVer docObj =
       "INSERT INTO document_snapshot (\"docId\", \"atVersion\", document, \"createdAt\") \
       \VALUES (?, ?, ?::jsonb, ?) \
       \ON CONFLICT (\"docId\", \"atVersion\") DO NOTHING"
-      (docId, atVer, PgS.Binary (Aeson.encode docObj), now)
+      (docId, atVer, TLE.decodeUtf8 (Aeson.encode docObj), now)
 
 
 getLatestSnapshotBefore

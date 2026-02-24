@@ -64,7 +64,7 @@ export type DocRaw = {
   created: string;
   updated: string;
   version: number;
-  lastUpdate?: LastUpdate
+  lastUpdate?: LastUpdate;
 };
 
 

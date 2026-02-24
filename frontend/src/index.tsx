@@ -25,7 +25,7 @@ const computerId = (function () : string {
   return computerId;
 })();
 
-const sessionClientId = computerId + "_" + crypto.randomUUID();
+const sessionClientId = computerId + "_" + Util.getRandomStr();
 
 
 ws.addEventListener("open", () => {
@@ -56,35 +56,22 @@ function checkRestoreDoc(doc: T.DocRaw): any | null {
   }
 }
 
-function checkLastUpdateFallback (doc : T.DocRaw) : any {
-  if(doc.lastUpdate == null) {
-    console.log("using remote doc");
-    return doc.document;
-  }
-  if (doc.lastUpdate.computerId == computerId) {
-    console.log("using local storage");
-    const result = window.localStorage.getItem(localDoc);
-    return JSON.parse(result);
-  } else {
-    // We need to make this nicer in the where if a local update hasn't been
-    // saved we can present a choise for the user.
-    console.error("using remote doc");
-    return doc.document;
-  }
-}
-
 let wasInitialized = false;
 
 function initialize (e : WS.DocOpenedEvent) {
   const saver = mkSaveObject(ws);
 
   const restoredDoc = checkRestoreDoc(e.doc);
-  const doc = restoredDoc !== null ? restoredDoc : checkLastUpdateFallback(e.doc);
+
+  // Always use the server-provided snapshot document. For restores, use the
+  // restored content at the current server version.
+  const initDoc = restoredDoc !== null ? restoredDoc : e.doc.document;
+  const initVersion = restoredDoc !== null ? e.doc.version : e.snapVersion;
 
   const editor = new Editor.P215Editor({
-    initDoc: doc,
+    initDoc: initDoc,
     editable: true,
-    initialVersion: e.doc.version,
+    initialVersion: initVersion,
     sessionClientId: sessionClientId,
     remoteThings: {
       send: (payload: any) => {
@@ -99,6 +86,15 @@ function initialize (e : WS.DocOpenedEvent) {
 
   let event = new Editor.EditorAttached(editor);
   document.dispatchEvent(event);
+
+  // Apply any OT steps that arrived after the last snapshot but before open.
+  // dispatchSteps tags these as remote so they don't trigger SaveDoc.
+  if (!restoredDoc && e.pendingSteps.length > 0) {
+    editor.dispatchSteps({
+      steps: e.pendingSteps,
+      clientIds: e.pendingClientIds,
+    });
+  }
 
   editor.onUpdate( doc => {
     window.localStorage.setItem(docId + ".doc", JSON.stringify(doc));
@@ -120,6 +116,13 @@ function initialize (e : WS.DocOpenedEvent) {
     editor.handleConflict(ev.payload);
   });
 
+  // Receive remote steps from other editors (multi-editor / multi-tab support).
+  ws.addEventListener("DocUpdated", (ev: WS.DocUpdatedEvent) => {
+    if (ev.update.docId === docId) {
+      editor.dispatchSteps(ev.update);
+    }
+  });
+
   const studyNameElem = document.getElementById("studyName");
   studyNameElem.addEventListener("input", (ev) => {
     const update : WS.SendUpdateName = {
@@ -135,10 +138,9 @@ ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
   if(!wasInitialized) {
     initialize(e)
   } else {
-
-    if (e.doc.lastUpdate.computerId != computerId) {
-      alert("You disconnected and there was an update since your last change. Updating this document will override those changes. Refreshing will give you the newest changes.");
-    }
+    // WS reconnect: the collab plugin retransmits any inflight steps automatically.
+    // No user action needed.
+    console.log("DocOpened on reconnect — collab plugin will resync");
   }
 });
 

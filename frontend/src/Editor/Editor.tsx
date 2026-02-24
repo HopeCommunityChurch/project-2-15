@@ -1361,7 +1361,7 @@ export class P215Editor extends EventTarget {
         let newState = that.view.state.apply(transaction);
         that.view.updateState(newState);
 
-        if (transaction.docChanged) {
+        if (transaction.docChanged && !transaction.getMeta("isRemote")) {
           this.updateHanlders.forEach((handler) => {
             try {
               handler(newState.doc);
@@ -1402,6 +1402,7 @@ export class P215Editor extends EventTarget {
     if (changeDiff.steps?.length) {
       const steps = changeDiff.steps.map((s) => Step.fromJSON(textSchema, s));
       const tr = receiveTransaction(this.view.state, steps, changeDiff.clientIds);
+      tr.setMeta("isRemote", true);
       this.view.dispatch(tr);
     }
     if (changeDiff.selection) {
