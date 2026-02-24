@@ -37,9 +37,11 @@ function seedDatabase() {
 
   const env = {
     ...process.env,
-    PGHOST: 'localhost',
-    PGPORT: '5432',
-    PGDATABASE: 'p215',
+    PGHOST: process.env.PGHOST ?? 'localhost',
+    PGPORT: process.env.PGPORT ?? '5432',
+    PGDATABASE: process.env.PGDATABASE ?? 'p215',
+    ...(process.env.PGPASSWORD ? { PGPASSWORD: process.env.PGPASSWORD } : {}),
+    ...(process.env.PGUSER ? { PGUSER: process.env.PGUSER } : {}),
   };
 
   execSync(`${psql} -f "${SEED_SQL}"`, { env, stdio: 'inherit' });

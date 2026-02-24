@@ -74,7 +74,7 @@ jobs:
           nix develop --command cabal run -O0 &
           # Wait up to 60s for backend to be ready
           for i in $(seq 1 30); do
-            curl -sf http://localhost:3000/health && break || sleep 2
+            curl -sf http://localhost:3000/login && break || sleep 2
           done
 
       # ── Frontend: install deps and start dev server ───────────────────────
@@ -143,6 +143,11 @@ jobs:
         env:
           BASE_URL: http://localhost:8080
           GITHUB_REF_NAME: ${{ github.ref_name }}
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGDATABASE: p215_e2e
+          PGUSER: p215_user
+          PGPASSWORD: password
 
       # ── Artifacts ─────────────────────────────────────────────────────────
       - name: Upload Playwright report
