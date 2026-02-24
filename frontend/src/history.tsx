@@ -179,7 +179,7 @@ async function loadPreview(targetVersion: number, versionLabel?: string) {
 }
 
 function selectItem(el: Element) {
-  document.querySelectorAll(".historyGroupItem.selected, .historyStepItem.selected").forEach((e) =>
+  document.querySelectorAll(".historyGroupItem.selected, .historyStepItem.selected, .historyFirstVersion.selected").forEach((e) =>
     e.classList.remove("selected")
   );
   el.classList.add("selected");
@@ -260,6 +260,12 @@ async function init() {
     return;
   }
 
+  // Identify the very first session (lowest startVersion) for the "Document created" item.
+  // It stays in the normal accordion list; we just also render a flat item at the bottom
+  // that previews startVersion-1 (the baseline snapshot before any edits).
+  const minStart = Math.min(...groups.map((g) => g.startVersion));
+  const firstGroup = groups.find((g) => g.startVersion === minStart)!;
+
   const byPeriod = groupByPeriod(groups);
 
   for (const [periodLabel, periodGroups] of byPeriod) {
@@ -332,6 +338,27 @@ async function init() {
 
     container.appendChild(section);
   }
+
+  // Render the first-ever version as a flat item at the bottom
+  const firstSection = document.createElement("div");
+  firstSection.className = "historyDateSection";
+
+  const firstHeading = document.createElement("h3");
+  firstHeading.className = "historyDateHeading";
+  firstHeading.textContent = "Document created";
+  firstSection.appendChild(firstHeading);
+
+  const firstBtn = document.createElement("button");
+  firstBtn.className = "historyFirstVersion";
+  firstBtn.innerHTML =
+    `<span class="historyTime">${formatGroupLabel(firstGroup.startedAt)}</span>` +
+    `<span class="historySteps">${firstGroup.stepCount} item${firstGroup.stepCount !== 1 ? "s" : ""}</span>`;
+  firstBtn.addEventListener("click", () => {
+    selectItem(firstBtn);
+    loadPreview(firstGroup.startVersion - 1, formatGroupLabel(firstGroup.startedAt));
+  });
+  firstSection.appendChild(firstBtn);
+  container.appendChild(firstSection);
 }
 
 init();

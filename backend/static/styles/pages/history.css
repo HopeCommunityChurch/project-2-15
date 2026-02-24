@@ -249,6 +249,55 @@
 }
 
 
+/* ── First-ever version item ────────────────────────────── */
+
+.historyFirstVersion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: calc(100% - 16px);
+  margin: 0 8px 3px;
+  padding: 10px 12px 10px 10px;
+  background: #f0f2f5;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+  position: relative;
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background: #dfe1e4;
+  }
+
+  &.selected {
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    overflow: visible;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      background: #75aaf5;
+      border-radius: 999px;
+    }
+  }
+
+  &.selected:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1D6BD7;
+    outline-offset: -2px;
+  }
+}
+
 /* ── Right panel – document preview ───────────────────── */
 
 #historyPreview {
