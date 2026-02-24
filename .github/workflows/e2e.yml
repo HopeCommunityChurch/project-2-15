@@ -77,18 +77,21 @@ jobs:
             curl -sf http://localhost:3000/login && break || sleep 2
           done
 
-      # ── Frontend: install deps and start dev server ───────────────────────
+      # ── Frontend: build bundle and place where Scotty can serve it ──────────
+      # In CI (env != Dev "local"), the study page loads the editor JS from
+      # /static/editor/index.js served by Scotty's static middleware — not from
+      # a Parcel dev server. We build the bundle and copy it into place.
       - name: Install frontend deps
         run: cd frontend && npm install
 
-      - name: Start frontend dev server
-        run: cd frontend && npm run dev &
+      - name: Build frontend bundle
+        run: cd frontend && npm run build
 
-      - name: Wait for frontend to be ready
+      - name: Copy frontend bundle to backend static dir
         run: |
-          for i in $(seq 1 30); do
-            curl -sf http://localhost:3001 && break || sleep 2
-          done
+          mkdir -p backend/static/editor
+          cp frontend/dist/index.js backend/static/editor/index.js
+          cp frontend/dist/history.js backend/static/editor/history.js
 
       # ── Nginx: reverse proxy mirroring the local devenv setup ─────────────
       - name: Install and configure Nginx
