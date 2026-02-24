@@ -26,6 +26,14 @@ export class EditorAtoms implements IEditorAtoms {
     await expect(this.editor()).toContainText(text);
   }
 
+  /**
+   * Asserts the editor contains the given text within a bounded timeout.
+   * Use this for real-time sync assertions to encode the WebSocket SLA.
+   */
+  async assertContainsWithTimeout(text: string, ms: number) {
+    await expect(this.editor()).toContainText(text, { timeout: ms });
+  }
+
   /** Asserts the save-state indicator shows "saved" (paragraph text in the header). */
   async assertSaved() {
     await expect(this.page.locator('header p', { hasText: 'saved' })).toBeVisible();

@@ -65,6 +65,7 @@ export interface IEditorAtoms {
   assertVisible(): Promise<void>;
   typeAtEnd(text: string): Promise<void>;
   assertContains(text: string): Promise<void>;
+  assertContainsWithTimeout(text: string, ms: number): Promise<void>;
   assertSaved(): Promise<void>;
   assertTitle(title: string): Promise<void>;
 }

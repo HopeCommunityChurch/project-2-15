@@ -24,6 +24,13 @@ export interface CreateStudyResult {
   studyId: string;
 }
 
+// ── Editor ────────────────────────────────────────────────────────────────────
+
+export interface OpenStudyResult {
+  url: string;
+  studyId: string;
+}
+
 // ── History ───────────────────────────────────────────────────────────────────
 
 export interface NavigateToHistoryResult {

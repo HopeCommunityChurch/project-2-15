@@ -1,9 +1,7 @@
 {
   "description": "Version history feature tests",
   "tests": [
-    "3_organisms/homepage.spec.ts",
-    "3_organisms/auth.spec.ts",
-    "3_organisms/editor-basic.spec.ts",
-    "3_organisms/version-history.spec.ts"
+    "3_organisms/version-history.spec.ts",
+    "3_organisms/collab-sync.spec.ts"
   ]
 }

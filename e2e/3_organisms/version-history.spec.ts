@@ -73,6 +73,7 @@ test.describe('version history', () => {
     await history.assertPreviewVisible();
     await history.assertPreviewContains(typed);
     await restoreVersion(page, studyId);
+    await editor.assertVisible();
     await editor.assertContains(typed);
   });
 
