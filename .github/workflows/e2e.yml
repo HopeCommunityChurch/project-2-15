@@ -135,8 +135,25 @@ jobs:
             -f e2e/fixtures/seed.sql
 
       # ── Playwright ────────────────────────────────────────────────────────
-      - name: Install Playwright browsers
-        run: cd e2e && npm install && npm run install:browsers
+      - name: Install e2e deps
+        run: cd e2e && npm install
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('e2e/package-lock.json') }}
+
+      # Full install (browser binary + system libs) on cache miss.
+      - name: Install Playwright browsers + system deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: cd e2e && npx playwright install --with-deps chromium
+
+      # System libs only on cache hit — browser binary already cached.
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: cd e2e && npx playwright install-deps chromium
 
       - name: Check flaky tags
         run: cd e2e && npm run check:flaky
