@@ -27,7 +27,13 @@ let pool: Pool | null = null;
 
 function getPool(): Pool {
   if (!pool) {
-    pool = new Pool({ host: 'localhost', port: 5432, database: 'p215' });
+    pool = new Pool({
+      host: process.env.PGHOST ?? 'localhost',
+      port: parseInt(process.env.PGPORT ?? '5432', 10),
+      database: process.env.PGDATABASE ?? 'p215',
+      ...(process.env.PGUSER ? { user: process.env.PGUSER } : {}),
+      ...(process.env.PGPASSWORD ? { password: process.env.PGPASSWORD } : {}),
+    });
   }
   return pool;
 }
