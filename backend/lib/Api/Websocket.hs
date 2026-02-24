@@ -350,15 +350,25 @@ handleListenToDoc user connId st conn docId = do
           }
       Just (sv, sd) -> do
         stepsSince <- Doc.getStepsSince docId sv
-        let pendingStepsVals = map (\ (_, s, _) -> s) stepsSince
-            pendingCIds      = map (\ (_, _, MkNewType c) -> c) stepsSince
-        pure $ MkListenStartPayload
-          { document         = sd
-          , version          = currentVersion
-          , snapVersion      = sv
-          , pendingSteps     = pendingStepsVals
-          , pendingClientIds = pendingCIds
-          }
+        -- If too many steps to replay, serve the current doc directly.
+        if length stepsSince > 50
+          then pure $ MkListenStartPayload
+            { document         = doc.document
+            , version          = currentVersion
+            , snapVersion      = currentVersion
+            , pendingSteps     = []
+            , pendingClientIds = []
+            }
+          else do
+            let pendingStepsVals = map (\ (_, s, _) -> s) stepsSince
+                pendingCIds      = map (\ (_, _, MkNewType c) -> c) stepsSince
+            pure $ MkListenStartPayload
+              { document         = sd
+              , version          = currentVersion
+              , snapVersion      = sv
+              , pendingSteps     = pendingStepsVals
+              , pendingClientIds = pendingCIds
+              }
     sendOut conn (OutDocListenStart listenPayload)
     atomicModifyIORef_ st (\ st' -> st' & #sideDoc ?~ docId)
 
@@ -436,7 +446,13 @@ handleOpenDoc user (conn, connId) rst docId = do
         (snapVer, snapDoc, stepsSince) <- case mSnap of
           Just (sv, sd) -> do
             steps <- Doc.getStepsSince docId sv
-            pure (sv, sd, steps)
+            -- If there are too many steps to replay, take a fresh snapshot at
+            -- the current version so the client opens without pending steps.
+            if length steps > 50
+              then do
+                Doc.insertSnapshotIfAbsent docId currentVersion doc.document
+                pure (currentVersion, doc.document, [])
+              else pure (sv, sd, steps)
           Nothing -> do
             -- Legacy document: no snapshot yet. Insert one at the current
             -- version so future opens can use the step-based path. The
