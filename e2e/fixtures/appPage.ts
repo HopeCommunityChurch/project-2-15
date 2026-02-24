@@ -26,6 +26,7 @@ import { NavAtoms } from '../1_atoms/nav';
 import { StudiesAtoms } from '../1_atoms/studies';
 import { EditorAtoms } from '../1_atoms/editor';
 import { HistoryAtoms } from '../1_atoms/history';
+import { createTestUser, type TestUser } from './userFactory';
 
 export { AuthAtoms, NavAtoms, StudiesAtoms, EditorAtoms, HistoryAtoms };
 
@@ -37,14 +38,17 @@ type AtomFixtures = {
   studies: StudiesAtoms;
   editor: EditorAtoms;
   history: HistoryAtoms;
+  /** A freshly created DB user, unique to this test. Always use this instead of TEST_ACCOUNTS. */
+  freshUser: TestUser;
 };
 
 export const test = base.extend<AtomFixtures>({
-  login:   async ({ page }, use) => use(new AuthAtoms(page)),
-  nav:     async ({ page }, use) => use(new NavAtoms(page)),
-  studies: async ({ page }, use) => use(new StudiesAtoms(page)),
-  editor:  async ({ page }, use) => use(new EditorAtoms(page)),
-  history: async ({ page }, use) => use(new HistoryAtoms(page)),
+  login:     async ({ page }, use) => use(new AuthAtoms(page)),
+  nav:       async ({ page }, use) => use(new NavAtoms(page)),
+  studies:   async ({ page }, use) => use(new StudiesAtoms(page)),
+  editor:    async ({ page }, use) => use(new EditorAtoms(page)),
+  history:   async ({ page }, use) => use(new HistoryAtoms(page)),
+  freshUser: async ({}, use) => use(await createTestUser()),
 });
 
 export { expect };
