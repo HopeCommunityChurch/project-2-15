@@ -36,7 +36,9 @@ import Database.Beam (
   )
 import Database.Beam.Backend.SQL.BeamExtensions (runInsertReturningList)
 import Database.Beam.Postgres (PgJSONB (..))
-import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam)
+import DbHelper (MonadDb, jsonArraryOf, jsonBuildObject, runBeam, withRawConnection)
+import Database.PostgreSQL.Simple qualified as PgS
+import Data.Aeson qualified as Aeson
 import Entity qualified as E
 import Entity.AuthUser
 import Entity.User qualified as User
@@ -400,6 +402,25 @@ insertSnapshot docId atVer docObj = do
     $ insert Db.db.documentSnapshot
     $ insertValues
       [ Db.MkDocumentSnapshotT docId atVer (PgJSONB docObj) now ]
+
+
+-- | Like insertSnapshot but uses ON CONFLICT DO NOTHING, so it is safe to
+-- call concurrently (e.g. from handleOpenDoc when two users open the same
+-- legacy document at the same time).
+insertSnapshotIfAbsent
+  :: MonadDb env m
+  => T.DocId
+  -> Int32
+  -> Object
+  -> m ()
+insertSnapshotIfAbsent docId atVer docObj =
+  withRawConnection $ \conn -> liftIO $ do
+    now <- getCurrentTime
+    void $ PgS.execute conn
+      "INSERT INTO document_snapshot (\"docId\", \"atVersion\", document, \"createdAt\") \
+      \VALUES (?, ?, ?::jsonb, ?) \
+      \ON CONFLICT (\"docId\", \"atVersion\") DO NOTHING"
+      (docId, atVer, PgS.Binary (Aeson.encode docObj), now)
 
 
 getLatestSnapshotBefore

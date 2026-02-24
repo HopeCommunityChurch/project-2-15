@@ -218,15 +218,6 @@ handleUpdated senderConn user rst payload = do
           stepsSince <- Doc.getStepsSince docId payload.version
           pure $ Left stepsSince
         else do
-          -- If no snapshot exists yet (legacy doc), capture the current DB
-          -- content as the baseline *before* inserting any steps, so history
-          -- replay starts from the server-authoritative pre-edit state rather
-          -- than the client's potentially-ahead localStorage content.
-          mSnap <- Doc.getLatestSnapshotBefore docId currentVersion
-          when (isNothing mSnap) $ do
-            mBase <- Doc.getDocBase docId
-            for_ mBase $ \ (_, dbDoc) ->
-              Doc.insertSnapshot docId currentVersion dbDoc
           let n = fromIntegral (length payload.steps) :: Int32
           Doc.insertSteps docId currentVersion user.userId (MkNewType payload.clientId) payload.steps
           let newVersion = currentVersion + n
@@ -394,6 +385,16 @@ handleOpenDoc user (conn, connId) rst docId = do
         atomicWriteIORef rst (st { openDocument = Just docId })
         mLastUpdate <- Doc.getLastUpdate docId
         sendOut conn (OutDocOpened doc { Doc.lastUpdate = mLastUpdate })
+        -- Capture a baseline snapshot for legacy documents (created before
+        -- version history was introduced) if one does not already exist.
+        -- We do this at open time, before any SaveDoc or Updated messages
+        -- arrive, so the snapshot reflects the true pre-edit DB state.
+        currentVersion <- Doc.getDocVersion docId
+        mSnap <- Doc.getLatestSnapshotBefore docId currentVersion
+        when (isNothing mSnap) $ do
+          mBase <- Doc.getDocBase docId
+          for_ mBase $ \ (_, dbDoc) ->
+            Doc.insertSnapshotIfAbsent docId currentVersion dbDoc
         subs <- readIORef rsubs
         let mdocSt = Map.lookup docId subs
         case mdocSt of
