@@ -40,6 +40,31 @@ jobs:
         with:
           node-version: '20'
 
+      # ── npm caches ────────────────────────────────────────────────────────
+      - uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: npm-frontend-${{ hashFiles('frontend/package-lock.json') }}
+
+      - uses: actions/cache@v4
+        with:
+          path: e2e/node_modules
+          key: npm-e2e-${{ hashFiles('e2e/package-lock.json') }}
+
+      # ── Haskell / Cabal cache ─────────────────────────────────────────────
+      # Cache the Cabal package store (compiled Haskell deps) and dist-newstyle
+      # (compiled application). Key on backend.cabal so a dep change busts the
+      # cache; restore-keys allows partial hits when only source files changed.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/packages
+            ~/.cabal/store
+            backend/dist-newstyle
+          key: cabal-${{ runner.os }}-${{ hashFiles('backend/backend.cabal') }}
+          restore-keys: |
+            cabal-${{ runner.os }}-
+
       # ── Backend: build, migrate, and start ────────────────────────────────
       # The backend runs migrations automatically on startup via its built-in
       # postgresql-migration runner (schema_migrations tracking table).
@@ -82,7 +107,7 @@ jobs:
       # /static/editor/index.js served by Scotty's static middleware — not from
       # a Parcel dev server. We build the bundle and copy it into place.
       - name: Install frontend deps
-        run: cd frontend && npm install
+        run: cd frontend && npm install --prefer-offline
 
       - name: Build frontend bundle
         run: cd frontend && npm run build
@@ -136,7 +161,7 @@ jobs:
 
       # ── Playwright ────────────────────────────────────────────────────────
       - name: Install e2e deps
-        run: cd e2e && npm install
+        run: cd e2e && npm install --prefer-offline
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
