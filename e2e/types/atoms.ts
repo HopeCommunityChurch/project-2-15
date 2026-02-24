@@ -54,6 +54,9 @@ export interface IHistoryAtoms {
   clickRestoreButton(): Promise<void>;
   clickHistoryLink(): Promise<void>;
   clickDocumentCreated(): Promise<void>;
+  clickFirstSubItem(): Promise<void>;
+  clickBackButton(): Promise<void>;
+  assertPreviewClosed(): Promise<void>;
 }
 
 // ── Editor page ───────────────────────────────────────────────────────────────

@@ -30,3 +30,8 @@ export interface NavigateToHistoryResult {
   url: string;
   studyId: string;
 }
+
+export interface RestoreVersionResult {
+  studyId: string;
+  url: string;
+}

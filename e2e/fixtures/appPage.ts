@@ -33,7 +33,7 @@ export { AuthAtoms, NavAtoms, StudiesAtoms, EditorAtoms, HistoryAtoms };
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 type AtomFixtures = {
-  login: AuthAtoms;
+  auth: AuthAtoms;
   nav: NavAtoms;
   studies: StudiesAtoms;
   editor: EditorAtoms;
@@ -43,7 +43,7 @@ type AtomFixtures = {
 };
 
 export const test = base.extend<AtomFixtures>({
-  login:     async ({ page }, use) => use(new AuthAtoms(page)),
+  auth:      async ({ page }, use) => use(new AuthAtoms(page)),
   nav:       async ({ page }, use) => use(new NavAtoms(page)),
   studies:   async ({ page }, use) => use(new StudiesAtoms(page)),
   editor:    async ({ page }, use) => use(new EditorAtoms(page)),

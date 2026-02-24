@@ -66,4 +66,20 @@ export class HistoryAtoms implements IHistoryAtoms {
   async clickDocumentCreated() {
     await this.page.locator('.historyFirstVersion').click();
   }
+
+  /** Clicks the first `.historyStepItem` inside an expanded sub-panel. */
+  async clickFirstSubItem() {
+    await this.page.locator('.historyStepItem').first().click();
+  }
+
+  /** Clicks the `#backToVersions` button to close the preview panel.
+   *  Only visible at ≤ 660 px viewport width (mobile breakpoint). */
+  async clickBackButton() {
+    await this.page.locator('#backToVersions').click();
+  }
+
+  /** `#historyLayout` does NOT have the `preview-open` class (preview panel is closed). */
+  async assertPreviewClosed() {
+    await expect(this.page.locator('#historyLayout')).not.toHaveClass(/preview-open/);
+  }
 }
