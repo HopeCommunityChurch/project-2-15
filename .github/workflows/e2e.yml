@@ -245,12 +245,14 @@ jobs:
               for (const suite of results.suites || []) collect(suite, '');
 
               body = [
-                `## E2E Tests ${icon}`,
-                `**${parts.join(', ')}**`,
+                `<details${stats.ok ? '' : ' open'}>`,
+                `<summary><strong>E2E Tests ${icon} — ${parts.join(', ')}</strong></summary>`,
                 '',
                 '| | Test | Duration |',
                 '|---|---|---|',
                 ...tests,
+                '',
+                '</details>',
               ].join('\n');
             }
 
