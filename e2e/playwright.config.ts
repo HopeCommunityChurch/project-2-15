@@ -7,7 +7,9 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 4 : 2,
   fullyParallel: true,
-  reporter: [['html'], ['list']],
+  reporter: process.env.CI
+    ? [['html'], ['list'], ['json', { outputFile: 'test-results/results.json' }]]
+    : [['html'], ['list']],
   use: {
     baseURL: process.env.BASE_URL ?? 'http://localhost:8080',
     screenshot: 'only-on-failure',

@@ -7,6 +7,8 @@ jobs:
   e2e:
     runs-on: ubuntu-22.04
     timeout-minutes: 20
+    permissions:
+      pull-requests: write
 
     services:
       postgres:
@@ -200,6 +202,82 @@ jobs:
           PGDATABASE: p215_e2e
           PGUSER: p215_user
           PGPASSWORD: password
+
+      # ── PR comment with test results ──────────────────────────────────────
+      - name: Post test results to PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const resultsPath = path.join(process.env.GITHUB_WORKSPACE, 'e2e/test-results/results.json');
+
+            let body;
+            if (!fs.existsSync(resultsPath)) {
+              body = '## E2E Tests\n\n⚠️ Test results not found — tests may not have run.';
+            } else {
+              const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+              const { stats } = results;
+
+              const icon = stats.ok ? '✅' : '❌';
+              const parts = [`${stats.expected} passed`];
+              if (stats.unexpected > 0) parts.push(`${stats.unexpected} failed`);
+              if (stats.flaky     > 0) parts.push(`${stats.flaky} flaky`);
+              if (stats.skipped   > 0) parts.push(`${stats.skipped} skipped`);
+
+              const tests = [];
+              function collect(suite, prefix) {
+                const title = prefix ? `${prefix} › ${suite.title}` : suite.title;
+                for (const spec of suite.specs || []) {
+                  for (const test of spec.tests || []) {
+                    const last    = test.results[test.results.length - 1];
+                    const retries = test.results.length - 1;
+                    const icon    = { expected: '✅', flaky: '⚠️', skipped: '⏭️' }[test.status] ?? '❌';
+                    const dur     = ((last?.duration ?? 0) / 1000).toFixed(1) + 's';
+                    const retry   = retries > 0 ? ` *(${retries} retr${retries === 1 ? 'y' : 'ies'})*` : '';
+                    tests.push(`| ${icon} | ${title} › ${spec.title} | ${dur}${retry} |`);
+                  }
+                }
+                for (const child of suite.suites || []) collect(child, title);
+              }
+              for (const suite of results.suites || []) collect(suite, '');
+
+              body = [
+                `## E2E Tests ${icon}`,
+                `**${parts.join(', ')}**`,
+                '',
+                '| | Test | Duration |',
+                '|---|---|---|',
+                ...tests,
+              ].join('\n');
+            }
+
+            const marker  = '<!-- e2e-results -->';
+            const fullBody = `${marker}\n${body}`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner:      context.repo.owner,
+                repo:       context.repo.repo,
+                comment_id: existing.id,
+                body:       fullBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: context.issue.number,
+                body:         fullBody,
+              });
+            }
 
       # ── Artifacts ─────────────────────────────────────────────────────────
       - name: Upload Playwright report
