@@ -40,6 +40,22 @@ export interface IStudiesAtoms {
   clickCreateStudy(): Promise<void>;
 }
 
+// ── History page ──────────────────────────────────────────────────────────────
+
+export interface IHistoryAtoms {
+  assertPageLoaded(): Promise<void>;
+  assertHistoryGroupsLoaded(): Promise<void>;
+  assertDocumentCreatedVisible(): Promise<void>;
+  clickFirstGroupPreviewBtn(): Promise<void>;
+  assertPreviewVisible(): Promise<void>;
+  assertPreviewContains(text: string): Promise<void>;
+  clickExpandButton(): Promise<void>;
+  assertSubItemsVisible(): Promise<void>;
+  clickRestoreButton(): Promise<void>;
+  clickHistoryLink(): Promise<void>;
+  clickDocumentCreated(): Promise<void>;
+}
+
 // ── Editor page ───────────────────────────────────────────────────────────────
 
 export interface IEditorAtoms {

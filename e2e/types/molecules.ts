@@ -23,3 +23,10 @@ export interface CreateStudyResult {
   url: string;
   studyId: string;
 }
+
+// ── History ───────────────────────────────────────────────────────────────────
+
+export interface NavigateToHistoryResult {
+  url: string;
+  studyId: string;
+}

@@ -25,8 +25,9 @@ import { AuthAtoms } from '../1_atoms/auth';
 import { NavAtoms } from '../1_atoms/nav';
 import { StudiesAtoms } from '../1_atoms/studies';
 import { EditorAtoms } from '../1_atoms/editor';
+import { HistoryAtoms } from '../1_atoms/history';
 
-export { AuthAtoms, NavAtoms, StudiesAtoms, EditorAtoms };
+export { AuthAtoms, NavAtoms, StudiesAtoms, EditorAtoms, HistoryAtoms };
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ type AtomFixtures = {
   nav: NavAtoms;
   studies: StudiesAtoms;
   editor: EditorAtoms;
+  history: HistoryAtoms;
 };
 
 export const test = base.extend<AtomFixtures>({
@@ -42,6 +44,7 @@ export const test = base.extend<AtomFixtures>({
   nav:     async ({ page }, use) => use(new NavAtoms(page)),
   studies: async ({ page }, use) => use(new StudiesAtoms(page)),
   editor:  async ({ page }, use) => use(new EditorAtoms(page)),
+  history: async ({ page }, use) => use(new HistoryAtoms(page)),
 });
 
 export { expect };
