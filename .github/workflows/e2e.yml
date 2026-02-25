@@ -249,49 +249,63 @@ jobs:
               if (stats.flaky     > 0) parts.push(`${stats.flaky} flaky`);
               if (stats.skipped   > 0) parts.push(`${stats.skipped} skipped`);
 
-              const tests = [];
-              function collect(suite, prefix) {
-                const title = prefix ? `${prefix} › ${suite.title}` : suite.title;
-                for (const spec of suite.specs || []) {
-                  for (const test of spec.tests || []) {
-                    const last    = test.results[test.results.length - 1];
-                    const retries = test.results.length - 1;
-                    const icon    = { expected: '✅', flaky: '⚠️', skipped: '⏭️' }[test.status] ?? '❌';
-                    const dur     = ((last?.duration ?? 0) / 1000).toFixed(1) + 's';
-                    const retry   = retries > 0 ? ` *(${retries} retr${retries === 1 ? 'y' : 'ies'})*` : '';
-                    tests.push(`| ${icon} | ${title} › ${spec.title} | ${dur}${retry} |`);
+              // Collect tests grouped by top-level suite (= spec file)
+              const fileGroups = [];
+              for (const suite of results.suites || []) {
+                const rows = [];
+                let filePassed = 0, fileFailed = 0, fileDurMs = 0;
+                function collectRows(s, prefix) {
+                  const title = prefix ? `${prefix} › ${s.title}` : s.title;
+                  for (const spec of s.specs || []) {
+                    for (const t of spec.tests || []) {
+                      const last    = t.results[t.results.length - 1];
+                      const retries = t.results.length - 1;
+                      const tIcon   = { expected: '✅', flaky: '⚠️', skipped: '⏭️' }[t.status] ?? '❌';
+                      const tDur    = (last?.duration ?? 0);
+                      fileDurMs += tDur;
+                      if (t.status === 'expected') filePassed++; else fileFailed++;
+                      const retry = retries > 0 ? ` *(${retries} retr${retries === 1 ? 'y' : 'ies'})*` : '';
+                      rows.push(`| ${tIcon} | ${title} › ${spec.title} | ${(tDur / 1000).toFixed(1)}s${retry} |`);
+                    }
                   }
+                  for (const child of s.suites || []) collectRows(child, title);
                 }
-                for (const child of suite.suites || []) collect(child, title);
+                collectRows(suite, '');
+                fileGroups.push({ file: suite.title, rows, filePassed, fileFailed, fileDurMs });
               }
-              for (const suite of results.suites || []) collect(suite, '');
 
-              const totalMs = Object.values(stats).reduce((a, b) => 0, 0);
-              const totalSec = (stats.duration !== undefined
-                ? stats.duration
-                : tests.reduce((sum, row) => {
-                    const m = row.match(/\| ([\d.]+)s/);
-                    return sum + (m ? parseFloat(m[1]) * 1000 : 0);
-                  }, 0)
-              );
-              const dur = totalSec >= 1000
-                ? ((totalSec / 1000).toFixed(0) + 's')
-                : (totalSec + 'ms');
+              const totalDurMs = fileGroups.reduce((s, g) => s + g.fileDurMs, 0);
+              const dur = (totalDurMs / 1000).toFixed(0) + 's';
 
               const sha = context.sha.slice(0, 7);
               const shaUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
               const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
               const summary = `E2E Tests · <a href="${shaUrl}">${sha}</a> · <a href="${runUrl}">run #${context.runNumber}</a> · ${dur}`;
 
+              const innerBlocks = fileGroups.map(({ file, rows, filePassed, fileFailed, fileDurMs }) => {
+                const fileOk    = fileFailed === 0;
+                const fileIcon  = fileOk ? '✅' : '❌';
+                const fileParts = [`${filePassed} passed`];
+                if (fileFailed > 0) fileParts.push(`${fileFailed} failed`);
+                const fileDur   = (fileDurMs / 1000).toFixed(1) + 's';
+                return [
+                  `<details>`,
+                  `<summary>${fileIcon} ${file} — ${fileParts.join(', ')} · ${fileDur}</summary>`,
+                  ``,
+                  `| | Test | Duration |`,
+                  `|---|---|---|`,
+                  ...rows,
+                  ``,
+                  `</details>`,
+                ].join('\n');
+              });
+
               body = [
                 `<details${ok ? '' : ' open'}>`,
                 `<summary>${summary}<br>${icon} ${parts.join(', ')}</summary>`,
-                '',
-                '| | Test | Duration |',
-                '|---|---|---|',
-                ...tests,
-                '',
-                '</details>',
+                ``,
+                ...innerBlocks,
+                `</details>`,
               ].join('\n');
             }
 
