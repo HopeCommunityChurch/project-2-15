@@ -139,6 +139,7 @@ test.describe('editor complex', () => {
   }) => {
     const title = `Complex Undo ${randomUUID().slice(0, 8)}`;
     const boldText = `bold-${randomUUID().slice(0, 8)}`;
+    const noteText = `note1-${randomUUID().slice(0, 8)}`;
 
     await login(page, freshUser.email, freshUser.password);
     await createStudy(page, title);
@@ -159,7 +160,7 @@ test.describe('editor complex', () => {
     await page.locator('.ProseMirror strong', { hasText: boldText }).waitFor({ state: 'visible', timeout: 10_000 });
     await editor.assertBoldActive(boldText);
 
-    // ── Section 1: scripture only ───────────────────────────────────────────────
+    // ── Section 1: scripture → study block → typed notes ───────────────────────
     await addSection(page);
     await editor.clickSectionHeading(1);
     await insertScripture(page, 'Genesis 1:1');
@@ -167,7 +168,12 @@ test.describe('editor complex', () => {
     await editor.assertSidebarSectionCount(2);
     const { blockIndex: b1 } = await addStudyBlock(page);
     await editor.clickStudyBlockBody(b1);
-    // Cursor is in section 1's block — mark this state for undo tests
+    await page.keyboard.type(noteText);
+    await editor.assertContains(noteText);
+
+    // ── Undo: section 1 typed notes ────────────────────────────────────────────
+    await undoChange(page);
+    await editor.assertNotContains(noteText);
 
     // ── Undo: section 1 study block add ────────────────────────────────────────
     await undoChange(page);
@@ -336,6 +342,7 @@ test.describe('editor complex', () => {
     const titleA = `Complex Nav-A ${randomUUID().slice(0, 8)}`;
     const titleB = `Complex Nav-B ${randomUUID().slice(0, 8)}`;
     const textA = `nav-a-${randomUUID().slice(0, 8)}`;
+    const textA1 = `nav-a1-${randomUUID().slice(0, 8)}`;
     const textB = `nav-b-${randomUUID().slice(0, 8)}`;
 
     // ── Build Study A: scripture + study block + bold text ────────────────────
@@ -364,6 +371,11 @@ test.describe('editor complex', () => {
     await insertScripture(page, 'Genesis 1:1');
     await editor.assertBibleTextCount(2);
     await editor.assertSidebarSectionCount(2);
+    const { blockIndex: bA1 } = await addStudyBlock(page);
+    await editor.clickStudyBlockBody(bA1);
+    await page.keyboard.type(textA1);
+    await editor.assertContains(textA1);
+    await editor.assertStudyBlockCountAtLeast(2);
     await editor.assertSaved();
 
     // ── Navigate away; create Study B ─────────────────────────────────────────
@@ -394,8 +406,10 @@ test.describe('editor complex', () => {
     await editor.assertBoldActive(textA);
     await editor.assertContains('For God so loved');
     await editor.assertContains('In the beginning');
+    await editor.assertContains(textA1);
     await editor.assertBibleTextCount(2);
     await editor.assertSidebarSectionCount(2);
+    await editor.assertStudyBlockCountAtLeast(2);
     await editor.assertNotContains(textB);
 
     // ── Return to Study B — verify it was not corrupted by reopening A ────────
@@ -413,6 +427,7 @@ test.describe('editor complex', () => {
     await editor.assertTitle(titleA);
     await editor.assertContains(textA);
     await editor.assertBoldActive(textA);
+    await editor.assertContains(textA1);
     await editor.assertNotContains(textB);
 
     // ── Immediate direct URL switch to B (rapid context switch) ───────────────
@@ -459,12 +474,15 @@ test.describe('editor complex', () => {
     await editor.assertContains('all things work together');
     await editor.assertBibleTextCount(3);
 
-    // Add a study block after the three passages — insertion of further
-    // scripture must still land in the correct section node.
+    // Add a study block after the three passages, then type a note into it.
+    // A person studying would write observations before moving to more scripture.
     await addStudyBlock(page);
     await editor.assertStudyBlockCountAtLeast(1);
+    await editor.clickStudyBlockBody(0);
+    await page.keyboard.type('notes on the passage');
+    await editor.assertContains('notes on the passage');
 
-    // Click back to the section heading so insertScripture uses section 0
+    // Click back to the section heading so insertScripture targets section 0.
     await editor.clickSectionHeading(0);
     await insertScripture(page, '1 Corinthians 13:4');
     await editor.assertContains('Love is patient');
@@ -499,6 +517,7 @@ test.describe('editor complex', () => {
     await editor.assertContains('all things work together');
     await editor.assertContains('Love is patient');
     await editor.assertContains('The LORD is my shepherd');
+    await editor.assertContains('notes on the passage');
     await editor.assertScriptureChunkIndentLevel(4, 1);   // level survived JSONB round-trip
     await editor.assertSidebarSectionCount(2);
     await editor.assertStudyBlockCountAtLeast(1);
