@@ -237,17 +237,15 @@ jobs:
             let body;
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             if (!fs.existsSync(resultsPath)) {
-              body = `⚠️ E2E Tests — results not found · <a href="${runUrl}">run #${context.runNumber}</a>`;
+              body = `⚠️ results not found · <a href="${runUrl}">#${context.runNumber}</a>`;
             } else {
               const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
               const { stats } = results;
 
+              const total = (stats.expected ?? 0) + (stats.unexpected ?? 0) + (stats.flaky ?? 0) + (stats.skipped ?? 0);
+              const passed = stats.expected ?? 0;
               const ok = stats.unexpected === 0;
-              const icon = ok ? '✅' : '❌';
-              const parts = [`${stats.expected} passed`];
-              if (stats.unexpected > 0) parts.push(`${stats.unexpected} failed`);
-              if (stats.flaky     > 0) parts.push(`${stats.flaky} flaky`);
-              if (stats.skipped   > 0) parts.push(`${stats.skipped} skipped`);
+              const icon = ok ? (stats.flaky > 0 ? '🟡' : '✅') : (passed === 0 ? '❌' : '🟡');
 
               // Collect tests grouped by top-level suite (= spec file)
               const fileGroups = [];
@@ -280,7 +278,7 @@ jobs:
               const sha = context.sha.slice(0, 7);
               const shaUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
               const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-              const summary = `E2E Tests · <a href="${shaUrl}">${sha}</a> · <a href="${runUrl}">run #${context.runNumber}</a> · ${dur}`;
+              const summary = `${icon} ${passed}/${total} tests · commit <a href="${shaUrl}">${sha}</a> · <a href="${runUrl}">#${context.runNumber}</a> · ${dur}`;
 
               const innerBlocks = fileGroups.map(({ file, rows, filePassed, fileFailed, fileDurMs }) => {
                 const fileOk    = fileFailed === 0;
@@ -302,7 +300,7 @@ jobs:
 
               body = [
                 `<details${ok ? '' : ' open'}>`,
-                `<summary>${summary}<br>${icon} ${parts.join(', ')}</summary>`,
+                `<summary>${summary}</summary>`,
                 ``,
                 ...innerBlocks,
                 `</details>`,
