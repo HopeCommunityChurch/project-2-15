@@ -1,7 +1,7 @@
 import { expect, Page } from '@playwright/test';
-import type { IStudiesAtoms } from '../types/atoms';
+import type { IStudiesPageAtoms } from '../types/atoms';
 
-export class StudiesAtoms implements IStudiesAtoms {
+export class StudiesPageAtoms implements IStudiesPageAtoms {
   constructor(private page: Page) {}
 
   /** Clicks the Add Study / New Study button on the studies list page. */

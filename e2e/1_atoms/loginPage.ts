@@ -1,7 +1,7 @@
 import { expect, Page } from '@playwright/test';
-import type { IAuthAtoms } from '../types/atoms';
+import type { ILoginPageAtoms } from '../types/atoms';
 
-export class AuthAtoms implements IAuthAtoms {
+export class LoginPageAtoms implements ILoginPageAtoms {
   constructor(private page: Page) {}
 
   /** Fills the email textbox on the login form (placeholder: "example@example.com"). */

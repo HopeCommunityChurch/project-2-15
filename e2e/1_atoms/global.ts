@@ -1,7 +1,7 @@
 import { expect, Page } from '@playwright/test';
-import type { INavAtoms } from '../types/atoms';
+import type { IGlobalAtoms } from '../types/atoms';
 
-export class NavAtoms implements INavAtoms {
+export class GlobalAtoms implements IGlobalAtoms {
   constructor(private page: Page) {}
 
   /** Asserts the nav bar reflects an authenticated state. */

@@ -1,7 +1,7 @@
 import { expect, Page } from '@playwright/test';
-import type { IEditorAtoms } from '../types/atoms';
+import type { IStudyPageAtoms } from '../types/atoms';
 
-export class EditorAtoms implements IEditorAtoms {
+export class StudyPageAtoms implements IStudyPageAtoms {
   constructor(private page: Page) {}
 
   /** The ProseMirror contenteditable element. */

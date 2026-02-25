@@ -12,9 +12,9 @@
  * the job of molecules.
  */
 
-// ── Login page ────────────────────────────────────────────────────────────────
+// ── Login page (1_atoms/loginPage.ts) ─────────────────────────────────────────
 
-export interface IAuthAtoms {
+export interface ILoginPageAtoms {
   fillEmail(email: string): Promise<void>;
   fillPassword(password: string): Promise<void>;
   clickSubmit(): Promise<void>;
@@ -23,16 +23,16 @@ export interface IAuthAtoms {
   assertLoggedOut(): Promise<void>;
 }
 
-// ── Nav (present on all pages) ────────────────────────────────────────────────
+// ── Global — present on all pages (1_atoms/global.ts) ────────────────────────
 
-export interface INavAtoms {
+export interface IGlobalAtoms {
   assertLoggedIn(): Promise<void>;
   assertLoggedOut(): Promise<void>;
 }
 
-// ── Studies page ──────────────────────────────────────────────────────────────
+// ── Studies page (1_atoms/studiesPage.ts) ─────────────────────────────────────
 
-export interface IStudiesAtoms {
+export interface IStudiesPageAtoms {
   clickAddStudy(): Promise<void>;
   assertStudyVisible(title: string): Promise<void>;
   assertStudyNotVisible(title: string): Promise<void>;
@@ -40,9 +40,9 @@ export interface IStudiesAtoms {
   clickCreateStudy(): Promise<void>;
 }
 
-// ── Editor page ───────────────────────────────────────────────────────────────
+// ── Study page / editor (1_atoms/studyPage.ts) ────────────────────────────────
 
-export interface IEditorAtoms {
+export interface IStudyPageAtoms {
   assertVisible(): Promise<void>;
   typeAtEnd(text: string): Promise<void>;
   assertContains(text: string): Promise<void>;

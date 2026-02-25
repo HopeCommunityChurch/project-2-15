@@ -6,7 +6,7 @@
  */
 
 import { Page } from '@playwright/test';
-import { AuthAtoms } from '../1_atoms/auth';
+import { LoginPageAtoms } from '../1_atoms/loginPage';
 import type { LoginResult } from '../types/molecules';
 
 export async function login(
@@ -14,7 +14,7 @@ export async function login(
   email: string,
   password: string,
 ): Promise<LoginResult> {
-  const login = new AuthAtoms(page);
+  const login = new LoginPageAtoms(page);
 
   await page.goto('/login');
   await login.fillEmail(email);

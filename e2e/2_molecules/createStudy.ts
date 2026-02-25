@@ -6,14 +6,14 @@
  */
 
 import { Page } from '@playwright/test';
-import { StudiesAtoms } from '../1_atoms/studies';
+import { StudiesPageAtoms } from '../1_atoms/studiesPage';
 import type { CreateStudyResult } from '../types/molecules';
 
 export async function createStudy(
   page: Page,
   title: string,
 ): Promise<CreateStudyResult> {
-  const studies = new StudiesAtoms(page);
+  const studies = new StudiesPageAtoms(page);
 
   await studies.clickAddStudy();
   await studies.fillNewStudyTitle(title);
