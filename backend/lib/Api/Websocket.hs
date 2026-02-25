@@ -7,14 +7,14 @@ import Data.Aeson qualified as Aeson
 import Data.Map qualified as Map
 import Data.UUID (UUID)
 import Data.UUID.V4 qualified as UUID
-import DbHelper (MonadDb)
+import DbHelper (MonadDb, withTransaction)
 import Entity qualified as E
 import Entity.Document qualified as Doc
 import Entity.User qualified as User
 import GHC.Records (HasField)
 import Network.WebSockets (Connection, withPingThread)
 import Network.WebSockets qualified as WS
-import Relude (atomicModifyIORef_, drop)
+import Relude (atomicModifyIORef_)
 import Servant
 import Types qualified as T
 import WebsocketServant
@@ -27,7 +27,7 @@ type ConnId = UUID
 type DocumentSubs = IORef (Map ConnId Connection)
 
 data DocState = MkDocState
-  { openedBy :: IORef (Maybe (Connection, ConnId))
+  { editors :: IORef (Map ConnId Connection)
   , subscriptions :: DocumentSubs
   }
   deriving (Generic)
@@ -48,10 +48,19 @@ newtype SaveDoc = MkSaveDoc
   deriving anyclass (FromJSON)
 
 
+data InUpdatedPayload = MkInUpdatedPayload
+  { version  :: Int32
+  , steps    :: [Aeson.Value]
+  , clientId :: Text
+  }
+  deriving (Generic, Show)
+  deriving anyclass (FromJSON)
+
+
 data InMsg
   = InOpenDoc T.DocId -- Call before you send updates and saves
   | InCloseDoc T.DocId -- Call when done sending updates
-  | InUpdated Aeson.Value -- Updating the doc
+  | InUpdated InUpdatedPayload -- Updating the doc via collab steps
   | InUpdateName Text
   | InSaveDoc SaveDoc
   | InListenToDoc T.DocId  -- Call when you want to listen to the updates for a doc
@@ -78,11 +87,57 @@ newtype SavedDoc = MkSavedDoc
   deriving anyclass (ToJSON)
 
 
+-- | Payload for confirmed/broadcast step messages.
+data StepsPayload = MkStepsPayload
+  { version   :: Int32
+  , steps     :: [Aeson.Value]
+  , clientIds :: [Text]
+  , docId     :: T.DocId
+  }
+  deriving (Generic, Show)
+  deriving anyclass (ToJSON)
+
+
+-- | Payload for conflict messages (no version — client must rebase).
+data ConflictPayload = MkConflictPayload
+  { steps     :: [Aeson.Value]
+  , clientIds :: [Text]
+  }
+  deriving (Generic, Show)
+  deriving anyclass (ToJSON)
+
+
+-- | Payload sent to the client when a document is opened.
+-- Includes the base snapshot document, the OT version it corresponds to,
+-- and any steps that need to be applied to reach the current version.
+data DocOpenPayload = MkDocOpenPayload
+  { doc          :: GetDoc
+  , snapVersion  :: Int32
+  , pendingSteps :: [Aeson.Value]
+  , pendingClientIds :: [Text]
+  }
+  deriving (Generic, Show)
+  deriving anyclass (ToJSON)
+
+
+data ListenStartPayload = MkListenStartPayload
+  { document         :: Aeson.Object
+  , version          :: Int32
+  , snapVersion      :: Int32
+  , pendingSteps     :: [Aeson.Value]
+  , pendingClientIds :: [Text]
+  }
+  deriving (Generic, Show)
+  deriving anyclass (ToJSON)
+
+
 data OutMsg
-  = OutDocUpdated Aeson.Value
-  | OutDocOpened GetDoc
+  = OutDocUpdated StepsPayload   -- broadcast to listeners
+  | OutDocConfirmed StepsPayload -- sent back to the editor who submitted steps
+  | OutDocConflict ConflictPayload -- version mismatch: client must rebase
+  | OutDocOpened DocOpenPayload
   | OutDocOpenedOther -- when the doc is opened on another device, you should close your document
-  | OutDocListenStart Aeson.Object
+  | OutDocListenStart ListenStartPayload
   | OutDocSaved SavedDoc
   | OutDocNameUpdated
   | OutUnauthorized
@@ -144,8 +199,8 @@ websocketSever user conn = do
             case msg of
               InOpenDoc docId ->
                 prefixLogs "OpenDoc" $ handleOpenDoc user (conn, connId) st docId
-              InUpdated obj ->
-                prefixLogs "Updated" $ handleUpdated st obj
+              InUpdated payload ->
+                prefixLogs "Updated" $ handleUpdated conn connId user st payload
               InListenToDoc docId ->
                 prefixLogs "ListenToDoc" $ handleListenToDoc user connId st conn docId
               InSaveDoc obj ->
@@ -169,19 +224,46 @@ handleUpdated
   :: ( MonadDb env m
      , HasSubs env
      )
-  => IORef SocketState
-  -> Aeson.Value
+  => Connection
+  -> ConnId
+  -> AuthUser
+  -> IORef SocketState
+  -> InUpdatedPayload
   -> m ()
-handleUpdated rst obj = do
+handleUpdated senderConn senderConnId user rst payload = do
   st <- readIORef rst
   void $ runMaybeT $ do
     docId <- hoistMaybe st.openDocument
     rsubs <- asks (.subs)
     subs <- readIORef rsubs
     rdDocSt <- hoistMaybe (Map.lookup docId subs)
-    dsubs <- readIORef rdDocSt.subscriptions
-    for_ dsubs $ \ conn ->
-      lift $ sendOut conn (OutDocUpdated obj)
+    result <- lift $ withTransaction $ do
+      currentVersion <- Doc.getDocVersion docId
+      if currentVersion /= payload.version
+        then do
+          stepsSince <- Doc.getStepsSince docId payload.version
+          pure $ Left stepsSince
+        else do
+          let n = fromIntegral (length payload.steps) :: Int32
+          Doc.insertSteps docId currentVersion user.userId (MkNewType payload.clientId) payload.steps
+          let newVersion = currentVersion + n
+          Doc.updateDocVersion docId newVersion
+          pure $ Right newVersion
+    case result of
+      Left stepsSince -> do
+        let conflictSteps     = map (\ (_, s, _) -> s) stepsSince
+            conflictClientIds = map (\ (_, _, MkNewType c) -> c) stepsSince
+        lift $ sendOut senderConn (OutDocConflict (MkConflictPayload conflictSteps conflictClientIds))
+      Right newVersion -> do
+        let n = length payload.steps
+            stepsPayload = MkStepsPayload newVersion payload.steps (replicate n payload.clientId) docId
+        lift $ sendOut senderConn (OutDocConfirmed stepsPayload)
+        dsubs <- readIORef rdDocSt.subscriptions
+        for_ dsubs $ \ listenerConn ->
+          lift $ sendOut listenerConn (OutDocUpdated stepsPayload)
+        deditors <- readIORef rdDocSt.editors
+        for_ (Map.delete senderConnId deditors) $ \ editorConn ->
+          lift $ sendOut editorConn (OutDocUpdated stepsPayload)
 
 
 handleUpdateName
@@ -217,6 +299,7 @@ handleSave conn userId rst doc = do
     logDebugSH st
     docId <- hoistMaybe st.openDocument
     updatedTime <- lift $ Doc.updateDocument docId userId st.computerId doc.document
+    lift $ Doc.maybeTakeSnapshot docId doc.document
     lift $ sendOut conn (OutDocSaved (MkSavedDoc updatedTime))
 
 
@@ -254,7 +337,39 @@ handleListenToDoc user connId st conn docId = do
         Nothing -> mkDocSt Nothing docId
         Just docSt -> pure docSt
     atomicModifyIORef_ docSt.subscriptions (Map.insert connId conn)
-    sendOut conn (OutDocListenStart doc.document)
+    let currentVersion = doc.version
+    mSnap <- Doc.getLatestSnapshotBefore docId currentVersion
+    listenPayload <- case mSnap of
+      Nothing -> do
+        pure $ MkListenStartPayload
+          { document         = doc.document
+          , version          = currentVersion
+          , snapVersion      = currentVersion
+          , pendingSteps     = []
+          , pendingClientIds = []
+          }
+      Just (sv, sd) -> do
+        stepsSince <- Doc.getStepsSince docId sv
+        -- If too many steps to replay, serve the current doc directly.
+        if length stepsSince > 50
+          then pure $ MkListenStartPayload
+            { document         = doc.document
+            , version          = currentVersion
+            , snapVersion      = currentVersion
+            , pendingSteps     = []
+            , pendingClientIds = []
+            }
+          else do
+            let pendingStepsVals = map (\ (_, s, _) -> s) stepsSince
+                pendingCIds      = map (\ (_, _, MkNewType c) -> c) stepsSince
+            pure $ MkListenStartPayload
+              { document         = sd
+              , version          = currentVersion
+              , snapVersion      = sv
+              , pendingSteps     = pendingStepsVals
+              , pendingClientIds = pendingCIds
+              }
+    sendOut conn (OutDocListenStart listenPayload)
     atomicModifyIORef_ st (\ st' -> st' & #sideDoc ?~ docId)
 
 
@@ -269,8 +384,9 @@ mkDocSt
 mkDocSt openCon docId = do
   subs <- asks (.subs)
   docSubs <- newIORef Map.empty
-  openDoc <- newIORef openCon
-  let docSt = MkDocState openDoc docSubs
+  let initEditors = maybe Map.empty (\ (c, cId) -> Map.singleton cId c) openCon
+  editorsRef <- newIORef initEditors
+  let docSt = MkDocState editorsRef docSubs
   atomicModifyIORef_ subs (Map.insert docId docSt)
   pure docSt
 
@@ -294,12 +410,7 @@ closeDoc connId rst docId = prefixLogs ("closing doc " <> show docId) $ do
       logDebug "Somehow the doc was never open?"
     Just (docSt :: DocState) -> do
       logDebug "updating the state"
-      atomicModifyIORef_
-        docSt.openedBy
-        (\case
-          Just (_, cId) | connId == cId -> Nothing
-          a -> a
-        )
+      atomicModifyIORef_ docSt.editors (Map.delete connId)
   pure ()
 
 
@@ -330,7 +441,34 @@ handleOpenDoc user (conn, connId) rst docId = do
         rsubs <- asks (.subs)
         atomicWriteIORef rst (st { openDocument = Just docId })
         mLastUpdate <- Doc.getLastUpdate docId
-        sendOut conn (OutDocOpened doc { Doc.lastUpdate = mLastUpdate })
+        currentVersion <- Doc.getDocVersion docId
+        mSnap <- Doc.getLatestSnapshotBefore docId currentVersion
+        (snapVer, snapDoc, stepsSince) <- case mSnap of
+          Just (sv, sd) -> do
+            steps <- Doc.getStepsSince docId sv
+            -- If there are too many steps to replay, take a fresh snapshot at
+            -- the current version so the client opens without pending steps.
+            if length steps > 50
+              then do
+                Doc.insertSnapshotIfAbsent docId currentVersion doc.document
+                pure (currentVersion, doc.document, [])
+              else pure (sv, sd, steps)
+          Nothing -> do
+            -- Legacy document: no snapshot yet. Insert one at the current
+            -- version so future opens can use the step-based path. The
+            -- document column is assumed to be current (kept so by the
+            -- historical SaveDoc echo).
+            Doc.insertSnapshotIfAbsent docId currentVersion doc.document
+            pure (currentVersion, doc.document, [])
+        let pendingStepsVals = map (\ (_, s, _) -> s) stepsSince
+            pendingClientIds = map (\ (_, _, MkNewType c) -> c) stepsSince
+            openPayload = MkDocOpenPayload
+              { doc          = doc { Doc.lastUpdate = mLastUpdate, Doc.document = snapDoc }
+              , snapVersion  = snapVer
+              , pendingSteps = pendingStepsVals
+              , pendingClientIds = pendingClientIds
+              }
+        sendOut conn (OutDocOpened openPayload)
         subs <- readIORef rsubs
         let mdocSt = Map.lookup docId subs
         case mdocSt of
@@ -338,15 +476,8 @@ handleOpenDoc user (conn, connId) rst docId = do
             logDebug "No previous state"
             void $ mkDocSt (Just (conn, connId)) docId
           Just (docSt :: DocState) -> do
-            logDebug "Previous state"
-            mOpenedBy <- readIORef docSt.openedBy
-            case mOpenedBy of
-              Nothing -> do
-                logDebug "Doc not previously open"
-              Just (openConn, _) -> do
-                logDebug "Telling someone to close"
-                sendOut openConn OutDocOpenedOther
-            atomicWriteIORef docSt.openedBy (Just (conn, connId))
+            logDebug "Adding editor to existing DocState"
+            atomicModifyIORef_ docSt.editors (Map.insert connId conn)
 
 
 

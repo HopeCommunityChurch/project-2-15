@@ -25,6 +25,8 @@ const computerId = (function () : string {
   return computerId;
 })();
 
+const sessionClientId = computerId + "_" + Util.getRandomStr();
+
 
 ws.addEventListener("open", () => {
   ws.sendStrRaw(computerId);
@@ -36,20 +38,18 @@ const lastRemoveSaveTimeKey = docId +  ".remoteSaveTime"
 const localDoc = docId + ".doc";
 
 
-function checkLastUpdate (doc : T.DocRaw) : any {
-  if(doc.lastUpdate == null) {
-    console.log("using remote doc");
-    return doc.document;
-  }
-  if (doc.lastUpdate.computerId == computerId) {
-    console.log("using local storage");
-    const result = window.localStorage.getItem(localDoc);
-    return JSON.parse(result);
-  } else {
-    // We need to make this nicer in the where if a local update hasn't been
-    // saved we can present a choise for the user.
-    console.error("using remote doc");
-    return doc.document;
+function checkRestoreDoc(doc: T.DocRaw): any | null {
+  const restoreFlag = new URLSearchParams(location.search).get("restore");
+  if (!restoreFlag) return null;
+  const saved = sessionStorage.getItem(docId + ".restore");
+  if (!saved) return null;
+  sessionStorage.removeItem(docId + ".restore");
+  try {
+    const { docJson } = JSON.parse(saved);
+    return docJson;
+  } catch (e) {
+    console.error("failed to parse restore data", e);
+    return null;
   }
 }
 
@@ -58,14 +58,19 @@ let wasInitialized = false;
 function initialize (e : WS.DocOpenedEvent) {
   const saver = mkSaveObject(ws);
 
-  const doc = checkLastUpdate(e.doc)
+  const restoredDoc = checkRestoreDoc(e.doc);
+
+  const initDoc = restoredDoc !== null ? restoredDoc : e.doc.document;
+  const initVersion = restoredDoc !== null ? e.doc.version : e.snapVersion;
 
   const editor = new Editor.P215Editor({
-    initDoc: doc,
+    initDoc: initDoc,
     editable: true,
+    initialVersion: initVersion,
+    sessionClientId: sessionClientId,
     remoteThings: {
-      send: (steps: any) => {
-        ws.send({ tag: "Updated", contents: steps });
+      send: (payload: any) => {
+        ws.send({ tag: "Updated", contents: payload });
       },
     },
   });
@@ -77,10 +82,40 @@ function initialize (e : WS.DocOpenedEvent) {
   let event = new Editor.EditorAttached(editor);
   document.dispatchEvent(event);
 
+  // Apply any OT steps that arrived after the last snapshot but before open.
+  // dispatchSteps tags these as remote so they don't trigger SaveDoc.
+  if (!restoredDoc && e.pendingSteps.length > 0) {
+    editor.dispatchSteps({
+      steps: e.pendingSteps,
+      clientIds: e.pendingClientIds,
+    });
+  }
+
   editor.onUpdate( doc => {
     window.localStorage.setItem(docId + ".doc", JSON.stringify(doc));
     window.localStorage.setItem(localSaveTimeKey, (new Date).toISOString());
     saver.save(doc);
+  });
+
+  if (restoredDoc !== null) {
+    window.localStorage.setItem(localDoc, JSON.stringify(restoredDoc));
+    window.localStorage.setItem(localSaveTimeKey, (new Date).toISOString());
+    ws.send({ tag: "SaveDoc", contents: { document: restoredDoc } } as WS.SendSaveDoc);
+  }
+
+  ws.addEventListener("DocConfirmed", (ev: WS.DocConfirmedEvent) => {
+    editor.confirmSteps(ev.payload);
+  });
+
+  ws.addEventListener("DocConflict", (ev: WS.DocConflictEvent) => {
+    editor.handleConflict(ev.payload);
+  });
+
+  // Receive remote steps from other editors (multi-editor / multi-tab support).
+  ws.addEventListener("DocUpdated", (ev: WS.DocUpdatedEvent) => {
+    if (ev.update.docId === docId) {
+      editor.dispatchSteps(ev.update);
+    }
   });
 
   const studyNameElem = document.getElementById("studyName");
@@ -98,10 +133,7 @@ ws.addEventListener("DocOpened", (e : WS.DocOpenedEvent) => {
   if(!wasInitialized) {
     initialize(e)
   } else {
-
-    if (e.doc.lastUpdate.computerId != computerId) {
-      alert("You disconnected and there was an update since your last change. Updating this document will override those changes. Refreshing will give you the newest changes.");
-    }
+    // WS reconnect: the collab plugin retransmits any inflight steps automatically.
   }
 });
 
@@ -149,18 +181,3 @@ function mkSaveObject (ws : WS.MyWebsocket) {
 };
 
 GS.init(ws);
-
-// window.visualViewport.addEventListener("resize", () => {
-//   const viewPort = document.querySelector("meta[name=viewport]");
-//   let map = {};
-//   viewPort.getAttribute("content").split(",").forEach( (t) => {
-//     const [key, value] = t.split("=");
-//     map[key.trim()] = value;
-//   });
-//   map["height"] = window.visualViewport.height + "";
-//   const newContent = Object.keys(map).map( (key) => {
-//     return key + "=" + map[key];
-//   }).join(", ");
-//   viewPort.setAttribute("content", newContent);
-//   console.log(newContent);
-// });

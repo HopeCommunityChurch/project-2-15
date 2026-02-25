@@ -8,7 +8,12 @@ export type SendOpenDoc = {
 
 export type SendUpdated = {
   tag: "Updated",
-  contents: any,
+  contents: {
+    version: number,
+    steps: any[],
+    clientId: string,
+    selection?: { anchor: number, head: number },
+  },
 };
 
 export type SendListenToDoc = {
@@ -62,7 +67,17 @@ type RecDocOpenedOther = {
 
 type RecDocUpdated = {
   tag: "DocUpdated",
-  contents: any,
+  contents: { version: number, steps: any[], clientIds: string[], docId: string },
+};
+
+type RecDocConfirmed = {
+  tag: "DocConfirmed",
+  contents: { version: number, steps: any[], clientIds: string[] },
+};
+
+type RecDocConflict = {
+  tag: "DocConflict",
+  contents: { steps: any[], clientIds: string[] },
 };
 
 type RecDocSaved = {
@@ -93,6 +108,8 @@ type RecParseError = {
 type RecMsg =
   | RecDocListenStart
   | RecDocUpdated
+  | RecDocConfirmed
+  | RecDocConflict
   | RecDocSaved
   | RecDocOpenedOther
   | RecDocOpened
@@ -109,10 +126,19 @@ export class WsOpenEvent extends Event {
 }
 
 export class DocListenStartEvent extends Event {
-  document : any;
-  constructor(document : any) {
+  document: any;
+  version: number;
+  snapVersion: number;
+  pendingSteps: any[];
+  pendingClientIds: string[];
+  constructor(contents: { document: any, version: number, snapVersion: number,
+                           pendingSteps?: any[], pendingClientIds?: string[] }) {
     super("DocListenStart");
-    this.document = document;
+    this.document = contents.document;
+    this.version = contents.version;
+    this.snapVersion = contents.snapVersion;
+    this.pendingSteps = contents.pendingSteps ?? [];
+    this.pendingClientIds = contents.pendingClientIds ?? [];
   }
 }
 
@@ -126,24 +152,46 @@ export class DocSavedEvent extends Event {
 }
 
 export class DocUpdatedEvent extends Event {
-  update : any
-  constructor(update : any) {
+  update: { version: number, steps: any[], clientIds: string[], docId: string };
+  constructor(update: { version: number, steps: any[], clientIds: string[], docId: string }) {
     super("DocUpdated");
     this.update = update;
   }
 }
 
 export class DocOpenedEvent extends Event {
-  doc : T.DocRaw
-  constructor(doc : T.DocRaw) {
+  doc : T.DocRaw;
+  snapVersion : number;
+  pendingSteps : any[];
+  pendingClientIds : string[];
+  constructor(contents : { doc: T.DocRaw, snapVersion: number, pendingSteps?: any[], pendingClientIds?: string[] }) {
     super("DocOpened");
-    this.doc = doc;
+    this.doc = contents.doc;
+    this.snapVersion = contents.snapVersion;
+    this.pendingSteps = contents.pendingSteps ?? [];
+    this.pendingClientIds = contents.pendingClientIds ?? [];
   }
 }
 
 export class DocNameUpdated extends Event {
   constructor() {
     super("DocNameUpdated");
+  }
+}
+
+export class DocConfirmedEvent extends Event {
+  payload: { version: number, steps: any[], clientIds: string[] };
+  constructor(payload: { version: number, steps: any[], clientIds: string[] }) {
+    super("DocConfirmed");
+    this.payload = payload;
+  }
+}
+
+export class DocConflictEvent extends Event {
+  payload: { steps: any[], clientIds: string[] };
+  constructor(payload: { steps: any[], clientIds: string[] }) {
+    super("DocConflict");
+    this.payload = payload;
   }
 }
 
@@ -175,7 +223,7 @@ export class MyWebsocket extends EventTarget {
     this.ws = null;
     this.host = location.host;
     this.openedDoc = null;
-    this.protocol = window.isLocal == 1 ? "ws://" : "wss://";
+    this.protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
   }
 
   connect () {
@@ -222,6 +270,16 @@ export class MyWebsocket extends EventTarget {
         }
         case "DocUpdated": {
           let event = new DocUpdatedEvent(rec.contents);
+          this.dispatchEvent(event);
+          break;
+        }
+        case "DocConfirmed": {
+          let event = new DocConfirmedEvent(rec.contents);
+          this.dispatchEvent(event);
+          break;
+        }
+        case "DocConflict": {
+          let event = new DocConflictEvent(rec.contents);
           this.dispatchEvent(event);
           break;
         }

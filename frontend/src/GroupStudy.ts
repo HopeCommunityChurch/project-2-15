@@ -1,6 +1,7 @@
 import * as WS from "./WebsocketTypes"
 import * as T from "./Types"
 import * as Editor from "./Editor/Editor"
+import * as Util from "./Util"
 
 export function init(ws : WS.MyWebsocket) {
   const splitscreenButton = document.getElementById("splitscreenButton");
@@ -30,23 +31,27 @@ export function init(ws : WS.MyWebsocket) {
     }
 
     ws.addEventListener("DocListenStart", (ev : WS.DocListenStartEvent) => {
-      const doc = ev.document;
-      console.log(doc);
       if(editor) {
         editor.removeEditor();
       }
       editor = new Editor.P215Editor({
-        initDoc: doc,
+        initDoc: ev.document,
         editable: false,
+        initialVersion: ev.snapVersion,
+        sessionClientId: "listener-" + Util.getRandomStr(),
         remoteThings: null,
       });
       const elem = document.getElementById("sideBySideEditor");
       editor.addEditor(elem);
-
+      if (ev.pendingSteps.length > 0) {
+        editor.dispatchSteps({ steps: ev.pendingSteps, clientIds: ev.pendingClientIds });
+      }
     });
 
     ws.addEventListener("DocUpdated", (ev : WS.DocUpdatedEvent) => {
-      editor.dispatchSteps(ev.update);
+      if (ev.update.docId === currentDocId && editor) {
+        editor.dispatchSteps(ev.update);
+      }
     });
   }
 }

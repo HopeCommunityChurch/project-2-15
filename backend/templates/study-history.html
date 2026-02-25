@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1, interactive-widget=resizes-content" name="viewport">
+  <title>Version History — Project 2:15</title>
+  <link rel="icon" href="{{base}}/static/favicon.ico" type="image/x-icon">
+
+  <link rel="stylesheet" href="{{base}}/static/styles/pages/history.css">
+  <link rel="stylesheet" href="{{base}}/static/styles/header.css">
+  <script src="{{base}}/static/scripts/option.js"></script>
+  <script src="{{base}}/static/scripts/dialog.js"></script>
+  <script>
+    window.base    = "{{base}}";
+    window.docId   = "{{docId}}";
+    window.docName = {{docName}};
+    window.isLocal = {{isLocal}};
+  </script>
+</head>
+<body id="studyPage">
+
+  <header id="header">
+    <a class="logo" href="/home">
+      <img class="logo" src="{{base}}/static/img/p215-circle.svg" alt="Project 2:15">
+    </a>
+    <a id="historyBackButton" href="{{base}}/study/{{docId}}" aria-label="Back to document">
+      <img src="{{base}}/static/img/arrow2.svg" alt="">
+    </a>
+    <p id="historyPageTitle">Version History</p>
+  </header>
+
+  <div id="historyLayout">
+    <div id="historyList">
+      <div id="historyListHeader">
+        <h2>Versions</h2>
+        <p id="historyListHint">Each entry below is a saved snapshot of your document. Click one to preview it.</p>
+      </div>
+      <div id="historyGroups">Loading&hellip;</div>
+    </div>
+    <div id="historyPreview">
+      <div id="historyPreviewPlaceholder">
+        <div id="historyEmptyState">
+          <div id="historyEmptyIcon" aria-hidden="true">🕐</div>
+          <h3>Your document's history lives here</h3>
+          <p>Every time you edit your study, Project&nbsp;2:15 automatically saves a snapshot. You can browse those snapshots and restore any earlier version at any time.</p>
+          <p class="historyEmptyHint">← Select a version on the left to get started.</p>
+        </div>
+      </div>
+      <div id="previewToolbar" style="display:none">
+        <button id="backToVersions" aria-label="Back to version list">← Versions</button>
+        <div id="previewToolbarDate" class="versionPill"></div>
+        <button id="restoreButton" class="blue">Restore this version</button>
+      </div>
+      <div id="editorHolder" class="editorHolder" style="display:none"></div>
+    </div>
+  </div>
+
+{% if isLocal == true %}
+  <script src="http://{{host}}:1234/history.js"></script>
+{% else %}
+  <script src="{{base}}/static/editor/history.js"></script>
+{% endif %}
+</body>
+</html>

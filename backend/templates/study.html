@@ -179,6 +179,11 @@
         </a>
       </li>
       <li>
+        <a href="{{base}}/study/{{doc.docId}}/history">
+          Version History
+        </a>
+      </li>
+      <li>
         <a onclick="toggleModal('#confirmDelete')">
           Delete Study
         </a>
@@ -387,6 +392,9 @@
   </script>
   <script src="http://{{host}}:1234/index.js"></script>
 {% else %}
+  <!-- Parcel builds index.tsx and history.tsx as independent self-contained bundles
+       (no shared chunks), so a plain <script src> load is safe. Verified with
+       `npm run build` — only index.js and history.js are emitted. -->
   <script src="{{base}}/static/editor/index.js"></script>
 {% endif %}
 </body>

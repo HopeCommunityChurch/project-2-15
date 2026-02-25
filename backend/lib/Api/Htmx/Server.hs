@@ -11,6 +11,7 @@ import Api.Htmx.NotFound qualified as NotFound
 import Api.Htmx.PasswordReset qualified as PasswordReset
 import Api.Htmx.Profile qualified as Profile
 import Api.Htmx.Signup qualified as Signup
+import Api.Htmx.DocumentHistory qualified as DocumentHistory
 import Api.Htmx.Studies qualified as Studies
 import Api.Htmx.Study qualified as Study
 import Data.List qualified as L
@@ -154,6 +155,9 @@ scottyServer = do
     Scotty.post "/study" $ do
       user <- getUserWithRedirect
       Study.createStudy user
+    Scotty.get "/study/:documentId/history" $ do
+      user <- getUserWithRedirect
+      DocumentHistory.getHistoryPage user
     Scotty.get "/study/:documentId" $ do
       user <- getUserWithRedirect
       Study.getStudy user
@@ -216,6 +220,16 @@ scottyServer = do
       case mUser of
         Nothing -> Home.getHome
         Just user -> Studies.getStudies user
+
+    Scotty.get "/document/:documentId/history" $ do
+      user <- getUserWithRedirect
+      DocumentHistory.getHistoryApi user
+    Scotty.get "/document/:documentId/history/sub/:startVersion/:endVersion" $ do
+      user <- getUserWithRedirect
+      DocumentHistory.getSubHistoryApi user
+    Scotty.get "/document/:documentId/at-version/:versionNum" $ do
+      user <- getUserWithRedirect
+      DocumentHistory.getVersionApi user
 
     Scotty.get "/api/bible/esv" $ do
       user <- getUserWithRedirect

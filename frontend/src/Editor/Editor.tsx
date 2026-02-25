@@ -29,6 +29,7 @@ import {
 } from "prosemirror-commands";
 
 import { undo, redo, history } from "prosemirror-history";
+import { collab, sendableSteps, receiveTransaction } from "prosemirror-collab";
 import { keymap } from "prosemirror-keymap";
 import { Slice, Node, Mark, Fragment } from "prosemirror-model";
 import { StepMap, Step, Transform } from "prosemirror-transform";
@@ -185,29 +186,38 @@ class QuestionsView implements NodeView {
     header.appendChild(headerDiv);
     this.dom.appendChild(header);
 
-    this.contentDOM = document.createElement("td");
+    // Wrap the content cell so noQuestionsText can live outside contentDOM.
+    // If noQuestionsText were inside contentDOM, ProseMirror's DOM reconciler
+    // would parse it as document content and generate spurious question nodes.
+    const contentCell = document.createElement("td");
 
-    if (node.content.size === 0) {
-      const noQuestionsText = document.createElement("div");
-      noQuestionsText.className = "noQuestionsText";
-      noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+    const noQuestionsText = document.createElement("div");
+    noQuestionsText.className = "noQuestionsText";
+    noQuestionsText.setAttribute("contenteditable", "false");
+    noQuestionsText.innerHTML = `<em>Insert a question by selecting some text and clicking the "Add Question" button</em> <img src="${window.base}/static/img/question-icon.svg" alt="Add Question Icon"> <em>in the toolbar above</em>`;
+    noQuestionsText.style.display = node.content.size === 0 ? "" : "none";
 
-      noQuestionsText.onclick = () => {
-        // Logic to move the cursor to the previous position
-        const transaction = view.state.tr.setSelection(
-          TextSelection.near(view.state.doc.resolve(getPos() - 3))
-        );
-        view.dispatch(transaction);
-        view.focus();
-      };
+    noQuestionsText.onclick = () => {
+      // Logic to move the cursor to the previous position
+      const transaction = view.state.tr.setSelection(
+        TextSelection.near(view.state.doc.resolve(getPos() - 3))
+      );
+      view.dispatch(transaction);
+      view.focus();
+    };
 
-      this.contentDOM.appendChild(noQuestionsText);
-    }
+    contentCell.appendChild(noQuestionsText);
 
-    this.dom.appendChild(this.contentDOM);
+    this.contentDOM = document.createElement("div");
+    contentCell.appendChild(this.contentDOM);
+    this.dom.appendChild(contentCell);
   }
   update(node: Node) {
     this.node = node;
+    const placeholder = this.dom.querySelector(".noQuestionsText") as HTMLElement | null;
+    if (placeholder) {
+      placeholder.style.display = node.content.size === 0 ? "" : "none";
+    }
     return true;
   }
 }
@@ -634,7 +644,7 @@ const questionPopup = (
         schema: textSchema,
         doc: qNode.node,
         plugins: [
-          history(),
+          history({ newGroupDelay: 250 }),
           keymap({
             "Mod-z": undo,
             "Mod-y": redo,
@@ -1106,6 +1116,7 @@ const preventUpdatingMultipleComplexNodesSelectionPlugin = new Plugin({
 const mkPlaceholderElement = (pos) => (view: EditorView) => {
   const placeholderElement = document.createElement("div");
   placeholderElement.className = "bibleTextPlaceholder";
+  placeholderElement.setAttribute("contenteditable", "false");
   placeholderElement.innerHTML = `
     <em>
       Place your cursor in this section and click the "Add Scripture" button
@@ -1146,7 +1157,11 @@ function createPlaceholderDecorations(doc) {
         if (!hasBibleText) {
           const placeholderDecoration = Decoration.widget(
             pos + contentBetweenQuotes.length + 3,
-            mkPlaceholderElement(pos + headerLength + 2)
+            mkPlaceholderElement(pos + headerLength + 2),
+            {
+              stopEvent: (e: Event) => e.type === "mousedown" || e.type === "click",
+              ignoreSelection: true,
+            }
           );
           decorations.push(placeholderDecoration);
         }
@@ -1203,6 +1218,7 @@ type TransactionDiff = {
 };
 
 function cleanupExtraStudyBlocks (initDoc : any) : any {
+  if (!initDoc.content) return initDoc;
   const newArray = initDoc.content.map( (section) => {
     return {
       type: "section",
@@ -1228,6 +1244,7 @@ export class P215Editor extends EventTarget {
   updateHanlders: Array<(change: any) => void>;
   updateStateHanlders: Array<(change: EditorState) => void>;
   remoteThings: RemoteThingy;
+  inflight: boolean;
 
   currentEditor : EditorView;
 
@@ -1235,10 +1252,13 @@ export class P215Editor extends EventTarget {
     initDoc,
     editable,
     remoteThings,
+    initialVersion = 0,
+    sessionClientId = null,
   }) {
     super();
     this.editable = editable;
     this.remoteThings = remoteThings;
+    this.inflight = false;
     let node = Node.fromJSON(textSchema, cleanupExtraStudyBlocks(initDoc));
     this.updateHanlders = [];
     this.updateStateHanlders = [];
@@ -1256,7 +1276,8 @@ export class P215Editor extends EventTarget {
       schema: textSchema,
       doc: node,
       plugins: [
-        history(),
+        history({ newGroupDelay: 250 }),
+        ...(sessionClientId !== null ? [collab({ version: initialVersion, clientID: sessionClientId })] : []),
         keymap({
           "Mod-z": undo,
           "Mod-y": redo,
@@ -1346,8 +1367,7 @@ export class P215Editor extends EventTarget {
         let newState = that.view.state.apply(transaction);
         that.view.updateState(newState);
 
-        let steps = null;
-        if (transaction.docChanged) {
+        if (transaction.docChanged && !transaction.getMeta("isRemote")) {
           this.updateHanlders.forEach((handler) => {
             try {
               handler(newState.doc);
@@ -1355,9 +1375,7 @@ export class P215Editor extends EventTarget {
               console.error(e);
             }
           });
-          steps = transaction.steps.map((st) => st.toJSON());
         }
-
 
         this.updateStateHanlders.forEach((handler) => {
           try {
@@ -1369,28 +1387,43 @@ export class P215Editor extends EventTarget {
 
         const head = newState.selection.head;
         const anchor = newState.selection.anchor;
-        if (this.remoteThings !== null && this.remoteThings.send) {
-          this.remoteThings.send({
-            steps: steps,
-            selection: {
-              anchor: anchor,
-              head: head,
-            },
-          });
+        if (this.remoteThings !== null && this.remoteThings.send && !this.inflight) {
+          const sendable = sendableSteps(newState);
+          if (sendable) {
+            this.inflight = true;
+            this.remoteThings.send({
+              version: sendable.version,
+              steps: sendable.steps.map((s) => s.toJSON()),
+              clientId: sendable.clientID as string,
+              selection: { anchor, head },
+            });
+          }
         }
       },
     });
     this.currentEditor = this.view;
   }
 
-  dispatchSteps(changeDiff: TransactionDiff) {
-    if (changeDiff.steps != null) {
-      const steps = changeDiff.steps.map((st) => Step.fromJSON(textSchema, st));
-      const tr = this.view.state.tr;
-      steps.forEach((st) => tr.step(st));
+  dispatchSteps(changeDiff: { steps: any[], clientIds: string[], selection?: SectionDiff }) {
+    if (changeDiff.steps?.length) {
+      const steps = changeDiff.steps.map((s) => Step.fromJSON(textSchema, s));
+      const tr = receiveTransaction(this.view.state, steps, changeDiff.clientIds);
+      tr.setMeta("isRemote", true);
       this.view.dispatch(tr);
     }
-    setSelection(changeDiff.selection, this.view.state, this.view.dispatch);
+    if (changeDiff.selection) {
+      setSelection(changeDiff.selection, this.view.state, this.view.dispatch);
+    }
+  }
+
+  confirmSteps(payload: { version: number, steps: any[], clientIds: string[] }) {
+    this.inflight = false;
+    this.dispatchSteps(payload);
+  }
+
+  handleConflict(payload: { steps: any[], clientIds: string[] }) {
+    this.inflight = false;
+    this.dispatchSteps(payload);
   }
 
   applyDispatch(func : (state: EditorState, dispatch : DispatchFunc) => void) {

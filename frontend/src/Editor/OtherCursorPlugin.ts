@@ -45,7 +45,11 @@ export const otherCursorPlugin = new Plugin<Selection>({
         Decoration.inline(p1, p2, {
           class: "otherSelection"
         }),
-        Decoration.widget(head, makeWidget),
+        Decoration.widget(head, makeWidget, {
+          stopEvent: () => true,
+          ignoreSelection: true,
+          side: 1,
+        }),
       ];
       return DecorationSet.create(st.doc, decorations);
     },
