@@ -293,6 +293,7 @@ jobs:
                 return [
                   `<details>`,
                   `<summary>${fileIcon} ${filePassed}/${fileTotal}: ${file} (${fileDur})</summary>`,
+                  ``,
                   `| | Test | Duration |`,
                   `|---|---|---|`,
                   ...rows,
