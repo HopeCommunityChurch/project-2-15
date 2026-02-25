@@ -287,11 +287,9 @@ jobs:
                 return [
                   `<details>`,
                   `<summary>${fileIcon} ${filePassed}/${fileTotal}: ${file} (${fileDur})</summary>`,
-                  ``,
                   `| | Test | Duration |`,
                   `|---|---|---|`,
                   ...rows,
-                  ``,
                   `</details>`,
                 ].join('\n');
               });
@@ -299,8 +297,9 @@ jobs:
               body = [
                 `<details${ok ? '' : ' open'}>`,
                 `<summary>${summary}</summary>`,
-                ``,
-                ...innerBlocks,
+                `<blockquote>`,
+                innerBlocks.join('\n'),
+                `</blockquote>`,
                 `</details>`,
               ].join('\n');
             }
