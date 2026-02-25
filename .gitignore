@@ -4,7 +4,7 @@ result
 .devenv
 .devenv
 pg-init-*
-CLAUDE.md
+!CLAUDE.md
 .claude
 .parcel-cache
 e2e-secrets.json
