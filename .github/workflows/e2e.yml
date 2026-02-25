@@ -225,7 +225,8 @@ jobs:
               const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
               const { stats } = results;
 
-              const icon = stats.ok ? '✅' : '❌';
+              const ok = stats.unexpected === 0;
+              const icon = ok ? '✅' : '❌';
               const parts = [`${stats.expected} passed`];
               if (stats.unexpected > 0) parts.push(`${stats.unexpected} failed`);
               if (stats.flaky     > 0) parts.push(`${stats.flaky} flaky`);
@@ -249,7 +250,7 @@ jobs:
               for (const suite of results.suites || []) collect(suite, '');
 
               body = [
-                `<details${stats.ok ? '' : ' open'}>`,
+                `<details${ok ? '' : ' open'}>`,
                 `<summary><strong>E2E Tests ${icon} — ${parts.join(', ')}</strong></summary>`,
                 '',
                 '| | Test | Duration |',
