@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "outDir": ".tsc-out"
+  },
+  "include": [
+    "1_atoms/**/*.ts",
+    "2_molecules/**/*.ts",
+    "3_organisms/**/*.ts",
+    "fixtures/**/*.ts",
+    "types/**/*.ts",
+    "playwright.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".tsc-out"
+  ]
+}
