@@ -1,25 +1,3 @@
-/**
- * Atom fixtures — attaches atom instances to Playwright tests by page slug.
- *
- * Atom classes live in 1_atoms/ — one file per page. Each fixture is named
- * after the page slug it primarily operates on.
- *
- * Usage in tests (import from this file, not @playwright/test):
- *
- *   import { test, expect } from '../../fixtures/appPage';
- *
- *   test('example', async ({ auth, nav }) => {
- *     await auth.fillEmail('user@example.com');
- *     await nav.assertLoggedIn();
- *   });
- *
- * Adding atoms:
- *   1. Create or extend a class in 1_atoms/ (e.g. 1_atoms/studiesPage.ts).
- *   2. Import it here and add a fixture entry below.
- *   3. Document each method with the selector it targets so future authors
- *      know what to update when the UI changes.
- */
-
 import { test as base, expect, type Page, type BrowserContext } from '@playwright/test';
 import { login } from '../2_molecules/login';
 import { LoginPageAtoms } from '../1_atoms/loginPage';

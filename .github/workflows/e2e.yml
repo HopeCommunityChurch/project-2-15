@@ -114,6 +114,7 @@ jobs:
           nix develop --command cabal run -O0 &
           # Wait up to 60s for backend to be ready
           for i in $(seq 1 30); do
+            # This needs to be 3001 for GitHub actions to route it through the Nginx reverse proxy; Scotty itself listens on 3000.
             curl -sf http://localhost:3001/login && break || sleep 2
           done
 
@@ -277,7 +278,6 @@ jobs:
 
               const sha = context.sha.slice(0, 7);
               const shaUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
-              const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
               const summary = `${icon} ${passed}/${total} tests · commit <a href="${shaUrl}">${sha}</a> · <a href="${runUrl}">#${context.runNumber}</a> · ${dur}`;
 
               const innerBlocks = fileGroups.map(({ file, rows, filePassed, fileFailed, fileDurMs }) => {
