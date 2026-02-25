@@ -110,7 +110,7 @@ jobs:
           nix develop --command cabal run -O0 &
           # Wait up to 60s for backend to be ready
           for i in $(seq 1 30); do
-            curl -sf http://localhost:3000/login && break || sleep 2
+            curl -sf http://localhost:3001/login && break || sleep 2
           done
 
       # ── Frontend: build bundle and place where Scotty can serve it ──────────
