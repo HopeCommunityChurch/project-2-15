@@ -18,6 +18,10 @@ export async function removeMember(
   const editor = new StudyPageAtoms(page);
   const groupStudy = new GroupStudyPageAtoms(page);
 
+  // Close the modal properly (showModal creates a backdrop that only dialog.close() removes).
+  await page.locator('#groupStudy').evaluate((el) => {
+    if (typeof (el as any).close === 'function' && (el as any).open) (el as any).close();
+  }).catch(() => { /* dialog not in DOM yet — safe to proceed */ });
   await editor.clickGroupStudy();
   // Wait for the manage view to load inside the modal (HTMX async swap).
   await page.locator('#groupStudy input[name="groupName"]').waitFor({

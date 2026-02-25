@@ -7,8 +7,7 @@ Always read the files in `1_atoms/`, `2_molecules/`, and `3_organisms/` before c
 Key support files:
 - `fixtures/appPage.ts` — extends Playwright `test` with atom fixtures; import `test`/`expect` from here, not `@playwright/test`
 - `fixtures/userFactory.ts` — `createTestUser()` and the `freshUser`/`secondaryUser` fixtures; use these by default
-- `fixtures/credentials.ts` — legacy static accounts (`TEST_ACCOUNTS`); only use for auth-flow tests that need a known stable account
-- `fixtures/globalSetup.ts` — runs once: seeds DB from `fixtures/seed.sql`, saves auth state to `fixtures/.auth/*.json`
+- `fixtures/globalSetup.ts` — runs once: seeds the E2E church from `fixtures/seed.sql`
 - `types/atoms.ts` — interfaces for every atom class; update this when adding atom methods
 - `types/molecules.ts` — return types for every molecule; update this when adding molecules
 
@@ -24,9 +23,9 @@ Tests follow three layers, each building strictly on the one below. **Nothing im
 - Never use `.isVisible()` as a boolean check.
 
 ### `2_molecules/` — Mechanical sequences
-- A fixed sequence of atom calls that completes one self-contained interaction. No branching, loops, or recovery.
+- A fixed sequence of atom and molecule calls that completes one self-contained interaction. No branching, loops, or recovery.
 - Takes `(page: Page, ...inputs)` and returns a plain result object (e.g. `{ studyId, url }`). Never return `{}` — if the molecule knows what it created (index, ID, URL), return it.
-- Import atoms from `../1_atoms/X` only. Never include assertions.
+- Import atoms from `../1_atoms/X` and `../2_molecules/X` only. Never include assertions.
 
 ### `3_organisms/` — Complete test scenarios
 - Each file covers **one feature surface** — named after the feature (`studies.spec.ts`, `editor-basic.spec.ts`), never by action (`create.spec.ts`).
@@ -46,7 +45,7 @@ Tests follow three layers, each building strictly on the one below. **Nothing im
 
 ### New molecule
 - Create `2_molecules/<action>.ts` exporting one async function.
-- Import atoms from `../1_atoms/X` only.
+- Import atoms from `../1_atoms/X` and `../2_molecules/X` only.
 - End with an observable state wait (`waitForURL`, `waitFor`, etc.).
 - Add a return type to `types/molecules.ts`.
 
@@ -60,11 +59,7 @@ Tests follow three layers, each building strictly on the one below. **Nothing im
 
 ## Credentials and Auth State
 
-Most tests use `freshUser` — it creates a unique DB user per test and logs them in. This is the default.
-
-For multi-user tests, use `secondaryUser` alongside `freshUser`. Static accounts (`credentials.ts`) are legacy — only reach for them when testing auth flows that need a known stable account or a pre-authenticated `storageState`.
-
-If you add, rename, or change a static account password, update **both** `credentials.ts` and `seed.sql`.
+All tests use `freshUser` — it creates a unique DB user per test via `userFactory.ts` and logs them in. For multi-user tests, use `secondaryUser` alongside `freshUser`. There are no static test accounts.
 
 ---
 

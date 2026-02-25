@@ -13,12 +13,12 @@ export async function addSection(page: Page): Promise<AddSectionResult> {
   const editor = new StudyPageAtoms(page);
 
   // Capture the count before clicking so we can wait for the (count)-th item to appear.
-  const before = await page.locator('#leftSidebar .section-item').count();
+  const before = await page.locator('#leftSidebar .section').count();
 
   await editor.clickAddSection();
 
   // Wait for the newly added section item (index = before) to be visible.
-  await page.locator('#leftSidebar .section-item').nth(before).waitFor({
+  await page.locator('#leftSidebar .section').nth(before).waitFor({
     state: 'visible',
     timeout: 10_000,
   });

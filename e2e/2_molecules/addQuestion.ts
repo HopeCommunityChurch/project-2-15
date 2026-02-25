@@ -12,13 +12,14 @@ import type { AddQuestionResult } from '../types/molecules';
 export async function addQuestion(page: Page): Promise<AddQuestionResult> {
   const editor = new StudyPageAtoms(page);
 
-  // Capture the count before clicking so we can wait for the (count)-th item to appear.
-  const before = await page.locator('.ProseMirror .question').count();
+  // Capture the count of existing question nodes before clicking.
+  // Individual questions are <questionouter> elements inside the .questions row.
+  const before = await page.locator('.ProseMirror questionouter').count();
 
   await editor.clickAddQuestion();
 
   // Wait for the newly added question node (index = before) to be visible.
-  await page.locator('.ProseMirror .question').nth(before).waitFor({
+  await page.locator('.ProseMirror questionouter').nth(before).waitFor({
     state: 'visible',
     timeout: 10_000,
   });

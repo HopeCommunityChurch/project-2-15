@@ -9,14 +9,14 @@ export class StudiesPageAtoms implements IStudiesPageAtoms {
     await this.page.getByRole('button', { name: /add study|new study/i }).click();
   }
 
-  /** Asserts a study card with the given title is visible. */
+  /** Asserts a study card with the given title is visible in the studies list. */
   async assertStudyVisible(title: string) {
-    await expect(this.page.getByText(title)).toBeVisible();
+    await expect(this.page.locator('#studiesContent a', { hasText: title })).toBeVisible();
   }
 
-  /** Asserts a study card with the given title is NOT visible. */
+  /** Asserts a study card with the given title is NOT visible in the studies list. */
   async assertStudyNotVisible(title: string) {
-    await expect(this.page.getByText(title)).not.toBeVisible();
+    await expect(this.page.locator('#studiesContent a', { hasText: title })).not.toBeVisible();
   }
 
   /** Fills the title textbox in the new-study dialog. */

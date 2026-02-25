@@ -50,9 +50,10 @@ test.describe('group study', () => {
     await goToProfile(page);
     await setFeatureFlag(page, 'GroupStudy', true);
     await goToStudies(page);
-    await createStudy(page, title);
+    const { studyId } = await createStudy(page, title);
     await createGroupStudyWithInvite(page, groupName, secondaryUser.user.email, 'member');
-    const { token } = await getInviteTokenByEmail(page, secondaryUser.user.email);
+    // Fetch the token from the owner's manage modal (#share-<token> rows contain the email).
+    const { token } = await getInviteTokenByEmail(page, studyId, secondaryUser.user.email);
     const { studyId: user2StudyId } = await createStudy(secondaryUser.page, title2);
     await acceptGroupStudyInvite(secondaryUser.page, token, user2StudyId);
     const groupInvite2 = new GroupStudyInvitePageAtoms(secondaryUser.page);
@@ -66,9 +67,10 @@ test.describe('group study', () => {
     await goToProfile(page);
     await setFeatureFlag(page, 'GroupStudy', true);
     await goToStudies(page);
-    await createStudy(page, title);
+    const { studyId } = await createStudy(page, title);
     await createGroupStudyWithInvite(page, groupName, secondaryUser.user.email, 'member');
-    const { token } = await getInviteTokenByEmail(page, secondaryUser.user.email);
+    // Fetch the token from the owner's manage modal (#share-<token> rows contain the email).
+    const { token } = await getInviteTokenByEmail(page, studyId, secondaryUser.user.email);
     await rejectGroupStudyInvite(secondaryUser.page, token);
     const groupInvite2 = new GroupStudyInvitePageAtoms(secondaryUser.page);
     await groupInvite2.assertInviteRowGone(token);
@@ -83,7 +85,8 @@ test.describe('group study', () => {
     await goToStudies(page);
     const { studyId } = await createStudy(page, title);
     await createGroupStudyWithInvite(page, groupName, secondaryUser.user.email, 'member');
-    const { token } = await getInviteTokenByEmail(page, secondaryUser.user.email);
+    // Fetch the token from the owner's manage modal (#share-<token> rows contain the email).
+    const { token } = await getInviteTokenByEmail(page, studyId, secondaryUser.user.email);
     await openStudy(page, studyId);
     await removePendingInvite(page, token);
     await groupStudy.assertInviteNotVisible(secondaryUser.user.email);

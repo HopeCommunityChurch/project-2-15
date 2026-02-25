@@ -86,19 +86,19 @@ export class StudyPageAtoms implements IStudyPageAtoms {
     await this.page.locator('#editorToolbar button[title="Clear Formatting"]').click();
   }
 
-  /** Asserts that selected text is bold (strong element wraps the text). */
-  async assertBoldActive() {
-    await expect(this.editor().locator('strong')).toBeVisible();
+  /** Asserts the given text is bold (wrapped in a strong element) in the editor. */
+  async assertBoldActive(text: string) {
+    await expect(this.editor().locator('strong', { hasText: text })).toBeVisible();
   }
 
-  /** Asserts that selected text is italic (em element wraps the text). */
-  async assertItalicActive() {
-    await expect(this.editor().locator('em')).toBeVisible();
+  /** Asserts the given text is italic (wrapped in an em element) in the editor. */
+  async assertItalicActive(text: string) {
+    await expect(this.editor().locator('em', { hasText: text })).toBeVisible();
   }
 
-  /** Asserts that selected text is underlined (u element wraps the text). */
-  async assertUnderlineActive() {
-    await expect(this.editor().locator('u')).toBeVisible();
+  /** Asserts the given text is underlined (wrapped in a u element) in the editor. */
+  async assertUnderlineActive(text: string) {
+    await expect(this.editor().locator('u', { hasText: text })).toBeVisible();
   }
 
   // ── Toolbar: Bible search (Insert Scripture) ───────────────────────────────
@@ -186,5 +186,25 @@ export class StudyPageAtoms implements IStudyPageAtoms {
   /** Clicks the Group Study button in the header menu (only present when the feature is enabled). */
   async clickGroupStudy() {
     await this.page.locator('#groupStudyButton').click();
+  }
+
+  // ── Structure content assertions ──────────────────────────────────────────
+
+  /** Asserts the sidebar contains at least the given number of section items. */
+  async assertSidebarSectionCountAtLeast(min: number) {
+    const count = await this.page.locator('#leftSidebar .section').count();
+    if (count < min) throw new Error(`Expected at least ${min} sidebar section items, found ${count}`);
+  }
+
+  /** Asserts the editor contains at least the given number of study block rows. */
+  async assertStudyBlockCountAtLeast(min: number) {
+    const count = await this.page.locator('.ProseMirror .studyBlocks tr[data-id]').count();
+    if (count < min) throw new Error(`Expected at least ${min} study block rows, found ${count}`);
+  }
+
+  /** Asserts the editor contains at least the given number of question nodes. */
+  async assertQuestionCountAtLeast(min: number) {
+    const count = await this.page.locator('.ProseMirror questionouter').count();
+    if (count < min) throw new Error(`Expected at least ${min} question nodes, found ${count}`);
   }
 }

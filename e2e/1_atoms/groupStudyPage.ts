@@ -47,14 +47,19 @@ export class GroupStudyPageAtoms implements IGroupStudyPageAtoms {
 
   /**
    * Selects the invite permission in the "Create Group Study" form.
-   * Selector: `#groupStudy #createPeoples p-select[name="permission[]"]`.
+   * Uses JS evaluate because p-select is a custom element with a closed shadow root.
    * @param permission "member" | "owner"
    */
   async selectCreateInvitePermission(permission: 'member' | 'owner') {
+    // p-select is a custom element with a closed shadow root — use element.evaluate.
     await this.dialog()
       .locator('#createPeoples p-select[name="permission[]"]')
       .first()
-      .selectOption(permission);
+      .evaluate((el, perm) => {
+        const opt = Array.from(el.querySelectorAll('option')).find((o: any) => o.value === perm);
+        if (!opt) throw new Error(`option "${perm}" not found`);
+        (el as any).selected(opt, true);
+      }, permission);
   }
 
   /**
@@ -100,20 +105,28 @@ export class GroupStudyPageAtoms implements IGroupStudyPageAtoms {
    * Selector: `#groupStudy form.groupStudy-invite-row input[name="email[]"]`.
    */
   async fillInviteEmail(email: string) {
-    await this.dialog()
-      .locator('form.groupStudy-invite-row input[name="email[]"]')
-      .fill(email);
+    const input = this.page
+      .locator('#groupStudy form.groupStudy-invite-row')
+      .getByPlaceholder('Email address');
+    await input.waitFor({ state: 'visible', timeout: 10_000 });
+    await input.click();
+    await input.fill(email);
   }
 
   /**
    * Selects the invite permission in the manage view invite form.
-   * Selector: `#groupStudy form.groupStudy-invite-row p-select[name="permission[]"]`.
+   * Uses JS evaluate because p-select is a custom element with a closed shadow root.
    * @param permission "member" | "owner"
    */
   async selectInvitePermission(permission: 'member' | 'owner') {
+    // p-select is a custom element with a closed shadow root — use element.evaluate.
     await this.dialog()
       .locator('form.groupStudy-invite-row p-select[name="permission[]"]')
-      .selectOption(permission);
+      .evaluate((el, perm) => {
+        const opt = Array.from(el.querySelectorAll('option')).find((o: any) => o.value === perm);
+        if (!opt) throw new Error(`option "${perm}" not found`);
+        (el as any).selected(opt, true);
+      }, permission);
   }
 
   /**
@@ -190,14 +203,19 @@ export class GroupStudyPageAtoms implements IGroupStudyPageAtoms {
 
   /**
    * Changes the ownership role for a member identified by their document ID.
-   * Selector: `#member-doc-<docId> p-select[name="ownership"]`.
+   * Uses JS evaluate because p-select is a custom element with a closed shadow root.
    * @param docId the UUID of the member's document
    * @param role "member" | "owner"
    */
   async selectMemberOwnership(docId: string, role: 'member' | 'owner') {
+    // p-select is a custom element with a closed shadow root — use element.evaluate.
     await this.dialog()
       .locator(`#member-doc-${docId} p-select[name="ownership"]`)
-      .selectOption(role);
+      .evaluate((el, r) => {
+        const opt = Array.from(el.querySelectorAll('option')).find((o: any) => o.value === r);
+        if (!opt) throw new Error(`option "${r}" not found`);
+        (el as any).selected(opt, true);
+      }, role);
   }
 
   /**
@@ -232,11 +250,13 @@ export class GroupStudyPageAtoms implements IGroupStudyPageAtoms {
 
   /**
    * Asserts the ownership select for the given document shows the expected role.
-   * Selector: `#member-doc-<docId> p-select[name="ownership"]`.
+   * Reads the value via JS evaluate because p-select is a custom element.
    */
   async assertMemberOwnership(docId: string, role: 'member' | 'owner') {
-    await expect(
-      this.dialog().locator(`#member-doc-${docId} p-select[name="ownership"]`),
-    ).toHaveValue(role);
+    // Read the custom element's value via element.evaluate.
+    const value = await this.dialog()
+      .locator(`#member-doc-${docId} p-select[name="ownership"]`)
+      .evaluate((el) => (el as any).value);
+    if (value !== role) throw new Error(`Expected p-select value "${role}", got "${value}"`);
   }
 }

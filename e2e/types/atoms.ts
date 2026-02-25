@@ -66,9 +66,9 @@ export interface IStudyPageAtoms {
   clickOutdent(): Promise<void>;
   clickIndent(): Promise<void>;
   clickClearFormatting(): Promise<void>;
-  assertBoldActive(): Promise<void>;
-  assertItalicActive(): Promise<void>;
-  assertUnderlineActive(): Promise<void>;
+  assertBoldActive(text: string): Promise<void>;
+  assertItalicActive(text: string): Promise<void>;
+  assertUnderlineActive(text: string): Promise<void>;
   // toolbar: Bible search
   clickInsertScripture(): Promise<void>;
   fillScriptureRef(ref: string): Promise<void>;
@@ -90,6 +90,10 @@ export interface IStudyPageAtoms {
   assertConfirmDeleteVisible(): Promise<void>;
   // group study button
   clickGroupStudy(): Promise<void>;
+  // structure content assertions
+  assertSidebarSectionCountAtLeast(min: number): Promise<void>;
+  assertStudyBlockCountAtLeast(min: number): Promise<void>;
+  assertQuestionCountAtLeast(min: number): Promise<void>;
 }
 
 // ── Home / landing page (1_atoms/homePage.ts) ─────────────────────────────────

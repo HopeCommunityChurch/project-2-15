@@ -33,11 +33,14 @@ export class GroupStudyInvitePageAtoms implements IGroupStudyInvitePageAtoms {
     ).toContainText(templateName);
   }
 
-  /** Selects a document option in the `p-select` dropdown inside `#share-{token}`. */
+  /** Selects a document option in the `p-select` dropdown inside `#share-{token}`. Uses JS evaluate because p-select is a custom web component with a closed shadow root. */
   async selectInviteDocument(token: string, value: string) {
-    await this.page
-      .locator(`#share-${token} p-select`)
-      .selectOption(value);
+    // p-select is a custom element with a closed shadow root — use element.evaluate.
+    await this.page.locator(`#share-${token} p-select`).evaluate((el, val) => {
+      const opt = Array.from(el.querySelectorAll('option')).find((o: any) => o.value === val);
+      if (!opt) throw new Error(`option "${val}" not found in p-select`);
+      (el as any).selected(opt, true);
+    }, value);
   }
 
   /** Clicks the Accept button (`button[type="submit"]`) inside `#share-{token}`. */

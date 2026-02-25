@@ -137,7 +137,7 @@ deleteStudy user = do
   unless (user.userId `elem` fmap (.userId) doc.editors) $ do
     NotAuth.getNotAuth
   lift $ Doc.deleteDocument docId
-  let url = baseUrl <> "/"
+  let url = baseUrl <> "/studies"
   setHeader "HX-Redirect" (toLazy url)
   status status200
 

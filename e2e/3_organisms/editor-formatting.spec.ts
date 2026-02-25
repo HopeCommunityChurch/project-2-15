@@ -11,6 +11,6 @@ test.describe('editor formatting', () => {
     await login(page, freshUser.email, freshUser.password);
     await createStudy(page, title);
     await applyBoldToText(page, text);
-    await editor.assertBoldActive();
+    await editor.assertBoldActive(text);
   });
 });

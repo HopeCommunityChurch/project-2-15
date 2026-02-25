@@ -7,24 +7,27 @@ import { addQuestion } from '../2_molecules/addQuestion';
 import { randomUUID } from 'crypto';
 
 test.describe('editor structure', () => {
-  test('add section inserts a sidebar entry', async ({ page, freshUser }) => {
+  test('add section inserts a sidebar entry', async ({ page, editor, freshUser }) => {
     const title = `Editor Section ${randomUUID().slice(0, 8)}`;
     await login(page, freshUser.email, freshUser.password);
     await createStudy(page, title);
-    await addSection(page);
+    const { sectionIndex } = await addSection(page);
+    await editor.assertSidebarSectionCountAtLeast(sectionIndex + 1);
   });
 
-  test('add study block inserts a block node', async ({ page, freshUser }) => {
+  test('add study block inserts a block node', async ({ page, editor, freshUser }) => {
     const title = `Editor Block ${randomUUID().slice(0, 8)}`;
     await login(page, freshUser.email, freshUser.password);
     await createStudy(page, title);
-    await addStudyBlock(page);
+    const { blockIndex } = await addStudyBlock(page);
+    await editor.assertStudyBlockCountAtLeast(blockIndex + 1);
   });
 
-  test('add question inserts a question node', async ({ page, freshUser }) => {
+  test('add question inserts a question node', async ({ page, editor, freshUser }) => {
     const title = `Editor Question ${randomUUID().slice(0, 8)}`;
     await login(page, freshUser.email, freshUser.password);
     await createStudy(page, title);
-    await addQuestion(page);
+    const { questionIndex } = await addQuestion(page);
+    await editor.assertQuestionCountAtLeast(questionIndex + 1);
   });
 });

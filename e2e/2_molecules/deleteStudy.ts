@@ -16,7 +16,7 @@ export async function deleteStudy(page: Page): Promise<DeleteStudyResult> {
   await editor.clickProfileMenu();
   await editor.clickDeleteStudy();
   await editor.clickConfirmDelete();
-  await page.waitForURL('**/studies**', { timeout: 10_000 });
+  await page.waitForURL('**/studies', { timeout: 10_000 });
 
   return { url: page.url() };
 }
