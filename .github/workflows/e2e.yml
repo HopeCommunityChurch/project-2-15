@@ -278,7 +278,8 @@ jobs:
             }
 
             const sha = context.sha.slice(0, 7);
-            const fullBody = `**E2E Tests** (${sha})\n\n${body}`;
+            const shaUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
+            const fullBody = `**E2E Tests** ([${sha}](${shaUrl}))\n\n${body}`;
 
             await github.rest.issues.createComment({
               owner:        context.repo.owner,
