@@ -4,6 +4,7 @@
   "scripts": {
     "test": "node scripts/resolve-suite.mjs | xargs npx playwright test",
     "test:smoke": "npx playwright test --grep @smoke",
+    "test:regression": "npx playwright test 3_organisms/",
     "typecheck": "tsc --noEmit",
     "check:flaky": "node scripts/check-flaky.mjs",
     "install:browsers": "npx playwright install --with-deps chromium"
