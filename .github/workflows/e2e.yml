@@ -127,7 +127,6 @@ jobs:
         run: |
           mkdir -p backend/static/editor
           cp frontend/dist/index.js backend/static/editor/index.js
-          cp frontend/dist/history.js backend/static/editor/history.js
 
       # ── Nginx: reverse proxy mirroring the local devenv setup ─────────────
       - name: Install and configure Nginx
