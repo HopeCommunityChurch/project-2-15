@@ -235,8 +235,9 @@ jobs:
             const resultsPath = path.join(process.env.GITHUB_WORKSPACE, 'e2e/test-results/results.json');
 
             let body;
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             if (!fs.existsSync(resultsPath)) {
-              body = '## E2E Tests\n\n⚠️ Test results not found — tests may not have run.';
+              body = `⚠️ E2E Tests — results not found · [run #${context.runNumber}](${runUrl})`;
             } else {
               const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
               const { stats } = results;
@@ -265,9 +266,26 @@ jobs:
               }
               for (const suite of results.suites || []) collect(suite, '');
 
+              const totalMs = Object.values(stats).reduce((a, b) => 0, 0);
+              const totalSec = (stats.duration !== undefined
+                ? stats.duration
+                : tests.reduce((sum, row) => {
+                    const m = row.match(/\| ([\d.]+)s/);
+                    return sum + (m ? parseFloat(m[1]) * 1000 : 0);
+                  }, 0)
+              );
+              const dur = totalSec >= 1000
+                ? ((totalSec / 1000).toFixed(0) + 's')
+                : (totalSec + 'ms');
+
+              const sha = context.sha.slice(0, 7);
+              const shaUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
+              const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+              const summary = `E2E Tests · [${sha}](${shaUrl}) · [run #${context.runNumber}](${runUrl}) · ${dur}`;
+
               body = [
                 `<details${ok ? '' : ' open'}>`,
-                `<summary><strong>E2E Tests ${icon} — ${parts.join(', ')}</strong></summary>`,
+                `<summary>${summary}<br>${icon} ${parts.join(', ')}</summary>`,
                 '',
                 '| | Test | Duration |',
                 '|---|---|---|',
@@ -277,15 +295,11 @@ jobs:
               ].join('\n');
             }
 
-            const sha = context.sha.slice(0, 7);
-            const shaUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
-            const fullBody = `**E2E Tests** ([${sha}](${shaUrl}))\n\n${body}`;
-
             await github.rest.issues.createComment({
               owner:        context.repo.owner,
               repo:         context.repo.repo,
               issue_number: prNumber,
-              body:         fullBody,
+              body:         body,
             });
 
       # ── Artifacts ─────────────────────────────────────────────────────────
