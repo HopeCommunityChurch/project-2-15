@@ -237,7 +237,7 @@ jobs:
             let body;
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             if (!fs.existsSync(resultsPath)) {
-              body = `⚠️ E2E Tests — results not found · [run #${context.runNumber}](${runUrl})`;
+              body = `⚠️ E2E Tests — results not found · <a href="${runUrl}">run #${context.runNumber}</a>`;
             } else {
               const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
               const { stats } = results;
@@ -281,7 +281,7 @@ jobs:
               const sha = context.sha.slice(0, 7);
               const shaUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
               const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-              const summary = `E2E Tests · [${sha}](${shaUrl}) · [run #${context.runNumber}](${runUrl}) · ${dur}`;
+              const summary = `E2E Tests · <a href="${shaUrl}">${sha}</a> · <a href="${runUrl}">run #${context.runNumber}</a> · ${dur}`;
 
               body = [
                 `<details${ok ? '' : ' open'}>`,
