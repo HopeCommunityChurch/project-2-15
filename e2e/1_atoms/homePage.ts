@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import type { IHomePageAtoms } from '../types/atoms';
 
 export class HomePageAtoms implements IHomePageAtoms {
@@ -65,6 +65,13 @@ export class HomePageAtoms implements IHomePageAtoms {
   /** `footer menu a[href="mailto:support@p215.church"]` */
   async clickFooterContactUs(): Promise<void> {
     await this.page.locator('footer').getByRole('link', { name: 'Contact Us' }).click();
+  }
+
+  // ── Assertions ────────────────────────────────────────────────────────────
+
+  /** Asserts the hero/marketing heading "Study Simple" is visible on the homepage. */
+  async assertHeroHeadingVisible(): Promise<void> {
+    await expect(this.page.getByText('Study Simple')).toBeVisible();
   }
 
 }

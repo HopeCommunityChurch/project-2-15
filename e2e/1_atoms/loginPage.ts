@@ -24,13 +24,13 @@ export class LoginPageAtoms implements ILoginPageAtoms {
     await this.page.getByRole('link', { name: 'Log In' }).click();
   }
 
-  /** Asserts the user is authenticated — URL is the studies page. */
-  async assertLoggedIn() {
-    await expect(this.page).toHaveURL(/\/studies/);
+  /** Asserts the browser is on the /login page — login form email input is visible. */
+  async assertOnLoginPage() {
+    await expect(this.page.getByPlaceholder('example@example.com')).toBeVisible();
   }
 
-  /** Asserts the user is unauthenticated — "Log In" button is visible in the nav. */
-  async assertLoggedOut() {
-    await expect(this.page.getByRole('link', { name: 'Log In' })).toBeVisible();
+  /** Asserts the "Email or password incorrect" error message is shown after a failed login attempt. */
+  async assertErrorInvalidCredentials() {
+    await expect(this.page.getByText('Email or password incorrect')).toBeVisible();
   }
 }

@@ -1,18 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import type { IGroupStudyPageAtoms } from '../types/atoms';
 
-/**
- * Atoms for the Group Study modal, which is loaded via HTMX into the
- * `#groupStudy` dialog on the study page (/study/<docId>).
- *
- * The modal has two states:
- *   1. "Create Group Study" — shown when the doc has no group study yet.
- *   2. "Group Study" (manage view) — shown after creation or when the doc is
- *      already part of a group study.
- *
- * All selectors are scoped to `#groupStudy` to avoid conflicts with other
- * page elements.
- */
 export class GroupStudyPageAtoms implements IGroupStudyPageAtoms {
   constructor(private page: Page) {}
 
@@ -29,8 +17,6 @@ export class GroupStudyPageAtoms implements IGroupStudyPageAtoms {
    */
   async clickOpenGroupStudy() {
     await this.page.locator('#groupStudyButton').click();
-    // Wait for HTMX to load modal content
-    await expect(this.dialog()).toBeVisible();
   }
 
   /**

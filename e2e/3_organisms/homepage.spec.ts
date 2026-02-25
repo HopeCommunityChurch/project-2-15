@@ -1,6 +1,6 @@
-import { test, expect } from '../fixtures/appPage';
+import { test } from '../fixtures/appPage';
 
-test('should show "Study Simple" on the homepage', async ({ page }) => {
+test('should show "Study Simple" on the homepage', async ({ page, home }) => {
   await page.goto('/');
-  await expect(page.getByText('Study Simple')).toBeVisible();
+  await home.assertHeroHeadingVisible();
 });

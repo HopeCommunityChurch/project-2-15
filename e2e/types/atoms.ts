@@ -19,8 +19,8 @@ export interface ILoginPageAtoms {
   fillPassword(password: string): Promise<void>;
   clickSubmit(): Promise<void>;
   clickNavLogIn(): Promise<void>;
-  assertLoggedIn(): Promise<void>;
-  assertLoggedOut(): Promise<void>;
+  assertOnLoginPage(): Promise<void>;
+  assertErrorInvalidCredentials(): Promise<void>;
 }
 
 // ── Global — present on all pages (1_atoms/global.ts) ────────────────────────
@@ -38,6 +38,14 @@ export interface IStudiesPageAtoms {
   assertStudyNotVisible(title: string): Promise<void>;
   fillNewStudyTitle(title: string): Promise<void>;
   clickCreateStudy(): Promise<void>;
+  clickCloseNewStudyDialog(): Promise<void>;
+  clickStudy(title: string): Promise<void>;
+  assertStudyCount(count: number): Promise<void>;
+  assertEmptyState(): Promise<void>;
+  assertStudyGroupName(title: string, groupName: string): Promise<void>;
+  clickProfileButton(): Promise<void>;
+  clickProfileNavProfile(): Promise<void>;
+  clickProfileNavSignOut(): Promise<void>;
 }
 
 // ── Study page / editor (1_atoms/studyPage.ts) ────────────────────────────────
@@ -49,6 +57,39 @@ export interface IStudyPageAtoms {
   assertContainsWithTimeout(text: string, ms: number): Promise<void>;
   assertSaved(): Promise<void>;
   assertTitle(title: string): Promise<void>;
+  // toolbar: formatting
+  clickBold(): Promise<void>;
+  clickItalic(): Promise<void>;
+  clickUnderline(): Promise<void>;
+  clickUndo(): Promise<void>;
+  clickRedo(): Promise<void>;
+  clickOutdent(): Promise<void>;
+  clickIndent(): Promise<void>;
+  clickClearFormatting(): Promise<void>;
+  assertBoldActive(): Promise<void>;
+  assertItalicActive(): Promise<void>;
+  assertUnderlineActive(): Promise<void>;
+  // toolbar: Bible search
+  clickInsertScripture(): Promise<void>;
+  fillScriptureRef(ref: string): Promise<void>;
+  clickScripturePreview(): Promise<void>;
+  clickScriptureInsert(): Promise<void>;
+  assertScripturePreviewVisible(): Promise<void>;
+  // toolbar: study structure
+  clickAddStudyBlock(): Promise<void>;
+  clickAddQuestion(): Promise<void>;
+  // left sidebar
+  clickAddSection(): Promise<void>;
+  clickCollapseSidebar(): Promise<void>;
+  // profile nav / header
+  clickProfileMenu(): Promise<void>;
+  clickDeleteStudy(): Promise<void>;
+  // delete confirmation dialog
+  clickConfirmDelete(): Promise<void>;
+  clickCancelDelete(): Promise<void>;
+  assertConfirmDeleteVisible(): Promise<void>;
+  // group study button
+  clickGroupStudy(): Promise<void>;
 }
 
 // ── Home / landing page (1_atoms/homePage.ts) ─────────────────────────────────
@@ -65,6 +106,7 @@ export interface IHomePageAtoms {
   clickBeginYourJourney(): Promise<void>;
   clickFooterLogin(): Promise<void>;
   clickFooterContactUs(): Promise<void>;
+  assertHeroHeadingVisible(): Promise<void>;
 }
 
 // ── Profile page (1_atoms/profilePage.ts) ─────────────────────────────────────
@@ -162,22 +204,23 @@ export interface IGroupStudyPageAtoms {
   assertMemberOwnership(docId: string, role: 'member' | 'owner'): Promise<void>;
 }
 
-// ── Document history page (1_atoms/historyPage.ts) ────────────────────────────
-// Route: /study/:docId/history
-// Shows a sidebar of grouped editing sessions and a read-only preview editor
-// that reconstructs the document at the selected version.
+// ── Group study invite page (1_atoms/groupStudyInvitePage.ts) ─────────────────
+// The invite section (#allShares) rendered on /studies when the user has
+// pending share invites. Accessed directly or via /studies?share_token=<token>.
 
-export interface IHistoryPageAtoms {
-  // session list — left sidebar
-  clickSession(index: number): Promise<void>;
-  clickSessionByText(text: string): Promise<void>;
-  // preview editor
-  assertPreviewContains(text: string): Promise<void>;
-  assertPreviewNotContains(text: string): Promise<void>;
-  assertPreviewVisible(): Promise<void>;
-  // version / session metadata
-  assertActiveSessionVersion(label: string): Promise<void>;
-  assertSessionCount(count: number): Promise<void>;
-  // navigation
-  clickBack(): Promise<void>;
+export interface IGroupStudyInvitePageAtoms {
+  // invite section visibility
+  assertInvitesSectionVisible(): Promise<void>;
+  assertInvitesSectionNotVisible(): Promise<void>;
+  assertInviteCount(count: number): Promise<void>;
+  // per-invite row content assertions (identified by share token)
+  assertInviteGroupName(token: string, groupName: string): Promise<void>;
+  assertInviteTemplateName(token: string, templateName: string): Promise<void>;
+  // per-invite row actions
+  selectInviteDocument(token: string, value: string): Promise<void>;
+  clickAcceptInvite(token: string): Promise<void>;
+  clickRejectInvite(token: string): Promise<void>;
+  // post-action state assertions
+  assertInviteRowGone(token: string): Promise<void>;
+  assertRedirectedToStudy(): Promise<void>;
 }
