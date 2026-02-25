@@ -210,7 +210,7 @@ jobs:
 
       # ── PR comment with test results ──────────────────────────────────────
       - name: Post test results to PR
-        if: always()
+        if: success() || failure()
         uses: actions/github-script@v7
         with:
           script: |
