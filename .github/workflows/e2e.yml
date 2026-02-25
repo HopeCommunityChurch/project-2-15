@@ -1,0 +1,309 @@
+name: E2E Tests
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  e2e:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    permissions:
+      pull-requests: write
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: p215_e2e
+          POSTGRES_USER: p215_user
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U p215_user -d p215_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Nix + Cachix binary cache (matches main.yml pattern) ──────────────
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - uses: cachix/cachix-action@v14
+        with:
+          name: devenv
+
+      # Cache the Nix store so dev-shell packages (HLS, hoogle, hlint, etc.)
+      # aren't re-fetched from cache.nixos.org on every run.
+      - uses: nix-community/cache-nix-action@v5
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+
+      # ── Node (frontend + Playwright) ──────────────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── npm caches ────────────────────────────────────────────────────────
+      - uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: npm-frontend-${{ hashFiles('frontend/package-lock.json') }}
+
+      - uses: actions/cache@v4
+        with:
+          path: e2e/node_modules
+          key: npm-e2e-${{ hashFiles('e2e/package-lock.json') }}
+
+      # ── Haskell / Cabal cache ─────────────────────────────────────────────
+      # Cache the Cabal package store (compiled Haskell deps) and dist-newstyle
+      # (compiled application). Key on backend.cabal so a dep change busts the
+      # cache; restore-keys allows partial hits when only source files changed.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/packages
+            ~/.cabal/store
+            backend/dist-newstyle
+          key: cabal-${{ runner.os }}-${{ hashFiles('backend/backend.cabal') }}
+          restore-keys: |
+            cabal-${{ runner.os }}-
+
+      # ── Backend: build, migrate, and start ────────────────────────────────
+      # The backend runs migrations automatically on startup via its built-in
+      # postgresql-migration runner (schema_migrations tracking table).
+      # We point it at the CI Postgres via SECRETS_FILE.
+      - name: Write CI secrets file
+        run: |
+          cat > /tmp/ci-secrets.json <<'EOF'
+          {
+            "db": {
+              "host": "127.0.0.1",
+              "port": 5432,
+              "username": "p215_user",
+              "password": "password",
+              "database": "p215_e2e"
+            },
+            "env": { "tag": "Dev", "contents": "ci" },
+            "smtp": { "host": "127.0.0.1", "port": 1025 },
+            "esvToken": "${{ secrets.ESV_TOKEN }}",
+            "url": "http://127.0.0.1:8080",
+            "altchaKey": "key_secret_key"
+          }
+          EOF
+
+      - name: Build backend
+        run: cd backend && nix develop --command cabal build -O0 2>&1
+
+      - name: Start backend (runs migrations then serves on :3000)
+        run: |
+          cd backend
+          SECRETS_FILE=/tmp/ci-secrets.json \
+          MIGRATION_PATH=./migrations/ \
+          nix develop --command cabal run -O0 &
+          # Wait up to 60s for backend to be ready
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/login && break || sleep 2
+          done
+
+      # ── Frontend: build bundle and place where Scotty can serve it ──────────
+      # In CI (env != Dev "local"), the study page loads the editor JS from
+      # /static/editor/index.js served by Scotty's static middleware — not from
+      # a Parcel dev server. We build the bundle and copy it into place.
+      - name: Install frontend deps
+        run: cd frontend && npm install --prefer-offline
+
+      - name: Build frontend bundle
+        run: cd frontend && npm run build
+
+      - name: Copy frontend bundle to backend static dir
+        run: |
+          mkdir -p backend/static/editor
+          cp frontend/dist/index.js backend/static/editor/index.js
+          cp frontend/dist/history.js backend/static/editor/history.js
+
+      # ── Nginx: reverse proxy mirroring the local devenv setup ─────────────
+      - name: Install and configure Nginx
+        run: |
+          sudo apt-get install -y nginx
+          sudo tee /etc/nginx/sites-available/default > /dev/null <<'NGINXCONF'
+          server {
+            listen 8080;
+
+            location /api/ {
+              proxy_pass http://127.0.0.1:3000/;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+            }
+
+            location / {
+              proxy_pass http://127.0.0.1:3001/;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
+              proxy_set_header Host $host;
+            }
+          }
+          NGINXCONF
+          sudo nginx -t
+          sudo systemctl start nginx
+
+      - name: Wait for Nginx to be ready
+        run: |
+          for i in $(seq 1 15); do
+            curl -sf http://localhost:8080 && break || sleep 2
+          done
+
+      # ── Seed test fixtures ────────────────────────────────────────────────
+      - name: Seed E2E fixtures
+        run: |
+          PGPASSWORD=password psql -h localhost -U p215_user -d p215_e2e \
+            -f e2e/fixtures/seed.sql
+
+      # ── Playwright ────────────────────────────────────────────────────────
+      - name: Install e2e deps
+        run: cd e2e && npm install --prefer-offline
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('e2e/package-lock.json') }}
+
+      # Full install (browser binary + system libs) on cache miss.
+      - name: Install Playwright browsers + system deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: cd e2e && npx playwright install --with-deps chromium
+
+      # System libs only on cache hit — browser binary already cached.
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: cd e2e && npx playwright install-deps chromium
+
+      - name: Check flaky tags
+        run: cd e2e && npm run check:flaky
+
+      - name: Run tests
+        run: cd e2e && npm test
+        env:
+          BASE_URL: http://localhost:8080
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGDATABASE: p215_e2e
+          PGUSER: p215_user
+          PGPASSWORD: password
+
+      # ── PR comment with test results ──────────────────────────────────────
+      - name: Post test results to PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Resolve PR number — available directly on pull_request events,
+            // or looked up by branch name on push events.
+            let prNumber = context.issue?.number;
+            if (!prNumber) {
+              const branch = context.ref.replace('refs/heads/', '');
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                head:  `${context.repo.owner}:${branch}`,
+                state: 'open',
+              });
+              if (prs.length === 0) { console.log('No open PR for this branch — skipping comment.'); return; }
+              prNumber = prs[0].number;
+            }
+
+            const resultsPath = path.join(process.env.GITHUB_WORKSPACE, 'e2e/test-results/results.json');
+
+            let body;
+            if (!fs.existsSync(resultsPath)) {
+              body = '## E2E Tests\n\n⚠️ Test results not found — tests may not have run.';
+            } else {
+              const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+              const { stats } = results;
+
+              const ok = stats.unexpected === 0;
+              const icon = ok ? '✅' : '❌';
+              const parts = [`${stats.expected} passed`];
+              if (stats.unexpected > 0) parts.push(`${stats.unexpected} failed`);
+              if (stats.flaky     > 0) parts.push(`${stats.flaky} flaky`);
+              if (stats.skipped   > 0) parts.push(`${stats.skipped} skipped`);
+
+              const tests = [];
+              function collect(suite, prefix) {
+                const title = prefix ? `${prefix} › ${suite.title}` : suite.title;
+                for (const spec of suite.specs || []) {
+                  for (const test of spec.tests || []) {
+                    const last    = test.results[test.results.length - 1];
+                    const retries = test.results.length - 1;
+                    const icon    = { expected: '✅', flaky: '⚠️', skipped: '⏭️' }[test.status] ?? '❌';
+                    const dur     = ((last?.duration ?? 0) / 1000).toFixed(1) + 's';
+                    const retry   = retries > 0 ? ` *(${retries} retr${retries === 1 ? 'y' : 'ies'})*` : '';
+                    tests.push(`| ${icon} | ${title} › ${spec.title} | ${dur}${retry} |`);
+                  }
+                }
+                for (const child of suite.suites || []) collect(child, title);
+              }
+              for (const suite of results.suites || []) collect(suite, '');
+
+              body = [
+                `<details${ok ? '' : ' open'}>`,
+                `<summary><strong>E2E Tests ${icon} — ${parts.join(', ')}</strong></summary>`,
+                '',
+                '| | Test | Duration |',
+                '|---|---|---|',
+                ...tests,
+                '',
+                '</details>',
+              ].join('\n');
+            }
+
+            const marker  = '<!-- e2e-results -->';
+            const fullBody = `${marker}\n${body}`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner:      context.repo.owner,
+                repo:       context.repo.repo,
+                comment_id: existing.id,
+                body:       fullBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: prNumber,
+                body:         fullBody,
+              });
+            }
+
+      # ── Artifacts ─────────────────────────────────────────────────────────
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7

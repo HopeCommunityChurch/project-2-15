@@ -1,0 +1,15 @@
+{
+  "cookies": [
+    {
+      "name": "p215-auth",
+      "value": "n253gt23r3f2o1b3M1Li223S3j1hm3P3G_U1atD2L1s1aFV3e352D",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1772839743.014711,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Strict"
+    }
+  ],
+  "origins": []
+}
