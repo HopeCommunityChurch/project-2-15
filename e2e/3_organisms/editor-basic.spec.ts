@@ -4,7 +4,7 @@ import { createStudy } from '../2_molecules/createStudy';
 import { randomUUID } from 'crypto';
 
 test.describe('editor basic', () => {
-  test('editor loads after creating a study', async ({ page, editor, freshUser }) => {
+  test('editor loads after creating a study @smoke', async ({ page, editor, freshUser }) => {
     const title = `Editor Basic Test ${randomUUID().slice(0, 8)}`;
     await login(page, freshUser.email, freshUser.password);
     await createStudy(page, title);

@@ -20,7 +20,8 @@
  *      know what to update when the UI changes.
  */
 
-import { test as base, expect } from '@playwright/test';
+import { test as base, expect, type Page, type BrowserContext } from '@playwright/test';
+import { login } from '../2_molecules/login';
 import { LoginPageAtoms } from '../1_atoms/loginPage';
 import { GlobalAtoms } from '../1_atoms/global';
 import { StudiesPageAtoms } from '../1_atoms/studiesPage';
@@ -34,6 +35,8 @@ import { GroupStudyInvitePageAtoms } from '../1_atoms/groupStudyInvitePage';
 import { createTestUser, type TestUser } from './userFactory';
 
 export { LoginPageAtoms, GlobalAtoms, StudiesPageAtoms, StudyPageAtoms, SignupPageAtoms, HomePageAtoms, ProfilePageAtoms, ResetPasswordPageAtoms, GroupStudyPageAtoms, GroupStudyInvitePageAtoms };
+
+export type SecondaryUserContext = { page: Page; ctx: BrowserContext; user: TestUser };
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -50,6 +53,8 @@ type AtomFixtures = {
   groupInvite: GroupStudyInvitePageAtoms;
   /** A freshly created DB user, unique to this test. Always use this instead of TEST_ACCOUNTS. */
   freshUser: TestUser;
+  /** A second freshly created DB user on an isolated browser context, for multi-user tests. */
+  secondaryUser: SecondaryUserContext;
 };
 
 export const test = base.extend<AtomFixtures>({
@@ -64,6 +69,14 @@ export const test = base.extend<AtomFixtures>({
   groupStudy:    async ({ page }, use) => use(new GroupStudyPageAtoms(page)),
   groupInvite:   async ({ page }, use) => use(new GroupStudyInvitePageAtoms(page)),
   freshUser:     async ({}, use) => use(await createTestUser()),
+  secondaryUser: async ({ browser }, use) => {
+    const user = await createTestUser();
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await login(page, user.email, user.password);
+    await use({ page, ctx, user });
+    await ctx.close();
+  },
 });
 
 export { expect };

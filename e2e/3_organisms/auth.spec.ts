@@ -1,13 +1,14 @@
 import { test } from '../fixtures/appPage';
 import { login } from '../2_molecules/login';
+import { logout } from '../2_molecules/logout';
 
-test.describe('login', () => {
+test.describe('auth', () => {
   test('homepage shows Log In button when unauthenticated', async ({ page, nav }) => {
     await page.goto('/');
     await nav.assertLoggedOut();
   });
 
-  test('valid credentials log the user in and land on /app/', async ({ page, nav, freshUser }) => {
+  test('valid credentials log the user in and land on /app/ @smoke', async ({ page, nav, freshUser }) => {
     await login(page, freshUser.email, freshUser.password);
     await nav.assertLoggedIn();
   });
@@ -19,5 +20,11 @@ test.describe('login', () => {
     await auth.clickSubmit();
     await auth.assertOnLoginPage();
     await auth.assertErrorInvalidCredentials();
+  });
+
+  test('sign out redirects to the home page', async ({ page, nav, freshUser }) => {
+    await login(page, freshUser.email, freshUser.password);
+    await logout(page);
+    await nav.assertLoggedOut();
   });
 });

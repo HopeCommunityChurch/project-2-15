@@ -23,5 +23,5 @@ export async function addStudyBlock(page: Page): Promise<AddStudyBlockResult> {
     timeout: 10_000,
   });
 
-  return {};
+  return { blockIndex: before };
 }

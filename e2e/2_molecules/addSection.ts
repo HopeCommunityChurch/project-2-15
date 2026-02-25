@@ -23,5 +23,5 @@ export async function addSection(page: Page): Promise<AddSectionResult> {
     timeout: 10_000,
   });
 
-  return {};
+  return { sectionIndex: before };
 }

@@ -41,5 +41,4 @@ if (existsSync(branchFile)) {
   process.exit(0);
 }
 
-const smoke = loadSuite(join(__dirname, '..', 'suites', 'smoke.json'));
-process.stdout.write(smoke.tests.join(' '));
+process.stdout.write('--grep @smoke');

@@ -23,5 +23,5 @@ export async function addQuestion(page: Page): Promise<AddQuestionResult> {
     timeout: 10_000,
   });
 
-  return {};
+  return { questionIndex: before };
 }

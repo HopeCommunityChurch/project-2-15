@@ -63,11 +63,17 @@ export interface ApplyBoldToTextResult {
   text: string;
 }
 
-export interface AddSectionResult {}
+export interface AddSectionResult {
+  sectionIndex: number;
+}
 
-export interface AddStudyBlockResult {}
+export interface AddStudyBlockResult {
+  blockIndex: number;
+}
 
-export interface AddQuestionResult {}
+export interface AddQuestionResult {
+  questionIndex: number;
+}
 
 // ── Profile ───────────────────────────────────────────────────────────────────
 
