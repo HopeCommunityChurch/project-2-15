@@ -205,7 +205,7 @@ jobs:
         run: cd e2e && npm run check:flaky
 
       - name: Run tests
-        run: cd e2e && npm run test:regression
+        run: cd e2e && npm test
         env:
           BASE_URL: http://localhost:8080
           GITHUB_REF_NAME: ${{ github.ref_name }}
