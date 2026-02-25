@@ -137,3 +137,104 @@ export interface AcceptGroupStudyInviteResult {
 export interface RejectGroupStudyInviteResult {
   token: string;
 }
+
+// ── Phase 5 — additional molecules ───────────────────────────────────────────
+
+export interface ApplyItalicToTextResult {
+  text: string;
+}
+
+export interface ApplyUnderlineToTextResult {
+  text: string;
+}
+
+export interface ClearFormattingFromTextResult {
+  text: string;
+}
+
+export interface RenameStudyResult {
+  title: string;
+}
+
+export interface CancelDeleteStudyResult {
+  /** URL stays on the study editor page. */
+  url: string;
+}
+
+export interface UpdateGroupStudyNameResult {
+  groupName: string;
+}
+
+export interface ResendInviteResult {
+  shareToken: string;
+}
+
+export interface OpenGroupStudyModalResult {
+  /** Stub — modal is now open. */
+  open: true;
+}
+
+export interface CloseGroupStudyModalResult {
+  /** Stub — modal is now closed. */
+  closed: true;
+}
+
+export interface AcceptGroupStudyInviteWithExistingDocResult {
+  token: string;
+  url: string;
+}
+
+export interface RequestPasswordResetResult {
+  email: string;
+}
+
+export interface SignupResult {
+  email: string;
+  url: string;
+}
+
+export interface NavigateToSignupFromHomeResult {
+  url: string;
+}
+
+export interface EnableGroupStudyFeatureResult {
+  featureName: string;
+  enabled: true;
+}
+
+export interface DisableGroupStudyFeatureResult {
+  featureName: string;
+  enabled: false;
+}
+
+export interface NavigateHomeFromEditorResult {
+  url: string;
+}
+
+export interface NavigateToProfileFromEditorResult {
+  url: string;
+}
+
+export interface OpenStudyFromStudiesPageResult {
+  url: string;
+  studyId: string;
+}
+
+export interface CloseNewStudyDialogResult {
+  /** Stub — dialog is now closed. */
+  closed: true;
+}
+
+export interface PreviewScriptureOnlyResult {
+  ref: string;
+}
+
+export interface UndoChangeResult {
+  /** Stub — undo has been applied. */
+  applied: true;
+}
+
+export interface RedoChangeResult {
+  /** Stub — redo has been applied. */
+  applied: true;
+}

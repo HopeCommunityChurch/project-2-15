@@ -1,8 +1,7 @@
 import { test } from '../fixtures/appPage';
 import { GroupStudyInvitePageAtoms } from '../fixtures/appPage';
 import { login } from '../2_molecules/login';
-import { goToProfile } from '../2_molecules/goToProfile';
-import { setFeatureFlag } from '../2_molecules/setFeatureFlag';
+import { enableGroupStudyFeature } from '../2_molecules/enableGroupStudyFeature';
 import { goToStudies } from '../2_molecules/goToStudies';
 import { createStudy } from '../2_molecules/createStudy';
 import { createGroupStudy } from '../2_molecules/createGroupStudy';
@@ -20,8 +19,7 @@ test.describe('group study', () => {
     const title = `GS Create ${randomUUID().slice(0, 8)}`;
     const groupName = `Group ${randomUUID().slice(0, 8)}`;
     await login(page, freshUser.email, freshUser.password);
-    await goToProfile(page);
-    await setFeatureFlag(page, 'GroupStudy', true);
+    await enableGroupStudyFeature(page);
     await goToStudies(page);
     await createStudy(page, title);
     await createGroupStudy(page, groupName);
@@ -32,8 +30,7 @@ test.describe('group study', () => {
     const title = `GS Invite ${randomUUID().slice(0, 8)}`;
     const groupName = `Group ${randomUUID().slice(0, 8)}`;
     await login(page, freshUser.email, freshUser.password);
-    await goToProfile(page);
-    await setFeatureFlag(page, 'GroupStudy', true);
+    await enableGroupStudyFeature(page);
     await goToStudies(page);
     await createStudy(page, title);
     await createGroupStudy(page, groupName);
@@ -47,8 +44,7 @@ test.describe('group study', () => {
     const title2 = `GS Accept2 ${randomUUID().slice(0, 8)}`;
     const groupName = `Group ${randomUUID().slice(0, 8)}`;
     await login(page, freshUser.email, freshUser.password);
-    await goToProfile(page);
-    await setFeatureFlag(page, 'GroupStudy', true);
+    await enableGroupStudyFeature(page);
     await goToStudies(page);
     const { studyId } = await createStudy(page, title);
     await createGroupStudyWithInvite(page, groupName, secondaryUser.user.email, 'member');
@@ -64,8 +60,7 @@ test.describe('group study', () => {
     const title = `GS Reject ${randomUUID().slice(0, 8)}`;
     const groupName = `Group ${randomUUID().slice(0, 8)}`;
     await login(page, freshUser.email, freshUser.password);
-    await goToProfile(page);
-    await setFeatureFlag(page, 'GroupStudy', true);
+    await enableGroupStudyFeature(page);
     await goToStudies(page);
     const { studyId } = await createStudy(page, title);
     await createGroupStudyWithInvite(page, groupName, secondaryUser.user.email, 'member');
@@ -80,8 +75,7 @@ test.describe('group study', () => {
     const title = `GS Remove ${randomUUID().slice(0, 8)}`;
     const groupName = `Group ${randomUUID().slice(0, 8)}`;
     await login(page, freshUser.email, freshUser.password);
-    await goToProfile(page);
-    await setFeatureFlag(page, 'GroupStudy', true);
+    await enableGroupStudyFeature(page);
     await goToStudies(page);
     const { studyId } = await createStudy(page, title);
     await createGroupStudyWithInvite(page, groupName, secondaryUser.user.email, 'member');
