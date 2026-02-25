@@ -14,6 +14,11 @@ export class StudyPageAtoms implements IStudyPageAtoms {
     await expect(this.editor()).toBeVisible();
   }
 
+  /** Asserts the editor is NOT present (e.g. on not-found or not-authorized pages). */
+  async assertNotVisible() {
+    await expect(this.editor()).not.toBeVisible();
+  }
+
   /** Types text into the editor body (below the section heading). */
   async typeAtEnd(text: string) {
     // Click the paragraph below the heading (shown as placeholder emphasis text when empty).
@@ -24,6 +29,11 @@ export class StudyPageAtoms implements IStudyPageAtoms {
   /** Asserts the editor contains the given text somewhere in its content. */
   async assertContains(text: string) {
     await expect(this.editor()).toContainText(text);
+  }
+
+  /** Asserts the editor does NOT contain the given text anywhere in its content. */
+  async assertNotContains(text: string) {
+    await expect(this.editor()).not.toContainText(text);
   }
 
   /**
@@ -91,14 +101,29 @@ export class StudyPageAtoms implements IStudyPageAtoms {
     await expect(this.editor().locator('strong', { hasText: text })).toBeVisible();
   }
 
+  /** Asserts the given text is NOT bold (no strong element wraps it) in the editor. */
+  async assertNotBoldActive(text: string) {
+    await expect(this.editor().locator('strong', { hasText: text })).not.toBeVisible();
+  }
+
   /** Asserts the given text is italic (wrapped in an em element) in the editor. */
   async assertItalicActive(text: string) {
     await expect(this.editor().locator('em', { hasText: text })).toBeVisible();
   }
 
+  /** Asserts the given text is NOT italic (no em element wraps it) in the editor. */
+  async assertNotItalicActive(text: string) {
+    await expect(this.editor().locator('em', { hasText: text })).not.toBeVisible();
+  }
+
   /** Asserts the given text is underlined (wrapped in a u element) in the editor. */
   async assertUnderlineActive(text: string) {
     await expect(this.editor().locator('u', { hasText: text })).toBeVisible();
+  }
+
+  /** Asserts the given text is NOT underlined (no u element wraps it) in the editor. */
+  async assertNotUnderlineActive(text: string) {
+    await expect(this.editor().locator('u', { hasText: text })).not.toBeVisible();
   }
 
   // ── Toolbar: Bible search (Insert Scripture) ───────────────────────────────
@@ -206,5 +231,59 @@ export class StudyPageAtoms implements IStudyPageAtoms {
   async assertQuestionCountAtLeast(min: number) {
     const count = await this.page.locator('.ProseMirror questionouter').count();
     if (count < min) throw new Error(`Expected at least ${min} question nodes, found ${count}`);
+  }
+
+  /** Asserts the editor contains exactly the given number of bibleText (scripture) nodes. */
+  async assertBibleTextCount(count: number) {
+    const actual = await this.page.locator('.ProseMirror .bibleText').count();
+    if (actual !== count) throw new Error(`Expected exactly ${count} bibleText nodes, found ${actual}`);
+  }
+
+  /** Asserts the editor contains exactly the given number of study block rows. */
+  async assertStudyBlockCount(count: number) {
+    const actual = await this.page.locator('.ProseMirror .studyBlocks tr[data-id]').count();
+    if (actual !== count) throw new Error(`Expected exactly ${count} study block rows, found ${actual}`);
+  }
+
+  /** Asserts the editor contains exactly the given number of question nodes. */
+  async assertQuestionCount(count: number) {
+    const actual = await this.page.locator('.ProseMirror questionouter').count();
+    if (actual !== count) throw new Error(`Expected exactly ${count} question nodes, found ${actual}`);
+  }
+
+  /** Asserts the sidebar contains exactly the given number of section items. */
+  async assertSidebarSectionCount(count: number) {
+    const actual = await this.page.locator('#leftSidebar .section').count();
+    if (actual !== count) throw new Error(`Expected exactly ${count} sidebar section items, found ${actual}`);
+  }
+
+  /**
+   * Clicks the "Remove" button (.deleter) on a sidebar section at the given
+   * 0-based index to delete the section. The first click reveals the button,
+   * the second confirms deletion.
+   */
+  async clickDeleteSection(sectionIndex: number) {
+    // The .remove div (×) is display:none until the section is hovered.
+    // Clicking it with force:true removes the section immediately.
+    const section = this.page.locator('#leftSidebar .section').nth(sectionIndex);
+    await section.hover();
+    await section.locator('.remove').click({ force: true });
+  }
+
+  /**
+   * Asserts the indent level (data-indent attribute) of a bibleText chunk at
+   * a given index is at or above the expected level.
+   * The scripture chunk's wrapper element carries `data-indent="<n>"`.
+   */
+  async assertScriptureChunkIndentLevel(index: number, level: number) {
+    // The scripture chunk's inner `.chunk` element carries a `level` attribute
+    // that starts at 0 and increases by 1 for each Indent action applied.
+    const chunk = this.page.locator('.ProseMirror .bibleText').nth(index).locator('.chunk').first();
+    await chunk.waitFor({ state: 'visible', timeout: 10_000 });
+    const attr = await chunk.getAttribute('level');
+    const actual = parseInt(attr ?? '0', 10);
+    if (actual < level) {
+      throw new Error(`Expected scripture chunk ${index} to have indent level >= ${level}, got ${actual}`);
+    }
   }
 }

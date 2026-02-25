@@ -78,7 +78,13 @@ export class GroupStudyPageAtoms implements IGroupStudyPageAtoms {
    * The name auto-saves after a 1-second debounce (hx-trigger="keyup changed delay:1s").
    */
   async fillGroupName(name: string) {
-    await this.dialog().locator('input[name="groupName"]').fill(name);
+    const input = this.dialog().locator('input[name="groupName"]');
+    await input.waitFor({ state: 'visible', timeout: 10_000 });
+    // Click to focus (required inside showModal() dialogs), select-all to clear
+    // existing text, then type character-by-character to trigger keyup events
+    // so the HTMX auto-save debounce fires.
+    await input.click({ clickCount: 3 });
+    await input.type(name);
   }
 
   /**
@@ -246,6 +252,26 @@ export class GroupStudyPageAtoms implements IGroupStudyPageAtoms {
     await expect(
       this.dialog().locator('.member .person-name', { hasText: name }),
     ).not.toBeVisible();
+  }
+
+  /**
+   * Asserts the inline invite form (owner-only) is not present in the modal.
+   * Non-owner members should not see `form.groupStudy-invite-row`.
+   */
+  async assertInviteFormNotVisible() {
+    await expect(
+      this.dialog().locator('form.groupStudy-invite-row')
+    ).not.toBeVisible();
+  }
+
+  /**
+   * Asserts that no Resend or Remove buttons appear anywhere in the modal.
+   * Non-owner members should not see share-row action buttons.
+   */
+  async assertResendRemoveButtonsNotVisible() {
+    await expect(
+      this.dialog().locator('button.ghost-blue, button.remove-btn')
+    ).toHaveCount(0);
   }
 
   /**

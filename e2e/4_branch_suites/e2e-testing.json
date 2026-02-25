@@ -1,0 +1,20 @@
+{
+  "description": "Full regression suite for the e2e-testing branch — covers all gap-analysis test cases across auth, signup, navigation, editor formatting/structure/scripture, studies, profile, group study, invite lifecycle, password reset, and document persistence.",
+  "tests": [
+    "3_organisms/auth.spec.ts",
+    "3_organisms/signup.spec.ts",
+    "3_organisms/navigation.spec.ts",
+    "3_organisms/homepage.spec.ts",
+    "3_organisms/studies.spec.ts",
+    "3_organisms/profile.spec.ts",
+    "3_organisms/editor-basic.spec.ts",
+    "3_organisms/editor-formatting.spec.ts",
+    "3_organisms/editor-structure.spec.ts",
+    "3_organisms/editor-scripture.spec.ts",
+    "3_organisms/document-persistence.spec.ts",
+    "3_organisms/editor-complex.spec.ts",
+    "3_organisms/group-study.spec.ts",
+    "3_organisms/invite-lifecycle.spec.ts",
+    "3_organisms/password-reset.spec.ts"
+  ]
+}

@@ -16,12 +16,12 @@ export class SignupPageAtoms implements ISignupPageAtoms {
 
   /** input#password — password field */
   async fillPassword(password: string): Promise<void> {
-    await this.page.getByPlaceholder('Password').fill(password);
+    await this.page.locator('input#password').fill(password);
   }
 
   /** input#password2 — retype password field */
   async fillRetypePassword(password: string): Promise<void> {
-    await this.page.getByPlaceholder('Retype Password').fill(password);
+    await this.page.locator('input#password2').fill(password);
   }
 
   /** input#viewPassword checkbox — toggles password visibility */

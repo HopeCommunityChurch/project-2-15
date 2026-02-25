@@ -234,6 +234,10 @@ export interface UndoChangeResult {
   applied: true;
 }
 
+export interface DeleteSectionResult {
+  sectionIndex: number;
+}
+
 export interface RedoChangeResult {
   /** Stub — redo has been applied. */
   applied: true;

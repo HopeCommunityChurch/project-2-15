@@ -52,8 +52,10 @@ export interface IStudiesPageAtoms {
 
 export interface IStudyPageAtoms {
   assertVisible(): Promise<void>;
+  assertNotVisible(): Promise<void>;
   typeAtEnd(text: string): Promise<void>;
   assertContains(text: string): Promise<void>;
+  assertNotContains(text: string): Promise<void>;
   assertContainsWithTimeout(text: string, ms: number): Promise<void>;
   assertSaved(): Promise<void>;
   assertTitle(title: string): Promise<void>;
@@ -67,8 +69,11 @@ export interface IStudyPageAtoms {
   clickIndent(): Promise<void>;
   clickClearFormatting(): Promise<void>;
   assertBoldActive(text: string): Promise<void>;
+  assertNotBoldActive(text: string): Promise<void>;
   assertItalicActive(text: string): Promise<void>;
+  assertNotItalicActive(text: string): Promise<void>;
   assertUnderlineActive(text: string): Promise<void>;
+  assertNotUnderlineActive(text: string): Promise<void>;
   // toolbar: Bible search
   clickInsertScripture(): Promise<void>;
   fillScriptureRef(ref: string): Promise<void>;
@@ -94,6 +99,12 @@ export interface IStudyPageAtoms {
   assertSidebarSectionCountAtLeast(min: number): Promise<void>;
   assertStudyBlockCountAtLeast(min: number): Promise<void>;
   assertQuestionCountAtLeast(min: number): Promise<void>;
+  assertBibleTextCount(count: number): Promise<void>;
+  assertStudyBlockCount(count: number): Promise<void>;
+  assertQuestionCount(count: number): Promise<void>;
+  assertSidebarSectionCount(count: number): Promise<void>;
+  assertScriptureChunkIndentLevel(index: number, level: number): Promise<void>;
+  clickDeleteSection(sectionIndex: number): Promise<void>;
 }
 
 // ── Home / landing page (1_atoms/homePage.ts) ─────────────────────────────────
@@ -206,6 +217,9 @@ export interface IGroupStudyPageAtoms {
   assertMemberVisible(name: string): Promise<void>;
   assertMemberNotVisible(name: string): Promise<void>;
   assertMemberOwnership(docId: string, role: 'member' | 'owner'): Promise<void>;
+  // visibility assertions for non-owner members
+  assertInviteFormNotVisible(): Promise<void>;
+  assertResendRemoveButtonsNotVisible(): Promise<void>;
 }
 
 // ── Group study invite page (1_atoms/groupStudyInvitePage.ts) ─────────────────

@@ -4,6 +4,7 @@ import { createStudy } from '../2_molecules/createStudy';
 import { addSection } from '../2_molecules/addSection';
 import { addStudyBlock } from '../2_molecules/addStudyBlock';
 import { addQuestion } from '../2_molecules/addQuestion';
+
 import { randomUUID } from 'crypto';
 
 test.describe('editor structure', () => {
@@ -29,5 +30,31 @@ test.describe('editor structure', () => {
     await createStudy(page, title);
     const { questionIndex } = await addQuestion(page);
     await editor.assertQuestionCountAtLeast(questionIndex + 1);
+  });
+
+  test('delete study block removes it from the editor', async ({ page, editor, freshUser }) => {
+    const title = `Editor Del Block ${randomUUID().slice(0, 8)}`;
+    await login(page, freshUser.email, freshUser.password);
+    await createStudy(page, title);
+    // A fresh document starts with 0 blocks; add one so we know the exact count.
+    await editor.assertStudyBlockCount(0);
+    await addStudyBlock(page);
+    await editor.assertStudyBlockCount(1);
+    // Undo the insert — the count must return to 0.
+    await editor.clickUndo();
+    await editor.assertStudyBlockCount(0);
+  });
+
+  test('delete question node removes it from the editor', async ({ page, editor, freshUser }) => {
+    const title = `Editor Del Question ${randomUUID().slice(0, 8)}`;
+    await login(page, freshUser.email, freshUser.password);
+    await createStudy(page, title);
+    // A fresh document starts with 0 questions; add one so we know the exact count.
+    await editor.assertQuestionCount(0);
+    await addQuestion(page);
+    await editor.assertQuestionCount(1);
+    // Undo the insert — the count must return to 0.
+    await editor.clickUndo();
+    await editor.assertQuestionCount(0);
   });
 });

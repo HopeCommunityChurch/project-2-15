@@ -32,8 +32,8 @@ export async function changeMemberRole(
 
   const saveResponse = page.waitForResponse(
     (res) =>
-      res.url().includes('/groupstudy') &&
-      res.request().method() !== 'GET' &&
+      res.url().includes('/group_study') &&
+      res.url().includes('/ownership') &&
       res.status() === 200,
     { timeout: 10_000 },
   );
