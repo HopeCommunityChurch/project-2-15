@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "e2e:start-backend": "cd backend && SECRETS_FILE=../e2e/fixtures/e2e-secrets.json MIGRATION_PATH=./migrations/ nix develop --command cabal run -O0 &",
-    "e2e:wait-backend": "until curl -sf http://localhost:3000/health; do sleep 2; done",
+    "e2e:wait-backend": "until curl -sf http://localhost:3001/login; do sleep 2; done",
     "e2e:seed": "PGPASSWORD=password psql -h localhost -p 5432 -U p215_user -d p215_e2e -f e2e/fixtures/seed.sql",
     "e2e:test": "cd e2e && npm test",
     "e2e:test:smoke": "cd e2e && npm run test:smoke",

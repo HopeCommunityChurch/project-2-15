@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "test": "node scripts/resolve-suite.mjs | xargs npx playwright test",
-    "test:smoke": "npx playwright test 3_organisms/homepage.spec.ts",
+    "test:smoke": "node -e \"process.stdout.write(require('./suites/smoke.json').join(' '))\" | xargs npx playwright test",
     "typecheck": "tsc --noEmit",
     "check:flaky": "node scripts/check-flaky.mjs",
     "install:browsers": "npx playwright install --with-deps chromium"
