@@ -161,3 +161,23 @@ export interface IGroupStudyPageAtoms {
   assertMemberNotVisible(name: string): Promise<void>;
   assertMemberOwnership(docId: string, role: 'member' | 'owner'): Promise<void>;
 }
+
+// ── Document history page (1_atoms/historyPage.ts) ────────────────────────────
+// Route: /study/:docId/history
+// Shows a sidebar of grouped editing sessions and a read-only preview editor
+// that reconstructs the document at the selected version.
+
+export interface IHistoryPageAtoms {
+  // session list — left sidebar
+  clickSession(index: number): Promise<void>;
+  clickSessionByText(text: string): Promise<void>;
+  // preview editor
+  assertPreviewContains(text: string): Promise<void>;
+  assertPreviewNotContains(text: string): Promise<void>;
+  assertPreviewVisible(): Promise<void>;
+  // version / session metadata
+  assertActiveSessionVersion(label: string): Promise<void>;
+  assertSessionCount(count: number): Promise<void>;
+  // navigation
+  clickBack(): Promise<void>;
+}

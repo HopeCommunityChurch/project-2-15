@@ -30,9 +30,10 @@ import { HomePageAtoms } from '../1_atoms/homePage';
 import { ProfilePageAtoms } from '../1_atoms/profilePage';
 import { ResetPasswordPageAtoms } from '../1_atoms/resetPasswordPage';
 import { GroupStudyPageAtoms } from '../1_atoms/groupStudyPage';
+import { HistoryPageAtoms } from '../1_atoms/historyPage';
 import { createTestUser, type TestUser } from './userFactory';
 
-export { LoginPageAtoms, GlobalAtoms, StudiesPageAtoms, StudyPageAtoms, SignupPageAtoms, HomePageAtoms, ProfilePageAtoms, ResetPasswordPageAtoms, GroupStudyPageAtoms };
+export { LoginPageAtoms, GlobalAtoms, StudiesPageAtoms, StudyPageAtoms, SignupPageAtoms, HomePageAtoms, ProfilePageAtoms, ResetPasswordPageAtoms, GroupStudyPageAtoms, HistoryPageAtoms };
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -46,6 +47,7 @@ type AtomFixtures = {
   profile: ProfilePageAtoms;
   resetPassword: ResetPasswordPageAtoms;
   groupStudy: GroupStudyPageAtoms;
+  history: HistoryPageAtoms;
   /** A freshly created DB user, unique to this test. Always use this instead of TEST_ACCOUNTS. */
   freshUser: TestUser;
 };
@@ -60,6 +62,7 @@ export const test = base.extend<AtomFixtures>({
   profile:       async ({ page }, use) => use(new ProfilePageAtoms(page)),
   resetPassword: async ({ page }, use) => use(new ResetPasswordPageAtoms(page)),
   groupStudy:    async ({ page }, use) => use(new GroupStudyPageAtoms(page)),
+  history:       async ({ page }, use) => use(new HistoryPageAtoms(page)),
   freshUser:     async ({}, use) => use(await createTestUser()),
 });
 
