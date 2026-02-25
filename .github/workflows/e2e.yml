@@ -281,14 +281,12 @@ jobs:
               const summary = `${icon} ${passed}/${total} tests · commit <a href="${shaUrl}">${sha}</a> · <a href="${runUrl}">#${context.runNumber}</a> · ${dur}`;
 
               const innerBlocks = fileGroups.map(({ file, rows, filePassed, fileFailed, fileDurMs }) => {
-                const fileOk    = fileFailed === 0;
-                const fileIcon  = fileOk ? '✅' : '❌';
-                const fileParts = [`${filePassed} passed`];
-                if (fileFailed > 0) fileParts.push(`${fileFailed} failed`);
+                const fileTotal = filePassed + fileFailed;
+                const fileIcon  = fileFailed === 0 ? '✅' : (filePassed === 0 ? '❌' : '🟡');
                 const fileDur   = (fileDurMs / 1000).toFixed(1) + 's';
                 return [
                   `<details>`,
-                  `<summary>${fileIcon} ${file} — ${fileParts.join(', ')} · ${fileDur}</summary>`,
+                  `<summary>${fileIcon} ${filePassed}/${fileTotal}: ${file} (${fileDur})</summary>`,
                   ``,
                   `| | Test | Duration |`,
                   `|---|---|---|`,
