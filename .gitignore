@@ -4,6 +4,11 @@ result
 .devenv
 .devenv
 pg-init-*
-CLAUDE.md
+!CLAUDE.md
 .claude
 .parcel-cache
+e2e-secrets.json
+local-secrets.json
+e2e/playwright-report/
+e2e/test-results/
+test-results/

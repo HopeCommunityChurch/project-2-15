@@ -175,7 +175,7 @@ export class MyWebsocket extends EventTarget {
     this.ws = null;
     this.host = location.host;
     this.openedDoc = null;
-    this.protocol = window.isLocal == 1 ? "ws://" : "wss://";
+    this.protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
   }
 
   connect () {

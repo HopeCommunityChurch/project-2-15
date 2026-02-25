@@ -1,0 +1,328 @@
+name: E2E Tests
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    permissions:
+      pull-requests: write
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: p215_e2e
+          POSTGRES_USER: p215_user
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U p215_user -d p215_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      mailpit:
+        image: axllent/mailpit:latest
+        ports:
+          - 1025:1025
+          - 8025:8025
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Nix + Cachix binary cache (matches main.yml pattern) ──────────────
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - uses: cachix/cachix-action@v14
+        with:
+          name: devenv
+
+      # Cache the Nix store so dev-shell packages (HLS, hoogle, hlint, etc.)
+      # aren't re-fetched from cache.nixos.org on every run.
+      - uses: nix-community/cache-nix-action@v5
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+
+      # ── Node (frontend + Playwright) ──────────────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── npm caches ────────────────────────────────────────────────────────
+      - uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: npm-frontend-${{ hashFiles('frontend/package-lock.json') }}
+
+      - uses: actions/cache@v4
+        with:
+          path: e2e/node_modules
+          key: npm-e2e-${{ hashFiles('e2e/package-lock.json') }}
+
+      # ── Haskell / Cabal cache ─────────────────────────────────────────────
+      # Cache the Cabal package store (compiled Haskell deps) and dist-newstyle
+      # (compiled application). Key on backend.cabal so a dep change busts the
+      # cache; restore-keys allows partial hits when only source files changed.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/packages
+            ~/.cabal/store
+            backend/dist-newstyle
+          key: cabal-${{ runner.os }}-${{ hashFiles('backend/backend.cabal') }}
+          restore-keys: |
+            cabal-${{ runner.os }}-
+
+      # ── Backend: build, migrate, and start ────────────────────────────────
+      # The backend runs migrations automatically on startup via its built-in
+      # postgresql-migration runner (schema_migrations tracking table).
+      # We point it at the CI Postgres via SECRETS_FILE.
+      - name: Write CI secrets file
+        run: |
+          cat > /tmp/ci-secrets.json <<'EOF'
+          {
+            "db": {
+              "host": "127.0.0.1",
+              "port": 5432,
+              "username": "p215_user",
+              "password": "password",
+              "database": "p215_e2e"
+            },
+            "env": { "tag": "Dev", "contents": "ci" },
+            "smtp": { "host": "127.0.0.1", "port": 1025 },
+            "esvToken": "${{ secrets.ESV_TOKEN }}",
+            "url": "http://127.0.0.1:8080",
+            "altchaKey": "key_secret_key"
+          }
+          EOF
+
+      - name: Build backend
+        run: cd backend && nix develop --command cabal build -O0 2>&1
+
+      - name: Start backend (runs migrations then serves on :3000)
+        run: |
+          cd backend
+          SECRETS_FILE=/tmp/ci-secrets.json \
+          MIGRATION_PATH=./migrations/ \
+          nix develop --command cabal run -O0 &
+          # Wait up to 60s for backend to be ready
+          for i in $(seq 1 30); do
+            # This needs to be 3001 for GitHub actions to route it through the Nginx reverse proxy; Scotty itself listens on 3000.
+            curl -sf http://localhost:3001/login && break || sleep 2
+          done
+
+      # ── Frontend: build bundle and place where Scotty can serve it ──────────
+      # In CI (env != Dev "local"), the study page loads the editor JS from
+      # /static/editor/index.js served by Scotty's static middleware — not from
+      # a Parcel dev server. We build the bundle and copy it into place.
+      - name: Install frontend deps
+        run: cd frontend && npm install --prefer-offline
+
+      - name: Build frontend bundle
+        run: cd frontend && npm run build
+
+      - name: Copy frontend bundle to backend static dir
+        run: |
+          mkdir -p backend/static/editor
+          cp frontend/dist/index.js backend/static/editor/index.js
+
+      # ── Nginx: reverse proxy mirroring the local devenv setup ─────────────
+      - name: Install and configure Nginx
+        run: |
+          sudo apt-get install -y nginx
+          sudo tee /etc/nginx/sites-available/default > /dev/null <<'NGINXCONF'
+          server {
+            listen 8080;
+
+            location /api/ {
+              proxy_pass http://127.0.0.1:3000/;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+            }
+
+            location / {
+              proxy_pass http://127.0.0.1:3001/;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
+              proxy_set_header Host $host;
+            }
+          }
+          NGINXCONF
+          sudo nginx -t
+          sudo systemctl start nginx
+
+      - name: Wait for Nginx to be ready
+        run: |
+          for i in $(seq 1 15); do
+            curl -sf http://localhost:8080 && break || sleep 2
+          done
+
+      # ── Seed test fixtures ────────────────────────────────────────────────
+      - name: Seed E2E fixtures
+        run: |
+          PGPASSWORD=password psql -h localhost -U p215_user -d p215_e2e \
+            -f e2e/fixtures/seed.sql
+
+      # ── Playwright ────────────────────────────────────────────────────────
+      - name: Install e2e deps
+        run: cd e2e && npm install --prefer-offline
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('e2e/package-lock.json') }}
+
+      # Full install (browser binary + system libs) on cache miss.
+      - name: Install Playwright browsers + system deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: cd e2e && npx playwright install --with-deps chromium
+
+      # System libs only on cache hit — browser binary already cached.
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: cd e2e && npx playwright install-deps chromium
+
+      - name: Check flaky tags
+        run: cd e2e && npm run check:flaky
+
+      - name: Run tests
+        run: cd e2e && npm test
+        env:
+          BASE_URL: http://localhost:8080
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGDATABASE: p215_e2e
+          PGUSER: p215_user
+          PGPASSWORD: password
+
+      # ── PR comment with test results ──────────────────────────────────────
+      - name: Post test results to PR
+        if: success() || failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Resolve PR number — available directly on pull_request events,
+            // or looked up by branch name on push events.
+            let prNumber = context.issue?.number;
+            if (!prNumber) {
+              const branch = context.ref.replace('refs/heads/', '');
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                head:  `${context.repo.owner}:${branch}`,
+                state: 'open',
+              });
+              if (prs.length === 0) { console.log('No open PR for this branch — skipping comment.'); return; }
+              prNumber = prs[0].number;
+            }
+
+            const resultsPath = path.join(process.env.GITHUB_WORKSPACE, 'e2e/test-results/results.json');
+
+            let body;
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            if (!fs.existsSync(resultsPath)) {
+              body = `⚠️ results not found · <a href="${runUrl}">#${context.runNumber}</a>`;
+            } else {
+              const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+              const { stats } = results;
+
+              const total = (stats.expected ?? 0) + (stats.unexpected ?? 0) + (stats.flaky ?? 0) + (stats.skipped ?? 0);
+              const passed = stats.expected ?? 0;
+              const ok = stats.unexpected === 0;
+              const icon = ok ? (stats.flaky > 0 ? '🟡' : '✅') : (passed === 0 ? '❌' : '🟡');
+
+              // Collect tests grouped by top-level suite (= spec file)
+              const fileGroups = [];
+              for (const suite of results.suites || []) {
+                const rows = [];
+                let filePassed = 0, fileFailed = 0, fileDurMs = 0;
+                function collectRows(s, prefix) {
+                  const title = prefix ? `${prefix} › ${s.title}` : s.title;
+                  for (const spec of s.specs || []) {
+                    for (const t of spec.tests || []) {
+                      const last    = t.results[t.results.length - 1];
+                      const retries = t.results.length - 1;
+                      const tIcon   = { expected: '✅', flaky: '⚠️', skipped: '⏭️' }[t.status] ?? '❌';
+                      const tDur    = (last?.duration ?? 0);
+                      fileDurMs += tDur;
+                      if (t.status === 'expected') filePassed++; else fileFailed++;
+                      const retry = retries > 0 ? ` *(${retries} retr${retries === 1 ? 'y' : 'ies'})*` : '';
+                      rows.push(`| ${tIcon} | ${title} › ${spec.title} | ${(tDur / 1000).toFixed(1)}s${retry} |`);
+                    }
+                  }
+                  for (const child of s.suites || []) collectRows(child, title);
+                }
+                collectRows(suite, '');
+                fileGroups.push({ file: suite.title, rows, filePassed, fileFailed, fileDurMs });
+              }
+
+              const totalDurMs = fileGroups.reduce((s, g) => s + g.fileDurMs, 0);
+              const dur = (totalDurMs / 1000).toFixed(0) + 's';
+
+              const sha = context.sha.slice(0, 7);
+              const shaUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
+              const summary = `${icon} ${passed}/${total} tests · commit <a href="${shaUrl}">${sha}</a> · <a href="${runUrl}">#${context.runNumber}</a> · ${dur}`;
+
+              const innerBlocks = fileGroups.map(({ file, rows, filePassed, fileFailed, fileDurMs }) => {
+                const fileTotal = filePassed + fileFailed;
+                const fileIcon  = fileFailed === 0 ? '✅' : (filePassed === 0 ? '❌' : '🟡');
+                const fileDur   = (fileDurMs / 1000).toFixed(1) + 's';
+                return [
+                  `<details>`,
+                  `<summary>${fileIcon} ${filePassed}/${fileTotal}: ${file} (${fileDur})</summary>`,
+                  ``,
+                  `| | Test | Duration |`,
+                  `|---|---|---|`,
+                  ...rows,
+                  `</details>`,
+                ].join('\n');
+              });
+
+              body = [
+                `<details${ok ? '' : ' open'}>`,
+                `<summary>${summary}</summary>`,
+                `<blockquote>`,
+                innerBlocks.join('\n'),
+                `</blockquote>`,
+                `</details>`,
+              ].join('\n');
+            }
+
+            await github.rest.issues.createComment({
+              owner:        context.repo.owner,
+              repo:         context.repo.repo,
+              issue_number: prNumber,
+              body:         body,
+            });
+
+      # ── Artifacts ─────────────────────────────────────────────────────────
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7
