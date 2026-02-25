@@ -16,6 +16,12 @@ export async function openStudy(
 ): Promise<OpenStudyResult> {
   await page.goto(`/study/${studyId}`);
   await page.waitForURL(`**/study/${studyId}`, { timeout: 10_000 });
+  // Wait for the ProseMirror editor to be interactive — confirms DocOpened
+  // WS handshake has completed and the editor is ready for input.
+  await page.locator('.ProseMirror[contenteditable="true"]').waitFor({
+    state: 'visible',
+    timeout: 10_000,
+  });
 
   return { url: page.url(), studyId };
 }
