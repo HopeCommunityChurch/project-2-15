@@ -7,40 +7,40 @@ export class ResetPasswordPageAtoms implements IResetPasswordPageAtoms {
   // ── /resetpassword — email request form ─────────────────────────────────────
 
   /** Fills the email field. Selector: input[name="email"] */
-  async fillEmail(email: string): Promise<void> {
+  async fillEmail(email: string) {
     await this.page.locator('input[name="email"]').fill(email);
   }
 
   /** Clicks the "Send Password Reset Email" submit button. Selector: button[type="submit"] */
-  async clickSendResetEmail(): Promise<void> {
+  async clickSendResetEmail() {
     await this.page.getByRole('button', { name: /send password reset email/i }).click();
   }
 
   /** Asserts the confirmation text appears after submitting the email form.
    *  The backend responds with "Check your email" and HTMX swaps the form. */
-  async assertEmailSentConfirmationVisible(): Promise<void> {
+  async assertEmailSentConfirmationVisible() {
     await expect(this.page.getByText('Check your email')).toBeVisible();
   }
 
   // ── /reset_token — new password form ────────────────────────────────────────
 
   /** Fills the password field. Selector: input[name="password"] */
-  async fillNewPassword(password: string): Promise<void> {
+  async fillNewPassword(password: string) {
     await this.page.locator('input[name="password"]').fill(password);
   }
 
   /** Fills the retype-password field. Selector: input[name="password2"] */
-  async fillRetypePassword(password: string): Promise<void> {
+  async fillRetypePassword(password: string) {
     await this.page.locator('input[name="password2"]').fill(password);
   }
 
   /** Toggles the "View Password" checkbox. Selector: input#viewPassword */
-  async clickViewPassword(): Promise<void> {
+  async clickViewPassword() {
     await this.page.locator('input#viewPassword').click();
   }
 
   /** Clicks the "Reset Password" submit button on the token form. Selector: button[type="submit"] */
-  async clickSubmitToken(): Promise<void> {
+  async clickSubmitToken() {
     await this.page.getByRole('button', { name: /reset password/i }).click();
   }
 
@@ -48,7 +48,7 @@ export class ResetPasswordPageAtoms implements IResetPasswordPageAtoms {
 
   /** Asserts the "token is invalid / expired" error message is visible.
    *  Rendered when errors.tokenIsValid != 1 after form submission. */
-  async assertErrorInvalidToken(): Promise<void> {
+  async assertErrorInvalidToken() {
     await expect(
       this.page.getByText(/you took to long try again/i)
     ).toBeVisible();
@@ -56,7 +56,7 @@ export class ResetPasswordPageAtoms implements IResetPasswordPageAtoms {
 
   /** Asserts the "passwords don't match" error message is visible.
    *  Rendered when errors.passwordsMatch != 1 after form submission. */
-  async assertErrorPasswordsMismatch(): Promise<void> {
+  async assertErrorPasswordsMismatch() {
     await expect(
       this.page.getByText(/passwords don't match/i)
     ).toBeVisible();
@@ -64,19 +64,19 @@ export class ResetPasswordPageAtoms implements IResetPasswordPageAtoms {
 
   /** Asserts the "password too short" error message is visible.
    *  Rendered when errors.passwordLength != 1 after form submission. */
-  async assertErrorPasswordTooShort(): Promise<void> {
+  async assertErrorPasswordTooShort() {
     await expect(
       this.page.getByText(/password needs to be at least 9 characters/i)
     ).toBeVisible();
   }
 
   /** Asserts that no error messages are visible on the token form. */
-  async assertNoErrors(): Promise<void> {
+  async assertNoErrors() {
     await expect(this.page.locator('ul.errorText')).not.toBeVisible();
   }
 
   /** Asserts that a successful reset redirects to the studies page. */
-  async assertRedirectedAfterReset(): Promise<void> {
+  async assertRedirectedAfterReset() {
     await this.page.waitForURL('**/studies');
   }
 }

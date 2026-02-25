@@ -20,7 +20,8 @@ export async function previewScriptureOnly(
   await editor.clickInsertScripture();
   await editor.fillScriptureRef(ref);
   await editor.clickScripturePreview();
-  await editor.assertScripturePreviewVisible();
+  // Wait for the preview panel to become visible — confirms the API responded.
+  await page.locator('#previewScripture').waitFor({ state: 'visible', timeout: 10_000 });
 
   return { ref };
 }

@@ -105,6 +105,8 @@ export interface IStudyPageAtoms {
   assertSidebarSectionCount(count: number): Promise<void>;
   assertScriptureChunkIndentLevel(index: number, level: number): Promise<void>;
   clickDeleteSection(sectionIndex: number): Promise<void>;
+  clickStudyBlockBody(blockIndex: number): Promise<void>;
+  clickSectionHeading(sectionIndex: number): Promise<void>;
 }
 
 // ── Home / landing page (1_atoms/homePage.ts) ─────────────────────────────────

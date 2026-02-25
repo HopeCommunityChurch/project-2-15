@@ -18,7 +18,10 @@ export async function resendInvite(
   const groupStudy = new GroupStudyPageAtoms(page);
 
   const resendResponse = page.waitForResponse(
-    (res) => res.url().includes('/group_study') && res.status() === 200,
+    (res) =>
+      res.url().includes('/group_study') &&
+      res.url().includes('/resend') &&
+      res.status() === 200,
     { timeout: 10_000 },
   );
   await groupStudy.clickResendInvite(shareToken);

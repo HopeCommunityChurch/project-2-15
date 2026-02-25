@@ -258,6 +258,30 @@ export class StudyPageAtoms implements IStudyPageAtoms {
   }
 
   /**
+   * Clicks the text-body cell (2nd td > p) of the nth study block (0-based,
+   * global across all sections) to place the cursor there for typing or
+   * formatting. Selector: .studyBlocks tr[data-id] td:nth-child(2) p
+   */
+  async clickStudyBlockBody(blockIndex: number) {
+    await this.page
+      .locator('.ProseMirror .studyBlocks tr[data-id] td:nth-child(2) p')
+      .nth(blockIndex)
+      .click();
+  }
+
+  /**
+   * Clicks the h2 heading of the nth section (0-based) to place the editor
+   * cursor there. Use after addSection to establish cursor before subsequent
+   * insertions. Selector: .ProseMirror .section:nth-child(N+1) h2
+   */
+  async clickSectionHeading(sectionIndex: number) {
+    await this.page
+      .locator('.ProseMirror .section h2')
+      .nth(sectionIndex)
+      .click();
+  }
+
+  /**
    * Clicks the "Remove" button (.deleter) on a sidebar section at the given
    * 0-based index to delete the section. The first click reveals the button,
    * the second confirms deletion.

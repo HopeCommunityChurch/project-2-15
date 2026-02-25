@@ -57,8 +57,10 @@ test.describe('editor formatting', () => {
     await applyBoldToText(page, text);
     await editor.assertBoldActive(text);
     await undoChange(page);
-    // After undo the bold mark should be removed; text may still be present.
+    // After undo the bold mark must be gone — confirms undo actually worked.
+    await editor.assertNotBoldActive(text);
     await redoChange(page);
+    // After redo the bold must be restored.
     await editor.assertBoldActive(text);
   });
 });

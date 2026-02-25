@@ -16,7 +16,8 @@ export async function cancelDeleteStudy(page: Page): Promise<CancelDeleteStudyRe
 
   await editor.clickProfileMenu();
   await editor.clickDeleteStudy();
-  await editor.assertConfirmDeleteVisible();
+  // Wait for the confirm-delete dialog to appear before clicking Cancel.
+  await page.locator('#confirmDelete').waitFor({ state: 'visible', timeout: 10_000 });
   await editor.clickCancelDelete();
 
   // Wait for the confirm-delete dialog to be detached from the DOM.

@@ -21,7 +21,8 @@ export async function requestPasswordReset(
 
   await resetPage.fillEmail(email);
   await resetPage.clickSendResetEmail();
-  await resetPage.assertEmailSentConfirmationVisible();
+  // Wait for the HTMX swap that replaces the form with the confirmation text.
+  await page.locator(':text("Check your email")').waitFor({ state: 'visible', timeout: 10_000 });
 
   return { email };
 }
