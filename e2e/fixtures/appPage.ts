@@ -25,9 +25,14 @@ import { LoginPageAtoms } from '../1_atoms/loginPage';
 import { GlobalAtoms } from '../1_atoms/global';
 import { StudiesPageAtoms } from '../1_atoms/studiesPage';
 import { StudyPageAtoms } from '../1_atoms/studyPage';
+import { SignupPageAtoms } from '../1_atoms/signupPage';
+import { HomePageAtoms } from '../1_atoms/homePage';
+import { ProfilePageAtoms } from '../1_atoms/profilePage';
+import { ResetPasswordPageAtoms } from '../1_atoms/resetPasswordPage';
+import { GroupStudyPageAtoms } from '../1_atoms/groupStudyPage';
 import { createTestUser, type TestUser } from './userFactory';
 
-export { LoginPageAtoms, GlobalAtoms, StudiesPageAtoms, StudyPageAtoms };
+export { LoginPageAtoms, GlobalAtoms, StudiesPageAtoms, StudyPageAtoms, SignupPageAtoms, HomePageAtoms, ProfilePageAtoms, ResetPasswordPageAtoms, GroupStudyPageAtoms };
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -36,6 +41,11 @@ type AtomFixtures = {
   nav: GlobalAtoms;
   studies: StudiesPageAtoms;
   editor: StudyPageAtoms;
+  signup: SignupPageAtoms;
+  home: HomePageAtoms;
+  profile: ProfilePageAtoms;
+  resetPassword: ResetPasswordPageAtoms;
+  groupStudy: GroupStudyPageAtoms;
   /** A freshly created DB user, unique to this test. Always use this instead of TEST_ACCOUNTS. */
   freshUser: TestUser;
 };
@@ -45,7 +55,12 @@ export const test = base.extend<AtomFixtures>({
   nav:       async ({ page }, use) => use(new GlobalAtoms(page)),
   studies:   async ({ page }, use) => use(new StudiesPageAtoms(page)),
   editor:    async ({ page }, use) => use(new StudyPageAtoms(page)),
-  freshUser: async ({}, use) => use(await createTestUser()),
+  signup:    async ({ page }, use) => use(new SignupPageAtoms(page)),
+  home:      async ({ page }, use) => use(new HomePageAtoms(page)),
+  profile:       async ({ page }, use) => use(new ProfilePageAtoms(page)),
+  resetPassword: async ({ page }, use) => use(new ResetPasswordPageAtoms(page)),
+  groupStudy:    async ({ page }, use) => use(new GroupStudyPageAtoms(page)),
+  freshUser:     async ({}, use) => use(await createTestUser()),
 });
 
 export { expect };

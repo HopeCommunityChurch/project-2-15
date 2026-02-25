@@ -50,3 +50,114 @@ export interface IStudyPageAtoms {
   assertSaved(): Promise<void>;
   assertTitle(title: string): Promise<void>;
 }
+
+// ── Home / landing page (1_atoms/homePage.ts) ─────────────────────────────────
+
+export interface IHomePageAtoms {
+  clickNavLogIn(): Promise<void>;
+  clickNavSignUp(): Promise<void>;
+  clickNavTeachings(): Promise<void>;
+  clickNavEquipping(): Promise<void>;
+  clickNavMessaging(): Promise<void>;
+  clickHamburger(): Promise<void>;
+  clickMobileNavLogIn(): Promise<void>;
+  clickMobileNavSignUp(): Promise<void>;
+  clickBeginYourJourney(): Promise<void>;
+  clickFooterLogin(): Promise<void>;
+  clickFooterContactUs(): Promise<void>;
+}
+
+// ── Profile page (1_atoms/profilePage.ts) ─────────────────────────────────────
+
+export interface IProfilePageAtoms {
+  fillName(name: string): Promise<void>;
+  fillEmail(email: string): Promise<void>;
+  clickSaveProfile(): Promise<void>;
+  setFeatureCheckbox(featureName: string, checked: boolean): Promise<void>;
+  clickSaveFeatures(): Promise<void>;
+  clickProfileButton(): Promise<void>;
+  clickSignOut(): Promise<void>;
+  clickHomeLink(): Promise<void>;
+  assertNameValue(name: string): Promise<void>;
+  assertEmailValue(email: string): Promise<void>;
+  assertProfileSavedNotificationVisible(): Promise<void>;
+  assertFeaturesSavedNotificationVisible(): Promise<void>;
+  assertFeatureChecked(featureName: string): Promise<void>;
+  assertFeatureUnchecked(featureName: string): Promise<void>;
+  assertProfileNavVisible(): Promise<void>;
+}
+
+// ── Signup page (1_atoms/signupPage.ts) ───────────────────────────────────────
+
+export interface ISignupPageAtoms {
+  fillName(name: string): Promise<void>;
+  fillEmail(email: string): Promise<void>;
+  fillPassword(password: string): Promise<void>;
+  fillRetypePassword(password: string): Promise<void>;
+  clickViewPassword(): Promise<void>;
+  clickSubmit(): Promise<void>;
+  clickLogInLink(): Promise<void>;
+  clickLogoLink(): Promise<void>;
+  assertRedirectedAfterSignup(): Promise<void>;
+  assertErrorNameRequired(): Promise<void>;
+  assertErrorEmailTaken(): Promise<void>;
+  assertErrorPasswordsMismatch(): Promise<void>;
+  assertErrorPasswordTooShort(): Promise<void>;
+  assertErrorVerificationFailed(): Promise<void>;
+  assertNoErrors(): Promise<void>;
+}
+
+// ── Reset password pages (1_atoms/resetPasswordPage.ts) ───────────────────────
+
+export interface IResetPasswordPageAtoms {
+  // /resetpassword — email request form
+  fillEmail(email: string): Promise<void>;
+  clickSendResetEmail(): Promise<void>;
+  assertEmailSentConfirmationVisible(): Promise<void>;
+  // /reset_token — new password form
+  fillNewPassword(password: string): Promise<void>;
+  fillRetypePassword(password: string): Promise<void>;
+  clickViewPassword(): Promise<void>;
+  clickSubmitToken(): Promise<void>;
+  // error state assertions
+  assertErrorInvalidToken(): Promise<void>;
+  assertErrorPasswordsMismatch(): Promise<void>;
+  assertErrorPasswordTooShort(): Promise<void>;
+  assertNoErrors(): Promise<void>;
+  assertRedirectedAfterReset(): Promise<void>;
+}
+
+// ── Group study page — modal loaded into #groupStudy on /study/<docId> ────────
+// (1_atoms/groupStudyPage.ts)
+
+export interface IGroupStudyPageAtoms {
+  // open / close
+  clickOpenGroupStudy(): Promise<void>;
+  clickClose(): Promise<void>;
+  // create group study form (shown when doc has no group study)
+  fillCreateGroupName(name: string): Promise<void>;
+  fillCreateInviteEmail(email: string): Promise<void>;
+  selectCreateInvitePermission(permission: 'member' | 'owner'): Promise<void>;
+  clickCreate(): Promise<void>;
+  // manage group name (owner only)
+  fillGroupName(name: string): Promise<void>;
+  assertGroupNameValue(name: string): Promise<void>;
+  assertGroupNameSaved(): Promise<void>;
+  // inline invite form (owner only)
+  fillInviteEmail(email: string): Promise<void>;
+  selectInvitePermission(permission: 'member' | 'owner'): Promise<void>;
+  clickInvite(): Promise<void>;
+  // share row actions (owner only)
+  clickResendInvite(shareToken: string): Promise<void>;
+  clickRemoveInvite(shareToken: string): Promise<void>;
+  assertInviteVisible(email: string): Promise<void>;
+  assertInviteNotVisible(email: string): Promise<void>;
+  assertInviteStatusPending(email: string): Promise<void>;
+  assertInviteStatusError(email: string): Promise<void>;
+  // member row actions (owner only)
+  selectMemberOwnership(docId: string, role: 'member' | 'owner'): Promise<void>;
+  clickRemoveMember(docId: string): Promise<void>;
+  assertMemberVisible(name: string): Promise<void>;
+  assertMemberNotVisible(name: string): Promise<void>;
+  assertMemberOwnership(docId: string, role: 'member' | 'owner'): Promise<void>;
+}
